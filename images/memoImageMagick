@@ -1,0 +1,15 @@
+make 333*250 tiles:
+mogrify -resize 333x250^ -gravity center -crop 333x250+0+0 -format jpg -quality 90 -path ./done *.JPG
+mogrify -resize 200x150^ -gravity center -crop 200x150+0+0 -format jpg -quality 75 -path thumbs *.jpg
+
+resize with backgound:
+mogrify -resize 80x80 -background black -gravity center -extent 80x80 -format jpg -quality 75 -path thumbs *.jpg
+
+800x600 phototheque boxes
+mogrify -resize 800x600 -gravity center -format jpg -quality 90 *.jpg
+
+images from docx:
+unzip foo.docx "word/media/*"
+
+rename "s/JPG/jpg/" *.JPG
+
