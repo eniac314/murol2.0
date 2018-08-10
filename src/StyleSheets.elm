@@ -66,7 +66,7 @@ defaulStyleSheet =
     , customStyles =
         { idNbrs =
             Dict.fromList
-                [ ( 0
+                [ ( "root"
                   , [ padding 20
                     , spacing 15
                     , Font.family [ Font.typeface "Arial" ]
@@ -77,11 +77,11 @@ defaulStyleSheet =
         , classes =
             Dict.fromList
                 [ ( "colImg"
-                  , [ htmlAttribute
-                        (Attr.style "width" "100%")
-                    , htmlAttribute
-                        (Attr.style "height" "auto")
-                    , centerX
+                  , [ -- htmlAttribute
+                      --    (Attr.style "width" "100%")
+                      --, htmlAttribute
+                      --    (Attr.style "height" "auto")
+                      centerX
                     ]
                   )
                 ]

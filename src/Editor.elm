@@ -14,127 +14,121 @@ import Task exposing (perform)
 
 sampleDoc : Document
 sampleDoc =
-    ColumnNode (Id { idNbr = 0, class = [] })
+    ColumnNode { uid = 0, styleId = Just "root", classes = [] }
         []
-        [ DocumentLeafNode <|
-            HeadingNode NoId
-                []
-                ( 1, "Découvrir Murol" )
-        , DocumentLeafNode <|
-            HeadingNode NoId
-                []
-                ( 2, "Le bourg de Murol" )
-        , TextColumnNode NoId
+        --[ DocumentLeafNode <|
+        [ HeadingNode { uid = 1, styleId = Nothing, classes = [] }
             []
-            [ DocumentLeafNode <|
-                ImageNode NoId
-                    [ AlignLeft ]
-                    { src = UrlSrc "/images/2 Murol, le bourg.jpg"
-                    , caption = Nothing
-                    , size =
-                        { imgWidth = 300
-                        , imgHeight = 300
-                        }
+            ( 1, "Découvrir Murol" )
+
+        --, DocumentLeafNode <|
+        , HeadingNode { uid = 2, styleId = Nothing, classes = [] }
+            []
+            ( 2, "Le bourg de Murol" )
+        , TextColumnNode { uid = 3, styleId = Nothing, classes = [] }
+            []
+            [ ImageNode { uid = 4, styleId = Nothing, classes = [] }
+                [ AlignLeft ]
+                { src = UrlSrc "/images/2 Murol, le bourg.jpg"
+                , caption = Nothing
+                , size =
+                    { imgWidth = 300
+                    , imgHeight = 300
                     }
-            , DocumentLeafNode <|
-                ImageNode NoId
-                    [ AlignRight ]
-                    { src = UrlSrc "/images/2 Murol, le bourg.jpg"
-                    , caption = Nothing
-                    , size =
-                        { imgWidth = 300
-                        , imgHeight = 300
-                        }
+                }
+            , ImageNode { uid = 5, styleId = Nothing, classes = [] }
+                [ AlignRight ]
+                { src = UrlSrc "/images/2 Murol, le bourg.jpg"
+                , caption = Nothing
+                , size =
+                    { imgWidth = 300
+                    , imgHeight = 300
                     }
-            , ParagraphNode NoId
+                }
+            , ParagraphNode { uid = 6, styleId = Nothing, classes = [] }
                 []
-                [ TextNode NoId
+                [ TextNode { uid = 22, styleId = Nothing, classes = [] }
                     []
                     "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
                 ]
-            , ParagraphNode NoId
+            , ParagraphNode { uid = 7, styleId = Nothing, classes = [] }
                 []
-                [ TextNode NoId
+                [ TextNode { uid = 8, styleId = Nothing, classes = [] }
                     []
                     "Enchâssé entre le volcan boisé du "
-                , LinkNode NoId
+                , LinkNode { uid = 9, styleId = Nothing, classes = [] }
                     []
                     { targetBlank = False
                     , url = ""
                     , label = "Tartaret"
                     }
-                , TextNode NoId
+                , TextNode { uid = 10, styleId = Nothing, classes = [] }
                     []
                     " le promontoire du "
-                , LinkNode NoId
+                , LinkNode { uid = 11, styleId = Nothing, classes = [] }
                     []
                     { targetBlank = False
                     , url = ""
                     , label = "château de Murol"
                     }
-                , TextNode NoId
+                , TextNode { uid = 12, styleId = Nothing, classes = [] }
                     []
                     " et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques."
                 ]
-            , ParagraphNode NoId
+            , ParagraphNode { uid = 13, styleId = Nothing, classes = [] }
                 []
-                [ TextNode NoId
+                [ TextNode { uid = 14, styleId = Nothing, classes = [] }
                     []
                     "Au pied du château, découvrez le parc arboré du Prélong où se trouvent le "
-                , LinkNode NoId
+                , LinkNode { uid = 15, styleId = Nothing, classes = [] }
                     []
                     { targetBlank = True
                     , url = "http://www.musee-murol.fr/fr"
                     , label = "musée des Peintres de l’Ecole de Murols"
                     }
-                , TextNode NoId
+                , TextNode { uid = 16, styleId = Nothing, classes = [] }
                     []
                     " et le musée archéologique."
                 ]
             ]
-        , ColumnNode NoId
-            --[ StyleElementAttr (spacing 15) ]
+        , ColumnNode { uid = 17, styleId = Nothing, classes = [] }
             []
-            [ DocumentLeafNode <|
-                ImageNode (Id { idNbr = 1, class = [ "colImg" ] })
-                    []
-                    { src = UrlSrc "/images/prélong.jpg"
-                    , caption = Nothing
-                    , size =
-                        { imgWidth = 333
-                        , imgHeight = 250
-                        }
+            [ ImageNode { uid = 18, styleId = Nothing, classes = [] }
+                []
+                { src = UrlSrc "/images/prélong.jpg"
+                , caption = Nothing
+                , size =
+                    { imgWidth = 333
+                    , imgHeight = 250
                     }
-            , DocumentLeafNode <|
-                ImageNode (Id { idNbr = 2, class = [ "colImg" ] })
-                    []
-                    { src = UrlSrc "/images/museePeintre.jpeg"
-                    , caption = Nothing
-                    , size =
-                        { imgWidth = 333
-                        , imgHeight = 250
-                        }
+                }
+            , ImageNode { uid = 19, styleId = Nothing, classes = [] }
+                []
+                { src = UrlSrc "/images/museePeintre.jpeg"
+                , caption = Nothing
+                , size =
+                    { imgWidth = 333
+                    , imgHeight = 250
                     }
-            , DocumentLeafNode <|
-                ImageNode (Id { idNbr = 3, class = [ "colImg" ] })
-                    []
-                    { src = UrlSrc "/images/bourg2.jpg"
-                    , caption = Nothing
-                    , size =
-                        { imgWidth = 377
-                        , imgHeight = 250
-                        }
+                }
+            , ImageNode { uid = 20, styleId = Nothing, classes = [] }
+                []
+                { src = UrlSrc "/images/bourg2.jpg"
+                , caption = Nothing
+                , size =
+                    { imgWidth = 377
+                    , imgHeight = 250
                     }
-            , DocumentLeafNode <|
-                ImageNode (Id { idNbr = 3, class = [ "colImg" ] })
-                    []
-                    { src = UrlSrc "/images/illustration animations estivales.jpg"
-                    , caption = Nothing
-                    , size =
-                        { imgWidth = 576
-                        , imgHeight = 772
-                        }
+                }
+            , ImageNode { uid = 21, styleId = Nothing, classes = [] }
+                []
+                { src = UrlSrc "/images/illustration animations estivales.jpg"
+                , caption = Nothing
+                , size =
+                    { imgWidth = 576
+                    , imgHeight = 772
                     }
+                }
             ]
         ]
 
@@ -194,7 +188,8 @@ view model =
     { title = "editor"
     , body =
         [ layout []
-            (packStyleSheet defaulStyleSheet sampleDoc
+            (responsivePreFormat model.winSize sampleDoc
+                |> packStyleSheet defaulStyleSheet
                 |> renderDoc model.winSize
             )
             |> Html.map (\_ -> Default)

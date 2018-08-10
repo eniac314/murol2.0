@@ -12,27 +12,22 @@ import Html.Attributes as Attr
 
 
 type Document
-    = ParagraphNode Id (List NodeAttribute) (List DocumentLeaf)
+    = ParagraphNode Id (List NodeAttribute) (List Document)
     | ColumnNode Id (List NodeAttribute) (List Document)
     | RowNode Id (List NodeAttribute) (List Document)
     | TextColumnNode Id (List NodeAttribute) (List Document)
     | RespBloc Id (List NodeAttribute) (List Document)
-    | DocumentLeafNode DocumentLeaf
-
-
-type DocumentLeaf
-    = ImageNode Id (List NodeAttribute) ImageMeta
+    | ImageNode Id (List NodeAttribute) ImageMeta
     | LinkNode Id (List NodeAttribute) LinkMeta
     | TextNode Id (List NodeAttribute) String
     | HeadingNode Id (List NodeAttribute) ( Int, String )
 
 
-type Id
-    = NoId
-    | Id
-        { idNbr : Int
-        , class : List String
-        }
+type alias Id =
+    { uid : Int
+    , styleId : Maybe String
+    , classes : List String
+    }
 
 
 type NodeAttribute
@@ -72,7 +67,7 @@ type alias StyleSheet =
     , linkStyle : List (Attribute Never)
     , headingStyles : Dict Int (List (Attribute Never))
     , customStyles :
-        { idNbrs : Dict Int (List (Attribute Never))
+        { idNbrs : Dict String (List (Attribute Never))
         , classes : Dict String (List (Attribute Never))
         }
     }
@@ -126,25 +121,11 @@ renderDoc winSize document =
             renderRowNode winSize attrs children
 
         TextColumnNode _ attrs children ->
-            if
-                (device.class == Phone || device.class == Tablet)
-                    && device.orientation
-                    == Portrait
-            then
-                renderColumnNode winSize attrs children
-            else
-                renderTextColumnNode winSize attrs children
+            renderTextColumnNode winSize attrs children
 
         RespBloc _ attrs children ->
             renderRespBloc winSize attrs children
 
-        DocumentLeafNode documentLeaf ->
-            renderDocLeaf winSize documentLeaf
-
-
-renderDocLeaf : WinSize -> DocumentLeaf -> Element Never
-renderDocLeaf winSize docLeaf =
-    case docLeaf of
         ImageNode _ attrs meta ->
             renderImageNode winSize attrs meta
 
@@ -165,9 +146,6 @@ renderImageNode winSize attrs { src, caption, size } =
             classifyDevice winSize
 
         attrs_ =
-            --[ height (px size.imgHeight)
-            --, width (px size.imgWidth)
-            --]
             [ width (maximum size.imgWidth fill) ]
                 ++ renderAttrs winSize attrs
 
@@ -209,10 +187,10 @@ renderHeading winSize attrs ( level, s ) =
     el (Region.heading level :: renderAttrs winSize attrs) (text s)
 
 
-renderParagraphNode : WinSize -> List NodeAttribute -> List DocumentLeaf -> Element Never
+renderParagraphNode : WinSize -> List NodeAttribute -> List Document -> Element Never
 renderParagraphNode winSize attrs children =
     paragraph (renderAttrs winSize attrs)
-        (List.map (renderDocLeaf winSize) children)
+        (List.map (renderDoc winSize) children)
 
 
 renderRowNode : WinSize -> List NodeAttribute -> List Document -> Element Never
@@ -223,7 +201,6 @@ renderRowNode winSize attrs children =
 
 renderColumnNode : WinSize -> List NodeAttribute -> List Document -> Element Never
 renderColumnNode winSize attrs children =
-    --let addImgColClass
     column (renderAttrs winSize attrs)
         (List.map (renderDoc winSize) children)
 
@@ -243,71 +220,104 @@ renderRespBloc winSize attrs children =
 -------------------------------------------------------------------------------
 
 
+responsivePreFormat : WinSize -> Document -> Document
+responsivePreFormat winSize document =
+    let
+        device =
+            classifyDevice winSize
+    in
+    case document of
+        ParagraphNode id attrs children ->
+            ParagraphNode id
+                attrs
+                (List.map (responsivePreFormat winSize) children)
+
+        ColumnNode id attrs children ->
+            let
+                addColImgClass doc =
+                    case doc of
+                        ImageNode ({ uid, styleId, classes } as id_) attrs_ meta ->
+                            ImageNode { id_ | classes = "colImg" :: classes } attrs_ meta
+
+                        doc_ ->
+                            doc_
+
+                children_ =
+                    List.map addColImgClass children
+            in
+            ColumnNode id
+                attrs
+                (List.map (responsivePreFormat winSize) children_)
+
+        RowNode id attrs children ->
+            RowNode id
+                attrs
+                (List.map (responsivePreFormat winSize) children)
+
+        TextColumnNode id attrs children ->
+            if
+                (device.class == Phone || device.class == Tablet)
+                    && device.orientation
+                    == Portrait
+            then
+                ColumnNode id
+                    attrs
+                    (List.map (responsivePreFormat winSize) children)
+            else
+                TextColumnNode id
+                    attrs
+                    (List.map (responsivePreFormat winSize) children)
+
+        RespBloc id attrs children ->
+            RespBloc id
+                attrs
+                (List.map (responsivePreFormat winSize) children)
+
+        ImageNode id attrs meta ->
+            ImageNode id attrs meta
+
+        LinkNode id attrs meta ->
+            LinkNode id attrs meta
+
+        TextNode id attrs s ->
+            TextNode id attrs s
+
+        HeadingNode id attrs ( level, s ) ->
+            HeadingNode id attrs ( level, s )
+
+
 packStyleSheet : StyleSheet -> Document -> Document
 packStyleSheet ({ paragraphStyle, columnStyle, rowStyle, textColumnStyle, respBlocStyle, customStyles, imageStyle, linkStyle, textStyle, headingStyles } as styleSheet) document =
     let
         packAttr new current =
             List.map StyleElementAttr new ++ current
 
-        idStyle id =
-            case id of
-                NoId ->
-                    []
-
-                Id { idNbr, class } ->
-                    Maybe.withDefault
-                        []
-                        (Dict.get
-                            idNbr
+        idStyle { uid, styleId, classes } =
+            (styleId
+                |> Maybe.andThen
+                    (\id ->
+                        Dict.get
+                            id
                             customStyles.idNbrs
+                    )
+                |> Maybe.withDefault []
+            )
+                ++ (List.filterMap
+                        (\c ->
+                            Dict.get
+                                c
+                                customStyles.classes
                         )
-                        ++ (List.filterMap
-                                (\c ->
-                                    Dict.get
-                                        c
-                                        customStyles.classes
-                                )
-                                class
-                                |> List.concat
-                           )
-
-        packStyleSheetDL dl =
-            case dl of
-                ImageNode id attrs imgMeta ->
-                    ImageNode
-                        id
-                        (packAttr (imageStyle ++ idStyle id) attrs)
-                        imgMeta
-
-                LinkNode id attrs linkMeta ->
-                    LinkNode
-                        id
-                        (packAttr (linkStyle ++ idStyle id) attrs)
-                        linkMeta
-
-                TextNode id attrs s ->
-                    TextNode
-                        id
-                        (packAttr (textStyle ++ idStyle id) attrs)
-                        s
-
-                HeadingNode id attrs ( l, s ) ->
-                    let
-                        headingStyle =
-                            Dict.get l headingStyles
-                                |> Maybe.withDefault []
-                    in
-                    HeadingNode
-                        id
-                        (packAttr (headingStyle ++ idStyle id) attrs)
-                        ( l, s )
+                        classes
+                        |> List.concat
+                   )
     in
     case document of
         ParagraphNode id attrs children ->
             ParagraphNode
                 id
                 (packAttr (paragraphStyle ++ idStyle id) attrs)
-                (List.map packStyleSheetDL children)
+                (List.map (packStyleSheet styleSheet) children)
 
         ColumnNode id attrs children ->
             ColumnNode
@@ -333,8 +343,34 @@ packStyleSheet ({ paragraphStyle, columnStyle, rowStyle, textColumnStyle, respBl
                 (packAttr (respBlocStyle ++ idStyle id) attrs)
                 (List.map (packStyleSheet styleSheet) children)
 
-        DocumentLeafNode documentLeaf ->
-            DocumentLeafNode (packStyleSheetDL documentLeaf)
+        ImageNode id attrs imgMeta ->
+            ImageNode
+                id
+                (packAttr (imageStyle ++ idStyle id) attrs)
+                imgMeta
+
+        LinkNode id attrs linkMeta ->
+            LinkNode
+                id
+                (packAttr (linkStyle ++ idStyle id) attrs)
+                linkMeta
+
+        TextNode id attrs s ->
+            TextNode
+                id
+                (packAttr (textStyle ++ idStyle id) attrs)
+                s
+
+        HeadingNode id attrs ( l, s ) ->
+            let
+                headingStyle =
+                    Dict.get l headingStyles
+                        |> Maybe.withDefault []
+            in
+            HeadingNode
+                id
+                (packAttr (headingStyle ++ idStyle id) attrs)
+                ( l, s )
 
 
 renderAttrs : WinSize -> List NodeAttribute -> List (Attribute Never)
