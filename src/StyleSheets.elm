@@ -28,8 +28,6 @@ defaulStyleSheet =
         ]
     , textColumnStyle =
         [ spacing 15
-
-        --, padding 15
         , width fill
         , Background.color (rgba 0 0 1 0.3)
         ]
@@ -60,6 +58,12 @@ defaulStyleSheet =
                 , Font.bold
                 , paddingXY 0 2
                 , width fill
+                ]
+              )
+            , ( 3
+              , [ Font.size 16
+                , Font.color (rgb 0 0.5 0)
+                , Font.bold
                 ]
               )
             ]
