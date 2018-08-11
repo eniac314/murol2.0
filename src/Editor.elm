@@ -36,7 +36,7 @@ type Msg
 type alias Model =
     { winSize : WinSize
     , selectedNode : Maybe Int
-    , document : DocZipper
+    , document : DocZipper Msg
     }
 
 
@@ -45,7 +45,6 @@ init flags =
       , selectedNode = Nothing
       , document =
             sampleDoc1
-                |> docToDocZip
                 |> initZip
       }
     , Cmd.batch

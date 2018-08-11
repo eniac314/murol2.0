@@ -4322,30 +4322,6 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
-var author$project$Document$Column = {$: 'Column'};
-var author$project$Document$Heading = function (a) {
-	return {$: 'Heading', a: a};
-};
-var author$project$Document$Image = function (a) {
-	return {$: 'Image', a: a};
-};
-var author$project$Document$Leaf = function (a) {
-	return {$: 'Leaf', a: a};
-};
-var author$project$Document$Link = function (a) {
-	return {$: 'Link', a: a};
-};
-var author$project$Document$Node = F2(
-	function (a, b) {
-		return {$: 'Node', a: a, b: b};
-	});
-var author$project$Document$Paragraph = {$: 'Paragraph'};
-var author$project$Document$ResponsiveBloc = {$: 'ResponsiveBloc'};
-var author$project$Document$Row = {$: 'Row'};
-var author$project$Document$Text = function (a) {
-	return {$: 'Text', a: a};
-};
-var author$project$Document$TextColumn = {$: 'TextColumn'};
 var elm$core$Basics$EQ = {$: 'EQ'};
 var elm$core$Basics$LT = {$: 'LT'};
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
@@ -4369,6 +4345,7 @@ var elm$core$Array$foldr = F3(
 			A3(elm$core$Elm$JsArray$foldr, func, baseCase, tail),
 			tree);
 	});
+var elm$core$List$cons = _List_cons;
 var elm$core$Array$toList = function (array) {
 	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
 };
@@ -4820,7 +4797,73 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 			}
 		}
 	});
-var elm$core$List$cons = _List_cons;
+var author$project$Document$initZip = function (doc) {
+	return {contexts: _List_Nil, current: doc};
+};
+var author$project$Editor$CurrentViewport = function (a) {
+	return {$: 'CurrentViewport', a: a};
+};
+var author$project$Document$AlignLeft = {$: 'AlignLeft'};
+var author$project$Document$AlignRight = {$: 'AlignRight'};
+var author$project$Document$UrlSrc = function (a) {
+	return {$: 'UrlSrc', a: a};
+};
+var author$project$SampleDocs$ColumnNode = F3(
+	function (a, b, c) {
+		return {$: 'ColumnNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$HeadingNode = F3(
+	function (a, b, c) {
+		return {$: 'HeadingNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$ImageNode = F3(
+	function (a, b, c) {
+		return {$: 'ImageNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$LinkNode = F3(
+	function (a, b, c) {
+		return {$: 'LinkNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$ParagraphNode = F3(
+	function (a, b, c) {
+		return {$: 'ParagraphNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$RowNode = F3(
+	function (a, b, c) {
+		return {$: 'RowNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$TextColumnNode = F3(
+	function (a, b, c) {
+		return {$: 'TextColumnNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$TextNode = F3(
+	function (a, b, c) {
+		return {$: 'TextNode', a: a, b: b, c: c};
+	});
+var author$project$Document$Column = {$: 'Column'};
+var author$project$Document$Heading = function (a) {
+	return {$: 'Heading', a: a};
+};
+var author$project$Document$Image = function (a) {
+	return {$: 'Image', a: a};
+};
+var author$project$Document$Leaf = function (a) {
+	return {$: 'Leaf', a: a};
+};
+var author$project$Document$Link = function (a) {
+	return {$: 'Link', a: a};
+};
+var author$project$Document$Node = F2(
+	function (a, b) {
+		return {$: 'Node', a: a, b: b};
+	});
+var author$project$Document$Paragraph = {$: 'Paragraph'};
+var author$project$Document$ResponsiveBloc = {$: 'ResponsiveBloc'};
+var author$project$Document$Row = {$: 'Row'};
+var author$project$Document$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var author$project$Document$TextColumn = {$: 'TextColumn'};
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -4890,7 +4933,7 @@ var elm$core$List$map = F2(
 			_List_Nil,
 			xs);
 	});
-var author$project$Document$docToDocZip = function (document) {
+var author$project$SampleDocs$docToDocZip = function (document) {
 	switch (document.$) {
 		case 'ParagraphNode':
 			var id = document.a;
@@ -4899,7 +4942,7 @@ var author$project$Document$docToDocZip = function (document) {
 			return A2(
 				author$project$Document$Node,
 				{attrs: attrs, id: id, nodeLabel: author$project$Document$Paragraph},
-				A2(elm$core$List$map, author$project$Document$docToDocZip, children));
+				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
 		case 'ColumnNode':
 			var id = document.a;
 			var attrs = document.b;
@@ -4907,7 +4950,7 @@ var author$project$Document$docToDocZip = function (document) {
 			return A2(
 				author$project$Document$Node,
 				{attrs: attrs, id: id, nodeLabel: author$project$Document$Column},
-				A2(elm$core$List$map, author$project$Document$docToDocZip, children));
+				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
 		case 'RowNode':
 			var id = document.a;
 			var attrs = document.b;
@@ -4915,7 +4958,7 @@ var author$project$Document$docToDocZip = function (document) {
 			return A2(
 				author$project$Document$Node,
 				{attrs: attrs, id: id, nodeLabel: author$project$Document$Row},
-				A2(elm$core$List$map, author$project$Document$docToDocZip, children));
+				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
 		case 'TextColumnNode':
 			var id = document.a;
 			var attrs = document.b;
@@ -4923,7 +4966,7 @@ var author$project$Document$docToDocZip = function (document) {
 			return A2(
 				author$project$Document$Node,
 				{attrs: attrs, id: id, nodeLabel: author$project$Document$TextColumn},
-				A2(elm$core$List$map, author$project$Document$docToDocZip, children));
+				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
 		case 'RespBloc':
 			var id = document.a;
 			var attrs = document.b;
@@ -4931,7 +4974,7 @@ var author$project$Document$docToDocZip = function (document) {
 			return A2(
 				author$project$Document$Node,
 				{attrs: attrs, id: id, nodeLabel: author$project$Document$ResponsiveBloc},
-				A2(elm$core$List$map, author$project$Document$docToDocZip, children));
+				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
 		case 'ImageNode':
 			var id = document.a;
 			var attrs = document.b;
@@ -4974,394 +5017,352 @@ var author$project$Document$docToDocZip = function (document) {
 				});
 	}
 };
-var author$project$Document$initZip = function (doc) {
-	return {contexts: _List_Nil, current: doc};
-};
-var author$project$Editor$CurrentViewport = function (a) {
-	return {$: 'CurrentViewport', a: a};
-};
-var author$project$Document$AlignLeft = {$: 'AlignLeft'};
-var author$project$Document$AlignRight = {$: 'AlignRight'};
-var author$project$Document$ColumnNode = F3(
-	function (a, b, c) {
-		return {$: 'ColumnNode', a: a, b: b, c: c};
-	});
-var author$project$Document$HeadingNode = F3(
-	function (a, b, c) {
-		return {$: 'HeadingNode', a: a, b: b, c: c};
-	});
-var author$project$Document$ImageNode = F3(
-	function (a, b, c) {
-		return {$: 'ImageNode', a: a, b: b, c: c};
-	});
-var author$project$Document$LinkNode = F3(
-	function (a, b, c) {
-		return {$: 'LinkNode', a: a, b: b, c: c};
-	});
-var author$project$Document$ParagraphNode = F3(
-	function (a, b, c) {
-		return {$: 'ParagraphNode', a: a, b: b, c: c};
-	});
-var author$project$Document$RowNode = F3(
-	function (a, b, c) {
-		return {$: 'RowNode', a: a, b: b, c: c};
-	});
-var author$project$Document$TextColumnNode = F3(
-	function (a, b, c) {
-		return {$: 'TextColumnNode', a: a, b: b, c: c};
-	});
-var author$project$Document$TextNode = F3(
-	function (a, b, c) {
-		return {$: 'TextNode', a: a, b: b, c: c};
-	});
-var author$project$Document$UrlSrc = function (a) {
-	return {$: 'UrlSrc', a: a};
-};
-var author$project$SampleDocs$sampleDoc1 = A3(
-	author$project$Document$ColumnNode,
-	{
-		classes: _List_Nil,
-		styleId: elm$core$Maybe$Just('root'),
-		uid: 120
-	},
-	_List_Nil,
-	_List_fromArray(
-		[
-			A3(
-			author$project$Document$HeadingNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 1},
-			_List_Nil,
-			_Utils_Tuple2(1, 'Découvrir Murol')),
-			A3(
-			author$project$Document$HeadingNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 2},
-			_List_Nil,
-			_Utils_Tuple2(2, 'Le bourg de Murol')),
-			A3(
-			author$project$Document$TextColumnNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 3},
-			_List_Nil,
-			_List_fromArray(
-				[
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 4},
-					_List_fromArray(
-						[author$project$Document$AlignLeft]),
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 300, imgWidth: 300},
-						src: author$project$Document$UrlSrc('/images/2 Murol, le bourg.jpg')
-					}),
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
-					_List_fromArray(
-						[author$project$Document$AlignRight]),
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 772, imgWidth: 576},
-						src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
-					}),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 6},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 22},
-							_List_Nil,
-							'Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 7},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 8},
-							_List_Nil,
-							'Enchâssé entre le volcan boisé du '),
-							A3(
-							author$project$Document$LinkNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 9},
-							_List_Nil,
-							{label: 'Tartaret', targetBlank: false, url: ''}),
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 10},
-							_List_Nil,
-							' le promontoire du '),
-							A3(
-							author$project$Document$LinkNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 11},
-							_List_Nil,
-							{label: 'château de Murol', targetBlank: false, url: ''}),
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 12},
-							_List_Nil,
-							' et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 13},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 14},
-							_List_Nil,
-							'Au pied du château, découvrez le parc arboré du Prélong où se trouvent le '),
-							A3(
-							author$project$Document$LinkNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 15},
-							_List_Nil,
-							{label: 'musée des Peintres de l’Ecole de Murols', targetBlank: true, url: 'http://www.musee-murol.fr/fr'}),
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 16},
-							_List_Nil,
-							' et le musée archéologique.')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 36},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 37},
-							_List_Nil,
-							'Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l\'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. ')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
-							_List_Nil,
-							'L\'altitude minimale, 785 mètres, se trouve à l\'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L\'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. ')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
-							_List_Nil,
-							'Établi le long de la Couze Chambon et à l\'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l\'est de La Bourboule.')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
-							_List_Nil,
-							'Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l\'ouest puis du sud-ouest au sud, sur plus de six kilomètres. ')
-						]))
-				])),
-			A3(
-			author$project$Document$ColumnNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 17},
-			_List_Nil,
-			_List_fromArray(
-				[
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 18},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 250, imgWidth: 333},
-						src: author$project$Document$UrlSrc('/images/prélong.jpg')
-					}),
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 19},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 250, imgWidth: 333},
-						src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
-					}),
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 20},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 250, imgWidth: 377},
-						src: author$project$Document$UrlSrc('/images/bourg2.jpg')
-					}),
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 772, imgWidth: 576},
-						src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
-					})
-				])),
-			A3(
-			author$project$Document$RowNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 17},
-			_List_Nil,
-			_List_fromArray(
-				[
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 18},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 250, imgWidth: 333},
-						src: author$project$Document$UrlSrc('/images/prélong.jpg')
-					}),
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 19},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 250, imgWidth: 333},
-						src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
-					}),
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 20},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 250, imgWidth: 377},
-						src: author$project$Document$UrlSrc('/images/bourg2.jpg')
-					}),
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
-					_List_Nil,
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 772, imgWidth: 576},
-						src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
-					})
-				])),
-			A3(
-			author$project$Document$HeadingNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 23},
-			_List_Nil,
-			_Utils_Tuple2(1, 'Office de Tourisme communautaire du massif du Sancy')),
-			A3(
-			author$project$Document$TextColumnNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 24},
-			_List_Nil,
-			_List_fromArray(
-				[
-					A3(
-					author$project$Document$ImageNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 25},
-					_List_fromArray(
-						[author$project$Document$AlignLeft]),
-					{
-						caption: elm$core$Maybe$Nothing,
-						size: {imgHeight: 300, imgWidth: 400},
-						src: author$project$Document$UrlSrc('/images/OT.jpg')
-					}),
-					A3(
-					author$project$Document$ColumnNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 27},
-					_List_fromArray(
-						[author$project$Document$AlignRight]),
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$ImageNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 26},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 167, imgWidth: 125},
-								src: author$project$Document$UrlSrc('/images/sancy_hiver.jpg')
-							}),
-							A3(
-							author$project$Document$LinkNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 28},
-							_List_Nil,
-							{label: 'sancy.com', targetBlank: true, url: ''})
-						]))
-				])),
-			A3(
-			author$project$Document$TextColumnNode,
-			{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 29},
-			_List_Nil,
-			_List_fromArray(
-				[
-					A3(
-					author$project$Document$HeadingNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 31},
-					_List_Nil,
-					_Utils_Tuple2(3, 'Adresse:')),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 33},
-							_List_Nil,
-							'Rue de jassaguet - 63790 Murol')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 34},
-							_List_Nil,
-							'Tel: 04 73 88 62 62')
-						])),
-					A3(
-					author$project$Document$ParagraphNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$Document$TextNode,
-							{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 35},
-							_List_Nil,
-							'Fax : 04 73 88 60 23')
-						])),
-					A3(
-					author$project$Document$HeadingNode,
-					{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 30},
-					_List_Nil,
-					_Utils_Tuple2(3, 'Horaires:'))
-				]))
-		]));
+var author$project$SampleDocs$sampleDoc1 = author$project$SampleDocs$docToDocZip(
+	A3(
+		author$project$SampleDocs$ColumnNode,
+		{
+			classes: _List_Nil,
+			styleId: elm$core$Maybe$Just('root'),
+			uid: 120
+		},
+		_List_Nil,
+		_List_fromArray(
+			[
+				A3(
+				author$project$SampleDocs$HeadingNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 1},
+				_List_Nil,
+				_Utils_Tuple2(1, 'Découvrir Murol')),
+				A3(
+				author$project$SampleDocs$HeadingNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 2},
+				_List_Nil,
+				_Utils_Tuple2(2, 'Le bourg de Murol')),
+				A3(
+				author$project$SampleDocs$TextColumnNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 3},
+				_List_Nil,
+				_List_fromArray(
+					[
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 4},
+						_List_fromArray(
+							[author$project$Document$AlignLeft]),
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 300, imgWidth: 300},
+							src: author$project$Document$UrlSrc('/images/2 Murol, le bourg.jpg')
+						}),
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
+						_List_fromArray(
+							[author$project$Document$AlignRight]),
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 772, imgWidth: 576},
+							src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
+						}),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 6},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 22},
+								_List_Nil,
+								'Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 7},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 8},
+								_List_Nil,
+								'Enchâssé entre le volcan boisé du '),
+								A3(
+								author$project$SampleDocs$LinkNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 9},
+								_List_Nil,
+								{label: 'Tartaret', targetBlank: false, url: ''}),
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 10},
+								_List_Nil,
+								' le promontoire du '),
+								A3(
+								author$project$SampleDocs$LinkNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 11},
+								_List_Nil,
+								{label: 'château de Murol', targetBlank: false, url: ''}),
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 12},
+								_List_Nil,
+								' et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 13},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 14},
+								_List_Nil,
+								'Au pied du château, découvrez le parc arboré du Prélong où se trouvent le '),
+								A3(
+								author$project$SampleDocs$LinkNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 15},
+								_List_Nil,
+								{label: 'musée des Peintres de l’Ecole de Murols', targetBlank: true, url: 'http://www.musee-murol.fr/fr'}),
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 16},
+								_List_Nil,
+								' et le musée archéologique.')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 36},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 37},
+								_List_Nil,
+								'Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l\'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. ')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
+								_List_Nil,
+								'L\'altitude minimale, 785 mètres, se trouve à l\'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L\'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. ')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
+								_List_Nil,
+								'Établi le long de la Couze Chambon et à l\'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l\'est de La Bourboule.')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
+								_List_Nil,
+								'Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l\'ouest puis du sud-ouest au sud, sur plus de six kilomètres. ')
+							]))
+					])),
+				A3(
+				author$project$SampleDocs$ColumnNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 17},
+				_List_Nil,
+				_List_fromArray(
+					[
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 18},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 250, imgWidth: 333},
+							src: author$project$Document$UrlSrc('/images/prélong.jpg')
+						}),
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 19},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 250, imgWidth: 333},
+							src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
+						}),
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 20},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 250, imgWidth: 377},
+							src: author$project$Document$UrlSrc('/images/bourg2.jpg')
+						}),
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 772, imgWidth: 576},
+							src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
+						})
+					])),
+				A3(
+				author$project$SampleDocs$RowNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 17},
+				_List_Nil,
+				_List_fromArray(
+					[
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 18},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 250, imgWidth: 333},
+							src: author$project$Document$UrlSrc('/images/prélong.jpg')
+						}),
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 19},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 250, imgWidth: 333},
+							src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
+						}),
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 20},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 250, imgWidth: 377},
+							src: author$project$Document$UrlSrc('/images/bourg2.jpg')
+						}),
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
+						_List_Nil,
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 772, imgWidth: 576},
+							src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
+						})
+					])),
+				A3(
+				author$project$SampleDocs$HeadingNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 23},
+				_List_Nil,
+				_Utils_Tuple2(1, 'Office de Tourisme communautaire du massif du Sancy')),
+				A3(
+				author$project$SampleDocs$TextColumnNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 24},
+				_List_Nil,
+				_List_fromArray(
+					[
+						A3(
+						author$project$SampleDocs$ImageNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 25},
+						_List_fromArray(
+							[author$project$Document$AlignLeft]),
+						{
+							caption: elm$core$Maybe$Nothing,
+							size: {imgHeight: 300, imgWidth: 400},
+							src: author$project$Document$UrlSrc('/images/OT.jpg')
+						}),
+						A3(
+						author$project$SampleDocs$ColumnNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 27},
+						_List_fromArray(
+							[author$project$Document$AlignRight]),
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$ImageNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 26},
+								_List_Nil,
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 167, imgWidth: 125},
+									src: author$project$Document$UrlSrc('/images/sancy_hiver.jpg')
+								}),
+								A3(
+								author$project$SampleDocs$LinkNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 28},
+								_List_Nil,
+								{label: 'sancy.com', targetBlank: true, url: ''})
+							]))
+					])),
+				A3(
+				author$project$SampleDocs$TextColumnNode,
+				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 29},
+				_List_Nil,
+				_List_fromArray(
+					[
+						A3(
+						author$project$SampleDocs$HeadingNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 31},
+						_List_Nil,
+						_Utils_Tuple2(3, 'Adresse:')),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 33},
+								_List_Nil,
+								'Rue de jassaguet - 63790 Murol')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 34},
+								_List_Nil,
+								'Tel: 04 73 88 62 62')
+							])),
+						A3(
+						author$project$SampleDocs$ParagraphNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
+						_List_Nil,
+						_List_fromArray(
+							[
+								A3(
+								author$project$SampleDocs$TextNode,
+								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 35},
+								_List_Nil,
+								'Fax : 04 73 88 60 23')
+							])),
+						A3(
+						author$project$SampleDocs$HeadingNode,
+						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 30},
+						_List_Nil,
+						_Utils_Tuple2(3, 'Horaires:'))
+					]))
+			])));
 var elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -5611,8 +5612,7 @@ var elm$core$Platform$Cmd$batch = _Platform_batch;
 var author$project$Editor$init = function (flags) {
 	return _Utils_Tuple2(
 		{
-			document: author$project$Document$initZip(
-				author$project$Document$docToDocZip(author$project$SampleDocs$sampleDoc1)),
+			document: author$project$Document$initZip(author$project$SampleDocs$sampleDoc1),
 			selectedNode: elm$core$Maybe$Nothing,
 			winSize: {height: 1080, width: 1920}
 		},
@@ -6090,10 +6090,6 @@ var author$project$Editor$update = F2(
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 		}
 	});
-var author$project$Document$RespBloc = F3(
-	function (a, b, c) {
-		return {$: 'RespBloc', a: a, b: b, c: c};
-	});
 var author$project$Document$StyleElementAttr = function (a) {
 	return {$: 'StyleElementAttr', a: a};
 };
@@ -6175,10 +6171,10 @@ var author$project$Document$packStyleSheet = F2(
 					A2(elm$core$List$map, author$project$Document$StyleElementAttr, _new),
 					current);
 			});
-		var idStyle = function (_n2) {
-			var uid = _n2.uid;
-			var styleId = _n2.styleId;
-			var classes = _n2.classes;
+		var idStyle = function (_n4) {
+			var uid = _n4.uid;
+			var styleId = _n4.styleId;
+			var classes = _n4.classes;
 			return _Utils_ap(
 				A2(
 					elm$core$Maybe$withDefault,
@@ -6197,154 +6193,164 @@ var author$project$Document$packStyleSheet = F2(
 						},
 						classes)));
 		};
-		switch (document.$) {
-			case 'ParagraphNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$ParagraphNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							paragraphStyle,
-							idStyle(id)),
-						attrs),
-					A2(
-						elm$core$List$map,
-						author$project$Document$packStyleSheet(styleSheet),
-						children));
-			case 'ColumnNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$ColumnNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							columnStyle,
-							idStyle(id)),
-						attrs),
-					A2(
-						elm$core$List$map,
-						author$project$Document$packStyleSheet(styleSheet),
-						children));
-			case 'RowNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$RowNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							rowStyle,
-							idStyle(id)),
-						attrs),
-					A2(
-						elm$core$List$map,
-						author$project$Document$packStyleSheet(styleSheet),
-						children));
-			case 'TextColumnNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$TextColumnNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							textColumnStyle,
-							idStyle(id)),
-						attrs),
-					A2(
-						elm$core$List$map,
-						author$project$Document$packStyleSheet(styleSheet),
-						children));
-			case 'RespBloc':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$RespBloc,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							respBlocStyle,
-							idStyle(id)),
-						attrs),
-					A2(
-						elm$core$List$map,
-						author$project$Document$packStyleSheet(styleSheet),
-						children));
-			case 'ImageNode':
-				var id = document.a;
-				var attrs = document.b;
-				var imgMeta = document.c;
-				return A3(
-					author$project$Document$ImageNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							imageStyle,
-							idStyle(id)),
-						attrs),
-					imgMeta);
-			case 'LinkNode':
-				var id = document.a;
-				var attrs = document.b;
-				var linkMeta = document.c;
-				return A3(
-					author$project$Document$LinkNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							linkStyle,
-							idStyle(id)),
-						attrs),
-					linkMeta);
-			case 'TextNode':
-				var id = document.a;
-				var attrs = document.b;
-				var s = document.c;
-				return A3(
-					author$project$Document$TextNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							textStyle,
-							idStyle(id)),
-						attrs),
-					s);
-			default:
-				var id = document.a;
-				var attrs = document.b;
-				var _n1 = document.c;
-				var l = _n1.a;
-				var s = _n1.b;
-				var headingStyle = A2(
-					elm$core$Maybe$withDefault,
-					_List_Nil,
-					A2(elm$core$Dict$get, l, headingStyles));
-				return A3(
-					author$project$Document$HeadingNode,
-					id,
-					A2(
-						packAttr,
-						_Utils_ap(
-							headingStyle,
-							idStyle(id)),
-						attrs),
-					_Utils_Tuple2(l, s));
+		if (document.$ === 'Node') {
+			var nv = document.a;
+			var nodeLabel = nv.nodeLabel;
+			var id = nv.id;
+			var attrs = nv.attrs;
+			var children = document.b;
+			switch (nodeLabel.$) {
+				case 'Paragraph':
+					return A2(
+						author$project$Document$Node,
+						_Utils_update(
+							nv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										paragraphStyle,
+										idStyle(id)),
+									attrs)
+							}),
+						A2(
+							elm$core$List$map,
+							author$project$Document$packStyleSheet(styleSheet),
+							children));
+				case 'Column':
+					return A2(
+						author$project$Document$Node,
+						_Utils_update(
+							nv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										columnStyle,
+										idStyle(id)),
+									attrs)
+							}),
+						A2(
+							elm$core$List$map,
+							author$project$Document$packStyleSheet(styleSheet),
+							children));
+				case 'Row':
+					return A2(
+						author$project$Document$Node,
+						_Utils_update(
+							nv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										rowStyle,
+										idStyle(id)),
+									attrs)
+							}),
+						A2(
+							elm$core$List$map,
+							author$project$Document$packStyleSheet(styleSheet),
+							children));
+				case 'TextColumn':
+					return A2(
+						author$project$Document$Node,
+						_Utils_update(
+							nv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										textColumnStyle,
+										idStyle(id)),
+									attrs)
+							}),
+						A2(
+							elm$core$List$map,
+							author$project$Document$packStyleSheet(styleSheet),
+							children));
+				default:
+					return A2(
+						author$project$Document$Node,
+						_Utils_update(
+							nv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										respBlocStyle,
+										idStyle(id)),
+									attrs)
+							}),
+						A2(
+							elm$core$List$map,
+							author$project$Document$packStyleSheet(styleSheet),
+							children));
+			}
+		} else {
+			var lv = document.a;
+			var leafContent = lv.leafContent;
+			var id = lv.id;
+			var attrs = lv.attrs;
+			switch (leafContent.$) {
+				case 'Image':
+					var meta = leafContent.a;
+					return author$project$Document$Leaf(
+						_Utils_update(
+							lv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										imageStyle,
+										idStyle(id)),
+									attrs)
+							}));
+				case 'Link':
+					var meta = leafContent.a;
+					return author$project$Document$Leaf(
+						_Utils_update(
+							lv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										linkStyle,
+										idStyle(id)),
+									attrs)
+							}));
+				case 'Text':
+					var s = leafContent.a;
+					return author$project$Document$Leaf(
+						_Utils_update(
+							lv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										textStyle,
+										idStyle(id)),
+									attrs)
+							}));
+				default:
+					var _n3 = leafContent.a;
+					var level = _n3.a;
+					var s = _n3.b;
+					var headingStyle = A2(
+						elm$core$Maybe$withDefault,
+						_List_Nil,
+						A2(elm$core$Dict$get, level, headingStyles));
+					return author$project$Document$Leaf(
+						_Utils_update(
+							lv,
+							{
+								attrs: A2(
+									packAttr,
+									_Utils_ap(
+										headingStyle,
+										idStyle(id)),
+									attrs)
+							}));
+			}
 		}
 	});
 var elm$core$List$concatMap = F2(
@@ -11101,7 +11107,7 @@ var mdgriffith$stylish_elephants$Internal$Model$Heading = function (a) {
 	return {$: 'Heading', a: a};
 };
 var mdgriffith$stylish_elephants$Element$Region$heading = A2(elm$core$Basics$composeL, mdgriffith$stylish_elephants$Internal$Model$Describe, mdgriffith$stylish_elephants$Internal$Model$Heading);
-var author$project$Document$renderHeadingNode = F3(
+var author$project$Document$renderHeading = F3(
 	function (winSize, attrs, _n0) {
 		var level = _n0.a;
 		var s = _n0.b;
@@ -11187,7 +11193,7 @@ var mdgriffith$stylish_elephants$Element$maximum = F2(
 	function (i, l) {
 		return A2(mdgriffith$stylish_elephants$Internal$Model$Max, i, l);
 	});
-var author$project$Document$renderImageNode = F3(
+var author$project$Document$renderImage = F3(
 	function (winSize, attrs, _n0) {
 		var src = _n0.src;
 		var caption = _n0.caption;
@@ -11289,7 +11295,7 @@ var mdgriffith$stylish_elephants$Element$newTabLink = F2(
 				_List_fromArray(
 					[label])));
 	});
-var author$project$Document$renderLinkNode = F3(
+var author$project$Document$renderLink = F3(
 	function (winSize, attrs, _n0) {
 		var targetBlank = _n0.targetBlank;
 		var url = _n0.url;
@@ -11303,13 +11309,17 @@ var author$project$Document$renderLinkNode = F3(
 				url: url
 			});
 	});
-var mdgriffith$stylish_elephants$Internal$Model$Empty = {$: 'Empty'};
-var mdgriffith$stylish_elephants$Element$none = mdgriffith$stylish_elephants$Internal$Model$Empty;
-var author$project$Document$renderRespBloc = F3(
-	function (winSize, attrs, children) {
-		return mdgriffith$stylish_elephants$Element$none;
+var elm$core$Debug$todo = _Debug_todo;
+var author$project$Document$renderResponsiveBloc = F4(
+	function (winSize, id, attrs, children) {
+		return _Debug_todo(
+			'Document',
+			{
+				start: {line: 325, column: 5},
+				end: {line: 325, column: 15}
+			})('');
 	});
-var author$project$Document$renderTextNode = F3(
+var author$project$Document$renderText = F3(
 	function (winSize, attrs, s) {
 		return A2(
 			mdgriffith$stylish_elephants$Element$el,
@@ -11410,8 +11420,8 @@ var mdgriffith$stylish_elephants$Element$textColumn = F2(
 				attrs),
 			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(children));
 	});
-var author$project$Document$renderColumnNode = F3(
-	function (winSize, attrs, children) {
+var author$project$Document$renderColumn = F4(
+	function (winSize, id, attrs, children) {
 		return A2(
 			mdgriffith$stylish_elephants$Element$column,
 			A2(author$project$Document$renderAttrs, winSize, attrs),
@@ -11423,53 +11433,51 @@ var author$project$Document$renderColumnNode = F3(
 var author$project$Document$renderDoc = F2(
 	function (winSize, document) {
 		var device = mdgriffith$stylish_elephants$Element$classifyDevice(winSize);
-		switch (document.$) {
-			case 'ParagraphNode':
-				var attrs = document.b;
-				var children = document.c;
-				return A3(author$project$Document$renderParagraphNode, winSize, attrs, children);
-			case 'ColumnNode':
-				var attrs = document.b;
-				var children = document.c;
-				return A3(author$project$Document$renderColumnNode, winSize, attrs, children);
-			case 'RowNode':
-				var attrs = document.b;
-				var children = document.c;
-				return A3(author$project$Document$renderRowNode, winSize, attrs, children);
-			case 'TextColumnNode':
-				var attrs = document.b;
-				var children = document.c;
-				return A3(author$project$Document$renderTextColumnNode, winSize, attrs, children);
-			case 'RespBloc':
-				var attrs = document.b;
-				var children = document.c;
-				return A3(author$project$Document$renderRespBloc, winSize, attrs, children);
-			case 'ImageNode':
-				var attrs = document.b;
-				var meta = document.c;
-				return A3(author$project$Document$renderImageNode, winSize, attrs, meta);
-			case 'LinkNode':
-				var attrs = document.b;
-				var meta = document.c;
-				return A3(author$project$Document$renderLinkNode, winSize, attrs, meta);
-			case 'TextNode':
-				var attrs = document.b;
-				var s = document.c;
-				return A3(author$project$Document$renderTextNode, winSize, attrs, s);
-			default:
-				var attrs = document.b;
-				var _n1 = document.c;
-				var level = _n1.a;
-				var s = _n1.b;
-				return A3(
-					author$project$Document$renderHeadingNode,
-					winSize,
-					attrs,
-					_Utils_Tuple2(level, s));
+		if (document.$ === 'Node') {
+			var nodeLabel = document.a.nodeLabel;
+			var id = document.a.id;
+			var attrs = document.a.attrs;
+			var children = document.b;
+			switch (nodeLabel.$) {
+				case 'Paragraph':
+					return A4(author$project$Document$renderParagraph, winSize, id, attrs, children);
+				case 'Column':
+					return A4(author$project$Document$renderColumn, winSize, id, attrs, children);
+				case 'Row':
+					return A4(author$project$Document$renderRow, winSize, id, attrs, children);
+				case 'TextColumn':
+					return A4(author$project$Document$renderTextColumn, winSize, id, attrs, children);
+				default:
+					return A4(author$project$Document$renderResponsiveBloc, winSize, id, attrs, children);
+			}
+		} else {
+			var leafContent = document.a.leafContent;
+			var id = document.a.id;
+			var attrs = document.a.attrs;
+			switch (leafContent.$) {
+				case 'Image':
+					var meta = leafContent.a;
+					return A3(author$project$Document$renderImage, winSize, attrs, meta);
+				case 'Link':
+					var meta = leafContent.a;
+					return A3(author$project$Document$renderLink, winSize, attrs, meta);
+				case 'Text':
+					var s = leafContent.a;
+					return A3(author$project$Document$renderText, winSize, attrs, s);
+				default:
+					var _n3 = leafContent.a;
+					var level = _n3.a;
+					var s = _n3.b;
+					return A3(
+						author$project$Document$renderHeading,
+						winSize,
+						attrs,
+						_Utils_Tuple2(level, s));
+			}
 		}
 	});
-var author$project$Document$renderParagraphNode = F3(
-	function (winSize, attrs, children) {
+var author$project$Document$renderParagraph = F4(
+	function (winSize, id, attrs, children) {
 		return A2(
 			mdgriffith$stylish_elephants$Element$paragraph,
 			A2(author$project$Document$renderAttrs, winSize, attrs),
@@ -11478,8 +11486,8 @@ var author$project$Document$renderParagraphNode = F3(
 				author$project$Document$renderDoc(winSize),
 				children));
 	});
-var author$project$Document$renderRowNode = F3(
-	function (winSize, attrs, children) {
+var author$project$Document$renderRow = F4(
+	function (winSize, id, attrs, children) {
 		return A2(
 			mdgriffith$stylish_elephants$Element$row,
 			A2(author$project$Document$renderAttrs, winSize, attrs),
@@ -11488,8 +11496,8 @@ var author$project$Document$renderRowNode = F3(
 				author$project$Document$renderDoc(winSize),
 				children));
 	});
-var author$project$Document$renderTextColumnNode = F3(
-	function (winSize, attrs, children) {
+var author$project$Document$renderTextColumn = F4(
+	function (winSize, id, attrs, children) {
 		return A2(
 			mdgriffith$stylish_elephants$Element$textColumn,
 			A2(author$project$Document$renderAttrs, winSize, attrs),
@@ -11501,123 +11509,110 @@ var author$project$Document$renderTextColumnNode = F3(
 var author$project$Document$responsivePreFormat = F2(
 	function (winSize, document) {
 		var device = mdgriffith$stylish_elephants$Element$classifyDevice(winSize);
-		switch (document.$) {
-			case 'ParagraphNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$ParagraphNode,
-					id,
-					attrs,
-					A2(
-						elm$core$List$map,
-						author$project$Document$responsivePreFormat(winSize),
-						children));
-			case 'ColumnNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				var addColImgClass = function (doc) {
-					if (doc.$ === 'ImageNode') {
-						var id_ = doc.a;
-						var uid = id_.uid;
-						var styleId = id_.styleId;
-						var classes = id_.classes;
-						var attrs_ = doc.b;
-						var meta = doc.c;
-						return A3(
-							author$project$Document$ImageNode,
-							_Utils_update(
-								id_,
-								{
-									classes: A2(elm$core$List$cons, 'colImg', classes)
-								}),
-							attrs_,
-							meta);
-					} else {
-						var doc_ = doc;
-						return doc_;
-					}
-				};
-				var children_ = A2(elm$core$List$map, addColImgClass, children);
-				return A3(
-					author$project$Document$ColumnNode,
-					id,
-					attrs,
-					A2(
-						elm$core$List$map,
-						author$project$Document$responsivePreFormat(winSize),
-						children_));
-			case 'RowNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$RowNode,
-					id,
-					attrs,
-					A2(
-						elm$core$List$map,
-						author$project$Document$responsivePreFormat(winSize),
-						children));
-			case 'TextColumnNode':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return (_Utils_eq(device._class, mdgriffith$stylish_elephants$Element$Phone) || _Utils_eq(device._class, mdgriffith$stylish_elephants$Element$Tablet)) ? A3(
-					author$project$Document$ColumnNode,
-					id,
-					attrs,
-					A2(
-						elm$core$List$map,
-						author$project$Document$responsivePreFormat(winSize),
-						children)) : A3(
-					author$project$Document$TextColumnNode,
-					id,
-					attrs,
-					A2(
-						elm$core$List$map,
-						author$project$Document$responsivePreFormat(winSize),
-						children));
-			case 'RespBloc':
-				var id = document.a;
-				var attrs = document.b;
-				var children = document.c;
-				return A3(
-					author$project$Document$RespBloc,
-					id,
-					attrs,
-					A2(
-						elm$core$List$map,
-						author$project$Document$responsivePreFormat(winSize),
-						children));
-			case 'ImageNode':
-				var id = document.a;
-				var attrs = document.b;
-				var meta = document.c;
-				return A3(author$project$Document$ImageNode, id, attrs, meta);
-			case 'LinkNode':
-				var id = document.a;
-				var attrs = document.b;
-				var meta = document.c;
-				return A3(author$project$Document$LinkNode, id, attrs, meta);
-			case 'TextNode':
-				var id = document.a;
-				var attrs = document.b;
-				var s = document.c;
-				return A3(author$project$Document$TextNode, id, attrs, s);
-			default:
-				var id = document.a;
-				var attrs = document.b;
-				var _n2 = document.c;
-				var level = _n2.a;
-				var s = _n2.b;
-				return A3(
-					author$project$Document$HeadingNode,
-					id,
-					attrs,
-					_Utils_Tuple2(level, s));
+		if (document.$ === 'Node') {
+			var nv = document.a;
+			var nodeLabel = nv.nodeLabel;
+			var id = nv.id;
+			var attrs = nv.attrs;
+			var children = document.b;
+			switch (nodeLabel.$) {
+				case 'Paragraph':
+					return A2(
+						author$project$Document$Node,
+						nv,
+						A2(
+							elm$core$List$map,
+							author$project$Document$responsivePreFormat(winSize),
+							children));
+				case 'Column':
+					var addColImgClass = function (doc) {
+						if (doc.$ === 'Leaf') {
+							var l = doc;
+							var lv = l.a;
+							var _n3 = lv.leafContent;
+							if (_n3.$ === 'Image') {
+								var meta = _n3.a;
+								var lId = lv.id;
+								return author$project$Document$Leaf(
+									{
+										attrs: lv.attrs,
+										id: _Utils_update(
+											lId,
+											{
+												classes: A2(elm$core$List$cons, 'colImg', id.classes)
+											}),
+										leafContent: lv.leafContent
+									});
+							} else {
+								return l;
+							}
+						} else {
+							var doc_ = doc;
+							return doc_;
+						}
+					};
+					var children_ = A2(elm$core$List$map, addColImgClass, children);
+					return A2(
+						author$project$Document$Node,
+						nv,
+						A2(
+							elm$core$List$map,
+							author$project$Document$responsivePreFormat(winSize),
+							children_));
+				case 'Row':
+					return A2(
+						author$project$Document$Node,
+						nv,
+						A2(
+							elm$core$List$map,
+							author$project$Document$responsivePreFormat(winSize),
+							children));
+				case 'TextColumn':
+					return (_Utils_eq(device._class, mdgriffith$stylish_elephants$Element$Phone) || _Utils_eq(device._class, mdgriffith$stylish_elephants$Element$Tablet)) ? A2(
+						author$project$Document$Node,
+						_Utils_update(
+							nv,
+							{nodeLabel: author$project$Document$Column}),
+						A2(
+							elm$core$List$map,
+							author$project$Document$responsivePreFormat(winSize),
+							children)) : A2(
+						author$project$Document$Node,
+						nv,
+						A2(
+							elm$core$List$map,
+							author$project$Document$responsivePreFormat(winSize),
+							children));
+				default:
+					return A2(
+						author$project$Document$Node,
+						nv,
+						A2(
+							elm$core$List$map,
+							author$project$Document$responsivePreFormat(winSize),
+							children));
+			}
+		} else {
+			var l = document;
+			var leafContent = l.a.leafContent;
+			var id = l.a.id;
+			var attrs = l.a.attrs;
+			switch (leafContent.$) {
+				case 'Image':
+					var meta = leafContent.a;
+					return l;
+				case 'Link':
+					var meta = leafContent.a;
+					return l;
+				case 'Text':
+					var s = leafContent.a;
+					return l;
+				default:
+					var _n5 = leafContent.a;
+					var level = _n5.a;
+					var s = _n5.b;
+					return l;
+			}
 		}
 	});
 var author$project$Editor$NoOp = function (a) {
