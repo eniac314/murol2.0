@@ -232,6 +232,87 @@ var _JsArray_appendN = F3(function(n, dest, source)
 
 
 
+var _List_Nil_UNUSED = { $: 0 };
+var _List_Nil = { $: '[]' };
+
+function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
+function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
+
+
+var _List_cons = F2(_List_Cons);
+
+function _List_fromArray(arr)
+{
+	var out = _List_Nil;
+	for (var i = arr.length; i--; )
+	{
+		out = _List_Cons(arr[i], out);
+	}
+	return out;
+}
+
+function _List_toArray(xs)
+{
+	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		out.push(xs.a);
+	}
+	return out;
+}
+
+var _List_map2 = F3(function(f, xs, ys)
+{
+	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
+	{
+		arr.push(A2(f, xs.a, ys.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map3 = F4(function(f, xs, ys, zs)
+{
+	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A3(f, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map4 = F5(function(f, ws, xs, ys, zs)
+{
+	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
+{
+	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_sortBy = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		return _Utils_cmp(f(a), f(b));
+	}));
+});
+
+var _List_sortWith = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		var ord = A2(f, a, b);
+		return ord === elm$core$Basics$EQ ? 0 : ord === elm$core$Basics$LT ? -1 : 1;
+	}));
+});
+
+
+
 // MATH
 
 var _Basics_add = F2(function(a, b) { return a + b; });
@@ -1544,87 +1625,6 @@ function _Utils_ap(xs, ys)
 	}
 	return root;
 }
-
-
-
-var _List_Nil_UNUSED = { $: 0 };
-var _List_Nil = { $: '[]' };
-
-function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
-function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
-
-
-var _List_cons = F2(_List_Cons);
-
-function _List_fromArray(arr)
-{
-	var out = _List_Nil;
-	for (var i = arr.length; i--; )
-	{
-		out = _List_Cons(arr[i], out);
-	}
-	return out;
-}
-
-function _List_toArray(xs)
-{
-	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		out.push(xs.a);
-	}
-	return out;
-}
-
-var _List_map2 = F3(function(f, xs, ys)
-{
-	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
-	{
-		arr.push(A2(f, xs.a, ys.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map3 = F4(function(f, xs, ys, zs)
-{
-	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A3(f, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map4 = F5(function(f, ws, xs, ys, zs)
-{
-	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
-{
-	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_sortBy = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		return _Utils_cmp(f(a), f(b));
-	}));
-});
-
-var _List_sortWith = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		var ord = A2(f, a, b);
-		return ord === elm$core$Basics$EQ ? 0 : ord === elm$core$Basics$LT ? -1 : 1;
-	}));
-});
 
 
 
@@ -4322,8 +4322,24 @@ var _Bitwise_shiftRightZfBy = F2(function(offset, a)
 {
 	return a >>> offset;
 });
-var elm$core$Basics$EQ = {$: 'EQ'};
-var elm$core$Basics$LT = {$: 'LT'};
+var author$project$Document$Leaf = function (a) {
+	return {$: 'Leaf', a: a};
+};
+var author$project$Document$Node = F2(
+	function (a, b) {
+		return {$: 'Node', a: a, b: b};
+	});
+var author$project$Document$StyleElementAttr = function (a) {
+	return {$: 'StyleElementAttr', a: a};
+};
+var elm$core$Basics$identity = function (x) {
+	return x;
+};
+var elm$core$Dict$Black = {$: 'Black'};
+var elm$core$Dict$RBNode_elm_builtin = F5(
+	function (a, b, c, d, e) {
+		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
+	});
 var elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var elm$core$Array$foldr = F3(
 	function (func, baseCase, _n0) {
@@ -4345,6 +4361,8 @@ var elm$core$Array$foldr = F3(
 			A3(elm$core$Elm$JsArray$foldr, func, baseCase, tail),
 			tree);
 	});
+var elm$core$Basics$EQ = {$: 'EQ'};
+var elm$core$Basics$LT = {$: 'LT'};
 var elm$core$List$cons = _List_cons;
 var elm$core$Array$toList = function (array) {
 	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
@@ -4797,73 +4815,563 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 			}
 		}
 	});
-var author$project$Document$initZip = function (doc) {
-	return {contexts: _List_Nil, current: doc};
+var elm$core$Basics$compare = _Utils_compare;
+var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var elm$core$Dict$Red = {$: 'Red'};
+var elm$core$Dict$balance = F5(
+	function (color, key, value, left, right) {
+		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
+			var _n1 = right.a;
+			var rK = right.b;
+			var rV = right.c;
+			var rLeft = right.d;
+			var rRight = right.e;
+			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+				var _n3 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var lLeft = left.d;
+				var lRight = left.e;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Red,
+					key,
+					value,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					color,
+					rK,
+					rV,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, left, rLeft),
+					rRight);
+			}
+		} else {
+			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
+				var _n5 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var _n6 = left.d;
+				var _n7 = _n6.a;
+				var llK = _n6.b;
+				var llV = _n6.c;
+				var llLeft = _n6.d;
+				var llRight = _n6.e;
+				var lRight = left.e;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Red,
+					lK,
+					lV,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, key, value, lRight, right));
+			} else {
+				return A5(elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
+			}
+		}
+	});
+var elm$core$Dict$insertHelp = F3(
+	function (key, value, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, elm$core$Dict$RBEmpty_elm_builtin, elm$core$Dict$RBEmpty_elm_builtin);
+		} else {
+			var nColor = dict.a;
+			var nKey = dict.b;
+			var nValue = dict.c;
+			var nLeft = dict.d;
+			var nRight = dict.e;
+			var _n1 = A2(elm$core$Basics$compare, key, nKey);
+			switch (_n1.$) {
+				case 'LT':
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						A3(elm$core$Dict$insertHelp, key, value, nLeft),
+						nRight);
+				case 'EQ':
+					return A5(elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
+				default:
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						nLeft,
+						A3(elm$core$Dict$insertHelp, key, value, nRight));
+			}
+		}
+	});
+var elm$core$Dict$insert = F3(
+	function (key, value, dict) {
+		var _n0 = A3(elm$core$Dict$insertHelp, key, value, dict);
+		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
+			var _n1 = _n0.a;
+			var k = _n0.b;
+			var v = _n0.c;
+			var l = _n0.d;
+			var r = _n0.e;
+			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _n0;
+			return x;
+		}
+	});
+var elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
 };
-var author$project$Editor$CurrentViewport = function (a) {
-	return {$: 'CurrentViewport', a: a};
+var elm$core$Set$insert = F2(
+	function (key, _n0) {
+		var dict = _n0.a;
+		return elm$core$Set$Set_elm_builtin(
+			A3(elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _n1 = A2(elm$core$Basics$compare, targetKey, key);
+				switch (_n1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
+var elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _n0 = A2(elm$core$Dict$get, key, dict);
+		if (_n0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var elm$core$Set$member = F2(
+	function (key, _n0) {
+		var dict = _n0.a;
+		return A2(elm$core$Dict$member, key, dict);
+	});
+var elm$core$Dict$getMin = function (dict) {
+	getMin:
+	while (true) {
+		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+			var left = dict.d;
+			var $temp$dict = left;
+			dict = $temp$dict;
+			continue getMin;
+		} else {
+			return dict;
+		}
+	}
 };
-var author$project$Document$AlignLeft = {$: 'AlignLeft'};
-var author$project$Document$AlignRight = {$: 'AlignRight'};
-var author$project$Document$UrlSrc = function (a) {
-	return {$: 'UrlSrc', a: a};
+var elm$core$Dict$moveRedLeft = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var lLeft = _n1.d;
+			var lRight = _n1.e;
+			var _n2 = dict.e;
+			var rClr = _n2.a;
+			var rK = _n2.b;
+			var rV = _n2.c;
+			var rLeft = _n2.d;
+			var _n3 = rLeft.a;
+			var rlK = rLeft.b;
+			var rlV = rLeft.c;
+			var rlL = rLeft.d;
+			var rlR = rLeft.e;
+			var rRight = _n2.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				elm$core$Dict$Red,
+				rlK,
+				rlV,
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					rlL),
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rlR, rRight));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n4 = dict.d;
+			var lClr = _n4.a;
+			var lK = _n4.b;
+			var lV = _n4.c;
+			var lLeft = _n4.d;
+			var lRight = _n4.e;
+			var _n5 = dict.e;
+			var rClr = _n5.a;
+			var rK = _n5.b;
+			var rV = _n5.c;
+			var rLeft = _n5.d;
+			var rRight = _n5.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
 };
-var author$project$SampleDocs$ColumnNode = F3(
-	function (a, b, c) {
-		return {$: 'ColumnNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$HeadingNode = F3(
-	function (a, b, c) {
-		return {$: 'HeadingNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$ImageNode = F3(
-	function (a, b, c) {
-		return {$: 'ImageNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$LinkNode = F3(
-	function (a, b, c) {
-		return {$: 'LinkNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$ParagraphNode = F3(
-	function (a, b, c) {
-		return {$: 'ParagraphNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$RowNode = F3(
-	function (a, b, c) {
-		return {$: 'RowNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$TextColumnNode = F3(
-	function (a, b, c) {
-		return {$: 'TextColumnNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$TextNode = F3(
-	function (a, b, c) {
-		return {$: 'TextNode', a: a, b: b, c: c};
-	});
-var author$project$Document$Column = {$: 'Column'};
-var author$project$Document$Heading = function (a) {
-	return {$: 'Heading', a: a};
+var elm$core$Dict$moveRedRight = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var _n2 = _n1.d;
+			var _n3 = _n2.a;
+			var llK = _n2.b;
+			var llV = _n2.c;
+			var llLeft = _n2.d;
+			var llRight = _n2.e;
+			var lRight = _n1.e;
+			var _n4 = dict.e;
+			var rClr = _n4.a;
+			var rK = _n4.b;
+			var rV = _n4.c;
+			var rLeft = _n4.d;
+			var rRight = _n4.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				elm$core$Dict$Red,
+				lK,
+				lV,
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					lRight,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight)));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n5 = dict.d;
+			var lClr = _n5.a;
+			var lK = _n5.b;
+			var lV = _n5.c;
+			var lLeft = _n5.d;
+			var lRight = _n5.e;
+			var _n6 = dict.e;
+			var rClr = _n6.a;
+			var rK = _n6.b;
+			var rV = _n6.c;
+			var rLeft = _n6.d;
+			var rRight = _n6.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
 };
-var author$project$Document$Image = function (a) {
-	return {$: 'Image', a: a};
-};
-var author$project$Document$Leaf = function (a) {
-	return {$: 'Leaf', a: a};
-};
-var author$project$Document$Link = function (a) {
-	return {$: 'Link', a: a};
-};
-var author$project$Document$Node = F2(
-	function (a, b) {
-		return {$: 'Node', a: a, b: b};
+var elm$core$Dict$removeHelpPrepEQGT = F7(
+	function (targetKey, dict, color, key, value, left, right) {
+		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+			var _n1 = left.a;
+			var lK = left.b;
+			var lV = left.c;
+			var lLeft = left.d;
+			var lRight = left.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				lK,
+				lV,
+				lLeft,
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, lRight, right));
+		} else {
+			_n2$2:
+			while (true) {
+				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
+					if (right.d.$ === 'RBNode_elm_builtin') {
+						if (right.d.a.$ === 'Black') {
+							var _n3 = right.a;
+							var _n4 = right.d;
+							var _n5 = _n4.a;
+							return elm$core$Dict$moveRedRight(dict);
+						} else {
+							break _n2$2;
+						}
+					} else {
+						var _n6 = right.a;
+						var _n7 = right.d;
+						return elm$core$Dict$moveRedRight(dict);
+					}
+				} else {
+					break _n2$2;
+				}
+			}
+			return dict;
+		}
 	});
-var author$project$Document$Paragraph = {$: 'Paragraph'};
-var author$project$Document$ResponsiveBloc = {$: 'ResponsiveBloc'};
-var author$project$Document$Row = {$: 'Row'};
-var author$project$Document$Text = function (a) {
-	return {$: 'Text', a: a};
+var elm$core$Dict$removeMin = function (dict) {
+	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+		var color = dict.a;
+		var key = dict.b;
+		var value = dict.c;
+		var left = dict.d;
+		var lColor = left.a;
+		var lLeft = left.d;
+		var right = dict.e;
+		if (lColor.$ === 'Black') {
+			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+				var _n3 = lLeft.a;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					color,
+					key,
+					value,
+					elm$core$Dict$removeMin(left),
+					right);
+			} else {
+				var _n4 = elm$core$Dict$moveRedLeft(dict);
+				if (_n4.$ === 'RBNode_elm_builtin') {
+					var nColor = _n4.a;
+					var nKey = _n4.b;
+					var nValue = _n4.c;
+					var nLeft = _n4.d;
+					var nRight = _n4.e;
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						elm$core$Dict$removeMin(nLeft),
+						nRight);
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			}
+		} else {
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				value,
+				elm$core$Dict$removeMin(left),
+				right);
+		}
+	} else {
+		return elm$core$Dict$RBEmpty_elm_builtin;
+	}
 };
-var author$project$Document$TextColumn = {$: 'TextColumn'};
+var elm$core$Dict$removeHelp = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_cmp(targetKey, key) < 0) {
+				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
+					var _n4 = left.a;
+					var lLeft = left.d;
+					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+						var _n6 = lLeft.a;
+						return A5(
+							elm$core$Dict$RBNode_elm_builtin,
+							color,
+							key,
+							value,
+							A2(elm$core$Dict$removeHelp, targetKey, left),
+							right);
+					} else {
+						var _n7 = elm$core$Dict$moveRedLeft(dict);
+						if (_n7.$ === 'RBNode_elm_builtin') {
+							var nColor = _n7.a;
+							var nKey = _n7.b;
+							var nValue = _n7.c;
+							var nLeft = _n7.d;
+							var nRight = _n7.e;
+							return A5(
+								elm$core$Dict$balance,
+								nColor,
+								nKey,
+								nValue,
+								A2(elm$core$Dict$removeHelp, targetKey, nLeft),
+								nRight);
+						} else {
+							return elm$core$Dict$RBEmpty_elm_builtin;
+						}
+					}
+				} else {
+					return A5(
+						elm$core$Dict$RBNode_elm_builtin,
+						color,
+						key,
+						value,
+						A2(elm$core$Dict$removeHelp, targetKey, left),
+						right);
+				}
+			} else {
+				return A2(
+					elm$core$Dict$removeHelpEQGT,
+					targetKey,
+					A7(elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
+			}
+		}
+	});
+var elm$core$Dict$removeHelpEQGT = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBNode_elm_builtin') {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_eq(targetKey, key)) {
+				var _n1 = elm$core$Dict$getMin(right);
+				if (_n1.$ === 'RBNode_elm_builtin') {
+					var minKey = _n1.b;
+					var minValue = _n1.c;
+					return A5(
+						elm$core$Dict$balance,
+						color,
+						minKey,
+						minValue,
+						left,
+						elm$core$Dict$removeMin(right));
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			} else {
+				return A5(
+					elm$core$Dict$balance,
+					color,
+					key,
+					value,
+					left,
+					A2(elm$core$Dict$removeHelp, targetKey, right));
+			}
+		} else {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		}
+	});
+var elm$core$Dict$remove = F2(
+	function (key, dict) {
+		var _n0 = A2(elm$core$Dict$removeHelp, key, dict);
+		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
+			var _n1 = _n0.a;
+			var k = _n0.b;
+			var v = _n0.c;
+			var l = _n0.d;
+			var r = _n0.e;
+			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _n0;
+			return x;
+		}
+	});
+var elm$core$Set$remove = F2(
+	function (key, _n0) {
+		var dict = _n0.a;
+		return elm$core$Set$Set_elm_builtin(
+			A2(elm$core$Dict$remove, key, dict));
+	});
+var author$project$Document$toogleClass = F2(
+	function (_class, document) {
+		var newId = function (id) {
+			return _Utils_update(
+				id,
+				{
+					classes: A2(elm$core$Set$member, _class, id.classes) ? A2(elm$core$Set$remove, _class, id.classes) : A2(elm$core$Set$insert, _class, id.classes)
+				});
+		};
+		if (document.$ === 'Node') {
+			var nv = document.a;
+			var children = document.b;
+			return A2(
+				author$project$Document$Node,
+				_Utils_update(
+					nv,
+					{
+						id: newId(nv.id)
+					}),
+				children);
+		} else {
+			var lv = document.a;
+			return author$project$Document$Leaf(
+				_Utils_update(
+					lv,
+					{
+						id: newId(lv.id)
+					}));
+		}
+	});
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -4933,6 +5441,270 @@ var elm$core$List$map = F2(
 			_List_Nil,
 			xs);
 	});
+var elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$json$Json$Decode$map = _Json_map1;
+var elm$json$Json$Decode$map2 = _Json_map2;
+var elm$json$Json$Decode$succeed = _Json_succeed;
+var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
+	switch (handler.$) {
+		case 'Normal':
+			return 0;
+		case 'MayStopPropagation':
+			return 1;
+		case 'MayPreventDefault':
+			return 2;
+		default:
+			return 3;
+	}
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var mdgriffith$stylish_elephants$Internal$Model$Attr = function (a) {
+	return {$: 'Attr', a: a};
+};
+var mdgriffith$stylish_elephants$Element$Events$onClick = A2(elm$core$Basics$composeL, mdgriffith$stylish_elephants$Internal$Model$Attr, elm$html$Html$Events$onClick);
+var elm$html$Html$Events$onDoubleClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'dblclick',
+		elm$json$Json$Decode$succeed(msg));
+};
+var mdgriffith$stylish_elephants$Element$Events$onDoubleClick = A2(elm$core$Basics$composeL, mdgriffith$stylish_elephants$Internal$Model$Attr, elm$html$Html$Events$onDoubleClick);
+var elm$html$Html$Events$onMouseEnter = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'mouseenter',
+		elm$json$Json$Decode$succeed(msg));
+};
+var mdgriffith$stylish_elephants$Element$Events$onMouseEnter = A2(elm$core$Basics$composeL, mdgriffith$stylish_elephants$Internal$Model$Attr, elm$html$Html$Events$onMouseEnter);
+var elm$html$Html$Events$onMouseLeave = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'mouseleave',
+		elm$json$Json$Decode$succeed(msg));
+};
+var mdgriffith$stylish_elephants$Element$Events$onMouseLeave = A2(elm$core$Basics$composeL, mdgriffith$stylish_elephants$Internal$Model$Attr, elm$html$Html$Events$onMouseLeave);
+var author$project$Document$addSelectors = F2(
+	function (handlers, dz) {
+		var current = dz.current;
+		var contexts = dz.contexts;
+		var selectors = function (id) {
+			return _List_fromArray(
+				[
+					author$project$Document$StyleElementAttr(
+					mdgriffith$stylish_elephants$Element$Events$onClick(
+						handlers.click(id.uid))),
+					author$project$Document$StyleElementAttr(
+					mdgriffith$stylish_elephants$Element$Events$onDoubleClick(
+						handlers.dblClick(id.uid))),
+					author$project$Document$StyleElementAttr(
+					mdgriffith$stylish_elephants$Element$Events$onMouseEnter(
+						handlers.mouseEnter(id.uid))),
+					author$project$Document$StyleElementAttr(
+					mdgriffith$stylish_elephants$Element$Events$onMouseLeave(
+						handlers.mouseLeave(id.uid)))
+				]);
+		};
+		var addSelector = function (doc) {
+			if (doc.$ === 'Leaf') {
+				var lv = doc.a;
+				var leafContent = lv.leafContent;
+				var id = lv.id;
+				var attrs = lv.attrs;
+				return author$project$Document$Leaf(
+					_Utils_update(
+						lv,
+						{
+							attrs: _Utils_ap(
+								selectors(id),
+								attrs)
+						}));
+			} else {
+				var nv = doc.a;
+				var nodeLabel = nv.nodeLabel;
+				var id = nv.id;
+				var attrs = nv.attrs;
+				var children = doc.b;
+				return A2(
+					author$project$Document$Node,
+					_Utils_update(
+						nv,
+						{
+							attrs: _Utils_ap(
+								selectors(id),
+								attrs)
+						}),
+					children);
+			}
+		};
+		var _n0 = A2(author$project$Document$toogleClass, 'selected', current);
+		if (_n0.$ === 'Node') {
+			var nv = _n0.a;
+			var children = _n0.b;
+			return _Utils_update(
+				dz,
+				{
+					current: A2(
+						author$project$Document$Node,
+						nv,
+						A2(elm$core$List$map, addSelector, children))
+				});
+		} else {
+			return dz;
+		}
+	});
+var author$project$Document$initZip = function (doc) {
+	return {contexts: _List_Nil, current: doc};
+};
+var author$project$Editor$CurrentViewport = function (a) {
+	return {$: 'CurrentViewport', a: a};
+};
+var author$project$Editor$HoverDoc = function (a) {
+	return {$: 'HoverDoc', a: a};
+};
+var author$project$Editor$NoOp = {$: 'NoOp'};
+var author$project$Editor$SelectDoc = function (a) {
+	return {$: 'SelectDoc', a: a};
+};
+var author$project$Editor$handlers = {
+	click: author$project$Editor$SelectDoc,
+	dblClick: function (_n0) {
+		return author$project$Editor$NoOp;
+	},
+	mouseEnter: author$project$Editor$HoverDoc,
+	mouseLeave: author$project$Editor$HoverDoc
+};
+var author$project$Document$AlignLeft = {$: 'AlignLeft'};
+var author$project$Document$AlignRight = {$: 'AlignRight'};
+var author$project$Document$UrlSrc = function (a) {
+	return {$: 'UrlSrc', a: a};
+};
+var author$project$Document$fixUids = F2(
+	function (nextUid, document) {
+		if (document.$ === 'Node') {
+			if (!document.b.b) {
+				var nv = document.a;
+				var id = nv.id;
+				return A2(
+					author$project$Document$Node,
+					_Utils_update(
+						nv,
+						{
+							id: _Utils_update(
+								id,
+								{uid: nextUid})
+						}),
+					_List_Nil);
+			} else {
+				var nv = document.a;
+				var id = nv.id;
+				var children = document.b;
+				return A2(
+					author$project$Document$Node,
+					_Utils_update(
+						nv,
+						{
+							id: _Utils_update(
+								id,
+								{uid: nextUid})
+						}),
+					A3(
+						elm$core$List$foldr,
+						F2(
+							function (doc, _n1) {
+								var done = _n1.a;
+								var nUid = _n1.b;
+								return _Utils_Tuple2(
+									A2(
+										elm$core$List$cons,
+										A2(author$project$Document$fixUids, nUid, doc),
+										done),
+									nUid + 1);
+							}),
+						_Utils_Tuple2(_List_Nil, nextUid + 1),
+						children).a);
+			}
+		} else {
+			var lv = document.a;
+			var id = lv.id;
+			return author$project$Document$Leaf(
+				_Utils_update(
+					lv,
+					{
+						id: _Utils_update(
+							id,
+							{uid: nextUid})
+					}));
+		}
+	});
+var author$project$SampleDocs$ColumnNode = F3(
+	function (a, b, c) {
+		return {$: 'ColumnNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$HeadingNode = F3(
+	function (a, b, c) {
+		return {$: 'HeadingNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$ImageNode = F3(
+	function (a, b, c) {
+		return {$: 'ImageNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$LinkNode = F3(
+	function (a, b, c) {
+		return {$: 'LinkNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$ParagraphNode = F3(
+	function (a, b, c) {
+		return {$: 'ParagraphNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$RowNode = F3(
+	function (a, b, c) {
+		return {$: 'RowNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$TextColumnNode = F3(
+	function (a, b, c) {
+		return {$: 'TextColumnNode', a: a, b: b, c: c};
+	});
+var author$project$SampleDocs$TextNode = F3(
+	function (a, b, c) {
+		return {$: 'TextNode', a: a, b: b, c: c};
+	});
+var author$project$Document$Column = {$: 'Column'};
+var author$project$Document$Heading = function (a) {
+	return {$: 'Heading', a: a};
+};
+var author$project$Document$Image = function (a) {
+	return {$: 'Image', a: a};
+};
+var author$project$Document$Link = function (a) {
+	return {$: 'Link', a: a};
+};
+var author$project$Document$Paragraph = {$: 'Paragraph'};
+var author$project$Document$ResponsiveBloc = {$: 'ResponsiveBloc'};
+var author$project$Document$Row = {$: 'Row'};
+var author$project$Document$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var author$project$Document$TextColumn = {$: 'TextColumn'};
 var author$project$SampleDocs$docToDocZip = function (document) {
 	switch (document.$) {
 		case 'ParagraphNode':
@@ -5017,352 +5789,385 @@ var author$project$SampleDocs$docToDocZip = function (document) {
 				});
 	}
 };
-var author$project$SampleDocs$sampleDoc1 = author$project$SampleDocs$docToDocZip(
-	A3(
-		author$project$SampleDocs$ColumnNode,
-		{
-			classes: _List_Nil,
-			styleId: elm$core$Maybe$Just('root'),
-			uid: 120
-		},
-		_List_Nil,
-		_List_fromArray(
-			[
-				A3(
-				author$project$SampleDocs$HeadingNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 1},
-				_List_Nil,
-				_Utils_Tuple2(1, 'Découvrir Murol')),
-				A3(
-				author$project$SampleDocs$HeadingNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 2},
-				_List_Nil,
-				_Utils_Tuple2(2, 'Le bourg de Murol')),
-				A3(
-				author$project$SampleDocs$TextColumnNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 3},
-				_List_Nil,
-				_List_fromArray(
-					[
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 4},
-						_List_fromArray(
-							[author$project$Document$AlignLeft]),
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 300, imgWidth: 300},
-							src: author$project$Document$UrlSrc('/images/2 Murol, le bourg.jpg')
-						}),
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
-						_List_fromArray(
-							[author$project$Document$AlignRight]),
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 772, imgWidth: 576},
-							src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
-						}),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 6},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 22},
-								_List_Nil,
-								'Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 7},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 8},
-								_List_Nil,
-								'Enchâssé entre le volcan boisé du '),
-								A3(
-								author$project$SampleDocs$LinkNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 9},
-								_List_Nil,
-								{label: 'Tartaret', targetBlank: false, url: ''}),
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 10},
-								_List_Nil,
-								' le promontoire du '),
-								A3(
-								author$project$SampleDocs$LinkNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 11},
-								_List_Nil,
-								{label: 'château de Murol', targetBlank: false, url: ''}),
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 12},
-								_List_Nil,
-								' et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 13},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 14},
-								_List_Nil,
-								'Au pied du château, découvrez le parc arboré du Prélong où se trouvent le '),
-								A3(
-								author$project$SampleDocs$LinkNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 15},
-								_List_Nil,
-								{label: 'musée des Peintres de l’Ecole de Murols', targetBlank: true, url: 'http://www.musee-murol.fr/fr'}),
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 16},
-								_List_Nil,
-								' et le musée archéologique.')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 36},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 37},
-								_List_Nil,
-								'Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l\'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. ')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
-								_List_Nil,
-								'L\'altitude minimale, 785 mètres, se trouve à l\'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L\'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. ')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
-								_List_Nil,
-								'Établi le long de la Couze Chambon et à l\'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l\'est de La Bourboule.')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 39},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 40},
-								_List_Nil,
-								'Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l\'ouest puis du sud-ouest au sud, sur plus de six kilomètres. ')
-							]))
-					])),
-				A3(
-				author$project$SampleDocs$ColumnNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 17},
-				_List_Nil,
-				_List_fromArray(
-					[
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 18},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 250, imgWidth: 333},
-							src: author$project$Document$UrlSrc('/images/prélong.jpg')
-						}),
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 19},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 250, imgWidth: 333},
-							src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
-						}),
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 20},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 250, imgWidth: 377},
-							src: author$project$Document$UrlSrc('/images/bourg2.jpg')
-						}),
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 772, imgWidth: 576},
-							src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
-						})
-					])),
-				A3(
-				author$project$SampleDocs$RowNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 17},
-				_List_Nil,
-				_List_fromArray(
-					[
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 18},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 250, imgWidth: 333},
-							src: author$project$Document$UrlSrc('/images/prélong.jpg')
-						}),
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 19},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 250, imgWidth: 333},
-							src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
-						}),
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 20},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 250, imgWidth: 377},
-							src: author$project$Document$UrlSrc('/images/bourg2.jpg')
-						}),
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 21},
-						_List_Nil,
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 772, imgWidth: 576},
-							src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
-						})
-					])),
-				A3(
-				author$project$SampleDocs$HeadingNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 23},
-				_List_Nil,
-				_Utils_Tuple2(1, 'Office de Tourisme communautaire du massif du Sancy')),
-				A3(
-				author$project$SampleDocs$TextColumnNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 24},
-				_List_Nil,
-				_List_fromArray(
-					[
-						A3(
-						author$project$SampleDocs$ImageNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 25},
-						_List_fromArray(
-							[author$project$Document$AlignLeft]),
-						{
-							caption: elm$core$Maybe$Nothing,
-							size: {imgHeight: 300, imgWidth: 400},
-							src: author$project$Document$UrlSrc('/images/OT.jpg')
-						}),
-						A3(
-						author$project$SampleDocs$ColumnNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 27},
-						_List_fromArray(
-							[author$project$Document$AlignRight]),
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$ImageNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 26},
-								_List_Nil,
-								{
-									caption: elm$core$Maybe$Nothing,
-									size: {imgHeight: 167, imgWidth: 125},
-									src: author$project$Document$UrlSrc('/images/sancy_hiver.jpg')
-								}),
-								A3(
-								author$project$SampleDocs$LinkNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 28},
-								_List_Nil,
-								{label: 'sancy.com', targetBlank: true, url: ''})
-							]))
-					])),
-				A3(
-				author$project$SampleDocs$TextColumnNode,
-				{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 29},
-				_List_Nil,
-				_List_fromArray(
-					[
-						A3(
-						author$project$SampleDocs$HeadingNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 31},
-						_List_Nil,
-						_Utils_Tuple2(3, 'Adresse:')),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 33},
-								_List_Nil,
-								'Rue de jassaguet - 63790 Murol')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 34},
-								_List_Nil,
-								'Tel: 04 73 88 62 62')
-							])),
-						A3(
-						author$project$SampleDocs$ParagraphNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 32},
-						_List_Nil,
-						_List_fromArray(
-							[
-								A3(
-								author$project$SampleDocs$TextNode,
-								{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 35},
-								_List_Nil,
-								'Fax : 04 73 88 60 23')
-							])),
-						A3(
-						author$project$SampleDocs$HeadingNode,
-						{classes: _List_Nil, styleId: elm$core$Maybe$Nothing, uid: 30},
-						_List_Nil,
-						_Utils_Tuple2(3, 'Horaires:'))
-					]))
-			])));
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
+var elm$core$Set$empty = elm$core$Set$Set_elm_builtin(elm$core$Dict$empty);
+var elm$core$Set$fromList = function (list) {
+	return A3(elm$core$List$foldl, elm$core$Set$insert, elm$core$Set$empty, list);
+};
+var author$project$SampleDocs$sampleDoc1 = A2(
+	author$project$Document$fixUids,
+	0,
+	author$project$SampleDocs$docToDocZip(
+		A3(
+			author$project$SampleDocs$ColumnNode,
+			{
+				classes: elm$core$Set$empty,
+				styleId: elm$core$Maybe$Just('root'),
+				uid: 120
+			},
+			_List_Nil,
+			_List_fromArray(
+				[
+					A3(
+					author$project$SampleDocs$HeadingNode,
+					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 1},
+					_List_Nil,
+					_Utils_Tuple2(1, 'Découvrir Murol')),
+					A3(
+					author$project$SampleDocs$HeadingNode,
+					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 2},
+					_List_Nil,
+					_Utils_Tuple2(2, 'Le bourg de Murol')),
+					A3(
+					author$project$SampleDocs$TextColumnNode,
+					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 3},
+					_List_Nil,
+					_List_fromArray(
+						[
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 4},
+							_List_fromArray(
+								[author$project$Document$AlignLeft]),
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 300, imgWidth: 300},
+								src: author$project$Document$UrlSrc('/images/2 Murol, le bourg.jpg')
+							}),
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
+							_List_fromArray(
+								[author$project$Document$AlignRight]),
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 772, imgWidth: 576},
+								src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
+							}),
+							A3(
+							author$project$SampleDocs$ParagraphNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 6},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 22},
+									_List_Nil,
+									'Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.')
+								])),
+							A3(
+							author$project$SampleDocs$ParagraphNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 7},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 8},
+									_List_Nil,
+									'Enchâssé entre le volcan boisé du '),
+									A3(
+									author$project$SampleDocs$LinkNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 9},
+									_List_Nil,
+									{label: 'Tartaret', targetBlank: false, url: ''}),
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 10},
+									_List_Nil,
+									' le promontoire du '),
+									A3(
+									author$project$SampleDocs$LinkNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 11},
+									_List_Nil,
+									{label: 'château de Murol', targetBlank: false, url: ''}),
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 12},
+									_List_Nil,
+									' et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.')
+								])),
+							A3(
+							author$project$SampleDocs$ParagraphNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 13},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 14},
+									_List_Nil,
+									'Au pied du château, découvrez le parc arboré du Prélong où se trouvent le '),
+									A3(
+									author$project$SampleDocs$LinkNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 15},
+									_List_Nil,
+									{label: 'musée des Peintres de l’Ecole de Murols', targetBlank: true, url: 'http://www.musee-murol.fr/fr'}),
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 16},
+									_List_Nil,
+									' et le musée archéologique.')
+								])),
+							A3(
+							author$project$SampleDocs$ParagraphNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 36},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 37},
+									_List_Nil,
+									'Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l\'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. ')
+								])),
+							A3(
+							author$project$SampleDocs$ColumnNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 36},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$ParagraphNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 39},
+									_List_Nil,
+									_List_fromArray(
+										[
+											A3(
+											author$project$SampleDocs$TextNode,
+											{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 40},
+											_List_Nil,
+											'L\'altitude minimale, 785 mètres, se trouve à l\'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L\'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. ')
+										])),
+									A3(
+									author$project$SampleDocs$ImageNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
+									_List_Nil,
+									{
+										caption: elm$core$Maybe$Nothing,
+										size: {imgHeight: 250, imgWidth: 377},
+										src: author$project$Document$UrlSrc('/images/lac3.jpg')
+									}),
+									A3(
+									author$project$SampleDocs$ParagraphNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 39},
+									_List_Nil,
+									_List_fromArray(
+										[
+											A3(
+											author$project$SampleDocs$TextNode,
+											{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 40},
+											_List_Nil,
+											'Établi le long de la Couze Chambon et à l\'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l\'est de La Bourboule.')
+										])),
+									A3(
+									author$project$SampleDocs$ParagraphNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 39},
+									_List_Nil,
+									_List_fromArray(
+										[
+											A3(
+											author$project$SampleDocs$TextNode,
+											{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 40},
+											_List_Nil,
+											'Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l\'ouest puis du sud-ouest au sud, sur plus de six kilomètres. ')
+										]))
+								]))
+						])),
+					A3(
+					author$project$SampleDocs$ColumnNode,
+					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 17},
+					_List_Nil,
+					_List_fromArray(
+						[
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 18},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 250, imgWidth: 333},
+								src: author$project$Document$UrlSrc('/images/prélong.jpg')
+							}),
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 19},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 250, imgWidth: 333},
+								src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
+							}),
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 20},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 250, imgWidth: 377},
+								src: author$project$Document$UrlSrc('/images/bourg2.jpg')
+							}),
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 772, imgWidth: 576},
+								src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
+							})
+						])),
+					A3(
+					author$project$SampleDocs$RowNode,
+					{
+						classes: elm$core$Set$fromList(
+							_List_fromArray(
+								['sameHeightImgsRow'])),
+						styleId: elm$core$Maybe$Nothing,
+						uid: -1
+					},
+					_List_Nil,
+					_List_fromArray(
+						[
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 18},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 250, imgWidth: 333},
+								src: author$project$Document$UrlSrc('/images/prélong.jpg')
+							}),
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 19},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 250, imgWidth: 333},
+								src: author$project$Document$UrlSrc('/images/museePeintre.jpeg')
+							}),
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 20},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 250, imgWidth: 377},
+								src: author$project$Document$UrlSrc('/images/bourg2.jpg')
+							}),
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
+							_List_Nil,
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 772, imgWidth: 576},
+								src: author$project$Document$UrlSrc('/images/illustration animations estivales.jpg')
+							})
+						])),
+					A3(
+					author$project$SampleDocs$HeadingNode,
+					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 23},
+					_List_Nil,
+					_Utils_Tuple2(1, 'Office de Tourisme communautaire du massif du Sancy')),
+					A3(
+					author$project$SampleDocs$TextColumnNode,
+					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 24},
+					_List_Nil,
+					_List_fromArray(
+						[
+							A3(
+							author$project$SampleDocs$ImageNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 25},
+							_List_fromArray(
+								[author$project$Document$AlignLeft]),
+							{
+								caption: elm$core$Maybe$Nothing,
+								size: {imgHeight: 300, imgWidth: 400},
+								src: author$project$Document$UrlSrc('/images/OT.jpg')
+							}),
+							A3(
+							author$project$SampleDocs$ColumnNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 27},
+							_List_fromArray(
+								[author$project$Document$AlignRight]),
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$ImageNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 26},
+									_List_Nil,
+									{
+										caption: elm$core$Maybe$Nothing,
+										size: {imgHeight: 167, imgWidth: 125},
+										src: author$project$Document$UrlSrc('/images/sancy_hiver.jpg')
+									}),
+									A3(
+									author$project$SampleDocs$LinkNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 28},
+									_List_Nil,
+									{label: 'sancy.com', targetBlank: true, url: ''})
+								]))
+						])),
+					A3(
+					author$project$SampleDocs$TextColumnNode,
+					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 29},
+					_List_Nil,
+					_List_fromArray(
+						[
+							A3(
+							author$project$SampleDocs$HeadingNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 31},
+							_List_Nil,
+							_Utils_Tuple2(3, 'Adresse:')),
+							A3(
+							author$project$SampleDocs$ParagraphNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 32},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 33},
+									_List_Nil,
+									'Rue de jassaguet - 63790 Murol')
+								])),
+							A3(
+							author$project$SampleDocs$ParagraphNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 32},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 34},
+									_List_Nil,
+									'Tel: 04 73 88 62 62')
+								])),
+							A3(
+							author$project$SampleDocs$ParagraphNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 32},
+							_List_Nil,
+							_List_fromArray(
+								[
+									A3(
+									author$project$SampleDocs$TextNode,
+									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 35},
+									_List_Nil,
+									'Fax : 04 73 88 60 23')
+								])),
+							A3(
+							author$project$SampleDocs$HeadingNode,
+							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 30},
+							_List_Nil,
+							_Utils_Tuple2(3, 'Horaires:'))
+						]))
+				]))));
 var elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
 };
@@ -5380,9 +6185,6 @@ var elm$core$Basics$never = function (_n0) {
 		_n0 = $temp$_n0;
 		continue never;
 	}
-};
-var elm$core$Basics$identity = function (x) {
-	return x;
 };
 var elm$core$Task$Perform = function (a) {
 	return {$: 'Perform', a: a};
@@ -5463,21 +6265,6 @@ var elm$core$Task$perform = F2(
 			elm$core$Task$Perform(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
-var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$map2 = _Json_map2;
-var elm$json$Json$Decode$succeed = _Json_succeed;
-var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
-	switch (handler.$) {
-		case 'Normal':
-			return 0;
-		case 'MayStopPropagation':
-			return 1;
-		case 'MayPreventDefault':
-			return 2;
-		default:
-			return 3;
-	}
-};
 var elm$core$String$length = _String_length;
 var elm$core$String$slice = _String_slice;
 var elm$core$String$dropLeft = F2(
@@ -5612,7 +6399,12 @@ var elm$core$Platform$Cmd$batch = _Platform_batch;
 var author$project$Editor$init = function (flags) {
 	return _Utils_Tuple2(
 		{
-			document: author$project$Document$initZip(author$project$SampleDocs$sampleDoc1),
+			currentNodeBackup: author$project$SampleDocs$sampleDoc1,
+			document: A2(
+				author$project$Document$addSelectors,
+				author$project$Editor$handlers,
+				author$project$Document$initZip(author$project$SampleDocs$sampleDoc1)),
+			hoveredNode: elm$core$Maybe$Nothing,
 			selectedNode: elm$core$Maybe$Nothing,
 			winSize: {height: 1080, width: 1920}
 		},
@@ -5635,8 +6427,6 @@ var elm$browser$Browser$Events$State = F2(
 	function (subs, pids) {
 		return {pids: pids, subs: subs};
 	});
-var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$browser$Browser$Events$init = elm$core$Task$succeed(
 	A2(elm$browser$Browser$Events$State, _List_Nil, elm$core$Dict$empty));
 var elm$browser$Browser$Events$nodeToKey = function (node) {
@@ -5686,115 +6476,6 @@ var elm$browser$Browser$Events$spawn = F3(
 						router,
 						A2(elm$browser$Browser$Events$Event, key, event));
 				}));
-	});
-var elm$core$Dict$Black = {$: 'Black'};
-var elm$core$Dict$RBNode_elm_builtin = F5(
-	function (a, b, c, d, e) {
-		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
-	});
-var elm$core$Basics$compare = _Utils_compare;
-var elm$core$Dict$Red = {$: 'Red'};
-var elm$core$Dict$balance = F5(
-	function (color, key, value, left, right) {
-		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
-			var _n1 = right.a;
-			var rK = right.b;
-			var rV = right.c;
-			var rLeft = right.d;
-			var rRight = right.e;
-			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-				var _n3 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var lLeft = left.d;
-				var lRight = left.e;
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Red,
-					key,
-					value,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					color,
-					rK,
-					rV,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, left, rLeft),
-					rRight);
-			}
-		} else {
-			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
-				var _n5 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var _n6 = left.d;
-				var _n7 = _n6.a;
-				var llK = _n6.b;
-				var llV = _n6.c;
-				var llLeft = _n6.d;
-				var llRight = _n6.e;
-				var lRight = left.e;
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Red,
-					lK,
-					lV,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, key, value, lRight, right));
-			} else {
-				return A5(elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
-			}
-		}
-	});
-var elm$core$Dict$insertHelp = F3(
-	function (key, value, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, elm$core$Dict$RBEmpty_elm_builtin, elm$core$Dict$RBEmpty_elm_builtin);
-		} else {
-			var nColor = dict.a;
-			var nKey = dict.b;
-			var nValue = dict.c;
-			var nLeft = dict.d;
-			var nRight = dict.e;
-			var _n1 = A2(elm$core$Basics$compare, key, nKey);
-			switch (_n1.$) {
-				case 'LT':
-					return A5(
-						elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						A3(elm$core$Dict$insertHelp, key, value, nLeft),
-						nRight);
-				case 'EQ':
-					return A5(elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
-				default:
-					return A5(
-						elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						nLeft,
-						A3(elm$core$Dict$insertHelp, key, value, nRight));
-			}
-		}
-	});
-var elm$core$Dict$insert = F3(
-	function (key, value, dict) {
-		var _n0 = A3(elm$core$Dict$insertHelp, key, value, dict);
-		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
-			var _n1 = _n0.a;
-			var k = _n0.b;
-			var v = _n0.c;
-			var l = _n0.d;
-			var r = _n0.e;
-			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _n0;
-			return x;
-		}
 	});
 var elm$core$Dict$fromList = function (assocs) {
 	return A3(
@@ -6050,6 +6731,108 @@ var author$project$Editor$subscriptions = function (model) {
 				elm$browser$Browser$Events$onResize(author$project$Editor$WinResize)
 			]));
 };
+var author$project$Document$extractDoc = function (_n0) {
+	var current = _n0.current;
+	var contexts = _n0.contexts;
+	return current;
+};
+var author$project$Document$hasUid = F2(
+	function (id, document) {
+		if (document.$ === 'Node') {
+			var nv = document.a;
+			return _Utils_eq(id, nv.id.uid);
+		} else {
+			var lv = document.a;
+			return _Utils_eq(id, lv.id.uid);
+		}
+	});
+var author$project$Document$toogleHoverClass = F2(
+	function (uid, document) {
+		if (document.$ === 'Leaf') {
+			return document;
+		} else {
+			if (!document.b.b) {
+				return document;
+			} else {
+				var nv = document.a;
+				var children = document.b;
+				return A2(
+					author$project$Document$Node,
+					nv,
+					A2(
+						elm$core$List$map,
+						function (c) {
+							return A2(author$project$Document$hasUid, uid, c) ? A2(author$project$Document$toogleClass, 'hovered', c) : c;
+						},
+						children));
+			}
+		}
+	});
+var author$project$Document$updateCurrent = F2(
+	function (_new, _n0) {
+		var current = _n0.current;
+		var contexts = _n0.contexts;
+		return {contexts: contexts, current: _new};
+	});
+var author$project$Document$break = F2(
+	function (p, xs) {
+		var helper = F2(
+			function (ys, left) {
+				helper:
+				while (true) {
+					if (!ys.b) {
+						return _Utils_Tuple2(left, _List_Nil);
+					} else {
+						var y = ys.a;
+						var ys_ = ys.b;
+						if (p(y)) {
+							return _Utils_Tuple2(
+								elm$core$List$reverse(left),
+								A2(elm$core$List$cons, y, ys_));
+						} else {
+							var $temp$ys = ys_,
+								$temp$left = A2(elm$core$List$cons, y, left);
+							ys = $temp$ys;
+							left = $temp$left;
+							continue helper;
+						}
+					}
+				}
+			});
+		return A2(helper, xs, _List_Nil);
+	});
+var author$project$Document$zipDown = F2(
+	function (p, _n0) {
+		var current = _n0.current;
+		var contexts = _n0.contexts;
+		if (current.$ === 'Leaf') {
+			return elm$core$Maybe$Nothing;
+		} else {
+			if (!current.b.b) {
+				return elm$core$Maybe$Nothing;
+			} else {
+				var nv = current.a;
+				var ds = current.b;
+				var _n2 = A2(author$project$Document$break, p, ds);
+				var l = _n2.a;
+				var r = _n2.b;
+				if (!r.b) {
+					return elm$core$Maybe$Nothing;
+				} else {
+					var d = r.a;
+					var ds_ = r.b;
+					return elm$core$Maybe$Just(
+						{
+							contexts: A2(
+								elm$core$List$cons,
+								{left: l, parent: nv, right: ds_},
+								contexts),
+							current: d
+						});
+				}
+			}
+		}
+	});
 var elm$core$Basics$round = _Basics_round;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$Editor$update = F2(
@@ -6058,70 +6841,68 @@ var author$project$Editor$update = F2(
 			case 'WinResize':
 				var width = msg.a;
 				var height = msg.b;
+				var ws = model.winSize;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							winSize: {height: height, width: width}
+							winSize: _Utils_update(
+								ws,
+								{height: height, width: width})
 						}),
 					elm$core$Platform$Cmd$none);
 			case 'CurrentViewport':
 				var vp = msg.a;
+				var ws = model.winSize;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							winSize: {
-								height: elm$core$Basics$round(vp.viewport.height),
-								width: elm$core$Basics$round(vp.viewport.width)
-							}
+							winSize: _Utils_update(
+								ws,
+								{
+									height: elm$core$Basics$round(vp.viewport.height),
+									width: elm$core$Basics$round(vp.viewport.width)
+								})
 						}),
 					elm$core$Platform$Cmd$none);
-			case 'SelectNode':
+			case 'HoverDoc':
 				var id = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							selectedNode: elm$core$Maybe$Just(id)
+							document: function (nd) {
+								return A2(author$project$Document$updateCurrent, nd, model.document);
+							}(
+								A2(
+									author$project$Document$toogleHoverClass,
+									id,
+									author$project$Document$extractDoc(model.document)))
 						}),
 					elm$core$Platform$Cmd$none);
+			case 'SelectDoc':
+				var id = msg.a;
+				var _n1 = A2(
+					author$project$Document$zipDown,
+					author$project$Document$hasUid(id),
+					A2(author$project$Document$updateCurrent, model.currentNodeBackup, model.document));
+				if (_n1.$ === 'Nothing') {
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				} else {
+					var newDocument = _n1.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								currentNodeBackup: author$project$Document$extractDoc(newDocument),
+								document: A2(author$project$Document$addSelectors, author$project$Editor$handlers, newDocument),
+								selectedNode: elm$core$Maybe$Just(id)
+							}),
+						elm$core$Platform$Cmd$none);
+				}
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-		}
-	});
-var author$project$Document$StyleElementAttr = function (a) {
-	return {$: 'StyleElementAttr', a: a};
-};
-var elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _n1 = A2(elm$core$Basics$compare, targetKey, key);
-				switch (_n1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
 		}
 	});
 var elm$core$List$append = F2(
@@ -6191,7 +6972,7 @@ var author$project$Document$packStyleSheet = F2(
 						function (c) {
 							return A2(elm$core$Dict$get, c, customStyles.classes);
 						},
-						classes)));
+						elm$core$Set$toList(classes))));
 		};
 		if (document.$ === 'Node') {
 			var nv = document.a;
@@ -6545,9 +7326,6 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
-var mdgriffith$stylish_elephants$Internal$Model$Attr = function (a) {
-	return {$: 'Attr', a: a};
-};
 var mdgriffith$stylish_elephants$Internal$Model$htmlClass = function (cls) {
 	return mdgriffith$stylish_elephants$Internal$Model$Attr(
 		elm$html$Html$Attributes$class(cls));
@@ -6667,15 +7445,28 @@ var author$project$Document$renderAttrs = F2(
 		};
 		return A2(elm$core$List$concatMap, renderAttr, attrs);
 	});
-var mdgriffith$stylish_elephants$Internal$Model$Content = {$: 'Content'};
-var mdgriffith$stylish_elephants$Element$shrink = mdgriffith$stylish_elephants$Internal$Model$Content;
+var mdgriffith$stylish_elephants$Internal$Model$Fill = function (a) {
+	return {$: 'Fill', a: a};
+};
+var mdgriffith$stylish_elephants$Element$fill = mdgriffith$stylish_elephants$Internal$Model$Fill(1);
+var mdgriffith$stylish_elephants$Element$spacing = function (x) {
+	return A2(
+		mdgriffith$stylish_elephants$Internal$Model$StyleClass,
+		mdgriffith$stylish_elephants$Internal$Flag$spacing,
+		A3(
+			mdgriffith$stylish_elephants$Internal$Model$SpacingStyle,
+			A2(mdgriffith$stylish_elephants$Internal$Model$spacingName, x, x),
+			x,
+			x));
+};
+var mdgriffith$stylish_elephants$Internal$Model$NodeName = function (a) {
+	return {$: 'NodeName', a: a};
+};
 var mdgriffith$stylish_elephants$Internal$Model$Unkeyed = function (a) {
 	return {$: 'Unkeyed', a: a};
 };
-var mdgriffith$stylish_elephants$Internal$Model$AsEl = {$: 'AsEl'};
-var mdgriffith$stylish_elephants$Internal$Model$asEl = mdgriffith$stylish_elephants$Internal$Model$AsEl;
-var mdgriffith$stylish_elephants$Internal$Model$Generic = {$: 'Generic'};
-var mdgriffith$stylish_elephants$Internal$Model$div = mdgriffith$stylish_elephants$Internal$Model$Generic;
+var mdgriffith$stylish_elephants$Internal$Model$AsParagraph = {$: 'AsParagraph'};
+var mdgriffith$stylish_elephants$Internal$Model$asParagraph = mdgriffith$stylish_elephants$Internal$Model$AsParagraph;
 var mdgriffith$stylish_elephants$Internal$Flag$Field = F2(
 	function (a, b) {
 		return {$: 'Field', a: a, b: b};
@@ -6714,8 +7505,8 @@ var mdgriffith$stylish_elephants$Internal$Model$Styled = function (a) {
 var mdgriffith$stylish_elephants$Internal$Model$Unstyled = function (a) {
 	return {$: 'Unstyled', a: a};
 };
-var mdgriffith$stylish_elephants$Internal$Model$AsParagraph = {$: 'AsParagraph'};
-var mdgriffith$stylish_elephants$Internal$Model$asParagraph = mdgriffith$stylish_elephants$Internal$Model$AsParagraph;
+var mdgriffith$stylish_elephants$Internal$Model$AsEl = {$: 'AsEl'};
+var mdgriffith$stylish_elephants$Internal$Model$asEl = mdgriffith$stylish_elephants$Internal$Model$AsEl;
 var elm$core$Basics$not = _Basics_not;
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$p = _VirtualDom_node('p');
@@ -6750,34 +7541,10 @@ var mdgriffith$stylish_elephants$Internal$Flag$present = F2(
 	});
 var mdgriffith$stylish_elephants$Internal$Flag$widthBetween = mdgriffith$stylish_elephants$Internal$Flag$flag(44);
 var mdgriffith$stylish_elephants$Internal$Flag$widthFill = mdgriffith$stylish_elephants$Internal$Flag$flag(39);
-var elm$core$Set$Set_elm_builtin = function (a) {
-	return {$: 'Set_elm_builtin', a: a};
-};
-var elm$core$Set$empty = elm$core$Set$Set_elm_builtin(elm$core$Dict$empty);
 var elm$core$Tuple$second = function (_n0) {
 	var y = _n0.b;
 	return y;
 };
-var elm$core$Set$insert = F2(
-	function (key, _n0) {
-		var dict = _n0.a;
-		return elm$core$Set$Set_elm_builtin(
-			A3(elm$core$Dict$insert, key, _Utils_Tuple0, dict));
-	});
-var elm$core$Dict$member = F2(
-	function (key, dict) {
-		var _n0 = A2(elm$core$Dict$get, key, dict);
-		if (_n0.$ === 'Just') {
-			return true;
-		} else {
-			return false;
-		}
-	});
-var elm$core$Set$member = F2(
-	function (key, _n0) {
-		var dict = _n0.a;
-		return A2(elm$core$Dict$member, key, dict);
-	});
 var mdgriffith$stylish_elephants$Internal$Model$lengthClassName = function (x) {
 	switch (x.$) {
 		case 'Px':
@@ -8764,9 +9531,6 @@ var elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
-var elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var mdgriffith$stylish_elephants$Internal$Model$renderFont = function (families) {
 	var fontName = function (font) {
 		switch (font.$) {
@@ -9853,9 +10617,6 @@ var mdgriffith$stylish_elephants$Internal$Model$Embedded = F2(
 	function (a, b) {
 		return {$: 'Embedded', a: a, b: b};
 	});
-var mdgriffith$stylish_elephants$Internal$Model$NodeName = function (a) {
-	return {$: 'NodeName', a: a};
-};
 var mdgriffith$stylish_elephants$Internal$Model$addNodeName = F2(
 	function (newNode, old) {
 		switch (old.$) {
@@ -11072,22 +11833,20 @@ var mdgriffith$stylish_elephants$Internal$Model$element = F4(
 				_List_Nil,
 				elm$core$List$reverse(attributes)));
 	});
-var mdgriffith$stylish_elephants$Element$el = F2(
-	function (attrs, child) {
+var mdgriffith$stylish_elephants$Element$paragraph = F2(
+	function (attrs, children) {
 		return A4(
 			mdgriffith$stylish_elephants$Internal$Model$element,
-			mdgriffith$stylish_elephants$Internal$Model$asEl,
-			mdgriffith$stylish_elephants$Internal$Model$div,
+			mdgriffith$stylish_elephants$Internal$Model$asParagraph,
+			mdgriffith$stylish_elephants$Internal$Model$NodeName('p'),
 			A2(
 				elm$core$List$cons,
-				mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$shrink),
+				mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill),
 				A2(
 					elm$core$List$cons,
-					mdgriffith$stylish_elephants$Element$height(mdgriffith$stylish_elephants$Element$shrink),
+					mdgriffith$stylish_elephants$Element$spacing(5),
 					attrs)),
-			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(
-				_List_fromArray(
-					[child])));
+			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(children));
 	});
 var mdgriffith$stylish_elephants$Internal$Model$Text = function (a) {
 	return {$: 'Text', a: a};
@@ -11095,11 +11854,6 @@ var mdgriffith$stylish_elephants$Internal$Model$Text = function (a) {
 var mdgriffith$stylish_elephants$Element$text = function (content) {
 	return mdgriffith$stylish_elephants$Internal$Model$Text(content);
 };
-var elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
 var mdgriffith$stylish_elephants$Internal$Model$Describe = function (a) {
 	return {$: 'Describe', a: a};
 };
@@ -11112,17 +11866,16 @@ var author$project$Document$renderHeading = F3(
 		var level = _n0.a;
 		var s = _n0.b;
 		return A2(
-			mdgriffith$stylish_elephants$Element$el,
+			mdgriffith$stylish_elephants$Element$paragraph,
 			A2(
 				elm$core$List$cons,
 				mdgriffith$stylish_elephants$Element$Region$heading(level),
 				A2(author$project$Document$renderAttrs, winSize, attrs)),
-			mdgriffith$stylish_elephants$Element$text(s));
+			_List_fromArray(
+				[
+					mdgriffith$stylish_elephants$Element$text(s)
+				]));
 	});
-var mdgriffith$stylish_elephants$Internal$Model$Fill = function (a) {
-	return {$: 'Fill', a: a};
-};
-var mdgriffith$stylish_elephants$Element$fill = mdgriffith$stylish_elephants$Internal$Model$Fill(1);
 var elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -11141,6 +11894,8 @@ var elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
+var mdgriffith$stylish_elephants$Internal$Model$Generic = {$: 'Generic'};
+var mdgriffith$stylish_elephants$Internal$Model$div = mdgriffith$stylish_elephants$Internal$Model$Generic;
 var mdgriffith$stylish_elephants$Element$image = F2(
 	function (attrs, _n0) {
 		var src = _n0.src;
@@ -11193,11 +11948,14 @@ var mdgriffith$stylish_elephants$Element$maximum = F2(
 	function (i, l) {
 		return A2(mdgriffith$stylish_elephants$Internal$Model$Max, i, l);
 	});
-var author$project$Document$renderImage = F3(
-	function (winSize, attrs, _n0) {
-		var src = _n0.src;
-		var caption = _n0.caption;
-		var size = _n0.size;
+var author$project$Document$renderImage = F4(
+	function (winSize, _n0, attrs, _n1) {
+		var uid = _n0.uid;
+		var styleId = _n0.styleId;
+		var classes = _n0.classes;
+		var src = _n1.src;
+		var caption = _n1.caption;
+		var size = _n1.size;
 		var src_ = function () {
 			if (src.$ === 'Inline') {
 				var s = src.a;
@@ -11208,13 +11966,25 @@ var author$project$Document$renderImage = F3(
 			}
 		}();
 		var device = mdgriffith$stylish_elephants$Element$classifyDevice(winSize);
-		var attrs_ = _Utils_ap(
+		var attrs_ = A2(elm$core$Set$member, 'colImg', classes) ? _Utils_ap(
 			_List_fromArray(
 				[
 					mdgriffith$stylish_elephants$Element$width(
 					A2(mdgriffith$stylish_elephants$Element$maximum, size.imgWidth, mdgriffith$stylish_elephants$Element$fill))
 				]),
-			A2(author$project$Document$renderAttrs, winSize, attrs));
+			A2(author$project$Document$renderAttrs, winSize, attrs)) : (A2(elm$core$Set$member, 'rowImg', classes) ? _Utils_ap(
+			_List_fromArray(
+				[
+					mdgriffith$stylish_elephants$Element$height(
+					mdgriffith$stylish_elephants$Element$px(85))
+				]),
+			A2(author$project$Document$renderAttrs, winSize, attrs)) : _Utils_ap(
+			_List_fromArray(
+				[
+					mdgriffith$stylish_elephants$Element$width(
+					A2(mdgriffith$stylish_elephants$Element$maximum, size.imgWidth, mdgriffith$stylish_elephants$Element$fill))
+				]),
+			A2(author$project$Document$renderAttrs, winSize, attrs)));
 		return A2(
 			mdgriffith$stylish_elephants$Element$image,
 			attrs_,
@@ -11230,6 +12000,8 @@ var elm$html$Html$Attributes$href = function (url) {
 		_VirtualDom_noJavaScriptUri(url));
 };
 var elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
+var mdgriffith$stylish_elephants$Internal$Model$Content = {$: 'Content'};
+var mdgriffith$stylish_elephants$Element$shrink = mdgriffith$stylish_elephants$Internal$Model$Content;
 var mdgriffith$stylish_elephants$Element$link = F2(
 	function (attrs, _n0) {
 		var url = _n0.url;
@@ -11315,9 +12087,26 @@ var author$project$Document$renderResponsiveBloc = F4(
 		return _Debug_todo(
 			'Document',
 			{
-				start: {line: 325, column: 5},
-				end: {line: 325, column: 15}
+				start: {line: 514, column: 5},
+				end: {line: 514, column: 15}
 			})('');
+	});
+var mdgriffith$stylish_elephants$Element$el = F2(
+	function (attrs, child) {
+		return A4(
+			mdgriffith$stylish_elephants$Internal$Model$element,
+			mdgriffith$stylish_elephants$Internal$Model$asEl,
+			mdgriffith$stylish_elephants$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$shrink),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$stylish_elephants$Element$height(mdgriffith$stylish_elephants$Element$shrink),
+					attrs)),
+			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(
+				_List_fromArray(
+					[child])));
 	});
 var author$project$Document$renderText = F3(
 	function (winSize, attrs, s) {
@@ -11344,31 +12133,6 @@ var mdgriffith$stylish_elephants$Element$column = F2(
 						elm$core$List$cons,
 						mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$shrink),
 						attrs))),
-			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(children));
-	});
-var mdgriffith$stylish_elephants$Element$spacing = function (x) {
-	return A2(
-		mdgriffith$stylish_elephants$Internal$Model$StyleClass,
-		mdgriffith$stylish_elephants$Internal$Flag$spacing,
-		A3(
-			mdgriffith$stylish_elephants$Internal$Model$SpacingStyle,
-			A2(mdgriffith$stylish_elephants$Internal$Model$spacingName, x, x),
-			x,
-			x));
-};
-var mdgriffith$stylish_elephants$Element$paragraph = F2(
-	function (attrs, children) {
-		return A4(
-			mdgriffith$stylish_elephants$Internal$Model$element,
-			mdgriffith$stylish_elephants$Internal$Model$asParagraph,
-			mdgriffith$stylish_elephants$Internal$Model$NodeName('p'),
-			A2(
-				elm$core$List$cons,
-				mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill),
-				A2(
-					elm$core$List$cons,
-					mdgriffith$stylish_elephants$Element$spacing(5),
-					attrs)),
 			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(children));
 	});
 var mdgriffith$stylish_elephants$Internal$Model$AsRow = {$: 'AsRow'};
@@ -11457,7 +12221,7 @@ var author$project$Document$renderDoc = F2(
 			switch (leafContent.$) {
 				case 'Image':
 					var meta = leafContent.a;
-					return A3(author$project$Document$renderImage, winSize, attrs, meta);
+					return A4(author$project$Document$renderImage, winSize, id, attrs, meta);
 				case 'Link':
 					var meta = leafContent.a;
 					return A3(author$project$Document$renderLink, winSize, attrs, meta);
@@ -11506,6 +12270,170 @@ var author$project$Document$renderTextColumn = F4(
 				author$project$Document$renderDoc(winSize),
 				children));
 	});
+var author$project$Document$containsOnly = F2(
+	function (p, document) {
+		if (document.$ === 'Node') {
+			var nv = document.a;
+			var children = document.b;
+			return A3(
+				elm$core$List$foldr,
+				F2(
+					function (d, acc) {
+						return p(d) && acc;
+					}),
+				true,
+				children);
+		} else {
+			return false;
+		}
+	});
+var author$project$Document$hasClass = F2(
+	function (_class, document) {
+		if (document.$ === 'Node') {
+			var nv = document.a;
+			return A2(elm$core$Set$member, _class, nv.id.classes);
+		} else {
+			var lv = document.a;
+			return A2(elm$core$Set$member, _class, lv.id.classes);
+		}
+	});
+var author$project$Document$isImage = function (document) {
+	if (document.$ === 'Leaf') {
+		var lv = document.a;
+		var _n1 = lv.leafContent;
+		if (_n1.$ === 'Image') {
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return false;
+	}
+};
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm$core$List$sortBy = _List_sortBy;
+var elm$core$List$sort = function (xs) {
+	return A2(elm$core$List$sortBy, elm$core$Basics$identity, xs);
+};
+var author$project$Document$renderSameHeightImgRow = F2(
+	function (containerWidth, document) {
+		if (document.$ === 'Leaf') {
+			return document;
+		} else {
+			var id_ = document.a;
+			var children = document.b;
+			var spacingOffset = (containerWidth > 500) ? 20 : 15;
+			var imgSizes = function (imgs) {
+				return A2(
+					elm$core$List$map,
+					function (i) {
+						return i.meta.size;
+					},
+					imgs);
+			};
+			var minHeight = function (imgs) {
+				return A2(
+					elm$core$Maybe$withDefault,
+					0,
+					elm$core$List$head(
+						elm$core$List$sort(
+							A2(
+								elm$core$List$map,
+								function ($) {
+									return $.imgHeight;
+								},
+								imgSizes(imgs)))));
+			};
+			var images = A3(
+				elm$core$List$foldr,
+				F2(
+					function (doc, acc) {
+						if (doc.$ === 'Node') {
+							return acc;
+						} else {
+							var lv = doc.a;
+							var _n3 = lv.leafContent;
+							if (_n3.$ === 'Image') {
+								var meta = _n3.a;
+								var src = meta.src;
+								var caption = meta.caption;
+								var size = meta.size;
+								return A2(
+									elm$core$List$cons,
+									{attrs: lv.attrs, id: lv.id, meta: meta, newHeight: 0, newWidth: 0},
+									acc);
+							} else {
+								return acc;
+							}
+						}
+					}),
+				_List_Nil,
+				children);
+			var imgsScaledToMinHeight = function () {
+				var mh = minHeight(images);
+				var scale = function (_n1) {
+					var meta = _n1.meta;
+					var attrs = _n1.attrs;
+					var id = _n1.id;
+					return {attrs: attrs, id: id, meta: meta, newHeight: mh + 5, newWidth: (mh * meta.size.imgWidth) / meta.size.imgHeight};
+				};
+				return A2(elm$core$List$map, scale, images);
+			}();
+			var totalImgWidth = A3(
+				elm$core$List$foldr,
+				F2(
+					function (i, n) {
+						return i.newWidth + n;
+					}),
+				0,
+				imgsScaledToMinHeight);
+			var scalingFactor = (_Utils_cmp(
+				containerWidth,
+				totalImgWidth + (elm$core$List$length(images) * spacingOffset)) < 0) ? ((containerWidth - (elm$core$List$length(images) * spacingOffset)) / totalImgWidth) : 1;
+			var imgsScaledToFitContainer = A2(
+				elm$core$List$map,
+				function (im) {
+					return _Utils_update(
+						im,
+						{newHeight: im.newHeight * scalingFactor, newWidth: im.newWidth * scalingFactor});
+				},
+				imgsScaledToMinHeight);
+			return A2(
+				author$project$Document$Node,
+				id_,
+				A2(
+					elm$core$List$map,
+					function (im) {
+						return author$project$Document$Leaf(
+							{
+								attrs: _Utils_ap(
+									_List_fromArray(
+										[
+											author$project$Document$StyleElementAttr(
+											mdgriffith$stylish_elephants$Element$height(
+												mdgriffith$stylish_elephants$Element$px(
+													elm$core$Basics$floor(im.newHeight)))),
+											author$project$Document$StyleElementAttr(
+											mdgriffith$stylish_elephants$Element$width(
+												mdgriffith$stylish_elephants$Element$px(
+													elm$core$Basics$floor(im.newWidth))))
+										]),
+									im.attrs),
+								id: im.id,
+								leafContent: author$project$Document$Image(im.meta)
+							});
+					},
+					imgsScaledToFitContainer));
+		}
+	});
 var author$project$Document$responsivePreFormat = F2(
 	function (winSize, document) {
 		var device = mdgriffith$stylish_elephants$Element$classifyDevice(winSize);
@@ -11539,7 +12467,7 @@ var author$project$Document$responsivePreFormat = F2(
 										id: _Utils_update(
 											lId,
 											{
-												classes: A2(elm$core$List$cons, 'colImg', id.classes)
+												classes: A2(elm$core$Set$insert, 'colImg', id.classes)
 											}),
 										leafContent: lv.leafContent
 									});
@@ -11560,7 +12488,7 @@ var author$project$Document$responsivePreFormat = F2(
 							author$project$Document$responsivePreFormat(winSize),
 							children_));
 				case 'Row':
-					return A2(
+					return (A2(author$project$Document$hasClass, 'sameHeightImgsRow', document) && A2(author$project$Document$containsOnly, author$project$Document$isImage, document)) ? A2(author$project$Document$renderSameHeightImgRow, winSize.width, document) : A2(
 						author$project$Document$Node,
 						nv,
 						A2(
@@ -11569,13 +12497,13 @@ var author$project$Document$responsivePreFormat = F2(
 							children));
 				case 'TextColumn':
 					return (_Utils_eq(device._class, mdgriffith$stylish_elephants$Element$Phone) || _Utils_eq(device._class, mdgriffith$stylish_elephants$Element$Tablet)) ? A2(
-						author$project$Document$Node,
-						_Utils_update(
-							nv,
-							{nodeLabel: author$project$Document$Column}),
+						author$project$Document$responsivePreFormat,
+						winSize,
 						A2(
-							elm$core$List$map,
-							author$project$Document$responsivePreFormat(winSize),
+							author$project$Document$Node,
+							_Utils_update(
+								nv,
+								{nodeLabel: author$project$Document$Column}),
 							children)) : A2(
 						author$project$Document$Node,
 						nv,
@@ -11615,9 +12543,69 @@ var author$project$Document$responsivePreFormat = F2(
 			}
 		}
 	});
-var author$project$Editor$NoOp = function (a) {
-	return {$: 'NoOp', a: a};
+var author$project$Document$zipUp = function (_n0) {
+	var current = _n0.current;
+	var contexts = _n0.contexts;
+	if (!contexts.b) {
+		return elm$core$Maybe$Nothing;
+	} else {
+		var parent = contexts.a.parent;
+		var left = contexts.a.left;
+		var right = contexts.a.right;
+		var cs = contexts.b;
+		return elm$core$Maybe$Just(
+			{
+				contexts: cs,
+				current: A2(
+					author$project$Document$Node,
+					parent,
+					_Utils_ap(
+						left,
+						_Utils_ap(
+							_List_fromArray(
+								[current]),
+							right)))
+			});
+	}
 };
+var author$project$Document$rewind = function (docZipper) {
+	rewind:
+	while (true) {
+		var _n0 = author$project$Document$zipUp(docZipper);
+		if (_n0.$ === 'Nothing') {
+			return docZipper;
+		} else {
+			var docZipper_ = _n0.a;
+			var $temp$docZipper = docZipper_;
+			docZipper = $temp$docZipper;
+			continue rewind;
+		}
+	}
+};
+var elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var elm$html$Html$Attributes$style = elm$virtual_dom$VirtualDom$style;
+var mdgriffith$stylish_elephants$Internal$Flag$transparency = mdgriffith$stylish_elephants$Internal$Flag$flag(0);
+var mdgriffith$stylish_elephants$Internal$Model$Transparency = F2(
+	function (a, b) {
+		return {$: 'Transparency', a: a, b: b};
+	});
+var mdgriffith$stylish_elephants$Element$alpha = function (o) {
+	var transparency = function (x) {
+		return 1 - x;
+	}(
+		A2(
+			elm$core$Basics$min,
+			1.0,
+			A2(elm$core$Basics$max, 0.0, o)));
+	return A2(
+		mdgriffith$stylish_elephants$Internal$Model$StyleClass,
+		mdgriffith$stylish_elephants$Internal$Flag$transparency,
+		A2(
+			mdgriffith$stylish_elephants$Internal$Model$Transparency,
+			'transparency-' + mdgriffith$stylish_elephants$Internal$Model$floatClass(transparency),
+			transparency));
+};
+var mdgriffith$stylish_elephants$Element$htmlAttribute = mdgriffith$stylish_elephants$Internal$Model$Attr;
 var mdgriffith$stylish_elephants$Element$padding = function (x) {
 	return A2(
 		mdgriffith$stylish_elephants$Internal$Model$StyleClass,
@@ -11644,6 +12632,12 @@ var mdgriffith$stylish_elephants$Element$paddingXY = F2(
 				x));
 	});
 var mdgriffith$stylish_elephants$Element$rgba = mdgriffith$stylish_elephants$Internal$Model$Rgba;
+var mdgriffith$stylish_elephants$Element$spaceEvenly = A2(
+	mdgriffith$stylish_elephants$Internal$Model$Class,
+	mdgriffith$stylish_elephants$Internal$Flag$xAlign,
+	function ($) {
+		return $.spaceEvenly;
+	}(mdgriffith$stylish_elephants$Internal$Style$classes));
 var mdgriffith$stylish_elephants$Internal$Flag$fontFamily = mdgriffith$stylish_elephants$Internal$Flag$flag(5);
 var mdgriffith$stylish_elephants$Internal$Model$FontFamily = F2(
 	function (a, b) {
@@ -11709,7 +12703,22 @@ var author$project$StyleSheets$defaulStyleSheet = {
 					_Utils_Tuple2(
 					'colImg',
 					_List_fromArray(
-						[mdgriffith$stylish_elephants$Element$centerX]))
+						[mdgriffith$stylish_elephants$Element$centerX])),
+					_Utils_Tuple2('rowImg', _List_Nil),
+					_Utils_Tuple2(
+					'hovered',
+					_List_fromArray(
+						[
+							mdgriffith$stylish_elephants$Element$alpha(0.5),
+							mdgriffith$stylish_elephants$Element$htmlAttribute(
+							A2(elm$html$Html$Attributes$style, 'transition', '0.5s')),
+							mdgriffith$stylish_elephants$Element$pointer
+						])),
+					_Utils_Tuple2('selected', _List_Nil),
+					_Utils_Tuple2(
+					'sameHeightImgsRow',
+					_List_fromArray(
+						[mdgriffith$stylish_elephants$Element$spaceEvenly]))
 				])),
 		idNbrs: elm$core$Dict$fromList(
 			_List_fromArray(
@@ -11783,7 +12792,6 @@ var author$project$StyleSheets$defaulStyleSheet = {
 	respBlocStyle: _List_Nil,
 	rowStyle: _List_fromArray(
 		[
-			mdgriffith$stylish_elephants$Element$spacing(15),
 			mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill),
 			mdgriffith$stylish_elephants$Element$Background$color(
 			A4(mdgriffith$stylish_elephants$Element$rgba, 1, 0, 0, 0.3))
@@ -11798,8 +12806,6 @@ var author$project$StyleSheets$defaulStyleSheet = {
 	textStyle: _List_Nil
 };
 var elm$core$Debug$toString = _Debug_toString;
-var elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
-var elm$html$Html$map = elm$virtual_dom$VirtualDom$map;
 var mdgriffith$stylish_elephants$Internal$Model$OnlyDynamic = F2(
 	function (a, b) {
 		return {$: 'OnlyDynamic', a: a, b: b};
@@ -12010,18 +13016,19 @@ var author$project$Editor$view = function (model) {
 		body: _List_fromArray(
 			[
 				A2(
-				elm$html$Html$map,
-				author$project$Editor$NoOp,
+				mdgriffith$stylish_elephants$Element$layout,
+				_List_Nil,
 				A2(
-					mdgriffith$stylish_elephants$Element$layout,
-					_List_Nil,
+					author$project$Document$renderDoc,
+					model.winSize,
 					A2(
-						author$project$Document$renderDoc,
-						model.winSize,
+						author$project$Document$packStyleSheet,
+						author$project$StyleSheets$defaulStyleSheet,
 						A2(
-							author$project$Document$packStyleSheet,
-							author$project$StyleSheets$defaulStyleSheet,
-							A2(author$project$Document$responsivePreFormat, model.winSize, author$project$SampleDocs$sampleDoc1))))),
+							author$project$Document$responsivePreFormat,
+							model.winSize,
+							author$project$Document$extractDoc(
+								author$project$Document$rewind(model.document)))))),
 				elm$html$Html$text(
 				elm$core$Debug$toString(model.selectedNode))
 			]),

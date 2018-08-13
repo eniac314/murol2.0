@@ -20,23 +20,23 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-
-        --, onUrlRequest = \urlReq -> Debug.todo ""
-        --, onUrlChange = \url -> Debug.todo ""
         }
 
 
 type Msg
     = CurrentViewport Dom.Viewport
     | WinResize Int Int
-    | NoOp Never
-    | SelectNode Int
+    | NoOp
+    | SelectDoc Int
+    | HoverDoc Int
 
 
 type alias Model =
     { winSize : WinSize
     , selectedNode : Maybe Int
+    , hoveredNode : Maybe Int
     , document : DocZipper Msg
+    , currentNodeBackup : Document Msg
     }
 
 
@@ -46,6 +46,9 @@ init flags =
       , document =
             sampleDoc1
                 |> initZip
+                |> addSelectors handlers
+      , currentNodeBackup = sampleDoc1
+      , hoveredNode = Nothing
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport ]
@@ -55,25 +58,66 @@ init flags =
 update msg model =
     case msg of
         WinResize width height ->
-            ( { model | winSize = { width = width, height = height } }, Cmd.none )
+            let
+                ws =
+                    model.winSize
+            in
+            ( { model | winSize = { ws | width = width, height = height } }, Cmd.none )
 
         CurrentViewport vp ->
+            let
+                ws =
+                    model.winSize
+            in
             ( { model
                 | winSize =
-                    { width = round vp.viewport.width
-                    , height = round vp.viewport.height
+                    { ws
+                        | width = round vp.viewport.width
+                        , height = round vp.viewport.height
                     }
               }
             , Cmd.none
             )
 
-        SelectNode id ->
-            ( { model | selectedNode = Just id }
+        HoverDoc id ->
+            ( { model
+                | document =
+                    extractDoc model.document
+                        |> toogleHoverClass id
+                        |> (\nd -> updateCurrent nd model.document)
+              }
             , Cmd.none
             )
 
-        NoOp _ ->
+        SelectDoc id ->
+            case
+                zipDown (hasUid id)
+                    (updateCurrent model.currentNodeBackup
+                        model.document
+                    )
+            of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newDocument ->
+                    ( { model
+                        | currentNodeBackup = extractDoc newDocument
+                        , document = addSelectors handlers newDocument
+                        , selectedNode = Just id
+                      }
+                    , Cmd.none
+                    )
+
+        NoOp ->
             ( model, Cmd.none )
+
+
+handlers =
+    { click = SelectDoc
+    , dblClick = \_ -> NoOp
+    , mouseEnter = HoverDoc
+    , mouseLeave = HoverDoc
+    }
 
 
 subscriptions model =
@@ -83,17 +127,14 @@ subscriptions model =
 view model =
     { title = "editor"
     , body =
-        [ --layout []
-          --    (responsivePreFormat model.winSize sampleDoc1
-          --        |> packStyleSheet defaulStyleSheet
-          --        |> renderEditableDoc model.winSize SelectNode NoOp
-          --    )
-          layout []
-            (responsivePreFormat model.winSize sampleDoc1
+        [ layout []
+            (model.document
+                |> rewind
+                |> extractDoc
+                |> responsivePreFormat model.winSize
                 |> packStyleSheet defaulStyleSheet
                 |> renderDoc model.winSize
             )
-            |> Html.map NoOp
         , Html.text <| Debug.toString model.selectedNode
         ]
     }

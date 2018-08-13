@@ -22,8 +22,9 @@ defaulStyleSheet =
         , Background.color (rgba 0 1 0 0.3)
         ]
     , rowStyle =
-        [ spacing 15
-        , width fill
+        [ --spacing 15
+          --spaceEvenly
+          width fill
         , Background.color (rgba 1 0 0 0.3)
         ]
     , textColumnStyle =
@@ -86,7 +87,24 @@ defaulStyleSheet =
                       --, htmlAttribute
                       --    (Attr.style "height" "auto")
                       centerX
+
+                    --, width (maximum size.imgWidth fill)
                     ]
+                  )
+                , ( "rowImg"
+                  , []
+                  )
+                , ( "hovered"
+                  , [ alpha 0.5
+                    , htmlAttribute (Attr.style "transition" "0.5s")
+                    , pointer
+                    ]
+                  )
+                , ( "selected"
+                  , []
+                  )
+                , ( "sameHeightImgsRow"
+                  , [ spaceEvenly ]
                   )
                 ]
         }

@@ -9,6 +9,8 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
 import Html.Attributes as Attr
+import Html.Events exposing (onMouseOut, onMouseOver)
+import Set exposing (..)
 
 
 type Document msg
@@ -45,6 +47,46 @@ type alias NodeValue msg =
     }
 
 
+type ImageSrc
+    = UrlSrc String
+    | Inline String
+
+
+type alias ImgSize =
+    { imgWidth : Int
+    , imgHeight : Int
+    }
+
+
+type alias ImageMeta =
+    { src : ImageSrc
+    , caption : Maybe String
+    , size : ImgSize
+    }
+
+
+type alias LinkMeta =
+    { targetBlank : Bool
+    , url : String
+    , label : String
+    }
+
+
+type alias WinSize =
+    { width : Int
+    , height : Int
+
+    --, depth : Int
+    }
+
+
+type alias Id =
+    { uid : Int
+    , styleId : Maybe String
+    , classes : Set String
+    }
+
+
 type DocAttribute msg
     = PaddingEach
         { bottom : Int
@@ -69,6 +111,74 @@ type DocAttribute msg
     | Bold
     | Italic
     | StyleElementAttr (Attribute msg)
+
+
+hasUid : Int -> Document msg -> Bool
+hasUid id document =
+    case document of
+        Node nv _ ->
+            id == nv.id.uid
+
+        Leaf lv ->
+            id == lv.id.uid
+
+
+hasClass : String -> Document msg -> Bool
+hasClass class document =
+    case document of
+        Node nv _ ->
+            Set.member class nv.id.classes
+
+        Leaf lv ->
+            Set.member class lv.id.classes
+
+
+containsOnly : (Document msg -> Bool) -> Document msg -> Bool
+containsOnly p document =
+    case document of
+        Node nv children ->
+            List.foldr (\d acc -> p d && acc) True children
+
+        Leaf _ ->
+            False
+
+
+isImage : Document msg -> Bool
+isImage document =
+    case document of
+        Leaf lv ->
+            case lv.leafContent of
+                Image _ ->
+                    True
+
+                _ ->
+                    False
+
+        Node _ _ ->
+            False
+
+
+fixUids : Int -> Document msg -> Document msg
+fixUids nextUid document =
+    case document of
+        Node ({ id } as nv) [] ->
+            Node { nv | id = { id | uid = nextUid } } []
+
+        Node ({ id } as nv) children ->
+            Node { nv | id = { id | uid = nextUid } }
+                (List.foldr
+                    (\doc ( done, nUid ) -> ( fixUids nUid doc :: done, nUid + 1 ))
+                    ( [], nextUid + 1 )
+                    children
+                    |> Tuple.first
+                )
+
+        Leaf ({ id } as lv) ->
+            Leaf { lv | id = { id | uid = nextUid } }
+
+
+
+-------------------------------------------------------------------------------
 
 
 type alias DocZipper msg =
@@ -99,6 +209,16 @@ extractDoc { current, contexts } =
 updateCurrent : Document msg -> DocZipper msg -> DocZipper msg
 updateCurrent new { current, contexts } =
     { current = new, contexts = contexts }
+
+
+rewind : DocZipper msg -> DocZipper msg
+rewind docZipper =
+    case zipUp docZipper of
+        Nothing ->
+            docZipper
+
+        Just docZipper_ ->
+            rewind docZipper_
 
 
 zipUp : DocZipper msg -> Maybe (DocZipper msg)
@@ -207,11 +327,111 @@ break p xs =
     helper xs []
 
 
-type alias Id =
-    { uid : Int
-    , styleId : Maybe String
-    , classes : List String
+addClass : String -> Document msg -> Document msg
+addClass class document =
+    let
+        newId id =
+            { id
+                | classes =
+                    Set.insert class id.classes
+            }
+    in
+    case document of
+        Node nv children ->
+            Node { nv | id = newId nv.id } children
+
+        Leaf lv ->
+            Leaf { lv | id = newId lv.id }
+
+
+toogleClass : String -> Document msg -> Document msg
+toogleClass class document =
+    let
+        newId id =
+            { id
+                | classes =
+                    if Set.member class id.classes then
+                        Set.remove class id.classes
+                    else
+                        Set.insert class id.classes
+            }
+    in
+    case document of
+        Node nv children ->
+            Node { nv | id = newId nv.id } children
+
+        Leaf lv ->
+            Leaf { lv | id = newId lv.id }
+
+
+toogleHoverClass : Int -> Document msg -> Document msg
+toogleHoverClass uid document =
+    case document of
+        Leaf _ ->
+            document
+
+        Node _ [] ->
+            document
+
+        Node nv children ->
+            Node nv
+                (List.map
+                    (\c ->
+                        if hasUid uid c then
+                            toogleClass "hovered" c
+                        else
+                            c
+                    )
+                    children
+                )
+
+
+addSelectors :
+    { click : Int -> msg
+    , dblClick : Int -> msg
+    , mouseEnter : Int -> msg
+    , mouseLeave : Int -> msg
     }
+    -> DocZipper msg
+    -> DocZipper msg
+addSelectors handlers ({ current, contexts } as dz) =
+    let
+        selectors id =
+            [ StyleElementAttr (Events.onClick (handlers.click id.uid))
+            , StyleElementAttr (Events.onDoubleClick (handlers.dblClick id.uid))
+            , StyleElementAttr (Events.onMouseEnter (handlers.mouseEnter id.uid))
+            , StyleElementAttr (Events.onMouseLeave (handlers.mouseLeave id.uid))
+            ]
+
+        addSelector doc =
+            case doc of
+                Leaf ({ leafContent, id, attrs } as lv) ->
+                    Leaf
+                        { lv
+                            | attrs =
+                                selectors id ++ attrs
+                        }
+
+                Node ({ nodeLabel, id, attrs } as nv) children ->
+                    Node
+                        { nv
+                            | attrs =
+                                selectors id ++ attrs
+                        }
+                        children
+    in
+    case toogleClass "selected" current of
+        Node nv children ->
+            { dz
+                | current = Node nv (List.map addSelector children)
+            }
+
+        _ ->
+            dz
+
+
+
+-------------------------------------------------------------------------------
 
 
 type alias StyleSheet msg =
@@ -228,37 +448,6 @@ type alias StyleSheet msg =
         { idNbrs : Dict String (List (Attribute msg))
         , classes : Dict String (List (Attribute msg))
         }
-    }
-
-
-type ImageSrc
-    = UrlSrc String
-    | Inline String
-
-
-type alias ImgSize =
-    { imgWidth : Int
-    , imgHeight : Int
-    }
-
-
-type alias ImageMeta =
-    { src : ImageSrc
-    , caption : Maybe String
-    , size : ImgSize
-    }
-
-
-type alias LinkMeta =
-    { targetBlank : Bool
-    , url : String
-    , label : String
-    }
-
-
-type alias WinSize =
-    { width : Int
-    , height : Int
     }
 
 
@@ -289,7 +478,7 @@ renderDoc winSize document =
         Leaf { leafContent, id, attrs } ->
             case leafContent of
                 Image meta ->
-                    renderImage winSize attrs meta
+                    renderImage winSize id attrs meta
 
                 Link meta ->
                     renderLink winSize attrs meta
@@ -325,14 +514,24 @@ renderResponsiveBloc winSize id attrs children =
     Debug.todo ""
 
 
-renderImage winSize attrs { src, caption, size } =
+renderImage winSize { uid, styleId, classes } attrs { src, caption, size } =
     let
         device =
             classifyDevice winSize
 
         attrs_ =
-            [ width (maximum size.imgWidth fill) ]
-                ++ renderAttrs winSize attrs
+            if Set.member "colImg" classes then
+                [ width (maximum size.imgWidth fill) ]
+                    ++ renderAttrs winSize attrs
+            else if Set.member "rowImg" classes then
+                [ height (px 85) ]
+                    ++ renderAttrs winSize attrs
+            else
+                [ width (maximum size.imgWidth fill)
+
+                --, height fill
+                ]
+                    ++ renderAttrs winSize attrs
 
         src_ =
             case src of
@@ -366,7 +565,7 @@ renderText winSize attrs s =
 
 
 renderHeading winSize attrs ( level, s ) =
-    el (Region.heading level :: renderAttrs winSize attrs) (text s)
+    paragraph (Region.heading level :: renderAttrs winSize attrs) [ text s ]
 
 
 
@@ -398,7 +597,7 @@ responsivePreFormat winSize document =
                                             in
                                             Leaf
                                                 { leafContent = lv.leafContent
-                                                , id = { lId | classes = "colImg" :: id.classes }
+                                                , id = { lId | classes = Set.insert "colImg" id.classes }
                                                 , attrs = lv.attrs
                                                 }
 
@@ -414,11 +613,17 @@ responsivePreFormat winSize document =
                     Node nv (List.map (responsivePreFormat winSize) children_)
 
                 Row ->
-                    Node nv (List.map (responsivePreFormat winSize) children)
+                    if
+                        hasClass "sameHeightImgsRow" document
+                            && containsOnly isImage document
+                    then
+                        renderSameHeightImgRow winSize.width document
+                    else
+                        Node nv (List.map (responsivePreFormat winSize) children)
 
                 TextColumn ->
                     if device.class == Phone || device.class == Tablet then
-                        Node { nv | nodeLabel = Column } (List.map (responsivePreFormat winSize) children)
+                        responsivePreFormat winSize <| Node { nv | nodeLabel = Column } children
                     else
                         Node nv (List.map (responsivePreFormat winSize) children)
 
@@ -438,6 +643,119 @@ responsivePreFormat winSize document =
 
                 Heading ( level, s ) ->
                     l
+
+
+renderSameHeightImgRow : Int -> Document msg -> Document msg
+renderSameHeightImgRow containerWidth document =
+    case document of
+        Leaf _ ->
+            document
+
+        Node id_ children ->
+            let
+                images =
+                    List.foldr
+                        (\doc acc ->
+                            case doc of
+                                Node _ _ ->
+                                    acc
+
+                                Leaf lv ->
+                                    case lv.leafContent of
+                                        Image ({ src, caption, size } as meta) ->
+                                            { meta = meta
+                                            , id = lv.id
+                                            , attrs = lv.attrs
+                                            , newWidth = 0
+                                            , newHeight = 0
+                                            }
+                                                :: acc
+
+                                        _ ->
+                                            acc
+                        )
+                        []
+                        children
+
+                imgSizes imgs =
+                    List.map (\i -> i.meta.size) imgs
+
+                minHeight imgs =
+                    imgSizes imgs
+                        |> List.map .imgHeight
+                        |> List.sort
+                        |> List.head
+                        |> Maybe.withDefault 0
+
+                imgsScaledToMinHeight =
+                    let
+                        mh =
+                            minHeight images
+
+                        scale { meta, attrs, id } =
+                            { meta = meta
+                            , id = id
+                            , attrs = attrs
+                            , newHeight = toFloat mh + 5
+                            , newWidth =
+                                toFloat mh
+                                    * toFloat meta.size.imgWidth
+                                    / toFloat meta.size.imgHeight
+                            }
+                    in
+                    List.map scale images
+
+                totalImgWidth =
+                    List.foldr (\i n -> i.newWidth + n) 0 imgsScaledToMinHeight
+
+                spacingOffset =
+                    if containerWidth > 500 then
+                        20
+                    else
+                        15
+
+                scalingFactor =
+                    if
+                        toFloat containerWidth
+                            < totalImgWidth
+                            + toFloat (List.length images)
+                            * spacingOffset
+                    then
+                        toFloat
+                            (containerWidth
+                                - List.length images
+                                * spacingOffset
+                            )
+                            / totalImgWidth
+                    else
+                        1
+
+                imgsScaledToFitContainer =
+                    List.map
+                        (\im ->
+                            { im
+                                | newWidth =
+                                    im.newWidth * scalingFactor
+                                , newHeight =
+                                    im.newHeight * scalingFactor
+                            }
+                        )
+                        imgsScaledToMinHeight
+            in
+            Node id_ <|
+                List.map
+                    (\im ->
+                        Leaf
+                            { leafContent = Image im.meta
+                            , id = im.id
+                            , attrs =
+                                [ StyleElementAttr <| height (px (floor im.newHeight))
+                                , StyleElementAttr <| width (px (floor im.newWidth))
+                                ]
+                                    ++ im.attrs
+                            }
+                    )
+                    imgsScaledToFitContainer
 
 
 packStyleSheet : StyleSheet msg -> Document msg -> Document msg
@@ -462,7 +780,7 @@ packStyleSheet ({ paragraphStyle, columnStyle, rowStyle, textColumnStyle, respBl
                                 c
                                 customStyles.classes
                         )
-                        classes
+                        (Set.toList classes)
                         |> List.concat
                    )
     in
