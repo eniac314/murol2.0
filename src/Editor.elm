@@ -5,18 +5,23 @@ import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Dict exposing (..)
 import Document exposing (..)
+import DocumentSerializer exposing (..)
+import DocumentView exposing (..)
+import DocumentZipper exposing (..)
 import Element exposing (layout)
 import Element.Font as Font
+import Element.Lazy exposing (lazy)
 import Html exposing (div, text)
 import SampleDocs exposing (..)
 import StyleSheets exposing (..)
 import Task exposing (perform)
+import Time exposing (..)
 
 
 main : Program () Model Msg
 main =
     Browser.document
-        { init = init
+        { init = init sampleDoc1
         , view = view
         , update = update
         , subscriptions = subscriptions
@@ -25,7 +30,9 @@ main =
 
 type Msg
     = CurrentViewport Dom.Viewport
+    | CurrentViewportOf Int (Result Dom.Error Dom.Viewport)
     | WinResize Int Int
+    | RefreshSizes
     | NoOp
     | SelectDoc Int
     | HoverDoc Int
@@ -37,22 +44,53 @@ type alias Model =
     , hoveredNode : Maybe Int
     , document : DocZipper Msg
     , currentNodeBackup : Document Msg
+    , hasRefreshed : Bool
     }
 
 
-init flags =
-    ( { winSize = { width = 1920, height = 1080 }
+init doc flags =
+    let
+        ( doc_, idsToTrack ) =
+            setSizeTrackedDocUids doc
+
+        winSize =
+            { width = 1920
+            , height = 1080
+            , sizesDict =
+                --Dict.empty
+                Dict.fromList
+                    (List.map
+                        (\uid -> ( uid, { docWidth = 0, docHeight = 0 } ))
+                        idsToTrack
+                    )
+            }
+    in
+    ( { winSize = winSize
       , selectedNode = Nothing
       , document =
-            sampleDoc1
+            doc_
                 |> initZip
                 |> addSelectors handlers
-      , currentNodeBackup = sampleDoc1
+      , currentNodeBackup = doc_
       , hoveredNode = Nothing
+      , hasRefreshed = False
       }
     , Cmd.batch
-        [ Task.perform CurrentViewport Dom.getViewport ]
+        [ Task.perform CurrentViewport Dom.getViewport
+        ]
     )
+
+
+subscriptions model =
+    Sub.batch
+        [ onResize WinResize
+
+        --, Time.every 500 (\_ -> RefreshSizes)
+        , if not model.hasRefreshed then
+            Browser.Events.onAnimationFrame (\_ -> RefreshSizes)
+          else
+            Sub.none
+        ]
 
 
 update msg model =
@@ -62,7 +100,9 @@ update msg model =
                 ws =
                     model.winSize
             in
-            ( { model | winSize = { ws | width = width, height = height } }, Cmd.none )
+            ( { model | winSize = { ws | width = width, height = height } }
+            , Cmd.batch [ updateSizes model.winSize ]
+            )
 
         CurrentViewport vp ->
             let
@@ -78,6 +118,33 @@ update msg model =
               }
             , Cmd.none
             )
+
+        CurrentViewportOf uid res ->
+            case res of
+                Ok { viewport } ->
+                    let
+                        currentwinSize =
+                            model.winSize
+
+                        newSizesDict =
+                            Dict.insert uid
+                                { docWidth = round viewport.width
+                                , docHeight = round viewport.height
+                                }
+                                currentwinSize.sizesDict
+                    in
+                    ( { model
+                        | winSize =
+                            { currentwinSize
+                                | sizesDict = newSizesDict
+                            }
+                        , hasRefreshed = newSizesDict == currentwinSize.sizesDict
+                      }
+                    , Cmd.none
+                    )
+
+                Err (Dom.NotFound s) ->
+                    ( model, Cmd.none )
 
         HoverDoc id ->
             ( { model
@@ -108,6 +175,11 @@ update msg model =
                     , Cmd.none
                     )
 
+        RefreshSizes ->
+            ( model
+            , updateSizes model.winSize
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -120,10 +192,6 @@ handlers =
     }
 
 
-subscriptions model =
-    Sub.batch [ onResize WinResize ]
-
-
 view model =
     { title = "editor"
     , body =
@@ -133,8 +201,21 @@ view model =
                 |> extractDoc
                 |> responsivePreFormat model.winSize
                 |> packStyleSheet defaulStyleSheet
-                |> renderDoc model.winSize
+                |> renderDoc model.winSize (\_ -> RefreshSizes)
+             --|> (\doc -> lazy (\ws -> renderDoc ws doc) model.winSize)
             )
-        , Html.text <| Debug.toString model.selectedNode
+
+        --, Html.text <| Debug.toString model.winSize
         ]
     }
+
+
+updateSizes : WinSize -> Cmd Msg
+updateSizes { sizesDict } =
+    let
+        cmd uid id =
+            Task.attempt (CurrentViewportOf uid) (Dom.getViewportOf id)
+    in
+    Dict.keys sizesDict
+        |> List.map (\uid -> cmd uid ("sizeTracked" ++ String.fromInt uid))
+        |> Cmd.batch

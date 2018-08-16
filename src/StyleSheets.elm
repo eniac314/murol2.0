@@ -95,8 +95,8 @@ defaulStyleSheet =
                   , []
                   )
                 , ( "hovered"
-                  , [ alpha 0.5
-                    , htmlAttribute (Attr.style "transition" "0.5s")
+                  , [ --alpha 0.5
+                      htmlAttribute (Attr.style "transition" "0.5s")
                     , pointer
                     ]
                   )
@@ -104,7 +104,9 @@ defaulStyleSheet =
                   , []
                   )
                 , ( "sameHeightImgsRow"
-                  , [ spaceEvenly ]
+                  , [ spaceEvenly
+                    , clip
+                    ]
                   )
                 ]
         }

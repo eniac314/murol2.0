@@ -2,14 +2,9 @@ module Document exposing (..)
 
 import Dict exposing (..)
 import Element exposing (..)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Events as Events
-import Element.Font as Font
-import Element.Input as Input
-import Element.Region as Region
 import Html.Attributes as Attr
-import Html.Events exposing (onMouseOut, onMouseOver)
+import Html.Events exposing (on)
+import Json.Decode as Decode
 import Set exposing (..)
 
 
@@ -75,8 +70,11 @@ type alias LinkMeta =
 type alias WinSize =
     { width : Int
     , height : Int
-
-    --, depth : Int
+    , sizesDict :
+        Dict Int
+            { docWidth : Int
+            , docHeight : Int
+            }
     }
 
 
@@ -177,154 +175,33 @@ fixUids nextUid document =
             Leaf { lv | id = { id | uid = nextUid } }
 
 
-
--------------------------------------------------------------------------------
-
-
-type alias DocZipper msg =
-    { current : Document msg
-    , contexts : List (Context msg)
-    }
-
-
-type alias Context msg =
-    { parent : NodeValue msg
-    , left : List (Document msg)
-    , right : List (Document msg)
-    }
-
-
-initZip : Document msg -> DocZipper msg
-initZip doc =
-    { current = doc
-    , contexts = []
-    }
-
-
-extractDoc : DocZipper msg -> Document msg
-extractDoc { current, contexts } =
-    current
-
-
-updateCurrent : Document msg -> DocZipper msg -> DocZipper msg
-updateCurrent new { current, contexts } =
-    { current = new, contexts = contexts }
-
-
-rewind : DocZipper msg -> DocZipper msg
-rewind docZipper =
-    case zipUp docZipper of
-        Nothing ->
-            docZipper
-
-        Just docZipper_ ->
-            rewind docZipper_
-
-
-zipUp : DocZipper msg -> Maybe (DocZipper msg)
-zipUp { current, contexts } =
-    case contexts of
-        [] ->
-            Nothing
-
-        { parent, left, right } :: cs ->
-            Just
-                { current = Node parent (left ++ [ current ] ++ right)
-                , contexts = cs
-                }
-
-
-zipDown : (Document msg -> Bool) -> DocZipper msg -> Maybe (DocZipper msg)
-zipDown p { current, contexts } =
-    case current of
-        Leaf _ ->
-            Nothing
-
-        Node _ [] ->
-            Nothing
-
-        Node nv ds ->
-            let
-                ( l, r ) =
-                    break p ds
-            in
-            case r of
-                [] ->
-                    Nothing
-
-                d :: ds_ ->
-                    Just
-                        { current = d
-                        , contexts =
-                            { parent = nv
-                            , left = l
-                            , right = ds_
-                            }
-                                :: contexts
-                        }
-
-
-zipLeft : DocZipper msg -> Maybe (DocZipper msg)
-zipLeft { current, contexts } =
-    case contexts of
-        [] ->
-            Nothing
-
-        { parent, left, right } :: cs ->
-            case List.reverse left of
-                [] ->
-                    Nothing
-
-                d :: ds ->
-                    Just
-                        { current = d
-                        , contexts =
-                            { parent = parent
-                            , left = List.reverse ds
-                            , right = current :: right
-                            }
-                                :: cs
-                        }
-
-
-zipRight : DocZipper msg -> Maybe (DocZipper msg)
-zipRight { current, contexts } =
-    case contexts of
-        [] ->
-            Nothing
-
-        { parent, left, right } :: cs ->
-            case right of
-                [] ->
-                    Nothing
-
-                d :: ds ->
-                    Just
-                        { current = d
-                        , contexts =
-                            { parent = parent
-                            , left = left ++ [ current ]
-                            , right = ds
-                            }
-                                :: cs
-                        }
-
-
-break : (a -> Bool) -> List a -> ( List a, List a )
-break p xs =
+setSizeTrackedDocUids : Document msg -> ( Document msg, List Int )
+setSizeTrackedDocUids document =
     let
-        helper ys left =
-            case ys of
-                [] ->
-                    ( left, [] )
-
-                y :: ys_ ->
-                    if p y then
-                        ( List.reverse left, y :: ys_ )
-                    else
-                        helper ys_ (y :: left)
+        htmlId uid =
+            Attr.id ("sizeTracked" ++ String.fromInt uid)
+                |> htmlAttribute
+                |> StyleElementAttr
     in
-    helper xs []
+    case document of
+        Node ({ id, attrs } as nv) children ->
+            let
+                ( newChildren, newUids ) =
+                    List.map setSizeTrackedDocUids children
+                        |> List.unzip
+                        |> Tuple.mapSecond List.concat
+            in
+            if hasClass "sameHeightImgsRow" document then
+                ( Node { nv | attrs = htmlId id.uid :: nv.attrs } newChildren
+                , id.uid :: newUids
+                )
+            else
+                ( Node nv newChildren
+                , newUids
+                )
+
+        Leaf lv ->
+            ( document, [] )
 
 
 addClass : String -> Document msg -> Document msg
@@ -386,188 +263,6 @@ toogleHoverClass uid document =
                 )
 
 
-addSelectors :
-    { click : Int -> msg
-    , dblClick : Int -> msg
-    , mouseEnter : Int -> msg
-    , mouseLeave : Int -> msg
-    }
-    -> DocZipper msg
-    -> DocZipper msg
-addSelectors handlers ({ current, contexts } as dz) =
-    let
-        selectors id =
-            [ StyleElementAttr (Events.onClick (handlers.click id.uid))
-            , StyleElementAttr (Events.onDoubleClick (handlers.dblClick id.uid))
-            , StyleElementAttr (Events.onMouseEnter (handlers.mouseEnter id.uid))
-            , StyleElementAttr (Events.onMouseLeave (handlers.mouseLeave id.uid))
-            ]
-
-        addSelector doc =
-            case doc of
-                Leaf ({ leafContent, id, attrs } as lv) ->
-                    Leaf
-                        { lv
-                            | attrs =
-                                selectors id ++ attrs
-                        }
-
-                Node ({ nodeLabel, id, attrs } as nv) children ->
-                    Node
-                        { nv
-                            | attrs =
-                                selectors id ++ attrs
-                        }
-                        children
-    in
-    case toogleClass "selected" current of
-        Node nv children ->
-            { dz
-                | current = Node nv (List.map addSelector children)
-            }
-
-        _ ->
-            dz
-
-
-
--------------------------------------------------------------------------------
-
-
-type alias StyleSheet msg =
-    { paragraphStyle : List (Attribute msg)
-    , columnStyle : List (Attribute msg)
-    , rowStyle : List (Attribute msg)
-    , textColumnStyle : List (Attribute msg)
-    , respBlocStyle : List (Attribute msg)
-    , imageStyle : List (Attribute msg)
-    , textStyle : List (Attribute msg)
-    , linkStyle : List (Attribute msg)
-    , headingStyles : Dict Int (List (Attribute msg))
-    , customStyles :
-        { idNbrs : Dict String (List (Attribute msg))
-        , classes : Dict String (List (Attribute msg))
-        }
-    }
-
-
-renderDoc : WinSize -> Document msg -> Element msg
-renderDoc winSize document =
-    let
-        device =
-            classifyDevice winSize
-    in
-    case document of
-        Node { nodeLabel, id, attrs } children ->
-            case nodeLabel of
-                Paragraph ->
-                    renderParagraph winSize id attrs children
-
-                Column ->
-                    renderColumn winSize id attrs children
-
-                Row ->
-                    renderRow winSize id attrs children
-
-                TextColumn ->
-                    renderTextColumn winSize id attrs children
-
-                ResponsiveBloc ->
-                    renderResponsiveBloc winSize id attrs children
-
-        Leaf { leafContent, id, attrs } ->
-            case leafContent of
-                Image meta ->
-                    renderImage winSize id attrs meta
-
-                Link meta ->
-                    renderLink winSize attrs meta
-
-                Text s ->
-                    renderText winSize attrs s
-
-                Heading ( level, s ) ->
-                    renderHeading winSize attrs ( level, s )
-
-
-renderParagraph winSize id attrs children =
-    paragraph (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize) children)
-
-
-renderColumn winSize id attrs children =
-    column (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize) children)
-
-
-renderRow winSize id attrs children =
-    row (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize) children)
-
-
-renderTextColumn winSize id attrs children =
-    textColumn (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize) children)
-
-
-renderResponsiveBloc winSize id attrs children =
-    Debug.todo ""
-
-
-renderImage winSize { uid, styleId, classes } attrs { src, caption, size } =
-    let
-        device =
-            classifyDevice winSize
-
-        attrs_ =
-            if Set.member "colImg" classes then
-                [ width (maximum size.imgWidth fill) ]
-                    ++ renderAttrs winSize attrs
-            else if Set.member "rowImg" classes then
-                [ height (px 85) ]
-                    ++ renderAttrs winSize attrs
-            else
-                [ width (maximum size.imgWidth fill)
-
-                --, height fill
-                ]
-                    ++ renderAttrs winSize attrs
-
-        src_ =
-            case src of
-                Inline s ->
-                    s
-
-                UrlSrc s ->
-                    s
-    in
-    image attrs_
-        { src = src_, description = Maybe.withDefault "" caption }
-
-
-renderLink winSize attrs { targetBlank, url, label } =
-    let
-        linkFun =
-            if targetBlank then
-                newTabLink
-            else
-                link
-    in
-    linkFun
-        (renderAttrs winSize attrs)
-        { url = url
-        , label = text label
-        }
-
-
-renderText winSize attrs s =
-    el (renderAttrs winSize attrs) (text s)
-
-
-renderHeading winSize attrs ( level, s ) =
-    paragraph (Region.heading level :: renderAttrs winSize attrs) [ text s ]
-
-
 
 -------------------------------------------------------------------------------
 
@@ -617,7 +312,13 @@ responsivePreFormat winSize document =
                         hasClass "sameHeightImgsRow" document
                             && containsOnly isImage document
                     then
-                        renderSameHeightImgRow winSize.width document
+                        case Dict.get id.uid winSize.sizesDict of
+                            Just { docWidth, docHeight } ->
+                                renderSameHeightImgRow docWidth document
+
+                            Nothing ->
+                                renderSameHeightImgRow winSize.width document
+                        --Node nv (List.map (responsivePreFormat winSize) children)
                     else
                         Node nv (List.map (responsivePreFormat winSize) children)
 
@@ -756,169 +457,3 @@ renderSameHeightImgRow containerWidth document =
                             }
                     )
                     imgsScaledToFitContainer
-
-
-packStyleSheet : StyleSheet msg -> Document msg -> Document msg
-packStyleSheet ({ paragraphStyle, columnStyle, rowStyle, textColumnStyle, respBlocStyle, customStyles, imageStyle, linkStyle, textStyle, headingStyles } as styleSheet) document =
-    let
-        packAttr new current =
-            List.map StyleElementAttr new ++ current
-
-        idStyle { uid, styleId, classes } =
-            (styleId
-                |> Maybe.andThen
-                    (\id ->
-                        Dict.get
-                            id
-                            customStyles.idNbrs
-                    )
-                |> Maybe.withDefault []
-            )
-                ++ (List.filterMap
-                        (\c ->
-                            Dict.get
-                                c
-                                customStyles.classes
-                        )
-                        (Set.toList classes)
-                        |> List.concat
-                   )
-    in
-    case document of
-        Node ({ nodeLabel, id, attrs } as nv) children ->
-            case nodeLabel of
-                Paragraph ->
-                    Node { nv | attrs = packAttr (paragraphStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                Column ->
-                    Node { nv | attrs = packAttr (columnStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                Row ->
-                    Node { nv | attrs = packAttr (rowStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                TextColumn ->
-                    Node { nv | attrs = packAttr (textColumnStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                ResponsiveBloc ->
-                    Node { nv | attrs = packAttr (respBlocStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-        Leaf ({ leafContent, id, attrs } as lv) ->
-            case leafContent of
-                Image meta ->
-                    Leaf { lv | attrs = packAttr (imageStyle ++ idStyle id) attrs }
-
-                Link meta ->
-                    Leaf { lv | attrs = packAttr (linkStyle ++ idStyle id) attrs }
-
-                Text s ->
-                    Leaf { lv | attrs = packAttr (textStyle ++ idStyle id) attrs }
-
-                Heading ( level, s ) ->
-                    let
-                        headingStyle =
-                            Dict.get level headingStyles
-                                |> Maybe.withDefault []
-                    in
-                    Leaf { lv | attrs = packAttr (headingStyle ++ idStyle id) attrs }
-
-
-renderAttrs : WinSize -> List (DocAttribute msg) -> List (Attribute msg)
-renderAttrs winSize attrs =
-    let
-        device =
-            classifyDevice winSize
-
-        renderAttr attr =
-            case attr of
-                PaddingEach pad ->
-                    [ paddingEach pad ]
-
-                SpacingXY spcX spcY ->
-                    [ spacingXY spcX spcY ]
-
-                AlignRight ->
-                    if
-                        device.class == Phone || device.class == Tablet
-                        --&& device.orientation
-                        --== Portrait
-                    then
-                        [ centerX ]
-                    else
-                        [ alignRight
-                        , paddingEach
-                            { top = 0
-                            , right = 0
-                            , bottom = 15
-                            , left = 15
-                            }
-                        ]
-
-                AlignLeft ->
-                    if
-                        device.class == Phone || device.class == Tablet
-                        --&& device.orientation
-                        --== Portrait
-                    then
-                        [ centerX ]
-                    else
-                        [ alignLeft
-                        , paddingEach
-                            { top = 0
-                            , right = 15
-                            , bottom = 15
-                            , left = 0
-                            }
-                        ]
-
-                Pointer ->
-                    [ pointer ]
-
-                BackgroundColor color ->
-                    [ Background.color color ]
-
-                Width n ->
-                    [ width (px n) ]
-
-                Height n ->
-                    [ height (px n) ]
-
-                Border ->
-                    [ Border.color (rgb 127 127 127)
-                    , Border.width 1
-                    , Border.solid
-                    ]
-
-                FontColor color ->
-                    [ Font.color color ]
-
-                FontAlignRight ->
-                    [ Font.alignRight ]
-
-                FontAlignLeft ->
-                    [ Font.alignLeft
-                    ]
-
-                FontSize n ->
-                    [ Font.size n ]
-
-                Center ->
-                    [ Font.center ]
-
-                Justify ->
-                    [ Font.justify ]
-
-                Bold ->
-                    [ Font.bold ]
-
-                Italic ->
-                    [ Font.italic ]
-
-                StyleElementAttr attr_ ->
-                    [ attr_ ]
-    in
-    List.concatMap renderAttr attrs

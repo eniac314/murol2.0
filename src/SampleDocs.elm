@@ -104,7 +104,7 @@ sampleDoc1 =
             []
             [ ImageNode { uid = 4, styleId = Nothing, classes = Set.empty }
                 [ AlignLeft ]
-                { src = UrlSrc "/images/2 Murol, le bourg.jpg"
+                { src = UrlSrc "images/2 Murol, le bourg.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 300
@@ -113,7 +113,7 @@ sampleDoc1 =
                 }
             , ImageNode { uid = 21, styleId = Nothing, classes = Set.empty }
                 [ AlignRight ]
-                { src = UrlSrc "/images/illustration animations estivales.jpg"
+                { src = UrlSrc "images/illustration animations estivales.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 576
@@ -171,55 +171,54 @@ sampleDoc1 =
                     []
                     "Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. "
                 ]
-
-            --, RowNode { uid = 0, styleId = Nothing, classes = Set.empty }
-            --    [ StyleElementAttr <| height (px 100) ]
-            --    [ ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
-            --        []
-            --        { src = UrlSrc "/images/famillePlus.jpg"
-            --        , caption = Nothing
-            --        , size =
-            --            { imgWidth = 156
-            --            , imgHeight = 143
-            --            }
-            --        }
-            --    , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
-            --        []
-            --        { src = UrlSrc "/images/Station_Tourisme_RVB.jpg"
-            --        , caption = Nothing
-            --        , size =
-            --            { imgWidth = 100
-            --            , imgHeight = 143
-            --            }
-            --        }
-            --    , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
-            --        []
-            --        { src = UrlSrc "/images/Village fleuri.png"
-            --        , caption = Nothing
-            --        , size =
-            --            { imgWidth = 356
-            --            , imgHeight = 143
-            --            }
-            --        }
-            --    , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
-            --        []
-            --        { src = UrlSrc "/images/StationVertegf.jpg"
-            --        , caption = Nothing
-            --        , size =
-            --            { imgWidth = 150
-            --            , imgHeight = 143
-            --            }
-            --        }
-            --    , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [ "rowImg" ] }
-            --        []
-            --        { src = UrlSrc "/images/PAVILLON BLEU LOGO 2.png"
-            --        , caption = Nothing
-            --        , size =
-            --            { imgWidth = 162
-            --            , imgHeight = 143
-            --            }
-            --        }
-            --    ]
+            , RowNode { uid = 0, styleId = Nothing, classes = Set.fromList [ "sameHeightImgsRow" ] }
+                []
+                [ ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
+                    []
+                    { src = UrlSrc "images/famillePlus.jpg"
+                    , caption = Nothing
+                    , size =
+                        { imgWidth = 156
+                        , imgHeight = 143
+                        }
+                    }
+                , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
+                    []
+                    { src = UrlSrc "images/Station_Tourisme_RVB.jpg"
+                    , caption = Nothing
+                    , size =
+                        { imgWidth = 100
+                        , imgHeight = 143
+                        }
+                    }
+                , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
+                    []
+                    { src = UrlSrc "images/Village fleuri.png"
+                    , caption = Nothing
+                    , size =
+                        { imgWidth = 356
+                        , imgHeight = 143
+                        }
+                    }
+                , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [] }
+                    []
+                    { src = UrlSrc "images/StationVertegf.jpg"
+                    , caption = Nothing
+                    , size =
+                        { imgWidth = 150
+                        , imgHeight = 143
+                        }
+                    }
+                , ImageNode { uid = 21, styleId = Nothing, classes = Set.fromList [ "rowImg" ] }
+                    []
+                    { src = UrlSrc "images/PAVILLON BLEU LOGO 2.png"
+                    , caption = Nothing
+                    , size =
+                        { imgWidth = 162
+                        , imgHeight = 143
+                        }
+                    }
+                ]
             , ColumnNode { uid = 36, styleId = Nothing, classes = Set.empty }
                 []
                 [ ParagraphNode { uid = 39, styleId = Nothing, classes = Set.empty }
@@ -230,7 +229,7 @@ sampleDoc1 =
                     ]
                 , ImageNode { uid = 21, styleId = Nothing, classes = Set.empty }
                     []
-                    { src = UrlSrc "/images/lac3.jpg"
+                    { src = UrlSrc "images/lac3.jpg"
                     , caption = Nothing
                     , size =
                         { imgWidth = 377
@@ -255,7 +254,7 @@ sampleDoc1 =
             []
             [ ImageNode { uid = 18, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/prélong.jpg"
+                { src = UrlSrc "images/prélong.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 333
@@ -264,7 +263,7 @@ sampleDoc1 =
                 }
             , ImageNode { uid = 19, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/museePeintre.jpeg"
+                { src = UrlSrc "images/museePeintre.jpeg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 333
@@ -273,7 +272,7 @@ sampleDoc1 =
                 }
             , ImageNode { uid = 20, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/bourg2.jpg"
+                { src = UrlSrc "images/bourg2.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 377
@@ -282,7 +281,7 @@ sampleDoc1 =
                 }
             , ImageNode { uid = 21, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/illustration animations estivales.jpg"
+                { src = UrlSrc "images/illustration animations estivales.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 576
@@ -294,7 +293,7 @@ sampleDoc1 =
             []
             [ ImageNode { uid = 18, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/prélong.jpg"
+                { src = UrlSrc "images/prélong.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 333
@@ -303,7 +302,7 @@ sampleDoc1 =
                 }
             , ImageNode { uid = 19, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/museePeintre.jpeg"
+                { src = UrlSrc "images/museePeintre.jpeg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 333
@@ -312,7 +311,7 @@ sampleDoc1 =
                 }
             , ImageNode { uid = 20, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/bourg2.jpg"
+                { src = UrlSrc "images/bourg2.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 377
@@ -321,7 +320,7 @@ sampleDoc1 =
                 }
             , ImageNode { uid = 21, styleId = Nothing, classes = Set.empty }
                 []
-                { src = UrlSrc "/images/illustration animations estivales.jpg"
+                { src = UrlSrc "images/illustration animations estivales.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 576
@@ -336,7 +335,7 @@ sampleDoc1 =
             []
             [ ImageNode { uid = 25, styleId = Nothing, classes = Set.empty }
                 [ AlignLeft ]
-                { src = UrlSrc "/images/OT.jpg"
+                { src = UrlSrc "images/OT.jpg"
                 , caption = Nothing
                 , size =
                     { imgWidth = 400
@@ -347,7 +346,7 @@ sampleDoc1 =
                 [ AlignRight ]
                 [ ImageNode { uid = 26, styleId = Nothing, classes = Set.empty }
                     []
-                    { src = UrlSrc "/images/sancy_hiver.jpg"
+                    { src = UrlSrc "images/sancy_hiver.jpg"
                     , caption = Nothing
                     , size =
                         { imgWidth = 125
