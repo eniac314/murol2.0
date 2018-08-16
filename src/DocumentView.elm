@@ -15,6 +15,7 @@ import Element
         , el
         , fill
         , height
+        , html
         , htmlAttribute
         , image
         , link
@@ -38,6 +39,8 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Html as Html
+import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
 import Json.Decode as Decode
 import Set exposing (..)
@@ -124,6 +127,36 @@ renderResponsiveBloc winSize onLoadMsg id attrs children =
         (List.map (renderDoc winSize onLoadMsg) children)
 
 
+
+--renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, size } =
+--    let
+--        device =
+--            classifyDevice winSize
+--        attrs_ =
+--            if Set.member "colImg" classes then
+--                [ width (maximum size.imgWidth fill)
+--                , htmlAttribute <| Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
+--                ]
+--                    ++ renderAttrs winSize attrs
+--                --else if Set.member "rowImg" classes then
+--                --    [ height (px 85) ]
+--                --        ++ renderAttrs winSize attrs
+--            else
+--                [ width fill
+--                , htmlAttribute <| Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
+--                ]
+--                    ++ renderAttrs winSize attrs
+--        src_ =
+--            case src of
+--                Inline s ->
+--                    s
+--                UrlSrc s ->
+--                    s
+--    in
+--    image attrs_
+--        { src = src_, description = Maybe.withDefault "" caption }
+
+
 renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, size } =
     let
         device =
@@ -132,15 +165,10 @@ renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, si
         attrs_ =
             if Set.member "colImg" classes then
                 [ width (maximum size.imgWidth fill)
-                , htmlAttribute <| Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
                 ]
                     ++ renderAttrs winSize attrs
-                --else if Set.member "rowImg" classes then
-                --    [ height (px 85) ]
-                --        ++ renderAttrs winSize attrs
             else
                 [ width fill
-                , htmlAttribute <| Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
                 ]
                     ++ renderAttrs winSize attrs
 
@@ -152,8 +180,16 @@ renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, si
                 UrlSrc s ->
                     s
     in
-    image attrs_
-        { src = src_, description = Maybe.withDefault "" caption }
+    el attrs_
+        (html <|
+            Html.img
+                [ Attr.style "width" "100%"
+                , Attr.style "height" "auto"
+                , Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
+                , Attr.src src_
+                ]
+                []
+        )
 
 
 renderLink winSize onLoadMsg attrs { targetBlank, url, label } =

@@ -86,10 +86,10 @@ subscriptions model =
         [ onResize WinResize
 
         --, Time.every 500 (\_ -> RefreshSizes)
-        , if not model.hasRefreshed then
-            Browser.Events.onAnimationFrame (\_ -> RefreshSizes)
-          else
-            Sub.none
+        --, if not model.hasRefreshed then
+        --    Browser.Events.onAnimationFrame (\_ -> RefreshSizes)
+        --  else
+        --    Sub.none
         ]
 
 

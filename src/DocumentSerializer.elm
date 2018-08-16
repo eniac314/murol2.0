@@ -5,9 +5,9 @@ import Json.Encode exposing (..)
 import Set exposing (toList)
 
 
-encodeDocument : Document msg -> Value
-encodeDocument doc =
-    Debug.todo ""
+--encodeDocument : Document msg -> Value
+--encodeDocument doc =
+--    Debug.todo ""
 
 
 encodeId : Id -> Value
