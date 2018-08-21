@@ -1,0 +1,1019 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Doc",
+				"DocColor"
+			],
+			[
+				"on",
+				"onLoadMsg"
+			],
+			[
+				"html",
+				"htmlAttribute"
+			],
+			[
+				"doc",
+				"docWidth"
+			],
+			[
+				"sz",
+				"sizesDict"
+			],
+			[
+				"new",
+				"newUids"
+			],
+			[
+				"ht",
+				"htmlId"
+			],
+			[
+				"se",
+				"setSizeTrackedDocUids"
+			],
+			[
+				"add",
+				"addClass"
+			],
+			[
+				"S",
+				"String"
+			],
+			[
+				"sc",
+				"scalingFactor"
+			],
+			[
+				"img",
+				"imgsScaledToMinHeight"
+			],
+			[
+				"ca",
+				"caption"
+			],
+			[
+				"im",
+				"imgsScaledToMinHeight"
+			],
+			[
+				"wi",
+				"width"
+			],
+			[
+				"Sty",
+				"StyleElementAttr"
+			],
+			[
+				"imgS",
+				"imgSizes"
+			],
+			[
+				"to",
+				"totalImgWidth"
+			],
+			[
+				"con",
+				"containerWidth"
+			],
+			[
+				"get",
+				"getImgSizes"
+			],
+			[
+				"Le",
+				"LeafValue"
+			],
+			[
+				"cla",
+				"class"
+			],
+			[
+				"hi",
+				"height"
+			],
+			[
+				"pa",
+				"paragraph"
+			],
+			[
+				"fi",
+				"fixUids"
+			],
+			[
+				"nodeLa",
+				"nodeLabel"
+			],
+			[
+				"Do",
+				"Document"
+			],
+			[
+				"Lea",
+				"Leaf"
+			],
+			[
+				"mouse",
+				"mouseEnter"
+			],
+			[
+				"St",
+				"StyleElementAttr"
+			],
+			[
+				"a",
+				"attrs"
+			],
+			[
+				"le",
+				"leafContent"
+			],
+			[
+				"resp",
+				"responsivePreFormat"
+			],
+			[
+				"D",
+				"Document"
+			],
+			[
+				"renderTe",
+				"renderText"
+			],
+			[
+				"renderRe",
+				"renderResponsiveBloc"
+			],
+			[
+				"renderT",
+				"renderTextColumnNode"
+			],
+			[
+				"Pa",
+				"Paragraph"
+			],
+			[
+				"Te",
+				"Text"
+			],
+			[
+				"Tex",
+				"TextColumn"
+			],
+			[
+				"Col",
+				"Column"
+			],
+			[
+				"chi",
+				"children"
+			],
+			[
+				"Document",
+				"Document2"
+			],
+			[
+				"No",
+				"Nothing"
+			],
+			[
+				"Node",
+				"NodeAttribute"
+			],
+			[
+				"Leaf",
+				"LeafValue"
+			],
+			[
+				"Link",
+				"LinkMeta"
+			],
+			[
+				"Ima",
+				"ImageMeta"
+			],
+			[
+				"ne",
+				"neverWrapper"
+			],
+			[
+				"Align",
+				"AlignRight"
+			],
+			[
+				"ali",
+				"AlignLeft"
+			],
+			[
+				"E",
+				"Editor"
+			],
+			[
+				"sty",
+				"styleId"
+			],
+			[
+				"Text",
+				"TextNode"
+			],
+			[
+				"class",
+				"classes"
+			],
+			[
+				"st",
+				"styleId"
+			],
+			[
+				"paddin",
+				"paddingXY"
+			],
+			[
+				"Re",
+				"RespBloc"
+			],
+			[
+				"N",
+				"NodeAttribute"
+			],
+			[
+				"W",
+				"WinSize"
+			],
+			[
+				"De",
+				"Default"
+			],
+			[
+				"es",
+				"exposing"
+			],
+			[
+				"w",
+				"width"
+			],
+			[
+				"col",
+				"colImg"
+			],
+			[
+				"B",
+				"Browser"
+			],
+			[
+				"file",
+				"fileData"
+			],
+			[
+				"_",
+				"_fileData"
+			],
+			[
+				"filed",
+				"field"
+			],
+			[
+				"File",
+				"FileRead"
+			],
+			[
+				"F",
+				"FileRead"
+			],
+			[
+				"Uplo",
+				"UploadFile"
+			],
+			[
+				"up",
+				"uploadFile"
+			],
+			[
+				"U",
+				"UploadResult"
+			],
+			[
+				"vie",
+				"viewImagePreview"
+			],
+			[
+				"ima",
+				"imagePreview"
+			],
+			[
+				"x",
+				"xOffset"
+			],
+			[
+				"card",
+				"cardHeight"
+			],
+			[
+				"car",
+				"cardHeight"
+			],
+			[
+				"tr",
+				"transformOrigin"
+			],
+			[
+				"tra",
+				"transform"
+			],
+			[
+				"is",
+				"isScheduled"
+			],
+			[
+				"tran",
+				"translateX"
+			],
+			[
+				"A",
+				"AnimationMeta"
+			],
+			[
+				"Ca",
+				"CardId"
+			],
+			[
+				"anima",
+				"animation"
+			],
+			[
+				"pla",
+				"playerDeck"
+			],
+			[
+				"shu",
+				"shuffledDeck"
+			],
+			[
+				"pl",
+				"playerDeck"
+			],
+			[
+				"cen",
+				"centralPanelView"
+			],
+			[
+				"sprite",
+				"spritePos"
+			],
+			[
+				"c",
+				"c2"
+			],
+			[
+				"center",
+				"centerX"
+			],
+			[
+				"ini",
+				"initialSeed"
+			],
+			[
+				"ba",
+				"background-position"
+			],
+			[
+				"Win",
+				"Window"
+			],
+			[
+				"curr",
+				"currentYear"
+			],
+			[
+				"selec",
+				"selectedDate"
+			],
+			[
+				"sel",
+				"selectedDate"
+			],
+			[
+				"Sele",
+				"selectedDate"
+			],
+			[
+				"mont",
+				"monthToInt"
+			],
+			[
+				"scre",
+				"screenHeight"
+			],
+			[
+				"scree",
+				"screenWidth"
+			],
+			[
+				"win",
+				"winSize"
+			],
+			[
+				"Mont",
+				"MonthUnit"
+			],
+			[
+				"dra",
+				"drawPieHelper"
+			],
+			[
+				"s",
+				"size"
+			],
+			[
+				"pos",
+				"position"
+			],
+			[
+				"padd",
+				"paddingXY"
+			],
+			[
+				"inde",
+				"indexedMap"
+			],
+			[
+				"la",
+				"labelPosition"
+			],
+			[
+				"def",
+				"defPieConfig"
+			],
+			[
+				"e",
+				"exposing"
+			],
+			[
+				"colo",
+				"colormap"
+			],
+			[
+				"nbr",
+				"nbrVisibleEntry"
+			],
+			[
+				"bt",
+				"btnStyle"
+			],
+			[
+				"Li",
+				"Libellé"
+			],
+			[
+				"SortByNom",
+				"SortByNomConnexion"
+			],
+			[
+				"SortByN",
+				"SortByNomCompte"
+			],
+			[
+				"Sort",
+				"SortByLabel"
+			],
+			[
+				"SortBy",
+				"SortByLibelle"
+			],
+			[
+				"nomC",
+				"nomConnexion"
+			],
+			[
+				"nom",
+				"nomCompte"
+			],
+			[
+				"montant",
+				"montant"
+			],
+			[
+				"sort",
+				"sortedData"
+			],
+			[
+				"Sor",
+				"Sorties"
+			],
+			[
+				"En",
+				"Entrées"
+			],
+			[
+				"sor",
+				"SortByDate"
+			],
+			[
+				"SortB",
+				"SortByMoneyOut"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/Editor.elm",
+			"settings":
+			{
+				"buffer_size": 5820,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/SampleDocs.elm",
+			"settings":
+			{
+				"buffer_size": 16111,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/StyleSheets.elm",
+			"settings":
+			{
+				"buffer_size": 2991,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/Document.elm",
+			"settings":
+			{
+				"buffer_size": 13020,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "Package Control: i",
+		"selected_items":
+		[
+			[
+				"Package Control: i",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: in",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Remove Package"
+			],
+			[
+				"package re",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"pac",
+				"Package Control: Install Package"
+			],
+			[
+				"elm",
+				"Elm Language Support: Autoset Docs Path"
+			],
+			[
+				"el",
+				"Elm Build System: Set Output Path"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 497.0
+	},
+	"console":
+	{
+		"height": 146.0,
+		"history":
+		[
+			"sublime.log_commands(True)",
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/eniac314/prog/elm/gites/src/GiteGallery/StyleSheet.elm",
+		"/home/eniac314/prog/elm/gites/src/GiteGallery/Streams.elm",
+		"/home/eniac314/prog/elm/gites/src/GiteGallery/MultLangText.elm",
+		"/home/eniac314/prog/elm/gites/src/GiteGallery/GiteGalleryData.elm",
+		"/home/eniac314/prog/elm/mairieMurol/styles/style.css",
+		"/home/eniac314/prog/elm/mairieMurol/src/Utils.elm",
+		"/home/eniac314/prog/elm/mairieMurol/src/OfficeTourisme.elm",
+		"/home/eniac314/prog/elm/mairieMurol/src/Murol.elm",
+		"/home/eniac314/prog/elm/mocalis/src/Filesys.elm",
+		"/home/eniac314/prog/elm/mocalis/src/FileSysEdit.elm",
+		"/home/eniac314/prog/elm/editor0.19/src/Main.elm",
+		"/home/eniac314/prog/elm/editor0.19/stats.sh",
+		"/home/eniac314/prog/elm/editor0.19/src/Editor.elm",
+		"/home/eniac314/prog/elm/gites/apacheBackup/index.html",
+		"/home/eniac314/prog/elm/cardGame/index.html",
+		"/home/eniac314/prog/elm/editor0.19/index.html",
+		"/home/eniac314/prog/elm/editor0.19/elm.json",
+		"/home/eniac314/prog/elm/editor0.19/elm-package.json",
+		"/tmp/mozilla_eniac3140/Untitled Document 1",
+		"/home/eniac314/prog/elm/cardGame/src/View.elm",
+		"/home/eniac314/prog/elm/cardGame/src/Main.elm",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/static/elm/src/View.elm",
+		"/home/eniac314/prog/elm/fileUpload/SimpleForm.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat/src/Forms.elm",
+		"/home/eniac314/prog/elm/fileUpload/Ports.elm",
+		"/home/eniac314/prog/elm/gites/src/Booking/BookingComs.elm",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/static/elm/src/Coms.elm",
+		"/home/eniac314/prog/elm/fileUpload/assets/Ports.elm",
+		"/home/eniac314/prog/elm/fileUpload/assets/UploadViaPorts.elm",
+		"/home/eniac314/prog/elixir/platform/assets/elm/Platformer.elm",
+		"/home/eniac314/prog/elm/mocalis/src/Main.elm",
+		"/home/eniac314/prog/elm/elmGol/ElmGol.elm",
+		"/home/eniac314/prog/elm/cardGame/src/Types.elm",
+		"/home/eniac314/prog/elm/cardGame/elm-package.json",
+		"/home/eniac314/prog/elm/gilInfo/src/Types.elm",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/urls.py",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/csvParser.py",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/views.py",
+		"/home/eniac314/prog/elixir/gamesLobby/assets/elm/src/Hexaboard/HexaboardView.elm",
+		"/home/eniac314/prog/elixir/gamesLobby/assets/elm/src/Hexaboard/BoardView.elm",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/static/elm/elm-package.json",
+		"/home/eniac314/prog/elixir/gamesLobby/assets/elm/src/MainLobbyComs.elm",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/templates/landing/csvParser.py",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/static/elm/elm-package.json",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/static/elm/src/elmLanding.elm",
+		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/static/elm/elmLanding.elm",
+		"/home/eniac314/prog/elm/gilInfo/index.html",
+		"/home/eniac314/prog/elixir/gamesLobby/subprogs/hexaboard/notes",
+		"/home/eniac314/prog/elm/mocalis/src/BlogEntry.elm",
+		"/home/eniac314/prog/elm/mairieMurol/src/Annee2018.elm",
+		"/home/eniac314/prog/elm/mairieMurol/Gruntfile.js",
+		"/home/eniac314/prog/elm/mairieMurol/mentionsLegales.html",
+		"/home/eniac314/prog/elm/mairieMurol/Environnement.html",
+		"/home/eniac314/.config/sublime-text-3/Packages/User/MozcInput.sublime-settings",
+		"/home/eniac314/prog/elm/mairieMurol/src/Search.elm",
+		"/home/eniac314/prog/elm/mocalis/src/BetterParser.elm",
+		"/home/eniac314/prog/elm/mairieMurol/Annee2017.html",
+		"/home/eniac314/prog/elm/mairieMurol/src/LesAdos.elm",
+		"/tmp/mozilla_eniac3140/Kokopelli wish list",
+		"/home/eniac314/prog/elm/mairieMurol/styles/summer2016.css",
+		"/home/eniac314/prog/elm/mairieMurol/styles/winter.css",
+		"/home/eniac314/prog/elm/mairieMurol/styles/summer.css",
+		"/home/eniac314/prog/elm/mairieMurol/styles/spring.css",
+		"/home/eniac314/prog/elm/mairieMurol/styles/automne.css",
+		"/home/eniac314/prog/elm/mairieMurol/src/Animaux.sublime-workspace",
+		"/home/eniac314/prog/elm/mairieMurol/Associations.html",
+		"/home/eniac314/prog/elm/mairieMurol/AutomneHiver.html",
+		"/home/eniac314/prog/elm/mairieMurol/AutresPublications.html",
+		"/home/eniac314/prog/elm/mairieMurol/BulletinsMunicipaux.html",
+		"/home/eniac314/prog/elm/mairieMurol/Carte&Plan.html",
+		"/home/eniac314/prog/elm/mairieMurol/CCAS.html",
+		"/home/eniac314/prog/elm/mairieMurol/Commerces.html",
+		"/home/eniac314/prog/elm/mairieMurol/Commissions.html",
+		"/home/eniac314/prog/elm/mairieMurol/ConseilMunicipal.html",
+		"/home/eniac314/prog/elm/mairieMurol/DécouvrirMurol.html",
+		"/home/eniac314/prog/elm/mairieMurol/Délibérations.html",
+		"/home/eniac314/prog/elm/mairieMurol/Documentation.html",
+		"/home/eniac314/prog/elm/mairieMurol/Elections.html",
+		"/home/eniac314/prog/elm/mairieMurol/elm.js",
+		"/home/eniac314/prog/elm/mairieMurol/elm-package.json",
+		"/home/eniac314/prog/elm/mairieMurol/Entreprises.html",
+		"/home/eniac314/prog/elm/mairieMurol/favicon.ico",
+		"/home/eniac314/prog/elm/mairieMurol/FestivalArt.html",
+		"/home/eniac314/prog/elm/mairieMurol/gatherPics",
+		"/home/eniac314/prog/elm/mairieMurol/GestionDesDéchets.html",
+		"/home/eniac314/prog/elm/mairieMurol/GestionDesRisques.html",
+		"/home/eniac314/prog/elm/mairieMurol/google8ef9fedb39655dcb.html",
+		"/home/eniac314/prog/elm/mairieMurol/Hébergements.html",
+		"/home/eniac314/prog/elm/mairieMurol/HorairesEtContact.html",
+		"/home/eniac314/prog/elm/mairieMurol/index.html",
+		"/home/eniac314/prog/elm/mairieMurol/JourneeMurolais.html",
+		"/home/eniac314/prog/elm/mairieMurol/LaCommune.html",
+		"/home/eniac314/prog/elm/mairieMurol/LesSeniors.html",
+		"/home/eniac314/prog/elm/mairieMurol/LICENSE",
+		"/home/eniac314/prog/elm/mairieMurol/mairieMurol.sublime-project",
+		"/home/eniac314/prog/elm/mairieMurol/mairieMurol.sublime-workspace",
+		"/home/eniac314/prog/elm/mairieMurol/Medievales.html",
+		"/home/eniac314/prog/elm/mairieMurol/MurolInfos.html",
+		"/home/eniac314/prog/elm/mairieMurol/NumerosD'urgences.html",
+		"/home/eniac314/prog/elm/mairieMurol/OfficeDeTourisme.html",
+		"/home/eniac314/prog/elm/mairieMurol/OffresD'emploi.html",
+		"/home/eniac314/prog/elm/mairieMurol/Patrimoine.html",
+		"/home/eniac314/prog/elm/mairieMurol/PatrimoinePhoto.html",
+		"/home/eniac314/prog/elm/mairieMurol/PériEtExtra-scolaire.html",
+		"/home/eniac314/prog/elm/mairieMurol/PetitesAnnonces.html",
+		"/home/eniac314/prog/elm/mairieMurol/Photothèque.html",
+		"/home/eniac314/prog/elm/mairieMurol/PrintempsEte.html",
+		"/home/eniac314/prog/elm/mairieMurol/README.md",
+		"/home/eniac314/prog/elm/mairieMurol/Restaurants.html",
+		"/home/eniac314/prog/elm/mairieMurol/robots.txt",
+		"/home/eniac314/prog/elm/mairieMurol/SallesMunicipales.html",
+		"/home/eniac314/prog/elm/mairieMurol/Santé.html",
+		"/home/eniac314/prog/elm/mairieMurol/sitemap.xml",
+		"/home/eniac314/prog/elm/mairieMurol/Sortir.html",
+		"/home/eniac314/prog/elm/mairieMurol/SportsEtDétente.html",
+		"/home/eniac314/prog/elm/mairieMurol/start",
+		"/home/eniac314/prog/elm/mairieMurol/Texts.xcf",
+		"/home/eniac314/prog/elm/mairieMurol/Transports.html",
+		"/home/eniac314/prog/elm/mairieMurol/VieScolaire.html",
+		"/home/eniac314/prog/elm/mairieMurol/VillageFleuri.html",
+		"/home/eniac314/prog/elm/mairieMurol/VosDémarches.html",
+		"/home/eniac314/prog/elm/mairieMurol/14Juillet.html",
+		"/home/eniac314/prog/elm/mairieMurol/Agriculture.html",
+		"/home/eniac314/prog/elm/mairieMurol/Animation.html",
+		"/home/eniac314/prog/elm/mairieMurol/AnimationEstivale.html",
+		"/home/eniac314/prog/elm/mairieMurol/Animaux.html",
+		"/home/eniac314/prog/elm/mairieMurol/Annee2016.html",
+		"/home/eniac314/prog/elm/mairieMurol/Artistes.html"
+	],
+	"find":
+	{
+		"height": 27.0
+	},
+	"find_in_files":
+	{
+		"height": 96.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"StyleE"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/Editor.elm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5820,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								552,
+								552
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 918.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/SampleDocs.elm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 16111,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								867,
+								867
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 54.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/StyleSheets.elm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2991,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1547,
+								1547
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 540.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "src/Document.elm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13020,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								116,
+								116
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 486.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 41.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.elm_format":
+	{
+		"height": 150.0
+	},
+	"output.elm_type":
+	{
+		"height": 133.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.unsaved_changes":
+	{
+		"height": 127.0
+	},
+	"pinned_build_system": "",
+	"project": "editor0.19.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"goto",
+				"~/prog/elm/mairieMurol/src/Phototheque.elm"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"~/prog/elm/uminokirin/uminokirin.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 222.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

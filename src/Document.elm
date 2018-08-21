@@ -6,6 +6,7 @@ import Html.Attributes as Attr
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Set exposing (..)
+import Table exposing (..)
 
 
 type Document msg
@@ -96,11 +97,11 @@ type DocAttribute msg
     | AlignRight
     | AlignLeft
     | Pointer
-    | BackgroundColor Color
+    | BackgroundColor DocColor
     | Width Int
     | Height Int
     | Border
-    | FontColor Color
+    | FontColor DocColor
     | FontSize Int
     | FontAlignLeft
     | FontAlignRight
@@ -109,6 +110,15 @@ type DocAttribute msg
     | Bold
     | Italic
     | StyleElementAttr (Attribute msg)
+
+
+type DocColor
+    = DocColor Float Float Float
+
+
+toSeColor : DocColor -> Color
+toSeColor (DocColor r g b) =
+    rgb r g b
 
 
 hasUid : Int -> Document msg -> Bool

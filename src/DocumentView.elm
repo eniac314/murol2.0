@@ -163,14 +163,9 @@ renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, si
             classifyDevice winSize
 
         attrs_ =
-            if Set.member "colImg" classes then
-                [ width (maximum size.imgWidth fill)
-                ]
-                    ++ renderAttrs winSize attrs
-            else
-                [ width fill
-                ]
-                    ++ renderAttrs winSize attrs
+            [ width (maximum size.imgWidth fill)
+            ]
+                ++ renderAttrs winSize attrs
 
         src_ =
             case src of
@@ -340,7 +335,7 @@ renderAttrs winSize attrs =
                     [ pointer ]
 
                 BackgroundColor color ->
-                    [ Background.color color ]
+                    [ Background.color (toSeColor color) ]
 
                 Width n ->
                     [ width (px n) ]
@@ -355,7 +350,7 @@ renderAttrs winSize attrs =
                     ]
 
                 FontColor color ->
-                    [ Font.color color ]
+                    [ Font.color (toSeColor color) ]
 
                 FontAlignRight ->
                     [ Font.alignRight ]
