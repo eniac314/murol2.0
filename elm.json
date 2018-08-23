@@ -12,8 +12,7 @@
             "elm/json": "1.0.0",
             "elm/regex": "1.0.0",
             "elm/time": "1.0.0",
-            "elm-athlete/color": "1.0.0",
-            "mdgriffith/stylish-elephants": "8.0.1"
+            "mdgriffith/stylish-elephants": "8.0.2"
         },
         "indirect": {
             "elm/url": "1.0.0",

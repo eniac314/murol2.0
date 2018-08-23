@@ -165,19 +165,81 @@ update msg model =
 
 view : DocTable -> Html.Html Msg
 view model =
-    layout [ Font.size 14 ]
+    layout
+        [ Font.size 14
+        ]
         (case model.mode of
             DisplayOnly ->
-                displayOnlyView model.data
+                displayOnlyView model
 
             Edit ->
                 editView model
         )
 
 
-displayOnlyView : Data -> Element Msg
-displayOnlyView data =
-    Element.none
+displayOnlyView : DocTable -> Element Msg
+displayOnlyView model =
+    let
+        interfaceView =
+            column []
+                [ row
+                    [ spacing 15 ]
+                    [ Input.button buttonStyle
+                        { onPress = Just SwapDisplayMode
+                        , label = text "Editer"
+                        }
+                    ]
+                ]
+
+        dataForTable =
+            model.data
+                |> Dict.values
+
+        columns =
+            List.map
+                (\ci ->
+                    { header = Element.none
+                    , width = fill
+                    , view =
+                        \ri row ->
+                            el
+                                (cellStyle ri)
+                                (text
+                                    (Dict.get ci row
+                                        |> Maybe.withDefault ""
+                                    )
+                                )
+                    }
+                )
+                (List.range
+                    0
+                    (model.nbrCols - 1)
+                )
+
+        tableView =
+            if model.setupDone then
+                indexedTable
+                    [ Border.widthEach
+                        { bottom = 0
+                        , left = 1
+                        , right = 0
+                        , top = 1
+                        }
+                    ]
+                    { data = dataForTable
+                    , columns = columns
+                    }
+            else
+                Element.none
+    in
+    column
+        [ spacing 15
+        , padding 15
+        , width fill
+        ]
+        [ interfaceView
+        , tableView
+        ]
 
 
 editView : DocTable -> Element Msg
@@ -188,7 +250,11 @@ editView model =
                 column []
                     [ row
                         [ spacing 15 ]
-                        []
+                        [ Input.button buttonStyle
+                            { onPress = Just SwapDisplayMode
+                            , label = text "Aperçu"
+                            }
+                        ]
                     ]
             else
                 column
@@ -198,7 +264,7 @@ editView model =
                         ]
                         [ Input.text textInputStyle
                             { onChange =
-                                Just SetNbrCols
+                                SetNbrCols
                             , text = model.nbrColsInput
                             , placeholder = Nothing
                             , label =
@@ -206,7 +272,7 @@ editView model =
                             }
                         , Input.text textInputStyle
                             { onChange =
-                                Just SetNbrRows
+                                SetNbrRows
                             , text = model.nbrRowsInput
                             , placeholder = Nothing
                             , label =
@@ -231,16 +297,27 @@ editView model =
                     , width = fill
                     , view =
                         \ri row ->
-                            Input.text editableCellStyle
-                                { onChange =
-                                    Just (DataInput ( ri, ci ))
-                                , text =
-                                    Dict.get ci row
-                                        |> Maybe.withDefault ""
-                                , placeholder = Nothing
-                                , label =
-                                    Input.labelAbove [] Element.none
-                                }
+                            el
+                                (editableCellStyle
+                                    ri
+                                )
+                                (Input.multiline
+                                    [ Border.width 0
+                                    , centerY
+                                    , Background.color (rgba 1 1 1 0)
+                                    , focused [ Border.glow (rgb 1 1 1) 0 ]
+                                    ]
+                                    { onChange =
+                                        DataInput ( ri, ci )
+                                    , text =
+                                        Dict.get ci row
+                                            |> Maybe.withDefault ""
+                                    , placeholder = Nothing
+                                    , label =
+                                        Input.labelAbove [] Element.none
+                                    , spellcheck = False
+                                    }
+                                )
                     }
                 )
                 (List.range
@@ -249,22 +326,69 @@ editView model =
                 )
 
         tableView =
-            indexedTable []
-                { data = dataForTable
-                , columns = columns
-                }
+            if model.setupDone then
+                indexedTable
+                    [ Border.widthEach
+                        { bottom = 0
+                        , left = 1
+                        , right = 0
+                        , top = 1
+                        }
+                    , width fill
+                    ]
+                    { data = dataForTable
+                    , columns = columns
+                    }
+            else
+                Element.none
     in
     column
         [ spacing 15
         , padding 15
+        , width fill
         ]
         [ interfaceView
         , tableView
         ]
 
 
-editableCellStyle =
-    []
+editableCellStyle ri =
+    [ Border.widthEach
+        { bottom = 1
+        , left = 0
+        , right = 1
+        , top = 0
+        }
+
+    --, padding 7
+    , Background.color
+        (if modBy 2 ri == 0 then
+            rgb 0.8 0.8 0.8
+         else
+            rgb 1 1 1
+        )
+    ]
+
+
+cellStyle ri =
+    [ Border.widthEach
+        { bottom = 1
+        , left = 0
+        , right = 1
+        , top = 0
+        }
+    , paddingXY 15 5
+    , Background.color
+        (if modBy 2 ri == 0 then
+            rgb 0.8 0.8 0.8
+         else
+            rgb 1 1 1
+        )
+    , width fill --(minimum 100 fill)
+
+    --, height fill
+    , height (minimum 30 fill)
+    ]
 
 
 textInputStyle =
