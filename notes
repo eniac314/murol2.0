@@ -1,5 +1,5 @@
-- rajouter un cas CustomLeaf String dans LeafContent
-- passer un dict String (Element msg) à renderDoc
+- faire un test php sur serveur lws
+
 - 2 possibiltés pour les custom leaves:
 	* hardcoded
 	* parsed (String -> Element Never)?

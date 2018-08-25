@@ -38,6 +38,8 @@ defaulStyleSheet =
         [ spacing 15
         , centerX
         , Background.color (rgba 0 1 0 0.3)
+
+        --, padding 15
         ]
     , rowStyle =
         [ --spacing 15
@@ -149,7 +151,6 @@ tableStyles =
                     , right = 0
                     , top = 1
                     }
-                , width fill
                 ]
             , cellStyle =
                 \ri ->
@@ -172,7 +173,7 @@ tableStyles =
           )
         , ( "souligné"
           , { tableStyle =
-                [ width fill ]
+                []
             , cellStyle =
                 \ri ->
                     [ Border.widthEach
@@ -190,7 +191,7 @@ tableStyles =
           )
         , ( "gris-vert"
           , { tableStyle =
-                [ width fill ]
+                []
             , cellStyle =
                 \ri ->
                     [ Border.widthEach
@@ -214,8 +215,9 @@ tableStyles =
           )
         , ( "bleu-blanc"
           , { tableStyle =
-                [ width fill
-                , Border.width 1
+                [ Border.width 1
+
+                --, width shrink
                 ]
             , cellStyle =
                 \ri ->
@@ -235,7 +237,8 @@ tableStyles =
                     , width fill
                     ]
             , containerStyle =
-                [ paddingXY 1 1 ]
+                [ paddingXY 1 1
+                ]
             }
           )
 

@@ -28,6 +28,7 @@ type LeafContent
     | Text String
     | Heading ( Int, String )
     | Table TableMeta
+    | CustomElement String
 
 
 type alias LeafValue msg =
@@ -77,7 +78,7 @@ type alias TableMeta =
     }
 
 
-type alias WinSize =
+type alias Config msg =
     { width : Int
     , height : Int
     , sizesDict :
@@ -85,6 +86,8 @@ type alias WinSize =
             { docWidth : Int
             , docHeight : Int
             }
+    , customElems :
+        Dict String (Element msg)
     }
 
 
@@ -280,202 +283,3 @@ toogleHoverClass uid document =
                     )
                     children
                 )
-
-
-
--------------------------------------------------------------------------------
-
-
-responsivePreFormat : WinSize -> Document msg -> Document msg
-responsivePreFormat winSize document =
-    let
-        device =
-            classifyDevice winSize
-    in
-    case document of
-        Node ({ nodeLabel, id, attrs } as nv) children ->
-            case nodeLabel of
-                Paragraph ->
-                    Node nv (List.map (responsivePreFormat winSize) children)
-
-                Column ->
-                    let
-                        addColImgClass doc =
-                            case doc of
-                                (Leaf lv) as l ->
-                                    case lv.leafContent of
-                                        Image meta ->
-                                            let
-                                                lId =
-                                                    lv.id
-                                            in
-                                            Leaf
-                                                { leafContent = lv.leafContent
-                                                , id = { lId | classes = Set.insert "colImg" id.classes }
-                                                , attrs = lv.attrs
-                                                }
-
-                                        _ ->
-                                            l
-
-                                doc_ ->
-                                    doc_
-
-                        children_ =
-                            List.map addColImgClass children
-                    in
-                    Node nv (List.map (responsivePreFormat winSize) children_)
-
-                Row ->
-                    if
-                        hasClass "sameHeightImgsRow" document
-                            && containsOnly isImage document
-                    then
-                        case Dict.get id.uid winSize.sizesDict of
-                            Just { docWidth, docHeight } ->
-                                renderSameHeightImgRow docWidth document
-
-                            Nothing ->
-                                renderSameHeightImgRow winSize.width document
-                        --Node nv (List.map (responsivePreFormat winSize) children)
-                    else
-                        Node nv (List.map (responsivePreFormat winSize) children)
-
-                TextColumn ->
-                    if device.class == Phone || device.class == Tablet then
-                        responsivePreFormat winSize <| Node { nv | nodeLabel = Column } children
-                    else
-                        Node nv (List.map (responsivePreFormat winSize) children)
-
-                ResponsiveBloc ->
-                    Node nv (List.map (responsivePreFormat winSize) children)
-
-        (Leaf { leafContent, id, attrs }) as l ->
-            case leafContent of
-                Image meta ->
-                    l
-
-                Link meta ->
-                    l
-
-                Text s ->
-                    l
-
-                Heading ( level, s ) ->
-                    l
-
-                Table meta ->
-                    l
-
-
-renderSameHeightImgRow : Int -> Document msg -> Document msg
-renderSameHeightImgRow containerWidth document =
-    case document of
-        Leaf _ ->
-            document
-
-        Node id_ children ->
-            let
-                images =
-                    List.foldr
-                        (\doc acc ->
-                            case doc of
-                                Node _ _ ->
-                                    acc
-
-                                Leaf lv ->
-                                    case lv.leafContent of
-                                        Image ({ src, caption, size } as meta) ->
-                                            { meta = meta
-                                            , id = lv.id
-                                            , attrs = lv.attrs
-                                            , newWidth = 0
-                                            , newHeight = 0
-                                            }
-                                                :: acc
-
-                                        _ ->
-                                            acc
-                        )
-                        []
-                        children
-
-                imgSizes imgs =
-                    List.map (\i -> i.meta.size) imgs
-
-                minHeight imgs =
-                    imgSizes imgs
-                        |> List.map .imgHeight
-                        |> List.sort
-                        |> List.head
-                        |> Maybe.withDefault 0
-
-                imgsScaledToMinHeight =
-                    let
-                        mh =
-                            minHeight images
-
-                        scale { meta, attrs, id } =
-                            { meta = meta
-                            , id = id
-                            , attrs = attrs
-                            , newHeight = toFloat mh + 5
-                            , newWidth =
-                                toFloat mh
-                                    * toFloat meta.size.imgWidth
-                                    / toFloat meta.size.imgHeight
-                            }
-                    in
-                    List.map scale images
-
-                totalImgWidth =
-                    List.foldr (\i n -> i.newWidth + n) 0 imgsScaledToMinHeight
-
-                spacingOffset =
-                    if containerWidth > 500 then
-                        20
-                    else
-                        15
-
-                scalingFactor =
-                    if
-                        toFloat containerWidth
-                            < totalImgWidth
-                            + toFloat (List.length images)
-                            * spacingOffset
-                    then
-                        toFloat
-                            (containerWidth
-                                - List.length images
-                                * spacingOffset
-                            )
-                            / totalImgWidth
-                    else
-                        1
-
-                imgsScaledToFitContainer =
-                    List.map
-                        (\im ->
-                            { im
-                                | newWidth =
-                                    im.newWidth * scalingFactor
-                                , newHeight =
-                                    im.newHeight * scalingFactor
-                            }
-                        )
-                        imgsScaledToMinHeight
-            in
-            Node id_ <|
-                List.map
-                    (\im ->
-                        Leaf
-                            { leafContent = Image im.meta
-                            , id = im.id
-                            , attrs =
-                                [ StyleElementAttr <| height (px (floor im.newHeight))
-                                , StyleElementAttr <| width (px (floor im.newWidth))
-                                ]
-                                    ++ im.attrs
-                            }
-                    )
-                    imgsScaledToFitContainer

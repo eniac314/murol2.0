@@ -32,6 +32,8 @@ import Element
         , px
         , rgb
         , row
+        , scrollbarX
+        , shrink
         , spacingXY
         , text
         , textColumn
@@ -51,82 +53,88 @@ import Set exposing (..)
 import StyleSheets exposing (..)
 
 
-renderDoc : WinSize -> (Int -> msg) -> Document msg -> Element msg
-renderDoc winSize onLoadMsg document =
+renderDoc : Config msg -> (Int -> msg) -> Document msg -> Element msg
+renderDoc config onLoadMsg document =
     let
         device =
-            classifyDevice winSize
+            classifyDevice config
     in
     case document of
         Node { nodeLabel, id, attrs } children ->
             case nodeLabel of
                 Paragraph ->
-                    renderParagraph onLoadMsg winSize id attrs children
+                    renderParagraph onLoadMsg config id attrs children
 
                 Column ->
-                    renderColumn winSize onLoadMsg id attrs children
+                    renderColumn config onLoadMsg id attrs children
 
                 Row ->
-                    renderRow winSize onLoadMsg id attrs children
+                    renderRow config onLoadMsg id attrs children
 
                 TextColumn ->
-                    renderTextColumn winSize onLoadMsg id attrs children
+                    renderTextColumn config onLoadMsg id attrs children
 
                 ResponsiveBloc ->
-                    renderResponsiveBloc winSize onLoadMsg id attrs children
+                    renderResponsiveBloc config onLoadMsg id attrs children
 
         Leaf { leafContent, id, attrs } ->
             case leafContent of
                 Image meta ->
-                    renderImage winSize onLoadMsg id attrs meta
+                    renderImage config onLoadMsg id attrs meta
 
                 Link meta ->
-                    renderLink winSize attrs meta
+                    renderLink config attrs meta
 
                 Text s ->
-                    renderText winSize attrs s
+                    renderText config attrs s
 
                 Heading ( level, s ) ->
-                    renderHeading winSize attrs ( level, s )
+                    renderHeading config attrs ( level, s )
 
                 Table meta ->
-                    renderTable winSize id attrs meta
+                    renderTable config id attrs meta
+
+                CustomElement s ->
+                    renderCustomElement config id attrs s
 
 
-renderParagraph winSize onLoadMsg id attrs children =
-    paragraph (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize onLoadMsg) children)
+renderParagraph config onLoadMsg id attrs children =
+    paragraph (renderAttrs config attrs)
+        (List.map (renderDoc config onLoadMsg) children)
 
 
-renderColumn winSize onLoadMsg id attrs children =
-    column (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize onLoadMsg) children)
+renderColumn config onLoadMsg id attrs children =
+    column
+        ([ width (maximum config.width fill) ]
+            ++ renderAttrs config attrs
+        )
+        (List.map (renderDoc config onLoadMsg) children)
 
 
-renderRow winSize onLoadMsg id attrs children =
-    row (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize onLoadMsg) children)
+renderRow config onLoadMsg id attrs children =
+    row (renderAttrs config attrs)
+        (List.map (renderDoc config onLoadMsg) children)
 
 
-renderTextColumn winSize onLoadMsg id attrs children =
-    textColumn (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize onLoadMsg) children)
+renderTextColumn config onLoadMsg id attrs children =
+    textColumn (renderAttrs config attrs)
+        (List.map (renderDoc config onLoadMsg) children)
 
 
-renderResponsiveBloc winSize onLoadMsg id attrs children =
-    row (renderAttrs winSize attrs)
-        (List.map (renderDoc winSize onLoadMsg) children)
+renderResponsiveBloc config onLoadMsg id attrs children =
+    row (renderAttrs config attrs)
+        (List.map (renderDoc config onLoadMsg) children)
 
 
-renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, size } =
+renderImage config onLoadMsg { uid, styleId, classes } attrs { src, caption, size } =
     let
         device =
-            classifyDevice winSize
+            classifyDevice config
 
         attrs_ =
             [ width (maximum size.imgWidth fill)
             ]
-                ++ renderAttrs winSize attrs
+                ++ renderAttrs config attrs
 
         src_ =
             case src of
@@ -148,7 +156,7 @@ renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, si
         )
 
 
-renderLink winSize attrs { targetBlank, url, label } =
+renderLink config attrs { targetBlank, url, label } =
     let
         linkFun =
             if targetBlank then
@@ -157,21 +165,21 @@ renderLink winSize attrs { targetBlank, url, label } =
                 link
     in
     linkFun
-        (renderAttrs winSize attrs)
+        (renderAttrs config attrs)
         { url = url
         , label = text label
         }
 
 
-renderText winSize attrs s =
-    el (renderAttrs winSize attrs) (text s)
+renderText config attrs s =
+    el (renderAttrs config attrs) (text s)
 
 
-renderHeading winSize attrs ( level, s ) =
-    paragraph (Region.heading level :: renderAttrs winSize attrs) [ text s ]
+renderHeading config attrs ( level, s ) =
+    paragraph (Region.heading level :: renderAttrs config attrs) [ text s ]
 
 
-renderTable winSize id attrs { style, nbrRows, nbrCols, data } =
+renderTable config id attrs { style, nbrRows, nbrCols, data } =
     let
         columns =
             List.map
@@ -184,6 +192,7 @@ renderTable winSize id attrs { style, nbrRows, nbrCols, data } =
                                 (Dict.get style tableStyles
                                     |> Maybe.map .containerStyle
                                     |> Maybe.withDefault []
+                                    |> (\s -> height fill :: s)
                                 )
                                 (el
                                     ((Dict.get style tableStyles
@@ -195,10 +204,13 @@ renderTable winSize id attrs { style, nbrRows, nbrCols, data } =
                                            , height (minimum 30 fill)
                                            ]
                                     )
-                                    (text
-                                        (Array.get ci row
-                                            |> Maybe.withDefault ""
-                                        )
+                                    (paragraph
+                                        []
+                                        [ text
+                                            (Array.get ci row
+                                                |> Maybe.withDefault ""
+                                            )
+                                        ]
                                     )
                                 )
                     }
@@ -209,13 +221,24 @@ renderTable winSize id attrs { style, nbrRows, nbrCols, data } =
                 )
     in
     indexedTable
-        (Dict.get style tableStyles
+        ((Dict.get style tableStyles
             |> Maybe.map .tableStyle
             |> Maybe.withDefault []
+         )
+            ++ [ width fill --(maximum (config.width - 40) fill)
+               , scrollbarX
+
+               --, paddingXY 15 0
+               ]
         )
         { data = data
         , columns = columns
         }
+
+
+renderCustomElement config id attrs s =
+    Dict.get s config.customElems
+        |> Maybe.withDefault Element.none
 
 
 
@@ -293,12 +316,15 @@ packStyleSheet ({ paragraphStyle, columnStyle, rowStyle, textColumnStyle, respBl
                 Table meta ->
                     Leaf { lv | attrs = packAttr (idStyle id) attrs }
 
+                CustomElement s ->
+                    Leaf { lv | attrs = packAttr (idStyle id) attrs }
 
-renderAttrs : WinSize -> List (DocAttribute msg) -> List (Attribute msg)
-renderAttrs winSize attrs =
+
+renderAttrs : Config msg -> List (DocAttribute msg) -> List (Attribute msg)
+renderAttrs config attrs =
     let
         device =
-            classifyDevice winSize
+            classifyDevice config
 
         renderAttr attr =
             case attr of

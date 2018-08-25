@@ -36,7 +36,10 @@ encodeLeafContent lv =
                 ]
 
         Table tm ->
-            Debug.todo ""
+            object []
+
+        CustomElement s ->
+            object [ ( "customElement", string s ) ]
 
 
 encodeId : Id -> Value

@@ -5,6 +5,7 @@ import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Dict exposing (..)
 import Document exposing (..)
+import DocumentResponsive exposing (..)
 import DocumentSerializer exposing (..)
 import DocumentView exposing (..)
 import DocumentZipper exposing (..)
@@ -40,7 +41,7 @@ type Msg
 
 
 type alias Model =
-    { winSize : WinSize
+    { config : Config Msg
     , selectedNode : Maybe Int
     , hoveredNode : Maybe Int
     , document : DocZipper Msg
@@ -54,7 +55,7 @@ init doc flags =
         ( doc_, idsToTrack ) =
             setSizeTrackedDocUids doc
 
-        winSize =
+        config =
             { width = 1920
             , height = 1080
             , sizesDict =
@@ -64,9 +65,10 @@ init doc flags =
                         (\uid -> ( uid, { docWidth = 0, docHeight = 0 } ))
                         idsToTrack
                     )
+            , customElems = Dict.empty
             }
     in
-    ( { winSize = winSize
+    ( { config = config
       , selectedNode = Nothing
       , document =
             doc_
@@ -99,19 +101,19 @@ update msg model =
         WinResize width height ->
             let
                 ws =
-                    model.winSize
+                    model.config
             in
-            ( { model | winSize = { ws | width = width, height = height } }
-            , Cmd.batch [ updateSizes model.winSize ]
+            ( { model | config = { ws | width = width, height = height } }
+            , Cmd.batch [ updateSizes model.config ]
             )
 
         CurrentViewport vp ->
             let
                 ws =
-                    model.winSize
+                    model.config
             in
             ( { model
-                | winSize =
+                | config =
                     { ws
                         | width = round vp.viewport.width
                         , height = round vp.viewport.height
@@ -124,22 +126,22 @@ update msg model =
             case res of
                 Ok { viewport } ->
                     let
-                        currentwinSize =
-                            model.winSize
+                        currentConfig =
+                            model.config
 
                         newSizesDict =
                             Dict.insert uid
                                 { docWidth = round viewport.width
                                 , docHeight = round viewport.height
                                 }
-                                currentwinSize.sizesDict
+                                currentConfig.sizesDict
                     in
                     ( { model
-                        | winSize =
-                            { currentwinSize
+                        | config =
+                            { currentConfig
                                 | sizesDict = newSizesDict
                             }
-                        , hasRefreshed = newSizesDict == currentwinSize.sizesDict
+                        , hasRefreshed = newSizesDict == currentConfig.sizesDict
                       }
                     , Cmd.none
                     )
@@ -178,7 +180,7 @@ update msg model =
 
         RefreshSizes ->
             ( model
-            , updateSizes model.winSize
+            , updateSizes model.config
             )
 
         NoOp ->
@@ -200,9 +202,9 @@ view model =
             (model.document
                 |> rewind
                 |> extractDoc
-                |> responsivePreFormat model.winSize
+                |> responsivePreFormat model.config
                 |> packStyleSheet defaulStyleSheet
-                |> renderDoc model.winSize (\_ -> RefreshSizes)
+                |> renderDoc model.config (\_ -> RefreshSizes)
              --|> (\doc -> lazy (\ws -> renderDoc ws doc) model.winSize)
             )
 
@@ -211,7 +213,7 @@ view model =
     }
 
 
-updateSizes : WinSize -> Cmd Msg
+updateSizes : Config Msg -> Cmd Msg
 updateSizes { sizesDict } =
     let
         cmd uid id =

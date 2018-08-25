@@ -1,5 +1,6 @@
 module SampleDocs exposing (..)
 
+import Array exposing (fromList)
 import Document exposing (..)
 import Element exposing (centerX, fill, height, layout, maximum, px, width)
 import Html.Attributes as Attr
@@ -531,6 +532,39 @@ sampleDoc1 =
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 2 }
                 , leafContent = Heading ( 3, "Horaires:" )
+                }
+            , Leaf
+                { attrs = []
+                , id = { classes = Set.fromList [], styleId = Nothing, uid = 2 }
+                , leafContent =
+                    Table
+                        { style = "bleu-blanc"
+                        , nbrRows = 3
+                        , nbrCols = 5
+                        , data =
+                            [ Array.fromList
+                                [ "Quotient familial"
+                                , "de 0 à 350€"
+                                , "de 351 à 500€"
+                                , "de 501 à 600€"
+                                , "plus de 600€"
+                                ]
+                            , Array.fromList
+                                [ "Tarif maternelle"
+                                , "2,10€"
+                                , "2,10€"
+                                , "2,10€"
+                                , "2,10€"
+                                ]
+                            , Array.fromList
+                                [ "Tarif élémentaire"
+                                , "2,10€"
+                                , "2,10€"
+                                , "2,10€"
+                                , "2,10€"
+                                ]
+                            ]
+                        }
                 }
             ]
         ]

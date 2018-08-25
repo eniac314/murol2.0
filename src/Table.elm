@@ -237,6 +237,7 @@ displayOnlyView model =
                                 (Dict.get model.currentStyle tableStyles
                                     |> Maybe.map .containerStyle
                                     |> Maybe.withDefault []
+                                    |> (\s -> height fill :: s)
                                 )
                                 (el
                                     ((Dict.get model.currentStyle tableStyles
