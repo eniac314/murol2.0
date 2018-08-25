@@ -1,5 +1,6 @@
 module DocumentView exposing (..)
 
+import Array exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
 import Element
@@ -18,11 +19,14 @@ import Element
         , html
         , htmlAttribute
         , image
+        , indexedTable
         , link
         , maximum
+        , minimum
         , newTabLink
         , none
         , paddingEach
+        , paddingXY
         , paragraph
         , pointer
         , px
@@ -77,13 +81,16 @@ renderDoc winSize onLoadMsg document =
                     renderImage winSize onLoadMsg id attrs meta
 
                 Link meta ->
-                    renderLink winSize onLoadMsg attrs meta
+                    renderLink winSize attrs meta
 
                 Text s ->
-                    renderText winSize onLoadMsg attrs s
+                    renderText winSize attrs s
 
                 Heading ( level, s ) ->
-                    renderHeading winSize onLoadMsg attrs ( level, s )
+                    renderHeading winSize attrs ( level, s )
+
+                Table meta ->
+                    renderTable winSize id attrs meta
 
 
 renderParagraph winSize onLoadMsg id attrs children =
@@ -141,7 +148,7 @@ renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, si
         )
 
 
-renderLink winSize onLoadMsg attrs { targetBlank, url, label } =
+renderLink winSize attrs { targetBlank, url, label } =
     let
         linkFun =
             if targetBlank then
@@ -156,12 +163,59 @@ renderLink winSize onLoadMsg attrs { targetBlank, url, label } =
         }
 
 
-renderText winSize onLoadMsg attrs s =
+renderText winSize attrs s =
     el (renderAttrs winSize attrs) (text s)
 
 
-renderHeading winSize onLoadMsg attrs ( level, s ) =
+renderHeading winSize attrs ( level, s ) =
     paragraph (Region.heading level :: renderAttrs winSize attrs) [ text s ]
+
+
+renderTable winSize id attrs { style, nbrRows, nbrCols, data } =
+    let
+        columns =
+            List.map
+                (\ci ->
+                    { header = Element.none
+                    , width = fill
+                    , view =
+                        \ri row ->
+                            el
+                                (Dict.get style tableStyles
+                                    |> Maybe.map .containerStyle
+                                    |> Maybe.withDefault []
+                                )
+                                (el
+                                    ((Dict.get style tableStyles
+                                        |> Maybe.map .cellStyle
+                                        |> Maybe.withDefault (\_ -> [])
+                                     )
+                                        ri
+                                        ++ [ paddingXY 15 5
+                                           , height (minimum 30 fill)
+                                           ]
+                                    )
+                                    (text
+                                        (Array.get ci row
+                                            |> Maybe.withDefault ""
+                                        )
+                                    )
+                                )
+                    }
+                )
+                (List.range
+                    0
+                    (nbrCols - 1)
+                )
+    in
+    indexedTable
+        (Dict.get style tableStyles
+            |> Maybe.map .tableStyle
+            |> Maybe.withDefault []
+        )
+        { data = data
+        , columns = columns
+        }
 
 
 
@@ -235,6 +289,9 @@ packStyleSheet ({ paragraphStyle, columnStyle, rowStyle, textColumnStyle, respBl
                                 |> Maybe.withDefault []
                     in
                     Leaf { lv | attrs = packAttr (headingStyle ++ idStyle id) attrs }
+
+                Table meta ->
+                    Leaf { lv | attrs = packAttr (idStyle id) attrs }
 
 
 renderAttrs : WinSize -> List (DocAttribute msg) -> List (Attribute msg)

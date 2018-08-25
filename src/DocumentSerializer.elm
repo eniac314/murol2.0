@@ -35,6 +35,9 @@ encodeLeafContent lv =
                   )
                 ]
 
+        Table tm ->
+            Debug.todo ""
+
 
 encodeId : Id -> Value
 encodeId { uid, styleId, classes } =

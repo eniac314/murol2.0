@@ -27,10 +27,7 @@ type LeafContent
     | Link LinkMeta
     | Text String
     | Heading ( Int, String )
-
-
-
---| Table TableMeta
+    | Table TableMeta
 
 
 type alias LeafValue msg =
@@ -74,8 +71,8 @@ type alias LinkMeta =
 
 type alias TableMeta =
     { style : String
-    , nbrRow : Int
-    , nbrCol : Int
+    , nbrRows : Int
+    , nbrCols : Int
     , data : List (Array String)
     }
 
@@ -365,6 +362,9 @@ responsivePreFormat winSize document =
                     l
 
                 Heading ( level, s ) ->
+                    l
+
+                Table meta ->
                     l
 
 

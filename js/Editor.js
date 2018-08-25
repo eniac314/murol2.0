@@ -10644,10 +10644,13 @@ var author$project$Document$responsivePreFormat = F2(
 				case 'Text':
 					var s = leafContent.a;
 					return l;
-				default:
+				case 'Heading':
 					var _n6 = leafContent.a;
 					var level = _n6.a;
 					var s = _n6.b;
+					return l;
+				default:
+					var meta = leafContent.a;
 					return l;
 			}
 		}
@@ -10839,7 +10842,7 @@ var author$project$DocumentView$packStyleSheet = F2(
 										idStyle(id)),
 									attrs)
 							}));
-				default:
+				case 'Heading':
 					var _n3 = leafContent.a;
 					var level = _n3.a;
 					var s = _n3.b;
@@ -10856,6 +10859,17 @@ var author$project$DocumentView$packStyleSheet = F2(
 									_Utils_ap(
 										headingStyle,
 										idStyle(id)),
+									attrs)
+							}));
+				default:
+					var meta = leafContent.a;
+					return author$project$Document$Leaf(
+						_Utils_update(
+							lv,
+							{
+								attrs: A2(
+									packAttr,
+									idStyle(id),
 									attrs)
 							}));
 			}
@@ -15686,8 +15700,8 @@ var mdgriffith$stylish_elephants$Internal$Model$Heading = function (a) {
 	return {$: 'Heading', a: a};
 };
 var mdgriffith$stylish_elephants$Element$Region$heading = A2(elm$core$Basics$composeL, mdgriffith$stylish_elephants$Internal$Model$Describe, mdgriffith$stylish_elephants$Internal$Model$Heading);
-var author$project$DocumentView$renderHeading = F4(
-	function (winSize, onLoadMsg, attrs, _n0) {
+var author$project$DocumentView$renderHeading = F3(
+	function (winSize, attrs, _n0) {
 		var level = _n0.a;
 		var s = _n0.b;
 		return A2(
@@ -15849,8 +15863,8 @@ var mdgriffith$stylish_elephants$Element$newTabLink = F2(
 				_List_fromArray(
 					[label])));
 	});
-var author$project$DocumentView$renderLink = F4(
-	function (winSize, onLoadMsg, attrs, _n0) {
+var author$project$DocumentView$renderLink = F3(
+	function (winSize, attrs, _n0) {
 		var targetBlank = _n0.targetBlank;
 		var url = _n0.url;
 		var label = _n0.label;
@@ -15863,8 +15877,463 @@ var author$project$DocumentView$renderLink = F4(
 				url: url
 			});
 	});
-var author$project$DocumentView$renderText = F4(
-	function (winSize, onLoadMsg, attrs, s) {
+var elm$core$Basics$modBy = _Basics_modBy;
+var mdgriffith$stylish_elephants$Element$paddingXY = F2(
+	function (x, y) {
+		return _Utils_eq(x, y) ? A2(
+			mdgriffith$stylish_elephants$Internal$Model$StyleClass,
+			mdgriffith$stylish_elephants$Internal$Flag$padding,
+			A5(
+				mdgriffith$stylish_elephants$Internal$Model$PaddingStyle,
+				'p-' + elm$core$String$fromInt(x),
+				x,
+				x,
+				x,
+				x)) : A2(
+			mdgriffith$stylish_elephants$Internal$Model$StyleClass,
+			mdgriffith$stylish_elephants$Internal$Flag$padding,
+			A5(
+				mdgriffith$stylish_elephants$Internal$Model$PaddingStyle,
+				'p-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y))),
+				y,
+				x,
+				y,
+				x));
+	});
+var mdgriffith$stylish_elephants$Element$rgba = mdgriffith$stylish_elephants$Internal$Model$Rgba;
+var mdgriffith$stylish_elephants$Element$Border$widthEach = function (_n0) {
+	var bottom = _n0.bottom;
+	var top = _n0.top;
+	var left = _n0.left;
+	var right = _n0.right;
+	return A2(
+		mdgriffith$stylish_elephants$Internal$Model$StyleClass,
+		mdgriffith$stylish_elephants$Internal$Flag$borderWidth,
+		A3(
+			mdgriffith$stylish_elephants$Internal$Model$Single,
+			'border-' + (elm$core$String$fromInt(top) + ('-' + (elm$core$String$fromInt(right) + (elm$core$String$fromInt(bottom) + ('-' + elm$core$String$fromInt(left)))))),
+			'border-width',
+			elm$core$String$fromInt(top) + ('px ' + (elm$core$String$fromInt(right) + ('px ' + (elm$core$String$fromInt(bottom) + ('px ' + (elm$core$String$fromInt(left) + 'px'))))))));
+};
+var author$project$StyleSheets$tableStyles = elm$core$Dict$fromList(
+	_List_fromArray(
+		[
+			_Utils_Tuple2(
+			'default',
+			{
+				cellStyle: function (ri) {
+					return _List_fromArray(
+						[
+							mdgriffith$stylish_elephants$Element$Border$widthEach(
+							{bottom: 1, left: 0, right: 1, top: 0}),
+							mdgriffith$stylish_elephants$Element$Background$color(
+							(!A2(elm$core$Basics$modBy, 2, ri)) ? A3(mdgriffith$stylish_elephants$Element$rgb, 0.8, 0.8, 0.8) : A3(mdgriffith$stylish_elephants$Element$rgb, 1, 1, 1)),
+							mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill)
+						]);
+				},
+				containerStyle: _List_Nil,
+				tableStyle: _List_fromArray(
+					[
+						mdgriffith$stylish_elephants$Element$Border$widthEach(
+						{bottom: 0, left: 1, right: 0, top: 1}),
+						mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill)
+					])
+			}),
+			_Utils_Tuple2(
+			'souligné',
+			{
+				cellStyle: function (ri) {
+					return _List_fromArray(
+						[
+							mdgriffith$stylish_elephants$Element$Border$widthEach(
+							{bottom: 1, left: 0, right: 0, top: 0}),
+							mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill)
+						]);
+				},
+				containerStyle: _List_fromArray(
+					[
+						A2(mdgriffith$stylish_elephants$Element$paddingXY, 1, 0)
+					]),
+				tableStyle: _List_fromArray(
+					[
+						mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill)
+					])
+			}),
+			_Utils_Tuple2(
+			'gris-vert',
+			{
+				cellStyle: function (ri) {
+					return _List_fromArray(
+						[
+							mdgriffith$stylish_elephants$Element$Border$widthEach(
+							{bottom: 1, left: 0, right: 0, top: 0}),
+							mdgriffith$stylish_elephants$Element$Border$color(
+							A4(mdgriffith$stylish_elephants$Element$rgba, 0.5, 0.5, 0.5, 1)),
+							mdgriffith$stylish_elephants$Element$Background$color(
+							(!A2(elm$core$Basics$modBy, 2, ri)) ? A3(mdgriffith$stylish_elephants$Element$rgb, 0.83, 0.83, 0.83) : A3(mdgriffith$stylish_elephants$Element$rgb, 0.58, 0.93, 0.58)),
+							mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill)
+						]);
+				},
+				containerStyle: _List_fromArray(
+					[
+						A2(mdgriffith$stylish_elephants$Element$paddingXY, 1, 1)
+					]),
+				tableStyle: _List_fromArray(
+					[
+						mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill)
+					])
+			}),
+			_Utils_Tuple2(
+			'bleu-blanc',
+			{
+				cellStyle: function (ri) {
+					return _List_fromArray(
+						[
+							mdgriffith$stylish_elephants$Element$Border$widthEach(
+							{bottom: 1, left: 0, right: 0, top: 0}),
+							mdgriffith$stylish_elephants$Element$Border$color(
+							A3(mdgriffith$stylish_elephants$Element$rgb, 0.5, 0.5, 0.5)),
+							mdgriffith$stylish_elephants$Element$Background$color(
+							(!A2(elm$core$Basics$modBy, 2, ri)) ? A3(mdgriffith$stylish_elephants$Element$rgb, 0.53, 0.81, 0.92) : A3(mdgriffith$stylish_elephants$Element$rgb, 0.92, 0.92, 0.84)),
+							mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill)
+						]);
+				},
+				containerStyle: _List_fromArray(
+					[
+						A2(mdgriffith$stylish_elephants$Element$paddingXY, 1, 1)
+					]),
+				tableStyle: _List_fromArray(
+					[
+						mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill),
+						mdgriffith$stylish_elephants$Element$Border$width(1)
+					])
+			})
+		]));
+var mdgriffith$stylish_elephants$Element$InternalIndexedColumn = function (a) {
+	return {$: 'InternalIndexedColumn', a: a};
+};
+var elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			elm$core$List$any,
+			A2(elm$core$Basics$composeL, elm$core$Basics$not, isOkay),
+			list);
+	});
+var elm$core$List$repeatHelp = F3(
+	function (result, n, value) {
+		repeatHelp:
+		while (true) {
+			if (n <= 0) {
+				return result;
+			} else {
+				var $temp$result = A2(elm$core$List$cons, value, result),
+					$temp$n = n - 1,
+					$temp$value = value;
+				result = $temp$result;
+				n = $temp$n;
+				value = $temp$value;
+				continue repeatHelp;
+			}
+		}
+	});
+var elm$core$List$repeat = F2(
+	function (n, value) {
+		return A3(elm$core$List$repeatHelp, _List_Nil, n, value);
+	});
+var mdgriffith$stylish_elephants$Internal$Flag$gridPosition = mdgriffith$stylish_elephants$Internal$Flag$flag(35);
+var mdgriffith$stylish_elephants$Internal$Flag$gridTemplate = mdgriffith$stylish_elephants$Internal$Flag$flag(34);
+var mdgriffith$stylish_elephants$Internal$Model$Empty = {$: 'Empty'};
+var mdgriffith$stylish_elephants$Internal$Model$GridPosition = function (a) {
+	return {$: 'GridPosition', a: a};
+};
+var mdgriffith$stylish_elephants$Internal$Model$GridTemplateStyle = function (a) {
+	return {$: 'GridTemplateStyle', a: a};
+};
+var mdgriffith$stylish_elephants$Internal$Model$AsGrid = {$: 'AsGrid'};
+var mdgriffith$stylish_elephants$Internal$Model$asGrid = mdgriffith$stylish_elephants$Internal$Model$AsGrid;
+var mdgriffith$stylish_elephants$Internal$Model$getSpacing = F2(
+	function (attrs, _default) {
+		return A2(
+			elm$core$Maybe$withDefault,
+			_default,
+			A3(
+				elm$core$List$foldr,
+				F2(
+					function (attr, acc) {
+						if (acc.$ === 'Just') {
+							var x = acc.a;
+							return elm$core$Maybe$Just(x);
+						} else {
+							if ((attr.$ === 'StyleClass') && (attr.b.$ === 'SpacingStyle')) {
+								var _n2 = attr.b;
+								var x = _n2.b;
+								var y = _n2.c;
+								return elm$core$Maybe$Just(
+									_Utils_Tuple2(x, y));
+							} else {
+								return elm$core$Maybe$Nothing;
+							}
+						}
+					}),
+				elm$core$Maybe$Nothing,
+				attrs));
+	});
+var mdgriffith$stylish_elephants$Element$tableHelper = F2(
+	function (attrs, config) {
+		var onGrid = F3(
+			function (rowLevel, columnLevel, elem) {
+				return A4(
+					mdgriffith$stylish_elephants$Internal$Model$element,
+					mdgriffith$stylish_elephants$Internal$Model$asEl,
+					mdgriffith$stylish_elephants$Internal$Model$div,
+					_List_fromArray(
+						[
+							A2(
+							mdgriffith$stylish_elephants$Internal$Model$StyleClass,
+							mdgriffith$stylish_elephants$Internal$Flag$gridPosition,
+							mdgriffith$stylish_elephants$Internal$Model$GridPosition(
+								{col: columnLevel, height: 1, row: rowLevel, width: 1}))
+						]),
+					mdgriffith$stylish_elephants$Internal$Model$Unkeyed(
+						_List_fromArray(
+							[elem])));
+			});
+		var columnWidth = function (col) {
+			if (col.$ === 'InternalIndexedColumn') {
+				var colConfig = col.a;
+				return colConfig.width;
+			} else {
+				var colConfig = col.a;
+				return colConfig.width;
+			}
+		};
+		var columnHeader = function (col) {
+			if (col.$ === 'InternalIndexedColumn') {
+				var colConfig = col.a;
+				return colConfig.header;
+			} else {
+				var colConfig = col.a;
+				return colConfig.header;
+			}
+		};
+		var maybeHeaders = function (headers) {
+			return A2(
+				elm$core$List$all,
+				elm$core$Basics$eq(mdgriffith$stylish_elephants$Internal$Model$Empty),
+				headers) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(
+				A2(
+					elm$core$List$indexedMap,
+					F2(
+						function (col, header) {
+							return A3(onGrid, 1, col + 1, header);
+						}),
+					headers));
+		}(
+			A2(elm$core$List$map, columnHeader, config.columns));
+		var add = F3(
+			function (cell, columnConfig, cursor) {
+				if (columnConfig.$ === 'InternalIndexedColumn') {
+					var col = columnConfig.a;
+					return _Utils_update(
+						cursor,
+						{
+							column: cursor.column + 1,
+							elements: A2(
+								elm$core$List$cons,
+								A3(
+									onGrid,
+									cursor.row,
+									cursor.column,
+									A2(
+										col.view,
+										_Utils_eq(maybeHeaders, elm$core$Maybe$Nothing) ? (cursor.row - 1) : (cursor.row - 2),
+										cell)),
+								cursor.elements)
+						});
+				} else {
+					var col = columnConfig.a;
+					return _Utils_update(
+						cursor,
+						{
+							column: cursor.column + 1,
+							elements: A2(
+								elm$core$List$cons,
+								A3(
+									onGrid,
+									cursor.row,
+									cursor.column,
+									col.view(cell)),
+								cursor.elements)
+						});
+				}
+			});
+		var build = F3(
+			function (columns, rowData, cursor) {
+				var newCursor = A3(
+					elm$core$List$foldl,
+					add(rowData),
+					cursor,
+					columns);
+				return _Utils_update(
+					newCursor,
+					{column: 1, row: cursor.row + 1});
+			});
+		var children = A3(
+			elm$core$List$foldl,
+			build(config.columns),
+			{
+				column: 1,
+				elements: _List_Nil,
+				row: _Utils_eq(maybeHeaders, elm$core$Maybe$Nothing) ? 1 : 2
+			},
+			config.data);
+		var _n0 = A2(
+			mdgriffith$stylish_elephants$Internal$Model$getSpacing,
+			attrs,
+			_Utils_Tuple2(0, 0));
+		var sX = _n0.a;
+		var sY = _n0.b;
+		var template = A2(
+			mdgriffith$stylish_elephants$Internal$Model$StyleClass,
+			mdgriffith$stylish_elephants$Internal$Flag$gridTemplate,
+			mdgriffith$stylish_elephants$Internal$Model$GridTemplateStyle(
+				{
+					columns: A2(elm$core$List$map, columnWidth, config.columns),
+					rows: A2(
+						elm$core$List$repeat,
+						elm$core$List$length(config.data),
+						mdgriffith$stylish_elephants$Internal$Model$Content),
+					spacing: _Utils_Tuple2(
+						mdgriffith$stylish_elephants$Element$px(sX),
+						mdgriffith$stylish_elephants$Element$px(sY))
+				}));
+		return A4(
+			mdgriffith$stylish_elephants$Internal$Model$element,
+			mdgriffith$stylish_elephants$Internal$Model$asGrid,
+			mdgriffith$stylish_elephants$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$stylish_elephants$Element$width(mdgriffith$stylish_elephants$Element$fill),
+				A2(elm$core$List$cons, template, attrs)),
+			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(
+				function () {
+					if (maybeHeaders.$ === 'Nothing') {
+						return children.elements;
+					} else {
+						var renderedHeaders = maybeHeaders.a;
+						return _Utils_ap(renderedHeaders, children.elements);
+					}
+				}()));
+	});
+var mdgriffith$stylish_elephants$Element$indexedTable = F2(
+	function (attrs, config) {
+		return A2(
+			mdgriffith$stylish_elephants$Element$tableHelper,
+			attrs,
+			{
+				columns: A2(elm$core$List$map, mdgriffith$stylish_elephants$Element$InternalIndexedColumn, config.columns),
+				data: config.data
+			});
+	});
+var mdgriffith$stylish_elephants$Internal$Model$Min = F2(
+	function (a, b) {
+		return {$: 'Min', a: a, b: b};
+	});
+var mdgriffith$stylish_elephants$Element$minimum = F2(
+	function (i, l) {
+		return A2(mdgriffith$stylish_elephants$Internal$Model$Min, i, l);
+	});
+var mdgriffith$stylish_elephants$Element$none = mdgriffith$stylish_elephants$Internal$Model$Empty;
+var author$project$DocumentView$renderTable = F4(
+	function (winSize, id, attrs, _n0) {
+		var style = _n0.style;
+		var nbrRows = _n0.nbrRows;
+		var nbrCols = _n0.nbrCols;
+		var data = _n0.data;
+		var columns = A2(
+			elm$core$List$map,
+			function (ci) {
+				return {
+					header: mdgriffith$stylish_elephants$Element$none,
+					view: F2(
+						function (ri, row) {
+							return A2(
+								mdgriffith$stylish_elephants$Element$el,
+								A2(
+									elm$core$Maybe$withDefault,
+									_List_Nil,
+									A2(
+										elm$core$Maybe$map,
+										function ($) {
+											return $.containerStyle;
+										},
+										A2(elm$core$Dict$get, style, author$project$StyleSheets$tableStyles))),
+								A2(
+									mdgriffith$stylish_elephants$Element$el,
+									_Utils_ap(
+										A2(
+											elm$core$Maybe$withDefault,
+											function (_n1) {
+												return _List_Nil;
+											},
+											A2(
+												elm$core$Maybe$map,
+												function ($) {
+													return $.cellStyle;
+												},
+												A2(elm$core$Dict$get, style, author$project$StyleSheets$tableStyles)))(ri),
+										_List_fromArray(
+											[
+												A2(mdgriffith$stylish_elephants$Element$paddingXY, 15, 5),
+												mdgriffith$stylish_elephants$Element$height(
+												A2(mdgriffith$stylish_elephants$Element$minimum, 30, mdgriffith$stylish_elephants$Element$fill))
+											])),
+									mdgriffith$stylish_elephants$Element$text(
+										A2(
+											elm$core$Maybe$withDefault,
+											'',
+											A2(elm$core$Array$get, ci, row)))));
+						}),
+					width: mdgriffith$stylish_elephants$Element$fill
+				};
+			},
+			A2(elm$core$List$range, 0, nbrCols - 1));
+		return A2(
+			mdgriffith$stylish_elephants$Element$indexedTable,
+			A2(
+				elm$core$Maybe$withDefault,
+				_List_Nil,
+				A2(
+					elm$core$Maybe$map,
+					function ($) {
+						return $.tableStyle;
+					},
+					A2(elm$core$Dict$get, style, author$project$StyleSheets$tableStyles))),
+			{columns: columns, data: data});
+	});
+var author$project$DocumentView$renderText = F3(
+	function (winSize, attrs, s) {
 		return A2(
 			mdgriffith$stylish_elephants$Element$el,
 			A2(author$project$DocumentView$renderAttrs, winSize, attrs),
@@ -15909,14 +16378,6 @@ var mdgriffith$stylish_elephants$Element$row = F2(
 						mdgriffith$stylish_elephants$Element$height(mdgriffith$stylish_elephants$Element$shrink),
 						attrs))),
 			mdgriffith$stylish_elephants$Internal$Model$Unkeyed(children));
-	});
-var mdgriffith$stylish_elephants$Internal$Model$Min = F2(
-	function (a, b) {
-		return {$: 'Min', a: a, b: b};
-	});
-var mdgriffith$stylish_elephants$Element$minimum = F2(
-	function (i, l) {
-		return A2(mdgriffith$stylish_elephants$Internal$Model$Min, i, l);
 	});
 var mdgriffith$stylish_elephants$Internal$Model$AsTextColumn = {$: 'AsTextColumn'};
 var mdgriffith$stylish_elephants$Internal$Model$asTextColumn = mdgriffith$stylish_elephants$Internal$Model$AsTextColumn;
@@ -15976,20 +16437,22 @@ var author$project$DocumentView$renderDoc = F3(
 					return A5(author$project$DocumentView$renderImage, winSize, onLoadMsg, id, attrs, meta);
 				case 'Link':
 					var meta = leafContent.a;
-					return A4(author$project$DocumentView$renderLink, winSize, onLoadMsg, attrs, meta);
+					return A3(author$project$DocumentView$renderLink, winSize, attrs, meta);
 				case 'Text':
 					var s = leafContent.a;
-					return A4(author$project$DocumentView$renderText, winSize, onLoadMsg, attrs, s);
-				default:
+					return A3(author$project$DocumentView$renderText, winSize, attrs, s);
+				case 'Heading':
 					var _n3 = leafContent.a;
 					var level = _n3.a;
 					var s = _n3.b;
-					return A4(
+					return A3(
 						author$project$DocumentView$renderHeading,
 						winSize,
-						onLoadMsg,
 						attrs,
 						_Utils_Tuple2(level, s));
+				default:
+					var meta = leafContent.a;
+					return A4(author$project$DocumentView$renderTable, winSize, id, attrs, meta);
 			}
 		}
 	});
@@ -16087,29 +16550,6 @@ var mdgriffith$stylish_elephants$Element$padding = function (x) {
 			x,
 			x));
 };
-var mdgriffith$stylish_elephants$Element$paddingXY = F2(
-	function (x, y) {
-		return _Utils_eq(x, y) ? A2(
-			mdgriffith$stylish_elephants$Internal$Model$StyleClass,
-			mdgriffith$stylish_elephants$Internal$Flag$padding,
-			A5(
-				mdgriffith$stylish_elephants$Internal$Model$PaddingStyle,
-				'p-' + elm$core$String$fromInt(x),
-				x,
-				x,
-				x,
-				x)) : A2(
-			mdgriffith$stylish_elephants$Internal$Model$StyleClass,
-			mdgriffith$stylish_elephants$Internal$Flag$padding,
-			A5(
-				mdgriffith$stylish_elephants$Internal$Model$PaddingStyle,
-				'p-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y))),
-				y,
-				x,
-				y,
-				x));
-	});
-var mdgriffith$stylish_elephants$Element$rgba = mdgriffith$stylish_elephants$Internal$Model$Rgba;
 var mdgriffith$stylish_elephants$Element$spaceEvenly = A2(
 	mdgriffith$stylish_elephants$Internal$Model$Class,
 	mdgriffith$stylish_elephants$Internal$Flag$xAlign,
@@ -16514,6 +16954,18 @@ var author$project$Editor$view = function (model) {
 };
 var author$project$Document$AlignLeft = {$: 'AlignLeft'};
 var author$project$Document$AlignRight = {$: 'AlignRight'};
+var author$project$Document$Heading = function (a) {
+	return {$: 'Heading', a: a};
+};
+var author$project$Document$Link = function (a) {
+	return {$: 'Link', a: a};
+};
+var author$project$Document$Paragraph = {$: 'Paragraph'};
+var author$project$Document$Row = {$: 'Row'};
+var author$project$Document$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var author$project$Document$TextColumn = {$: 'TextColumn'};
 var author$project$Document$UrlSrc = function (a) {
 	return {$: 'UrlSrc', a: a};
 };
@@ -16575,589 +17027,787 @@ var author$project$Document$fixUids = F2(
 					}));
 		}
 	});
-var author$project$SampleDocs$ColumnNode = F3(
-	function (a, b, c) {
-		return {$: 'ColumnNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$HeadingNode = F3(
-	function (a, b, c) {
-		return {$: 'HeadingNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$ImageNode = F3(
-	function (a, b, c) {
-		return {$: 'ImageNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$LinkNode = F3(
-	function (a, b, c) {
-		return {$: 'LinkNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$ParagraphNode = F3(
-	function (a, b, c) {
-		return {$: 'ParagraphNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$RowNode = F3(
-	function (a, b, c) {
-		return {$: 'RowNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$TextColumnNode = F3(
-	function (a, b, c) {
-		return {$: 'TextColumnNode', a: a, b: b, c: c};
-	});
-var author$project$SampleDocs$TextNode = F3(
-	function (a, b, c) {
-		return {$: 'TextNode', a: a, b: b, c: c};
-	});
-var author$project$Document$Heading = function (a) {
-	return {$: 'Heading', a: a};
-};
-var author$project$Document$Link = function (a) {
-	return {$: 'Link', a: a};
-};
-var author$project$Document$Paragraph = {$: 'Paragraph'};
-var author$project$Document$ResponsiveBloc = {$: 'ResponsiveBloc'};
-var author$project$Document$Row = {$: 'Row'};
-var author$project$Document$Text = function (a) {
-	return {$: 'Text', a: a};
-};
-var author$project$Document$TextColumn = {$: 'TextColumn'};
-var author$project$SampleDocs$docToDocZip = function (document) {
-	switch (document.$) {
-		case 'ParagraphNode':
-			var id = document.a;
-			var attrs = document.b;
-			var children = document.c;
-			return A2(
-				author$project$Document$Node,
-				{attrs: attrs, id: id, nodeLabel: author$project$Document$Paragraph},
-				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
-		case 'ColumnNode':
-			var id = document.a;
-			var attrs = document.b;
-			var children = document.c;
-			return A2(
-				author$project$Document$Node,
-				{attrs: attrs, id: id, nodeLabel: author$project$Document$Column},
-				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
-		case 'RowNode':
-			var id = document.a;
-			var attrs = document.b;
-			var children = document.c;
-			return A2(
-				author$project$Document$Node,
-				{attrs: attrs, id: id, nodeLabel: author$project$Document$Row},
-				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
-		case 'TextColumnNode':
-			var id = document.a;
-			var attrs = document.b;
-			var children = document.c;
-			return A2(
-				author$project$Document$Node,
-				{attrs: attrs, id: id, nodeLabel: author$project$Document$TextColumn},
-				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
-		case 'RespBloc':
-			var id = document.a;
-			var attrs = document.b;
-			var children = document.c;
-			return A2(
-				author$project$Document$Node,
-				{attrs: attrs, id: id, nodeLabel: author$project$Document$ResponsiveBloc},
-				A2(elm$core$List$map, author$project$SampleDocs$docToDocZip, children));
-		case 'ImageNode':
-			var id = document.a;
-			var attrs = document.b;
-			var meta = document.c;
-			return author$project$Document$Leaf(
-				{
-					attrs: attrs,
-					id: id,
-					leafContent: author$project$Document$Image(meta)
-				});
-		case 'LinkNode':
-			var id = document.a;
-			var attrs = document.b;
-			var meta = document.c;
-			return author$project$Document$Leaf(
-				{
-					attrs: attrs,
-					id: id,
-					leafContent: author$project$Document$Link(meta)
-				});
-		case 'TextNode':
-			var id = document.a;
-			var attrs = document.b;
-			var meta = document.c;
-			return author$project$Document$Leaf(
-				{
-					attrs: attrs,
-					id: id,
-					leafContent: author$project$Document$Text(meta)
-				});
-		default:
-			var id = document.a;
-			var attrs = document.b;
-			var meta = document.c;
-			return author$project$Document$Leaf(
-				{
-					attrs: attrs,
-					id: id,
-					leafContent: author$project$Document$Heading(meta)
-				});
-	}
-};
 var elm$core$Set$fromList = function (list) {
 	return A3(elm$core$List$foldl, elm$core$Set$insert, elm$core$Set$empty, list);
 };
 var author$project$SampleDocs$sampleDoc1 = A2(
 	author$project$Document$fixUids,
 	0,
-	author$project$SampleDocs$docToDocZip(
-		A3(
-			author$project$SampleDocs$ColumnNode,
-			{
-				classes: elm$core$Set$empty,
+	A2(
+		author$project$Document$Node,
+		{
+			attrs: _List_Nil,
+			id: {
+				classes: elm$core$Set$fromList(_List_Nil),
 				styleId: elm$core$Maybe$Just('root'),
-				uid: 120
+				uid: 0
 			},
-			_List_Nil,
-			_List_fromArray(
-				[
-					A3(
-					author$project$SampleDocs$HeadingNode,
-					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 1},
-					_List_Nil,
-					_Utils_Tuple2(1, 'Découvrir Murol')),
-					A3(
-					author$project$SampleDocs$HeadingNode,
-					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 2},
-					_List_Nil,
-					_Utils_Tuple2(2, 'Le bourg de Murol')),
-					A3(
-					author$project$SampleDocs$TextColumnNode,
-					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 3},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 4},
-							_List_fromArray(
+			nodeLabel: author$project$Document$Column
+		},
+		_List_fromArray(
+			[
+				author$project$Document$Leaf(
+				{
+					attrs: _List_Nil,
+					id: {
+						classes: elm$core$Set$fromList(_List_Nil),
+						styleId: elm$core$Maybe$Nothing,
+						uid: 8
+					},
+					leafContent: author$project$Document$Heading(
+						_Utils_Tuple2(1, 'Découvrir Murol'))
+				}),
+				author$project$Document$Leaf(
+				{
+					attrs: _List_Nil,
+					id: {
+						classes: elm$core$Set$fromList(_List_Nil),
+						styleId: elm$core$Maybe$Nothing,
+						uid: 7
+					},
+					leafContent: author$project$Document$Heading(
+						_Utils_Tuple2(2, 'Le bourg de Murol'))
+				}),
+				A2(
+				author$project$Document$Node,
+				{
+					attrs: _List_Nil,
+					id: {
+						classes: elm$core$Set$fromList(_List_Nil),
+						styleId: elm$core$Maybe$Nothing,
+						uid: 6
+					},
+					nodeLabel: author$project$Document$TextColumn
+				},
+				_List_fromArray(
+					[
+						author$project$Document$Leaf(
+						{
+							attrs: _List_fromArray(
 								[author$project$Document$AlignLeft]),
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 300, imgWidth: 300},
-								src: author$project$Document$UrlSrc('images/2 Murol, le bourg.jpg')
-							}),
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
-							_List_fromArray(
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 14
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 300, imgWidth: 300},
+									src: author$project$Document$UrlSrc('images/2 Murol, le bourg.jpg')
+								})
+						}),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_fromArray(
 								[author$project$Document$AlignRight]),
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 772, imgWidth: 576},
-								src: author$project$Document$UrlSrc('images/illustration animations estivales.jpg')
-							}),
-							A3(
-							author$project$SampleDocs$ParagraphNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 6},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 22},
-									_List_Nil,
-									'Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.')
-								])),
-							A3(
-							author$project$SampleDocs$ParagraphNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 7},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 8},
-									_List_Nil,
-									'Enchâssé entre le volcan boisé du '),
-									A3(
-									author$project$SampleDocs$LinkNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 9},
-									_List_Nil,
-									{label: 'Tartaret', targetBlank: false, url: ''}),
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 10},
-									_List_Nil,
-									' le promontoire du '),
-									A3(
-									author$project$SampleDocs$LinkNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 11},
-									_List_Nil,
-									{label: 'château de Murol', targetBlank: false, url: ''}),
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 12},
-									_List_Nil,
-									' et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.')
-								])),
-							A3(
-							author$project$SampleDocs$ParagraphNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 13},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 14},
-									_List_Nil,
-									'Au pied du château, découvrez le parc arboré du Prélong où se trouvent le '),
-									A3(
-									author$project$SampleDocs$LinkNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 15},
-									_List_Nil,
-									{label: 'musée des Peintres de l’Ecole de Murols', targetBlank: true, url: 'http://www.musee-murol.fr/fr'}),
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 16},
-									_List_Nil,
-									' et le musée archéologique.')
-								])),
-							A3(
-							author$project$SampleDocs$ParagraphNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 36},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 37},
-									_List_Nil,
-									'Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l\'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. ')
-								])),
-							A3(
-							author$project$SampleDocs$RowNode,
-							{
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 13
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 772, imgWidth: 576},
+									src: author$project$Document$UrlSrc('images/illustration animations estivales.jpg')
+								})
+						}),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 12
+							},
+							nodeLabel: author$project$Document$Paragraph
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 13
+									},
+									leafContent: author$project$Document$Text('Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.')
+								})
+							])),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 11
+							},
+							nodeLabel: author$project$Document$Paragraph
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 16
+									},
+									leafContent: author$project$Document$Text('Enchâssé entre le volcan boisé du ')
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 15
+									},
+									leafContent: author$project$Document$Link(
+										{label: 'Tartaret', targetBlank: false, url: ''})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 14
+									},
+									leafContent: author$project$Document$Text(' le promontoire du ')
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 13
+									},
+									leafContent: author$project$Document$Link(
+										{label: 'château de Murol', targetBlank: false, url: ''})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 12
+									},
+									leafContent: author$project$Document$Text(' et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.')
+								})
+							])),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 10
+							},
+							nodeLabel: author$project$Document$Paragraph
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 13
+									},
+									leafContent: author$project$Document$Text('Au pied du château, découvrez le parc arboré du Prélong où se trouvent le ')
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 12
+									},
+									leafContent: author$project$Document$Link(
+										{label: 'musée des Peintres de l’Ecole de Murols', targetBlank: true, url: 'http://www.musee-murol.fr/fr'})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 11
+									},
+									leafContent: author$project$Document$Text(' et le musée archéologique.')
+								})
+							])),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 9
+							},
+							nodeLabel: author$project$Document$Paragraph
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 10
+									},
+									leafContent: author$project$Document$Text('Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l\'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. ')
+								})
+							])),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
 								classes: elm$core$Set$fromList(
 									_List_fromArray(
 										['sameHeightImgsRow'])),
 								styleId: elm$core$Maybe$Nothing,
-								uid: 0
+								uid: 8
 							},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$ImageNode,
-									{
+							nodeLabel: author$project$Document$Row
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
 										classes: elm$core$Set$fromList(_List_Nil),
 										styleId: elm$core$Maybe$Nothing,
-										uid: 21
+										uid: 13
 									},
-									_List_Nil,
-									{
-										caption: elm$core$Maybe$Nothing,
-										size: {imgHeight: 143, imgWidth: 156},
-										src: author$project$Document$UrlSrc('images/famillePlus.jpg')
-									}),
-									A3(
-									author$project$SampleDocs$ImageNode,
-									{
+									leafContent: author$project$Document$Image(
+										{
+											caption: elm$core$Maybe$Nothing,
+											size: {imgHeight: 143, imgWidth: 156},
+											src: author$project$Document$UrlSrc('images/famillePlus.jpg')
+										})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
 										classes: elm$core$Set$fromList(_List_Nil),
 										styleId: elm$core$Maybe$Nothing,
-										uid: 21
+										uid: 12
 									},
-									_List_Nil,
-									{
-										caption: elm$core$Maybe$Nothing,
-										size: {imgHeight: 143, imgWidth: 100},
-										src: author$project$Document$UrlSrc('images/Station_Tourisme_RVB.jpg')
-									}),
-									A3(
-									author$project$SampleDocs$ImageNode,
-									{
+									leafContent: author$project$Document$Image(
+										{
+											caption: elm$core$Maybe$Nothing,
+											size: {imgHeight: 143, imgWidth: 100},
+											src: author$project$Document$UrlSrc('images/Station_Tourisme_RVB.jpg')
+										})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
 										classes: elm$core$Set$fromList(_List_Nil),
 										styleId: elm$core$Maybe$Nothing,
-										uid: 21
+										uid: 11
 									},
-									_List_Nil,
-									{
-										caption: elm$core$Maybe$Nothing,
-										size: {imgHeight: 143, imgWidth: 356},
-										src: author$project$Document$UrlSrc('images/Village fleuri.png')
-									}),
-									A3(
-									author$project$SampleDocs$ImageNode,
-									{
+									leafContent: author$project$Document$Image(
+										{
+											caption: elm$core$Maybe$Nothing,
+											size: {imgHeight: 143, imgWidth: 356},
+											src: author$project$Document$UrlSrc('images/Village fleuri.png')
+										})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
 										classes: elm$core$Set$fromList(_List_Nil),
 										styleId: elm$core$Maybe$Nothing,
-										uid: 21
+										uid: 10
 									},
-									_List_Nil,
-									{
-										caption: elm$core$Maybe$Nothing,
-										size: {imgHeight: 143, imgWidth: 150},
-										src: author$project$Document$UrlSrc('images/StationVertegf.jpg')
-									}),
-									A3(
-									author$project$SampleDocs$ImageNode,
-									{
+									leafContent: author$project$Document$Image(
+										{
+											caption: elm$core$Maybe$Nothing,
+											size: {imgHeight: 143, imgWidth: 150},
+											src: author$project$Document$UrlSrc('images/StationVertegf.jpg')
+										})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
 										classes: elm$core$Set$fromList(
 											_List_fromArray(
 												['rowImg'])),
 										styleId: elm$core$Maybe$Nothing,
-										uid: 21
+										uid: 9
 									},
-									_List_Nil,
-									{
-										caption: elm$core$Maybe$Nothing,
-										size: {imgHeight: 143, imgWidth: 162},
-										src: author$project$Document$UrlSrc('images/PAVILLON BLEU LOGO 2.png')
-									})
-								])),
-							A3(
-							author$project$SampleDocs$ColumnNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 36},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$ParagraphNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 39},
-									_List_Nil,
-									_List_fromArray(
-										[
-											A3(
-											author$project$SampleDocs$TextNode,
-											{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 40},
-											_List_Nil,
-											'L\'altitude minimale, 785 mètres, se trouve à l\'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L\'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. ')
-										])),
-									A3(
-									author$project$SampleDocs$ImageNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
-									_List_Nil,
-									{
-										caption: elm$core$Maybe$Nothing,
-										size: {imgHeight: 250, imgWidth: 377},
-										src: author$project$Document$UrlSrc('images/lac3.jpg')
-									}),
-									A3(
-									author$project$SampleDocs$ParagraphNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 39},
-									_List_Nil,
-									_List_fromArray(
-										[
-											A3(
-											author$project$SampleDocs$TextNode,
-											{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 40},
-											_List_Nil,
-											'Établi le long de la Couze Chambon et à l\'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l\'est de La Bourboule.')
-										])),
-									A3(
-									author$project$SampleDocs$ParagraphNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 39},
-									_List_Nil,
-									_List_fromArray(
-										[
-											A3(
-											author$project$SampleDocs$TextNode,
-											{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 40},
-											_List_Nil,
-											'Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l\'ouest puis du sud-ouest au sud, sur plus de six kilomètres. ')
-										]))
-								]))
-						])),
-					A3(
-					author$project$SampleDocs$ColumnNode,
-					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 17},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 18},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 250, imgWidth: 333},
-								src: author$project$Document$UrlSrc('images/prélong.jpg')
-							}),
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 19},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 250, imgWidth: 333},
-								src: author$project$Document$UrlSrc('images/museePeintre.jpeg')
-							}),
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 20},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 250, imgWidth: 377},
-								src: author$project$Document$UrlSrc('images/bourg2.jpg')
-							}),
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 772, imgWidth: 576},
-								src: author$project$Document$UrlSrc('images/illustration animations estivales.jpg')
-							})
-						])),
-					A3(
-					author$project$SampleDocs$RowNode,
-					{
+									leafContent: author$project$Document$Image(
+										{
+											caption: elm$core$Maybe$Nothing,
+											size: {imgHeight: 143, imgWidth: 162},
+											src: author$project$Document$UrlSrc('images/PAVILLON BLEU LOGO 2.png')
+										})
+								})
+							])),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 7
+							},
+							nodeLabel: author$project$Document$Column
+						},
+						_List_fromArray(
+							[
+								A2(
+								author$project$Document$Node,
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 11
+									},
+									nodeLabel: author$project$Document$Paragraph
+								},
+								_List_fromArray(
+									[
+										author$project$Document$Leaf(
+										{
+											attrs: _List_Nil,
+											id: {
+												classes: elm$core$Set$fromList(_List_Nil),
+												styleId: elm$core$Maybe$Nothing,
+												uid: 12
+											},
+											leafContent: author$project$Document$Text('L\'altitude minimale, 785 mètres, se trouve à l\'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L\'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. ')
+										})
+									])),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 10
+									},
+									leafContent: author$project$Document$Image(
+										{
+											caption: elm$core$Maybe$Nothing,
+											size: {imgHeight: 250, imgWidth: 377},
+											src: author$project$Document$UrlSrc('images/lac3.jpg')
+										})
+								}),
+								A2(
+								author$project$Document$Node,
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 9
+									},
+									nodeLabel: author$project$Document$Paragraph
+								},
+								_List_fromArray(
+									[
+										author$project$Document$Leaf(
+										{
+											attrs: _List_Nil,
+											id: {
+												classes: elm$core$Set$fromList(_List_Nil),
+												styleId: elm$core$Maybe$Nothing,
+												uid: 10
+											},
+											leafContent: author$project$Document$Text('Établi le long de la Couze Chambon et à l\'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l\'est de La Bourboule.')
+										})
+									])),
+								A2(
+								author$project$Document$Node,
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 8
+									},
+									nodeLabel: author$project$Document$Paragraph
+								},
+								_List_fromArray(
+									[
+										author$project$Document$Leaf(
+										{
+											attrs: _List_Nil,
+											id: {
+												classes: elm$core$Set$fromList(_List_Nil),
+												styleId: elm$core$Maybe$Nothing,
+												uid: 9
+											},
+											leafContent: author$project$Document$Text('Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l\'ouest puis du sud-ouest au sud, sur plus de six kilomètres. ')
+										})
+									]))
+							]))
+					])),
+				A2(
+				author$project$Document$Node,
+				{
+					attrs: _List_Nil,
+					id: {
+						classes: elm$core$Set$fromList(_List_Nil),
+						styleId: elm$core$Maybe$Nothing,
+						uid: 5
+					},
+					nodeLabel: author$project$Document$Column
+				},
+				_List_fromArray(
+					[
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 9
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 250, imgWidth: 333},
+									src: author$project$Document$UrlSrc('images/prélong.jpg')
+								})
+						}),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 8
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 250, imgWidth: 333},
+									src: author$project$Document$UrlSrc('images/museePeintre.jpeg')
+								})
+						}),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 7
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 250, imgWidth: 377},
+									src: author$project$Document$UrlSrc('images/bourg2.jpg')
+								})
+						}),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 6
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 772, imgWidth: 576},
+									src: author$project$Document$UrlSrc('images/illustration animations estivales.jpg')
+								})
+						})
+					])),
+				A2(
+				author$project$Document$Node,
+				{
+					attrs: _List_Nil,
+					id: {
 						classes: elm$core$Set$fromList(
 							_List_fromArray(
 								['sameHeightImgsRow'])),
 						styleId: elm$core$Maybe$Nothing,
-						uid: -1
+						uid: 4
 					},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 18},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 250, imgWidth: 333},
-								src: author$project$Document$UrlSrc('images/prélong.jpg')
-							}),
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 19},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 250, imgWidth: 333},
-								src: author$project$Document$UrlSrc('images/museePeintre.jpeg')
-							}),
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 20},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 250, imgWidth: 377},
-								src: author$project$Document$UrlSrc('images/bourg2.jpg')
-							}),
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 21},
-							_List_Nil,
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 772, imgWidth: 576},
-								src: author$project$Document$UrlSrc('images/illustration animations estivales.jpg')
-							})
-						])),
-					A3(
-					author$project$SampleDocs$HeadingNode,
-					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 23},
-					_List_Nil,
-					_Utils_Tuple2(1, 'Office de Tourisme communautaire du massif du Sancy')),
-					A3(
-					author$project$SampleDocs$TextColumnNode,
-					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 24},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$SampleDocs$ImageNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 25},
-							_List_fromArray(
+					nodeLabel: author$project$Document$Row
+				},
+				_List_fromArray(
+					[
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 8
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 250, imgWidth: 333},
+									src: author$project$Document$UrlSrc('images/prélong.jpg')
+								})
+						}),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 7
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 250, imgWidth: 333},
+									src: author$project$Document$UrlSrc('images/museePeintre.jpeg')
+								})
+						}),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 6
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 250, imgWidth: 377},
+									src: author$project$Document$UrlSrc('images/bourg2.jpg')
+								})
+						}),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 5
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 772, imgWidth: 576},
+									src: author$project$Document$UrlSrc('images/illustration animations estivales.jpg')
+								})
+						})
+					])),
+				author$project$Document$Leaf(
+				{
+					attrs: _List_Nil,
+					id: {
+						classes: elm$core$Set$fromList(_List_Nil),
+						styleId: elm$core$Maybe$Nothing,
+						uid: 3
+					},
+					leafContent: author$project$Document$Heading(
+						_Utils_Tuple2(1, 'Office de Tourisme communautaire du massif du Sancy'))
+				}),
+				A2(
+				author$project$Document$Node,
+				{
+					attrs: _List_Nil,
+					id: {
+						classes: elm$core$Set$fromList(_List_Nil),
+						styleId: elm$core$Maybe$Nothing,
+						uid: 2
+					},
+					nodeLabel: author$project$Document$TextColumn
+				},
+				_List_fromArray(
+					[
+						author$project$Document$Leaf(
+						{
+							attrs: _List_fromArray(
 								[author$project$Document$AlignLeft]),
-							{
-								caption: elm$core$Maybe$Nothing,
-								size: {imgHeight: 300, imgWidth: 400},
-								src: author$project$Document$UrlSrc('images/OT.jpg')
-							}),
-							A3(
-							author$project$SampleDocs$ColumnNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 27},
-							_List_fromArray(
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 4
+							},
+							leafContent: author$project$Document$Image(
+								{
+									caption: elm$core$Maybe$Nothing,
+									size: {imgHeight: 300, imgWidth: 400},
+									src: author$project$Document$UrlSrc('images/OT.jpg')
+								})
+						}),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_fromArray(
 								[author$project$Document$AlignRight]),
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$ImageNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 26},
-									_List_Nil,
-									{
-										caption: elm$core$Maybe$Nothing,
-										size: {imgHeight: 167, imgWidth: 125},
-										src: author$project$Document$UrlSrc('images/sancy_hiver.jpg')
-									}),
-									A3(
-									author$project$SampleDocs$LinkNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 28},
-									_List_Nil,
-									{label: 'sancy.com', targetBlank: true, url: ''})
-								]))
-						])),
-					A3(
-					author$project$SampleDocs$TextColumnNode,
-					{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 29},
-					_List_Nil,
-					_List_fromArray(
-						[
-							A3(
-							author$project$SampleDocs$HeadingNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 31},
-							_List_Nil,
-							_Utils_Tuple2(3, 'Adresse:')),
-							A3(
-							author$project$SampleDocs$ParagraphNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 32},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 33},
-									_List_Nil,
-									'Rue de jassaguet - 63790 Murol')
-								])),
-							A3(
-							author$project$SampleDocs$ParagraphNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 32},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 34},
-									_List_Nil,
-									'Tel: 04 73 88 62 62')
-								])),
-							A3(
-							author$project$SampleDocs$ParagraphNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 32},
-							_List_Nil,
-							_List_fromArray(
-								[
-									A3(
-									author$project$SampleDocs$TextNode,
-									{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 35},
-									_List_Nil,
-									'Fax : 04 73 88 60 23')
-								])),
-							A3(
-							author$project$SampleDocs$HeadingNode,
-							{classes: elm$core$Set$empty, styleId: elm$core$Maybe$Nothing, uid: 30},
-							_List_Nil,
-							_Utils_Tuple2(3, 'Horaires:'))
-						]))
-				]))));
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 3
+							},
+							nodeLabel: author$project$Document$Column
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 5
+									},
+									leafContent: author$project$Document$Image(
+										{
+											caption: elm$core$Maybe$Nothing,
+											size: {imgHeight: 167, imgWidth: 125},
+											src: author$project$Document$UrlSrc('images/sancy_hiver.jpg')
+										})
+								}),
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 4
+									},
+									leafContent: author$project$Document$Link(
+										{label: 'sancy.com', targetBlank: true, url: ''})
+								})
+							]))
+					])),
+				A2(
+				author$project$Document$Node,
+				{
+					attrs: _List_Nil,
+					id: {
+						classes: elm$core$Set$fromList(_List_Nil),
+						styleId: elm$core$Maybe$Nothing,
+						uid: 1
+					},
+					nodeLabel: author$project$Document$TextColumn
+				},
+				_List_fromArray(
+					[
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 6
+							},
+							leafContent: author$project$Document$Heading(
+								_Utils_Tuple2(3, 'Adresse:'))
+						}),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 5
+							},
+							nodeLabel: author$project$Document$Paragraph
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 6
+									},
+									leafContent: author$project$Document$Text('Rue de jassaguet - 63790 Murol')
+								})
+							])),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 4
+							},
+							nodeLabel: author$project$Document$Paragraph
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 5
+									},
+									leafContent: author$project$Document$Text('Tel: 04 73 88 62 62')
+								})
+							])),
+						A2(
+						author$project$Document$Node,
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 3
+							},
+							nodeLabel: author$project$Document$Paragraph
+						},
+						_List_fromArray(
+							[
+								author$project$Document$Leaf(
+								{
+									attrs: _List_Nil,
+									id: {
+										classes: elm$core$Set$fromList(_List_Nil),
+										styleId: elm$core$Maybe$Nothing,
+										uid: 4
+									},
+									leafContent: author$project$Document$Text('Fax : 04 73 88 60 23')
+								})
+							])),
+						author$project$Document$Leaf(
+						{
+							attrs: _List_Nil,
+							id: {
+								classes: elm$core$Set$fromList(_List_Nil),
+								styleId: elm$core$Maybe$Nothing,
+								uid: 2
+							},
+							leafContent: author$project$Document$Heading(
+								_Utils_Tuple2(3, 'Horaires:'))
+						})
+					]))
+			])));
 var elm$browser$Browser$document = _Browser_document;
 var author$project$Editor$main = elm$browser$Browser$document(
 	{
