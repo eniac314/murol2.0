@@ -44,23 +44,7 @@ import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
 import Json.Decode as Decode
 import Set exposing (..)
-
-
-type alias StyleSheet msg =
-    { paragraphStyle : List (Attribute msg)
-    , columnStyle : List (Attribute msg)
-    , rowStyle : List (Attribute msg)
-    , textColumnStyle : List (Attribute msg)
-    , respBlocStyle : List (Attribute msg)
-    , imageStyle : List (Attribute msg)
-    , textStyle : List (Attribute msg)
-    , linkStyle : List (Attribute msg)
-    , headingStyles : Dict Int (List (Attribute msg))
-    , customStyles :
-        { idNbrs : Dict String (List (Attribute msg))
-        , classes : Dict String (List (Attribute msg))
-        }
-    }
+import StyleSheets exposing (..)
 
 
 renderDoc : WinSize -> (Int -> msg) -> Document msg -> Element msg
@@ -125,36 +109,6 @@ renderTextColumn winSize onLoadMsg id attrs children =
 renderResponsiveBloc winSize onLoadMsg id attrs children =
     row (renderAttrs winSize attrs)
         (List.map (renderDoc winSize onLoadMsg) children)
-
-
-
---renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, size } =
---    let
---        device =
---            classifyDevice winSize
---        attrs_ =
---            if Set.member "colImg" classes then
---                [ width (maximum size.imgWidth fill)
---                , htmlAttribute <| Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
---                ]
---                    ++ renderAttrs winSize attrs
---                --else if Set.member "rowImg" classes then
---                --    [ height (px 85) ]
---                --        ++ renderAttrs winSize attrs
---            else
---                [ width fill
---                , htmlAttribute <| Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
---                ]
---                    ++ renderAttrs winSize attrs
---        src_ =
---            case src of
---                Inline s ->
---                    s
---                UrlSrc s ->
---                    s
---    in
---    image attrs_
---        { src = src_, description = Maybe.withDefault "" caption }
 
 
 renderImage winSize onLoadMsg { uid, styleId, classes } attrs { src, caption, size } =

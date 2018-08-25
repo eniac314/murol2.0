@@ -1,0 +1,5 @@
+- rajouter un cas CustomLeaf String dans LeafContent
+- passer un dict String (Element msg) à renderDoc
+- 2 possibiltés pour les custom leaves:
+	* hardcoded
+	* parsed (String -> Element Never)?

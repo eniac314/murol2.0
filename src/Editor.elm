@@ -14,6 +14,7 @@ import Element.Lazy exposing (lazy)
 import Html exposing (div, text)
 import SampleDocs exposing (..)
 import StyleSheets exposing (..)
+import Table exposing (..)
 import Task exposing (perform)
 import Time exposing (..)
 

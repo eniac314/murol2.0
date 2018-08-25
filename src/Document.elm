@@ -1,12 +1,12 @@
 module Document exposing (..)
 
+import Array exposing (Array)
 import Dict exposing (..)
 import Element exposing (..)
 import Html.Attributes as Attr
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Set exposing (..)
-import Table exposing (..)
 
 
 type Document msg
@@ -27,6 +27,10 @@ type LeafContent
     | Link LinkMeta
     | Text String
     | Heading ( Int, String )
+
+
+
+--| Table TableMeta
 
 
 type alias LeafValue msg =
@@ -65,6 +69,14 @@ type alias LinkMeta =
     { targetBlank : Bool
     , url : String
     , label : String
+    }
+
+
+type alias TableMeta =
+    { style : String
+    , nbrRow : Int
+    , nbrCol : Int
+    , data : List (Array String)
     }
 
 

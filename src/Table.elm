@@ -1,17 +1,19 @@
 module Table exposing (..)
 
---import Document exposing (..)
-
+import Array exposing (..)
 import Browser exposing (element)
 import Dict exposing (..)
+import Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Lazy as Lazy
 import Element.Region as Region
 import Html exposing (Html)
+import StyleSheets exposing (..)
 
 
 maxRows =
@@ -28,12 +30,15 @@ type DisplayMode
 
 
 type alias Data =
-    Dict Int (Dict Int String)
+    Array (Array String)
 
 
 type Msg
     = SetNbrRows String
     | SetNbrCols String
+    | SetStyle String
+    | FocusStyleSelector
+    | BlurStyleSelector
     | InitializeTable
     | DataInput ( Int, Int ) String
     | SwapDisplayMode
@@ -48,6 +53,9 @@ type alias DocTable =
     , nbrCols : Int
     , setupDone : Bool
     , error : String
+    , currentStyle : String
+    , styleSelectorFocused : Bool
+    , styleSelectorInput : String
     }
 
 
@@ -67,13 +75,16 @@ subscriptions model =
 
 init flags =
     ( { mode = Edit
-      , data = Dict.empty
+      , data = Array.empty
       , nbrRows = 0
       , nbrCols = 0
       , nbrRowsInput = ""
       , nbrColsInput = ""
       , error = ""
       , setupDone = False
+      , currentStyle = "bleu-blanc"
+      , styleSelectorInput = ""
+      , styleSelectorFocused = False
       }
     , Cmd.none
     )
@@ -94,6 +105,28 @@ update msg model =
               }
             , Cmd.none
             )
+
+        SetStyle s ->
+            ( { model
+                | styleSelectorInput = s
+                , currentStyle =
+                    case Dict.get s tableStyles of
+                        Nothing ->
+                            model.currentStyle
+
+                        Just _ ->
+                            s
+
+                --, styleSelectorFocused = False
+              }
+            , Cmd.none
+            )
+
+        FocusStyleSelector ->
+            ( { model | styleSelectorFocused = not model.styleSelectorFocused }, Cmd.none )
+
+        BlurStyleSelector ->
+            ( { model | styleSelectorFocused = False }, Cmd.none )
 
         InitializeTable ->
             let
@@ -134,16 +167,14 @@ update msg model =
         DataInput ( i, j ) s ->
             ( { model
                 | data =
-                    Dict.update i
-                        (\mr ->
-                            case mr of
-                                Nothing ->
-                                    Nothing
+                    case Array.get i model.data of
+                        Nothing ->
+                            model.data
 
-                                Just r ->
-                                    Just <| Dict.insert j s r
-                        )
-                        model.data
+                        Just a ->
+                            Array.set i
+                                (Array.set j s a)
+                                model.data
               }
             , Cmd.none
             )
@@ -193,7 +224,7 @@ displayOnlyView model =
 
         dataForTable =
             model.data
-                |> Dict.values
+                |> Array.toList
 
         columns =
             List.map
@@ -203,10 +234,24 @@ displayOnlyView model =
                     , view =
                         \ri row ->
                             el
-                                (cellStyle ri)
-                                (text
-                                    (Dict.get ci row
-                                        |> Maybe.withDefault ""
+                                (Dict.get model.currentStyle tableStyles
+                                    |> Maybe.map .containerStyle
+                                    |> Maybe.withDefault []
+                                )
+                                (el
+                                    ((Dict.get model.currentStyle tableStyles
+                                        |> Maybe.map .cellStyle
+                                        |> Maybe.withDefault (\_ -> [])
+                                     )
+                                        ri
+                                        ++ [ paddingXY 15 5
+                                           , height (minimum 30 fill)
+                                           ]
+                                    )
+                                    (text
+                                        (Array.get ci row
+                                            |> Maybe.withDefault ""
+                                        )
                                     )
                                 )
                     }
@@ -219,13 +264,10 @@ displayOnlyView model =
         tableView =
             if model.setupDone then
                 indexedTable
-                    [ Border.widthEach
-                        { bottom = 0
-                        , left = 1
-                        , right = 0
-                        , top = 1
-                        }
-                    ]
+                    (Dict.get model.currentStyle tableStyles
+                        |> Maybe.map .tableStyle
+                        |> Maybe.withDefault []
+                    )
                     { data = dataForTable
                     , columns = columns
                     }
@@ -250,7 +292,8 @@ editView model =
                 column []
                     [ row
                         [ spacing 15 ]
-                        [ Input.button buttonStyle
+                        [ styleSelector model
+                        , Input.button buttonStyle
                             { onPress = Just SwapDisplayMode
                             , label = text "Aperçu"
                             }
@@ -288,7 +331,7 @@ editView model =
 
         dataForTable =
             model.data
-                |> Dict.values
+                |> Array.toList
 
         columns =
             List.map
@@ -296,27 +339,37 @@ editView model =
                     { header = Element.none
                     , width = fill
                     , view =
+                        --Lazy.lazy2 <|
                         \ri row ->
                             el
-                                (editableCellStyle
-                                    ri
+                                (Dict.get model.currentStyle tableStyles
+                                    |> Maybe.map .containerStyle
+                                    |> Maybe.withDefault []
                                 )
-                                (Input.multiline
-                                    [ Border.width 0
-                                    , centerY
-                                    , Background.color (rgba 1 1 1 0)
-                                    , focused [ Border.glow (rgb 1 1 1) 0 ]
-                                    ]
-                                    { onChange =
-                                        DataInput ( ri, ci )
-                                    , text =
-                                        Dict.get ci row
-                                            |> Maybe.withDefault ""
-                                    , placeholder = Nothing
-                                    , label =
-                                        Input.labelAbove [] Element.none
-                                    , spellcheck = False
-                                    }
+                                (el
+                                    ((Dict.get model.currentStyle tableStyles
+                                        |> Maybe.map .cellStyle
+                                        |> Maybe.withDefault (\_ -> [])
+                                     )
+                                        ri
+                                    )
+                                    (Input.multiline
+                                        [ Border.width 0
+                                        , centerY
+                                        , Background.color (rgba 1 1 1 0)
+                                        , focused [ Border.glow (rgb 1 1 1) 0 ]
+                                        ]
+                                        { onChange =
+                                            DataInput ( ri, ci )
+                                        , text =
+                                            Array.get ci row
+                                                |> Maybe.withDefault ""
+                                        , placeholder = Nothing
+                                        , label =
+                                            Input.labelAbove [] Element.none
+                                        , spellcheck = False
+                                        }
+                                    )
                                 )
                     }
                 )
@@ -328,14 +381,10 @@ editView model =
         tableView =
             if model.setupDone then
                 indexedTable
-                    [ Border.widthEach
-                        { bottom = 0
-                        , left = 1
-                        , right = 0
-                        , top = 1
-                        }
-                    , width fill
-                    ]
+                    (Dict.get model.currentStyle tableStyles
+                        |> Maybe.map .tableStyle
+                        |> Maybe.withDefault []
+                    )
                     { data = dataForTable
                     , columns = columns
                     }
@@ -350,45 +399,6 @@ editView model =
         [ interfaceView
         , tableView
         ]
-
-
-editableCellStyle ri =
-    [ Border.widthEach
-        { bottom = 1
-        , left = 0
-        , right = 1
-        , top = 0
-        }
-
-    --, padding 7
-    , Background.color
-        (if modBy 2 ri == 0 then
-            rgb 0.8 0.8 0.8
-         else
-            rgb 1 1 1
-        )
-    ]
-
-
-cellStyle ri =
-    [ Border.widthEach
-        { bottom = 1
-        , left = 0
-        , right = 1
-        , top = 0
-        }
-    , paddingXY 15 5
-    , Background.color
-        (if modBy 2 ri == 0 then
-            rgb 0.8 0.8 0.8
-         else
-            rgb 1 1 1
-        )
-    , width fill --(minimum 100 fill)
-
-    --, height fill
-    , height (minimum 30 fill)
-    ]
 
 
 textInputStyle =
@@ -408,16 +418,52 @@ buttonStyle =
     ]
 
 
+styleSelector model =
+    row
+        []
+        [ Input.text
+            [ Events.onClick FocusStyleSelector
+
+            --, Events.onLoseFocus BlurStyleSelector
+            , width (px 150)
+            , below <|
+                if model.styleSelectorFocused then
+                    column []
+                        (List.map
+                            (\s ->
+                                el
+                                    [ Events.onClick (SetStyle s)
+                                    , pointer
+                                    , mouseOver
+                                        [ Font.color (rgb 1 1 1)
+                                        , Background.color (rgb 0.7 0.7 0.7)
+                                        ]
+                                    , Background.color (rgb 1 1 1)
+                                    , width (px 150)
+                                    , paddingXY 15 5
+                                    ]
+                                    (text s)
+                            )
+                            (Dict.keys tableStyles)
+                        )
+                else
+                    Element.none
+            , spacing 15
+            , paddingXY 15 5
+            , focused [ Border.glow (rgb 1 1 1) 0 ]
+            ]
+            { onChange =
+                SetStyle
+            , text = model.styleSelectorInput
+            , placeholder = Just (Input.placeholder [] (el [] (text model.currentStyle)))
+            , label =
+                Input.labelLeft [ centerY ] (el [] (text "Style"))
+            }
+        ]
+
+
 makeDataGrid : Int -> Int -> Data
 makeDataGrid i j =
-    let
-        rowIndexes =
-            List.range 0 (i - 1)
-
-        cells =
-            List.range 0 (j - 1)
-                |> List.map (\j_ -> ( j_, "" ))
-                |> Dict.fromList
-    in
-    List.map (\i_ -> ( i_, cells )) rowIndexes
-        |> Dict.fromList
+    Array.initialize
+        (i - 1)
+        (always <| Array.initialize (j - 1) (always ""))
