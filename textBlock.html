@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Text block demo</title>
+</head>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+<script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-bundle.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/TextBlock.js"></script>
+
+<body>
+
+<div id="elm-node"></div>
+
+<script type="text/javascript">
+    var app = Elm.TextBlock.init({node: document.getElementById("elm-node")});
+
+    customElements.define('custom-textarea', class extends HTMLElement {
+    
+	    constructor(){
+	      super();
+	      
+	    }
+	    
+	    get selection(){
+	    	return this._currentSelection || "no selection";	
+	    }
+
+        get cols(){
+        	return this._cols || "0";
+        }
+
+	    connectedCallback() {
+	    	this._textarea = this.querySelector('textarea');
+            
+            this._cols = this._textarea.getAttribute("cols");
+
+            this.dispatchEvent(new CustomEvent('Loaded'));
+
+	    	this._textarea.addEventListener('click', (event) => {
+            
+            var start = this._textarea.selectionStart;
+	    	var finish = this._textarea.selectionEnd;
+	    	var sel = this._textarea.value.substring(start, finish);
+
+            this._currentSelection = 
+               { start: start, 
+                 finish: finish,
+                 sel: sel
+               };
+
+	    	this.dispatchEvent(new CustomEvent('Selection'));
+	    	}); 
+	    
+	    }
+    });
+    
+</script>
+  
+  
+</body>
+</html>

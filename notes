@@ -1,11 +1,8 @@
-- faire un test php sur serveur lws
-
 - remplacer Link - Text - List - Paragraph par TextBlock?
 
-- Table.elm functions DocTable <-> TableMeta
+- faire un parser String <-> TextBloc
 
-- faire un custom element textarea avec events pour récupérer la selection
-ref:https://stackoverflow.com/questions/717224/how-to-get-selected-text-in-textarea
+- Table.elm functions DocTable <-> TableMeta
 
 - 2 possibiltés pour les custom leaves:
 	* hardcoded

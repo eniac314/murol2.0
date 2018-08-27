@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"dec",
+				"decodeLoaded"
+			],
+			[
+				"Html",
+				"HtmlEvents"
+			],
+			[
+				"custom",
+				"customTextArea"
+			],
+			[
+				"cu",
+				"custom-textarea"
+			],
+			[
+				"text",
+				"textarea"
+			],
+			[
+				"wi",
+				"withDefault"
+			],
+			[
 				"nbr",
 				"nbrRows"
 			],
@@ -110,10 +134,6 @@
 			[
 				"col",
 				"colIndexes"
-			],
-			[
-				"text",
-				"textInputStyle"
 			],
 			[
 				"center",
@@ -286,10 +306,6 @@
 			[
 				"im",
 				"imgsScaledToMinHeight"
-			],
-			[
-				"wi",
-				"width"
 			],
 			[
 				"Sty",
@@ -498,22 +514,6 @@
 			[
 				"x",
 				"xOffset"
-			],
-			[
-				"card",
-				"cardHeight"
-			],
-			[
-				"car",
-				"cardHeight"
-			],
-			[
-				"tr",
-				"transformOrigin"
-			],
-			[
-				"tra",
-				"transform"
 			]
 		]
 	},
@@ -523,7 +523,7 @@
 			"file": "src/DocumentResponsive.elm",
 			"settings":
 			{
-				"buffer_size": 9710,
+				"buffer_size": 9760,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -532,7 +532,7 @@
 			"file": "src/DocumentView.elm",
 			"settings":
 			{
-				"buffer_size": 12208,
+				"buffer_size": 12491,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -541,16 +541,7 @@
 			"file": "src/DocumentSerializer.elm",
 			"settings":
 			{
-				"buffer_size": 4195,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "index.html",
-			"settings":
-			{
-				"buffer_size": 334,
+				"buffer_size": 4276,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -568,7 +559,51 @@
 			"file": "src/Editor.elm",
 			"settings":
 			{
-				"buffer_size": 5887,
+				"buffer_size": 5715,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/TextBlock.elm",
+			"settings":
+			{
+				"buffer_size": 3139,
+				"line_ending": "Unix",
+				"name": "module TextBlock exposing (.."
+			}
+		},
+		{
+			"file": "/home/eniac314/prog/elm/quill/index.html",
+			"settings":
+			{
+				"buffer_size": 2047,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/Table.elm",
+			"settings":
+			{
+				"buffer_size": 13753,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "textBlock.html",
+			"settings":
+			{
+				"buffer_size": 1640,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "index.html",
+			"settings":
+			{
+				"buffer_size": 334,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -577,7 +612,7 @@
 			"file": "notes",
 			"settings":
 			{
-				"buffer_size": 229,
+				"buffer_size": 355,
 				"encoding": "UTF-8",
 				"line_ending": "Unix",
 				"name": "- rajouter un cas CustomLeaf String dans LeafConte"
@@ -656,6 +691,9 @@
 	],
 	"file_history":
 	[
+		"/home/eniac314/prog/elm/quill/index.html",
+		"/home/eniac314/prog/elm/mairieMurol/hello.php",
+		"/home/eniac314/prog/elm/murol2.0/src/Document.elm",
 		"/home/eniac314/prog/elm/mairieMurol/.htaccess",
 		"/home/eniac314/prog/elm/mairieMurol/index.html",
 		"/home/eniac314/prog/elm/murol2.0/src/SampleDocs.elm",
@@ -780,14 +818,11 @@
 		"/home/eniac314/prog/elm/mairieMurol/Santé.html",
 		"/home/eniac314/prog/elm/mairieMurol/sitemap.xml",
 		"/home/eniac314/prog/elm/mairieMurol/Sortir.html",
-		"/home/eniac314/prog/elm/mairieMurol/SportsEtDétente.html",
-		"/home/eniac314/prog/elm/mairieMurol/start",
-		"/home/eniac314/prog/elm/mairieMurol/Texts.xcf",
-		"/home/eniac314/prog/elm/mairieMurol/Transports.html"
+		"/home/eniac314/prog/elm/mairieMurol/SportsEtDétente.html"
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 40.0
 	},
 	"find_in_files":
 	{
@@ -801,6 +836,12 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"winSize",
+			"WinSize",
+			"Config",
+			"WinSize",
+			"winSize",
+			"model.winSize",
 			"Dict",
 			"model.styles",
 			"editableCellStyle",
@@ -814,6 +855,11 @@
 		"regex": false,
 		"replace_history":
 		[
+			"config",
+			"(Config msg)",
+			"Config",
+			"config",
+			"model.config",
 			"Array",
 			"tableStyles",
 			"cellStyle"
@@ -836,15 +882,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9710,
+						"buffer_size": 9760,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								8808,
-								8808
+								4320,
+								4320
 							]
 						],
 						"settings":
@@ -854,11 +900,11 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 3563.0,
+						"translation.x": 8.0,
+						"translation.y": 2572.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 8,
 					"type": "text"
 				},
 				{
@@ -867,15 +913,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12208,
+						"buffer_size": 12491,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3994,
-								3994
+								9088,
+								9088
 							]
 						],
 						"settings":
@@ -886,10 +932,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2141.0,
+						"translation.y": 4932.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
@@ -898,15 +944,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4195,
+						"buffer_size": 4276,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								103,
-								103
+								950,
+								950
 							]
 						],
 						"settings":
@@ -917,43 +963,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2916.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 10,
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "index.html",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 334,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								29,
-								29
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/HTML/HTML.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
 					"file": "src/StyleSheets.elm",
 					"semi_transient": false,
 					"settings":
@@ -965,39 +982,8 @@
 						"selection":
 						[
 							[
-								6997,
-								6997
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 3635.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "src/Editor.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5887,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								226,
-								226
+								2235,
+								2235
 							]
 						],
 						"settings":
@@ -1008,27 +994,210 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1458.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
-					"file": "notes",
+					"buffer": 4,
+					"file": "src/Editor.elm",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 229,
+						"buffer_size": 5715,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								229,
-								229
+								2635,
+								2635
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1313.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/TextBlock.elm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3139,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1618,
+								1618
+							]
+						],
+						"settings":
+						{
+							"auto_name": "module TextBlock exposing (..",
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1296.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/home/eniac314/prog/elm/quill/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2047,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								801,
+								801
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1080.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/Table.elm",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 13753,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8969,
+								8969
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5057.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "textBlock.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1640,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1603,
+								1603
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/HTML/HTML.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 324.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 334,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								125,
+								125
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/HTML/HTML.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "notes",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 355,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								263,
+								263
 							]
 						],
 						"settings":
@@ -1041,7 +1210,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 6,
 					"type": "text"
 				}
 			]
@@ -1098,7 +1267,7 @@
 	"project": "murol2.0.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 71.0
 	},
 	"save_all_on_build": true,
 	"select_file":
