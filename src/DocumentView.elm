@@ -34,6 +34,7 @@ import Element
         , row
         , scrollbarX
         , shrink
+        , spacing
         , spacingXY
         , text
         , textColumn
@@ -55,6 +56,16 @@ import StyleSheets exposing (..)
 
 renderDoc : Config msg -> (Int -> msg) -> Document msg -> Element msg
 renderDoc config onLoadMsg document =
+    case renderDoc_ config onLoadMsg document of
+        [ doc ] ->
+            doc
+
+        _ ->
+            el [] (text "erreur de rendu document")
+
+
+renderDoc_ : Config msg -> (Int -> msg) -> Document msg -> List (Element msg)
+renderDoc_ config onLoadMsg document =
     let
         device =
             classifyDevice config
@@ -62,9 +73,6 @@ renderDoc config onLoadMsg document =
     case document of
         Node { nodeLabel, id, attrs } children ->
             case nodeLabel of
-                Paragraph ->
-                    renderParagraph onLoadMsg config id attrs children
-
                 Column ->
                     renderColumn config onLoadMsg id attrs children
 
@@ -82,14 +90,8 @@ renderDoc config onLoadMsg document =
                 Image meta ->
                     renderImage config onLoadMsg id attrs meta
 
-                Link meta ->
-                    renderLink config attrs meta
-
-                Text s ->
-                    renderText config attrs s
-
-                Heading ( level, s ) ->
-                    renderHeading config attrs ( level, s )
+                TextBlock xs ->
+                    renderTextBlock config attrs xs
 
                 Table meta ->
                     renderTable config id attrs meta
@@ -98,35 +100,114 @@ renderDoc config onLoadMsg document =
                     renderCustomElement config id attrs s
 
 
-renderParagraph config onLoadMsg id attrs children =
-    paragraph (renderAttrs config attrs)
-        (List.map (renderDoc config onLoadMsg) children)
+renderTextBlock config attrs xs =
+    List.map (renderTextBlockElement config) xs
+
+
+renderTextBlockElement config tbe =
+    case tbe of
+        Paragraph xs ->
+            paragraph
+                config.styleSheet.paragraphStyle
+                (List.map (renderTextBlockPrimitive config) xs)
+
+        UList xs ->
+            column [] (List.map (renderLi config) xs)
+
+        TBPrimitive p ->
+            renderTextBlockPrimitive config p
+
+
+renderTextBlockPrimitive : Config msg -> TextBlockPrimitive -> Element msg
+renderTextBlockPrimitive config p =
+    case p of
+        Text s ->
+            el config.styleSheet.textStyle (text s)
+
+        Link { targetBlank, url, label } ->
+            let
+                linkFun =
+                    if targetBlank then
+                        newTabLink
+                    else
+                        link
+            in
+            linkFun
+                config.styleSheet.linkStyle
+                { url = url
+                , label = text label
+                }
+
+        Bold s ->
+            el [ Font.bold ] (text s)
+
+        Heading ( level, s ) ->
+            let
+                headingStyle =
+                    Dict.get level config.styleSheet.headingStyles
+                        |> Maybe.withDefault []
+            in
+            paragraph
+                ([ Region.heading level ] ++ headingStyle)
+                --[]
+                [ text s ]
+
+
+renderLi config li =
+    row
+        [ spacing 10
+        , paddingEach
+            { top = 0
+            , left = 20
+            , right = 0
+            , bottom = 0
+            }
+        ]
+        ([ el [] (text "=>") ] ++ List.map (renderTextBlockPrimitive config) li)
 
 
 renderColumn config onLoadMsg id attrs children =
-    column
-        ([ width (maximum config.width fill) ]
+    [ column
+        (config.styleSheet.columnStyle
+            ++ idStyle config.styleSheet id
+            ++ [ width (maximum config.width fill) ]
             ++ renderAttrs config attrs
         )
-        (List.map (renderDoc config onLoadMsg) children)
+        (List.concatMap (renderDoc_ config onLoadMsg) children)
+    ]
 
 
 renderRow config onLoadMsg id attrs children =
-    row (renderAttrs config attrs)
-        (List.map (renderDoc config onLoadMsg) children)
+    [ row
+        (config.styleSheet.rowStyle
+            ++ idStyle config.styleSheet id
+            ++ renderAttrs config attrs
+        )
+        (List.concatMap (renderDoc_ config onLoadMsg) children)
+    ]
 
 
 renderTextColumn config onLoadMsg id attrs children =
-    textColumn (renderAttrs config attrs)
-        (List.map (renderDoc config onLoadMsg) children)
+    [ textColumn
+        (config.styleSheet.textColumnStyle
+            ++ idStyle config.styleSheet id
+            ++ renderAttrs config attrs
+        )
+        (List.concatMap (renderDoc_ config onLoadMsg) children)
+    ]
 
 
 renderResponsiveBloc config onLoadMsg id attrs children =
-    row (renderAttrs config attrs)
-        (List.map (renderDoc config onLoadMsg) children)
+    [ row
+        (config.styleSheet.responsiveBlocStyle
+            ++ idStyle config.styleSheet id
+            ++ renderAttrs config attrs
+        )
+        (List.concatMap (renderDoc_ config onLoadMsg) children)
+    ]
 
 
-renderImage config onLoadMsg { uid, styleId, classes } attrs { src, caption, size } =
+renderImage config onLoadMsg ({ uid, styleId, classes } as id) attrs { src, caption, size } =
     let
         device =
             classifyDevice config
@@ -134,6 +215,8 @@ renderImage config onLoadMsg { uid, styleId, classes } attrs { src, caption, siz
         attrs_ =
             [ width (maximum size.imgWidth fill)
             ]
+                ++ config.styleSheet.imageStyle
+                ++ idStyle config.styleSheet id
                 ++ renderAttrs config attrs
 
         src_ =
@@ -144,7 +227,7 @@ renderImage config onLoadMsg { uid, styleId, classes } attrs { src, caption, siz
                 UrlSrc s ->
                     s
     in
-    el attrs_
+    [ el attrs_
         (html <|
             Html.img
                 [ Attr.style "width" "100%"
@@ -154,29 +237,7 @@ renderImage config onLoadMsg { uid, styleId, classes } attrs { src, caption, siz
                 ]
                 []
         )
-
-
-renderLink config attrs { targetBlank, url, label } =
-    let
-        linkFun =
-            if targetBlank then
-                newTabLink
-            else
-                link
-    in
-    linkFun
-        (renderAttrs config attrs)
-        { url = url
-        , label = text label
-        }
-
-
-renderText config attrs s =
-    el (renderAttrs config attrs) (text s)
-
-
-renderHeading config attrs ( level, s ) =
-    paragraph (Region.heading level :: renderAttrs config attrs) [ text s ]
+    ]
 
 
 renderTable config id attrs { style, nbrRows, nbrCols, data } =
@@ -220,7 +281,7 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
                     (nbrCols - 1)
                 )
     in
-    indexedTable
+    [ indexedTable
         ((Dict.get style tableStyles
             |> Maybe.map .tableStyle
             |> Maybe.withDefault []
@@ -234,90 +295,38 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
         { data = data
         , columns = columns
         }
+    ]
 
 
 renderCustomElement config id attrs s =
-    Dict.get s config.customElems
+    [ Dict.get s config.customElems
         |> Maybe.withDefault Element.none
+    ]
+
+
+idStyle { customStyles } { uid, styleId, classes } =
+    (styleId
+        |> Maybe.andThen
+            (\id ->
+                Dict.get
+                    id
+                    customStyles.idNbrs
+            )
+        |> Maybe.withDefault []
+    )
+        ++ (List.filterMap
+                (\c ->
+                    Dict.get
+                        c
+                        customStyles.classes
+                )
+                (Set.toList classes)
+                |> List.concat
+           )
 
 
 
 -------------------------------------------------------------------------------
-
-
-packStyleSheet : StyleSheet msg -> Document msg -> Document msg
-packStyleSheet ({ paragraphStyle, columnStyle, rowStyle, textColumnStyle, respBlocStyle, customStyles, imageStyle, linkStyle, textStyle, headingStyles } as styleSheet) document =
-    let
-        packAttr new current =
-            List.map StyleElementAttr new ++ current
-
-        idStyle { uid, styleId, classes } =
-            (styleId
-                |> Maybe.andThen
-                    (\id ->
-                        Dict.get
-                            id
-                            customStyles.idNbrs
-                    )
-                |> Maybe.withDefault []
-            )
-                ++ (List.filterMap
-                        (\c ->
-                            Dict.get
-                                c
-                                customStyles.classes
-                        )
-                        (Set.toList classes)
-                        |> List.concat
-                   )
-    in
-    case document of
-        Node ({ nodeLabel, id, attrs } as nv) children ->
-            case nodeLabel of
-                Paragraph ->
-                    Node { nv | attrs = packAttr (paragraphStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                Column ->
-                    Node { nv | attrs = packAttr (columnStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                Row ->
-                    Node { nv | attrs = packAttr (rowStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                TextColumn ->
-                    Node { nv | attrs = packAttr (textColumnStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-                ResponsiveBloc ->
-                    Node { nv | attrs = packAttr (respBlocStyle ++ idStyle id) attrs }
-                        (List.map (packStyleSheet styleSheet) children)
-
-        Leaf ({ leafContent, id, attrs } as lv) ->
-            case leafContent of
-                Image meta ->
-                    Leaf { lv | attrs = packAttr (imageStyle ++ idStyle id) attrs }
-
-                Link meta ->
-                    Leaf { lv | attrs = packAttr (linkStyle ++ idStyle id) attrs }
-
-                Text s ->
-                    Leaf { lv | attrs = packAttr (textStyle ++ idStyle id) attrs }
-
-                Heading ( level, s ) ->
-                    let
-                        headingStyle =
-                            Dict.get level headingStyles
-                                |> Maybe.withDefault []
-                    in
-                    Leaf { lv | attrs = packAttr (headingStyle ++ idStyle id) attrs }
-
-                Table meta ->
-                    Leaf { lv | attrs = packAttr (idStyle id) attrs }
-
-                CustomElement s ->
-                    Leaf { lv | attrs = packAttr (idStyle id) attrs }
 
 
 renderAttrs : Config msg -> List (DocAttribute msg) -> List (Attribute msg)
@@ -405,12 +414,10 @@ renderAttrs config attrs =
                 Justify ->
                     [ Font.justify ]
 
-                Bold ->
-                    [ Font.bold ]
-
-                Italic ->
-                    [ Font.italic ]
-
+                --Bold ->
+                --    [ Font.bold ]
+                --Italic ->
+                --    [ Font.italic ]
                 StyleElementAttr attr_ ->
                     [ attr_ ]
     in

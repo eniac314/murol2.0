@@ -24,24 +24,19 @@ type alias DocTextBlock =
     }
 
 
-type alias TextBlock =
-    List TextBlockElement
 
-
-type TextBlockElement
-    = TBParagraph (List TextBlockPrimitive)
-    | UList (List Li)
-    | TextBlockPrimitive
-
-
-type alias Li =
-    List TextBlockPrimitive
-
-
-type TextBlockPrimitive
-    = Text String
-    | Link LinkMeta
-    | Bold String
+--type alias TextBlock =
+--    List TextBlockElement
+--type TextBlockElement
+--    = TBParagraph (List TextBlockPrimitive)
+--    | UList (List Li)
+--    | TextBlockPrimitive
+--type alias Li =
+--    List TextBlockPrimitive
+--type TextBlockPrimitive
+--    = Text String
+--    | Link LinkMeta
+--    | Bold String
 
 
 type Msg

@@ -17,12 +17,11 @@ sampleDoc1 =
         [ Leaf
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-            , leafContent = Heading ( 1, "Découvrir Murol" )
-            }
-        , Leaf
-            { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
-            , leafContent = Heading ( 2, "Le bourg de Murol" )
+            , leafContent =
+                TextBlock
+                    [ TBPrimitive (Heading ( 1, "Découvrir Murol" ))
+                    , TBPrimitive (Heading ( 2, "Le bourg de Murol" ))
+                    ]
             }
         , Node
             { attrs = []
@@ -44,130 +43,46 @@ sampleDoc1 =
                         , src = UrlSrc "images/illustration animations estivales.jpg"
                         }
                 }
-            , Node
+            , Leaf
                 { attrs = []
-                , id =
-                    { classes = Set.fromList []
-                    , styleId = Nothing
-                    , uid = 12
-                    }
-                , nodeLabel = Paragraph
+                , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+                , leafContent =
+                    TextBlock
+                        [ Paragraph
+                            [ Text "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
+                            ]
+                        , Paragraph
+                            [ Text "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
+                            ]
+                        , Paragraph
+                            [ Text "Enchâssé entre le volcan boisé du "
+                            , Link
+                                { label = "Tartaret"
+                                , targetBlank = False
+                                , url = ""
+                                }
+                            , Text " le promontoire du "
+                            , Link
+                                { label = "château de Murol"
+                                , targetBlank = False
+                                , url = ""
+                                }
+                            , Text " et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques."
+                            ]
+                        , Paragraph
+                            [ Text "Au pied du château, découvrez le parc arboré du Prélong où se trouvent le "
+                            , Link
+                                { label = "musée des Peintres de l’Ecole de Murols"
+                                , targetBlank = True
+                                , url = "http://www.musee-murol.fr/fr"
+                                }
+                            , Text " et le musée archéologique."
+                            ]
+                        , Paragraph
+                            [ Text "Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. "
+                            ]
+                        ]
                 }
-                [ Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 13
-                        }
-                    , leafContent = Text "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
-                    }
-                ]
-            , Node
-                { attrs = []
-                , id =
-                    { classes = Set.fromList []
-                    , styleId = Nothing
-                    , uid = 11
-                    }
-                , nodeLabel = Paragraph
-                }
-                [ Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 16
-                        }
-                    , leafContent = Text "Enchâssé entre le volcan boisé du "
-                    }
-                , Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 15
-                        }
-                    , leafContent =
-                        Link
-                            { label = "Tartaret"
-                            , targetBlank = False
-                            , url = ""
-                            }
-                    }
-                , Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 14
-                        }
-                    , leafContent = Text " le promontoire du "
-                    }
-                , Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 13
-                        }
-                    , leafContent =
-                        Link
-                            { label = "château de Murol"
-                            , targetBlank = False
-                            , url = ""
-                            }
-                    }
-                , Leaf
-                    { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 12 }
-                    , leafContent = Text " et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques."
-                    }
-                ]
-            , Node
-                { attrs = []
-                , id =
-                    { classes = Set.fromList []
-                    , styleId = Nothing
-                    , uid = 10
-                    }
-                , nodeLabel = Paragraph
-                }
-                [ Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 13
-                        }
-                    , leafContent = Text "Au pied du château, découvrez le parc arboré du Prélong où se trouvent le "
-                    }
-                , Leaf
-                    { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 12 }
-                    , leafContent = Link { label = "musée des Peintres de l’Ecole de Murols", targetBlank = True, url = "http://www.musee-murol.fr/fr" }
-                    }
-                , Leaf
-                    { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 11 }
-                    , leafContent = Text " et le musée archéologique."
-                    }
-                ]
-            , Node
-                { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 9 }
-                , nodeLabel = Paragraph
-                }
-                [ Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 10
-                        }
-                    , leafContent = Text "Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. "
-                    }
-                ]
             , Node
                 { attrs = []
                 , id = { classes = Set.fromList [ "sameHeightImgsRow" ], styleId = Nothing, uid = 8 }
@@ -264,26 +179,16 @@ sampleDoc1 =
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
                 , nodeLabel = Column
                 }
-                [ Node
+                [ Leaf
                     { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 11
-                        }
-                    , nodeLabel = Paragraph
+                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+                    , leafContent =
+                        TextBlock
+                            [ Paragraph
+                                [ Text "L'altitude minimale, 785 mètres, se trouve à l'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. "
+                                ]
+                            ]
                     }
-                    [ Leaf
-                        { attrs = []
-                        , id =
-                            { classes = Set.fromList []
-                            , styleId = Nothing
-                            , uid = 12
-                            }
-                        , leafContent =
-                            Text "L'altitude minimale, 785 mètres, se trouve à l'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. "
-                        }
-                    ]
                 , Leaf
                     { attrs = []
                     , id =
@@ -298,32 +203,19 @@ sampleDoc1 =
                             , src = UrlSrc "images/lac3.jpg"
                             }
                     }
-                , Node
-                    { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 9 }
-                    , nodeLabel = Paragraph
-                    }
-                    [ Leaf
-                        { attrs = []
-                        , id =
-                            { classes = Set.fromList []
-                            , styleId = Nothing
-                            , uid = 10
-                            }
-                        , leafContent = Text "Établi le long de la Couze Chambon et à l'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l'est de La Bourboule."
-                        }
-                    ]
-                , Node
+                , Leaf
                     { attrs = []
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-                    , nodeLabel = Paragraph
+                    , leafContent =
+                        TextBlock
+                            [ Paragraph
+                                [ Text "Établi le long de la Couze Chambon et à l'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l'est de La Bourboule."
+                                ]
+                            , Paragraph
+                                [ Text "Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l'ouest puis du sud-ouest au sud, sur plus de six kilomètres. "
+                                ]
+                            ]
                     }
-                    [ Leaf
-                        { attrs = []
-                        , id = { classes = Set.fromList [], styleId = Nothing, uid = 9 }
-                        , leafContent = Text "Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l'ouest puis du sud-ouest au sud, sur plus de six kilomètres. "
-                        }
-                    ]
                 ]
             ]
         , Node
@@ -436,8 +328,12 @@ sampleDoc1 =
             ]
         , Leaf
             { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 3 }
-            , leafContent = Heading ( 1, "Office de Tourisme communautaire du massif du Sancy" )
+            , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
+            , leafContent =
+                TextBlock
+                    [ TBPrimitive <|
+                        Heading ( 1, "Office de Tourisme communautaire du massif du Sancy" )
+                    ]
             }
         , Node
             { attrs = []
@@ -473,11 +369,14 @@ sampleDoc1 =
                     { attrs = []
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
                     , leafContent =
-                        Link
-                            { label = "sancy.com"
-                            , targetBlank = True
-                            , url = ""
-                            }
+                        TextBlock
+                            [ TBPrimitive <|
+                                Link
+                                    { label = "sancy.com"
+                                    , targetBlank = True
+                                    , url = ""
+                                    }
+                            ]
                     }
                 ]
             ]
@@ -488,50 +387,23 @@ sampleDoc1 =
             }
             [ Leaf
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
-                , leafContent = Heading ( 3, "Adresse:" )
-                }
-            , Node
-                { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
-                , nodeLabel = Paragraph
-                }
-                [ Leaf
-                    { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
-                    , leafContent = Text "Rue de jassaguet - 63790 Murol"
-                    }
-                ]
-            , Node
-                { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
-                , nodeLabel = Paragraph
-                }
-                [ Leaf
-                    { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
-                    , leafContent = Text "Tel: 04 73 88 62 62"
-                    }
-                ]
-            , Node
-                { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 3 }
-                , nodeLabel = Paragraph
-                }
-                [ Leaf
-                    { attrs = []
-                    , id =
-                        { classes = Set.fromList []
-                        , styleId = Nothing
-                        , uid = 4
-                        }
-                    , leafContent = Text "Fax : 04 73 88 60 23"
-                    }
-                ]
-            , Leaf
-                { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 2 }
-                , leafContent = Heading ( 3, "Horaires:" )
+                , leafContent =
+                    TextBlock
+                        [ TBPrimitive <|
+                            Heading ( 3, "Adresse:" )
+                        , Paragraph
+                            [ Text "Rue de jassaguet - 63790 Murol"
+                            ]
+                        , Paragraph
+                            [ Text "Tel: 04 73 88 62 62"
+                            ]
+                        , Paragraph
+                            [ Text "Fax : 04 73 88 60 23"
+                            ]
+                        , TBPrimitive <|
+                            Heading ( 3, "Horaires:" )
+                        ]
                 }
             , Leaf
                 { attrs = []

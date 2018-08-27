@@ -7,6 +7,7 @@ import Html.Attributes as Attr
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Set exposing (..)
+import StyleSheets exposing (..)
 
 
 type Document msg
@@ -15,8 +16,7 @@ type Document msg
 
 
 type NodeLabel
-    = Paragraph
-    | Column
+    = Column
     | Row
     | TextColumn
     | ResponsiveBloc
@@ -24,25 +24,26 @@ type NodeLabel
 
 type LeafContent
     = Image ImageMeta
-    | Link LinkMeta
-    | Text String
-    | Heading ( Int, String )
     | Table TableMeta
     | CustomElement String
+    | TextBlock (List TextBlockElement)
 
 
+type TextBlockElement
+    = Paragraph (List TextBlockPrimitive)
+    | UList (List Li)
+    | TBPrimitive TextBlockPrimitive
 
---    | TextBlock (List TextBlockElement)
---type TextBlockElement
---    = TBParagraph (List TextBlockPrimitive)
---    | UList (List Li)
---    | TextBlockPrimitive
---type alias Li =
---    List TextBlockPrimitive
---type TextBlockPrimitive
---    = Text String
---    | Link LinkMeta
---    | Bold String
+
+type alias Li =
+    List TextBlockPrimitive
+
+
+type TextBlockPrimitive
+    = Text String
+    | Link LinkMeta
+    | Bold String
+    | Heading ( Int, String )
 
 
 type alias LeafValue msg =
@@ -102,6 +103,7 @@ type alias Config msg =
             }
     , customElems :
         Dict String (Element msg)
+    , styleSheet : StyleSheet msg
     }
 
 
@@ -133,8 +135,8 @@ type DocAttribute msg
     | FontAlignRight
     | Center
     | Justify
-    | Bold
-    | Italic
+      --| Bold
+      --| Italic
     | StyleElementAttr (Attribute msg)
 
 

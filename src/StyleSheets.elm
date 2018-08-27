@@ -1,7 +1,6 @@
 module StyleSheets exposing (..)
 
 import Dict exposing (..)
-import Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border

@@ -49,9 +49,6 @@ responsivePreFormat config document =
     case document of
         Node ({ nodeLabel, id, attrs } as nv) children ->
             case nodeLabel of
-                Paragraph ->
-                    Node nv (List.map (responsivePreFormat config) children)
-
                 Column ->
                     let
                         addColImgClass doc =
@@ -109,13 +106,7 @@ responsivePreFormat config document =
                 Image meta ->
                     l
 
-                Link meta ->
-                    l
-
-                Text s ->
-                    l
-
-                Heading ( level, s ) ->
+                TextBlock xs ->
                     l
 
                 Table meta ->

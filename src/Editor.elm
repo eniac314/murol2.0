@@ -1,12 +1,13 @@
 module Editor exposing (..)
 
+--import DocumentSerializer exposing (..)
+
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Dict exposing (..)
 import Document exposing (..)
 import DocumentResponsive exposing (..)
-import DocumentSerializer exposing (..)
 import DocumentView exposing (..)
 import DocumentZipper exposing (..)
 import Element exposing (layout)
@@ -66,6 +67,7 @@ init doc flags =
                         idsToTrack
                     )
             , customElems = Dict.empty
+            , styleSheet = defaulStyleSheet
             }
     in
     ( { config = config
@@ -197,7 +199,6 @@ view model =
                 |> rewind
                 |> extractDoc
                 |> responsivePreFormat model.config
-                |> packStyleSheet defaulStyleSheet
                 |> renderDoc model.config (\_ -> RefreshSizes)
              --|> (\doc -> lazy (\ws -> renderDoc ws doc) model.winSize)
             )
