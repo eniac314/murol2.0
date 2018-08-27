@@ -31,6 +31,20 @@ type LeafContent
     | CustomElement String
 
 
+
+--    | TextBlock (List TextBlockElement)
+--type TextBlockElement
+--    = TBParagraph (List TextBlockPrimitive)
+--    | UList (List Li)
+--    | TextBlockPrimitive
+--type alias Li =
+--    List TextBlockPrimitive
+--type TextBlockPrimitive
+--    = Text String
+--    | Link LinkMeta
+--    | Bold String
+
+
 type alias LeafValue msg =
     { leafContent : LeafContent
     , id : Id

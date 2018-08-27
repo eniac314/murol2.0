@@ -1,8 +1,7 @@
 module TextBlock exposing (..)
 
---import Document exposing (..)
-
 import Browser exposing (element)
+import Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -30,17 +29,19 @@ type alias TextBlock =
 
 
 type TextBlockElement
-    = Paragraph (List TextBlockElement)
+    = TBParagraph (List TextBlockPrimitive)
+    | UList (List Li)
+    | TextBlockPrimitive
+
+
+type alias Li =
+    List TextBlockPrimitive
+
+
+type TextBlockPrimitive
+    = Text String
     | Link LinkMeta
     | Bold String
-    | UList (List TextBlockElement)
-
-
-type alias LinkMeta =
-    { targetBlank : Bool
-    , url : String
-    , label : String
-    }
 
 
 type Msg
