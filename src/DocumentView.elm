@@ -54,7 +54,7 @@ import Set exposing (..)
 import StyleSheets exposing (..)
 
 
-renderDoc : Config msg -> (Int -> msg) -> Document msg -> Element msg
+renderDoc : Config msg -> (Int -> msg) -> Document -> Element msg
 renderDoc config onLoadMsg document =
     case renderDoc_ config onLoadMsg document of
         [ doc ] ->
@@ -64,7 +64,7 @@ renderDoc config onLoadMsg document =
             el [] (text "erreur de rendu document")
 
 
-renderDoc_ : Config msg -> (Int -> msg) -> Document msg -> List (Element msg)
+renderDoc_ : Config msg -> (Int -> msg) -> Document -> List (Element msg)
 renderDoc_ config onLoadMsg document =
     let
         device =
@@ -106,13 +106,16 @@ renderTextBlock config attrs xs =
 
 renderTextBlockElement config tbe =
     case tbe of
-        Paragraph xs ->
+        Paragraph attrs xs ->
             paragraph
-                config.styleSheet.paragraphStyle
+                (config.styleSheet.paragraphStyle
+                    ++ renderAttrs config attrs
+                )
                 (List.map (renderTextBlockPrimitive config) xs)
 
-        UList xs ->
-            column [] (List.map (renderLi config) xs)
+        UList attrs xs ->
+            column (renderAttrs config attrs)
+                (List.map (renderLi config) xs)
 
         TBPrimitive p ->
             renderTextBlockPrimitive config p
@@ -121,10 +124,14 @@ renderTextBlockElement config tbe =
 renderTextBlockPrimitive : Config msg -> TextBlockPrimitive -> Element msg
 renderTextBlockPrimitive config p =
     case p of
-        Text s ->
-            el config.styleSheet.textStyle (text s)
+        Text attrs s ->
+            el
+                (config.styleSheet.textStyle
+                    ++ renderAttrs config attrs
+                )
+                (text s)
 
-        Link { targetBlank, url, label } ->
+        Link attrs { targetBlank, url, label } ->
             let
                 linkFun =
                     if targetBlank then
@@ -133,23 +140,24 @@ renderTextBlockPrimitive config p =
                         link
             in
             linkFun
-                config.styleSheet.linkStyle
+                (config.styleSheet.linkStyle
+                    ++ renderAttrs config attrs
+                )
                 { url = url
                 , label = text label
                 }
 
-        Bold s ->
-            el [ Font.bold ] (text s)
-
-        Heading ( level, s ) ->
+        Heading attrs ( level, s ) ->
             let
                 headingStyle =
                     Dict.get level config.styleSheet.headingStyles
                         |> Maybe.withDefault []
             in
             paragraph
-                ([ Region.heading level ] ++ headingStyle)
-                --[]
+                ([ Region.heading level ]
+                    ++ headingStyle
+                    ++ renderAttrs config attrs
+                )
                 [ text s ]
 
 
@@ -329,7 +337,7 @@ idStyle { customStyles } { uid, styleId, classes } =
 -------------------------------------------------------------------------------
 
 
-renderAttrs : Config msg -> List (DocAttribute msg) -> List (Attribute msg)
+renderAttrs : Config msg -> List DocAttribute -> List (Attribute msg)
 renderAttrs config attrs =
     let
         device =
@@ -414,11 +422,15 @@ renderAttrs config attrs =
                 Justify ->
                     [ Font.justify ]
 
-                --Bold ->
-                --    [ Font.bold ]
-                --Italic ->
-                --    [ Font.italic ]
-                StyleElementAttr attr_ ->
-                    [ attr_ ]
+                Bold ->
+                    [ Font.bold ]
+
+                Italic ->
+                    [ Font.italic ]
+
+                HtmlId s ->
+                    [ Attr.id s
+                        |> htmlAttribute
+                    ]
     in
     List.concatMap renderAttr attrs

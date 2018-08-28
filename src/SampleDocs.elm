@@ -7,7 +7,7 @@ import Html.Attributes as Attr
 import Set exposing (..)
 
 
-sampleDoc1 : Document msg
+sampleDoc1 : Document
 sampleDoc1 =
     Node
         { attrs = []
@@ -19,8 +19,8 @@ sampleDoc1 =
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
             , leafContent =
                 TextBlock
-                    [ TBPrimitive (Heading ( 1, "Découvrir Murol" ))
-                    , TBPrimitive (Heading ( 2, "Le bourg de Murol" ))
+                    [ TBPrimitive (Heading [] ( 1, "Découvrir Murol" ))
+                    , TBPrimitive (Heading [] ( 2, "Le bourg de Murol" ))
                     ]
             }
         , Node
@@ -48,38 +48,38 @@ sampleDoc1 =
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
                 , leafContent =
                     TextBlock
-                        [ Paragraph
-                            [ Text "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
+                        [ Paragraph []
+                            [ Text [] "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
                             ]
-                        , Paragraph
-                            [ Text "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
+                        , Paragraph []
+                            [ Text [] "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
                             ]
-                        , Paragraph
-                            [ Text "Enchâssé entre le volcan boisé du "
-                            , Link
+                        , Paragraph []
+                            [ Text [] "Enchâssé entre le volcan boisé du "
+                            , Link []
                                 { label = "Tartaret"
                                 , targetBlank = False
                                 , url = ""
                                 }
-                            , Text " le promontoire du "
-                            , Link
+                            , Text [] " le promontoire du "
+                            , Link []
                                 { label = "château de Murol"
                                 , targetBlank = False
                                 , url = ""
                                 }
-                            , Text " et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques."
+                            , Text [] " et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques."
                             ]
-                        , Paragraph
-                            [ Text "Au pied du château, découvrez le parc arboré du Prélong où se trouvent le "
-                            , Link
+                        , Paragraph []
+                            [ Text [] "Au pied du château, découvrez le parc arboré du Prélong où se trouvent le "
+                            , Link []
                                 { label = "musée des Peintres de l’Ecole de Murols"
                                 , targetBlank = True
                                 , url = "http://www.musee-murol.fr/fr"
                                 }
-                            , Text " et le musée archéologique."
+                            , Text [] " et le musée archéologique."
                             ]
-                        , Paragraph
-                            [ Text "Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. "
+                        , Paragraph []
+                            [ Text [] "Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. "
                             ]
                         ]
                 }
@@ -184,8 +184,8 @@ sampleDoc1 =
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
                     , leafContent =
                         TextBlock
-                            [ Paragraph
-                                [ Text "L'altitude minimale, 785 mètres, se trouve à l'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. "
+                            [ Paragraph []
+                                [ Text [] "L'altitude minimale, 785 mètres, se trouve à l'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. "
                                 ]
                             ]
                     }
@@ -208,11 +208,11 @@ sampleDoc1 =
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
                     , leafContent =
                         TextBlock
-                            [ Paragraph
-                                [ Text "Établi le long de la Couze Chambon et à l'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l'est de La Bourboule."
+                            [ Paragraph []
+                                [ Text [] "Établi le long de la Couze Chambon et à l'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l'est de La Bourboule."
                                 ]
-                            , Paragraph
-                                [ Text "Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l'ouest puis du sud-ouest au sud, sur plus de six kilomètres. "
+                            , Paragraph []
+                                [ Text [] "Le sentier de grande randonnée GR 30 traverse le territoire communal en deux tronçons, du nord-est à l'ouest puis du sud-ouest au sud, sur plus de six kilomètres. "
                                 ]
                             ]
                     }
@@ -332,7 +332,7 @@ sampleDoc1 =
             , leafContent =
                 TextBlock
                     [ TBPrimitive <|
-                        Heading ( 1, "Office de Tourisme communautaire du massif du Sancy" )
+                        Heading [] ( 1, "Office de Tourisme communautaire du massif du Sancy" )
                     ]
             }
         , Node
@@ -371,7 +371,7 @@ sampleDoc1 =
                     , leafContent =
                         TextBlock
                             [ TBPrimitive <|
-                                Link
+                                Link []
                                     { label = "sancy.com"
                                     , targetBlank = True
                                     , url = ""
@@ -391,18 +391,18 @@ sampleDoc1 =
                 , leafContent =
                     TextBlock
                         [ TBPrimitive <|
-                            Heading ( 3, "Adresse:" )
-                        , Paragraph
-                            [ Text "Rue de jassaguet - 63790 Murol"
+                            Heading [] ( 3, "Adresse:" )
+                        , Paragraph []
+                            [ Text [] "Rue de jassaguet - 63790 Murol"
                             ]
-                        , Paragraph
-                            [ Text "Tel: 04 73 88 62 62"
+                        , Paragraph []
+                            [ Text [] "Tel: 04 73 88 62 62"
                             ]
-                        , Paragraph
-                            [ Text "Fax : 04 73 88 60 23"
+                        , Paragraph []
+                            [ Text [] "Fax : 04 73 88 60 23"
                             ]
                         , TBPrimitive <|
-                            Heading ( 3, "Horaires:" )
+                            Heading [] ( 3, "Horaires:" )
                         ]
                 }
             , Leaf

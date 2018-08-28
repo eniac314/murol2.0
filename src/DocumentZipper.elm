@@ -6,37 +6,37 @@ import Element.Events as Events
 import Html.Events exposing (on, onMouseOut, onMouseOver)
 
 
-type alias DocZipper msg =
-    { current : Document msg
-    , contexts : List (Context msg)
+type alias DocZipper =
+    { current : Document
+    , contexts : List Context
     }
 
 
-type alias Context msg =
-    { parent : NodeValue msg
-    , left : List (Document msg)
-    , right : List (Document msg)
+type alias Context =
+    { parent : NodeValue
+    , left : List Document
+    , right : List Document
     }
 
 
-initZip : Document msg -> DocZipper msg
+initZip : Document -> DocZipper
 initZip doc =
     { current = doc
     , contexts = []
     }
 
 
-extractDoc : DocZipper msg -> Document msg
+extractDoc : DocZipper -> Document
 extractDoc { current, contexts } =
     current
 
 
-updateCurrent : Document msg -> DocZipper msg -> DocZipper msg
+updateCurrent : Document -> DocZipper -> DocZipper
 updateCurrent new { current, contexts } =
     { current = new, contexts = contexts }
 
 
-rewind : DocZipper msg -> DocZipper msg
+rewind : DocZipper -> DocZipper
 rewind docZipper =
     case zipUp docZipper of
         Nothing ->
@@ -46,7 +46,7 @@ rewind docZipper =
             rewind docZipper_
 
 
-zipUp : DocZipper msg -> Maybe (DocZipper msg)
+zipUp : DocZipper -> Maybe DocZipper
 zipUp { current, contexts } =
     case contexts of
         [] ->
@@ -59,7 +59,7 @@ zipUp { current, contexts } =
                 }
 
 
-zipDown : (Document msg -> Bool) -> DocZipper msg -> Maybe (DocZipper msg)
+zipDown : (Document -> Bool) -> DocZipper -> Maybe DocZipper
 zipDown p { current, contexts } =
     case current of
         Leaf _ ->
@@ -89,7 +89,7 @@ zipDown p { current, contexts } =
                         }
 
 
-zipLeft : DocZipper msg -> Maybe (DocZipper msg)
+zipLeft : DocZipper -> Maybe DocZipper
 zipLeft { current, contexts } =
     case contexts of
         [] ->
@@ -112,7 +112,7 @@ zipLeft { current, contexts } =
                         }
 
 
-zipRight : DocZipper msg -> Maybe (DocZipper msg)
+zipRight : DocZipper -> Maybe DocZipper
 zipRight { current, contexts } =
     case contexts of
         [] ->
@@ -152,45 +152,43 @@ break p xs =
     helper xs []
 
 
-addSelectors :
-    { click : Int -> msg
-    , dblClick : Int -> msg
-    , mouseEnter : Int -> msg
-    , mouseLeave : Int -> msg
-    }
-    -> DocZipper msg
-    -> DocZipper msg
-addSelectors handlers ({ current, contexts } as dz) =
-    let
-        selectors id =
-            [ StyleElementAttr (Events.onClick (handlers.click id.uid))
-            , StyleElementAttr (Events.onDoubleClick (handlers.dblClick id.uid))
-            , StyleElementAttr (Events.onMouseEnter (handlers.mouseEnter id.uid))
-            , StyleElementAttr (Events.onMouseLeave (handlers.mouseLeave id.uid))
-            ]
 
-        addSelector doc =
-            case doc of
-                Leaf ({ leafContent, id, attrs } as lv) ->
-                    Leaf
-                        { lv
-                            | attrs =
-                                selectors id ++ attrs
-                        }
-
-                Node ({ nodeLabel, id, attrs } as nv) children ->
-                    Node
-                        { nv
-                            | attrs =
-                                selectors id ++ attrs
-                        }
-                        children
-    in
-    case toogleClass "selected" current of
-        Node nv children ->
-            { dz
-                | current = Node nv (List.map addSelector children)
-            }
-
-        _ ->
-            dz
+--addSelectors :
+--    { click : Int ->
+--    , dblClick : Int ->
+--    , mouseEnter : Int ->
+--    , mouseLeave : Int ->
+--    }
+--    -> DocZipper
+--    -> DocZipper
+--addSelectors handlers ({ current, contexts } as dz) =
+--    let
+--        selectors id =
+--            [ StyleElementAttr (Events.onClick (handlers.click id.uid))
+--            , StyleElementAttr (Events.onDoubleClick (handlers.dblClick id.uid))
+--            , StyleElementAttr (Events.onMouseEnter (handlers.mouseEnter id.uid))
+--            , StyleElementAttr (Events.onMouseLeave (handlers.mouseLeave id.uid))
+--            ]
+--        addSelector doc =
+--            case doc of
+--                Leaf ({ leafContent, id, attrs } as lv) ->
+--                    Leaf
+--                        { lv
+--                            | attrs =
+--                                selectors id ++ attrs
+--                        }
+--                Node ({ nodeLabel, id, attrs } as nv) children ->
+--                    Node
+--                        { nv
+--                            | attrs =
+--                                selectors id ++ attrs
+--                        }
+--                        children
+--    in
+--    case toogleClass "selected" current of
+--        Node nv children ->
+--            { dz
+--                | current = Node nv (List.map addSelector children)
+--            }
+--        _ ->
+--            dz

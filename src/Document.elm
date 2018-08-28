@@ -10,9 +10,9 @@ import Set exposing (..)
 import StyleSheets exposing (..)
 
 
-type Document msg
-    = Node (NodeValue msg) (List (Document msg))
-    | Leaf (LeafValue msg)
+type Document
+    = Node NodeValue (List Document)
+    | Leaf LeafValue
 
 
 type NodeLabel
@@ -30,8 +30,8 @@ type LeafContent
 
 
 type TextBlockElement
-    = Paragraph (List TextBlockPrimitive)
-    | UList (List Li)
+    = Paragraph (List DocAttribute) (List TextBlockPrimitive)
+    | UList (List DocAttribute) (List Li)
     | TBPrimitive TextBlockPrimitive
 
 
@@ -40,23 +40,23 @@ type alias Li =
 
 
 type TextBlockPrimitive
-    = Text String
-    | Link LinkMeta
-    | Bold String
-    | Heading ( Int, String )
+    = Text (List DocAttribute) String
+    | Link (List DocAttribute) LinkMeta
+      --| Bold String
+    | Heading (List DocAttribute) ( Int, String )
 
 
-type alias LeafValue msg =
+type alias LeafValue =
     { leafContent : LeafContent
     , id : Id
-    , attrs : List (DocAttribute msg)
+    , attrs : List DocAttribute
     }
 
 
-type alias NodeValue msg =
+type alias NodeValue =
     { nodeLabel : NodeLabel
     , id : Id
-    , attrs : List (DocAttribute msg)
+    , attrs : List DocAttribute
     }
 
 
@@ -114,7 +114,7 @@ type alias Id =
     }
 
 
-type DocAttribute msg
+type DocAttribute
     = PaddingEach
         { bottom : Int
         , left : Int
@@ -135,9 +135,9 @@ type DocAttribute msg
     | FontAlignRight
     | Center
     | Justify
-      --| Bold
-      --| Italic
-    | StyleElementAttr (Attribute msg)
+    | HtmlId String
+    | Bold
+    | Italic
 
 
 type DocColor
@@ -149,7 +149,7 @@ toSeColor (DocColor r g b) =
     rgb r g b
 
 
-hasUid : Int -> Document msg -> Bool
+hasUid : Int -> Document -> Bool
 hasUid id document =
     case document of
         Node nv _ ->
@@ -159,7 +159,7 @@ hasUid id document =
             id == lv.id.uid
 
 
-hasClass : String -> Document msg -> Bool
+hasClass : String -> Document -> Bool
 hasClass class document =
     case document of
         Node nv _ ->
@@ -169,7 +169,7 @@ hasClass class document =
             Set.member class lv.id.classes
 
 
-containsOnly : (Document msg -> Bool) -> Document msg -> Bool
+containsOnly : (Document -> Bool) -> Document -> Bool
 containsOnly p document =
     case document of
         Node nv children ->
@@ -179,7 +179,7 @@ containsOnly p document =
             False
 
 
-isImage : Document msg -> Bool
+isImage : Document -> Bool
 isImage document =
     case document of
         Leaf lv ->
@@ -194,7 +194,7 @@ isImage document =
             False
 
 
-fixUids : Int -> Document msg -> Document msg
+fixUids : Int -> Document -> Document
 fixUids nextUid document =
     case document of
         Node ({ id } as nv) [] ->
@@ -213,13 +213,11 @@ fixUids nextUid document =
             Leaf { lv | id = { id | uid = nextUid } }
 
 
-setSizeTrackedDocUids : Document msg -> ( Document msg, List Int )
+setSizeTrackedDocUids : Document -> ( Document, List Int )
 setSizeTrackedDocUids document =
     let
         htmlId uid =
-            Attr.id ("sizeTracked" ++ String.fromInt uid)
-                |> htmlAttribute
-                |> StyleElementAttr
+            HtmlId ("sizeTracked" ++ String.fromInt uid)
     in
     case document of
         Node ({ id, attrs } as nv) children ->
@@ -242,7 +240,7 @@ setSizeTrackedDocUids document =
             ( document, [] )
 
 
-addClass : String -> Document msg -> Document msg
+addClass : String -> Document -> Document
 addClass class document =
     let
         newId id =
@@ -259,7 +257,7 @@ addClass class document =
             Leaf { lv | id = newId lv.id }
 
 
-toogleClass : String -> Document msg -> Document msg
+toogleClass : String -> Document -> Document
 toogleClass class document =
     let
         newId id =
@@ -279,7 +277,7 @@ toogleClass class document =
             Leaf { lv | id = newId lv.id }
 
 
-toogleHoverClass : Int -> Document msg -> Document msg
+toogleHoverClass : Int -> Document -> Document
 toogleHoverClass uid document =
     case document of
         Leaf _ ->

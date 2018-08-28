@@ -45,8 +45,8 @@ type alias Model =
     { config : Config Msg
     , selectedNode : Maybe Int
     , hoveredNode : Maybe Int
-    , document : DocZipper Msg
-    , currentNodeBackup : Document Msg
+    , document : DocZipper
+    , currentNodeBackup : Document
     , hasRefreshed : Bool
     }
 
@@ -75,7 +75,8 @@ init doc flags =
       , document =
             doc_
                 |> initZip
-                |> addSelectors handlers
+
+      --|> addSelectors handlers
       , currentNodeBackup = doc_
       , hoveredNode = Nothing
       , hasRefreshed = False
@@ -168,7 +169,7 @@ update msg model =
                 Just newDocument ->
                     ( { model
                         | currentNodeBackup = extractDoc newDocument
-                        , document = addSelectors handlers newDocument
+                        , document = newDocument --addSelectors handlers newDocument
                         , selectedNode = Just id
                       }
                     , Cmd.none

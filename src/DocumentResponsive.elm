@@ -40,7 +40,7 @@ import Element
 import Set exposing (..)
 
 
-responsivePreFormat : Config msg -> Document msg -> Document msg
+responsivePreFormat : Config msg -> Document -> Document
 responsivePreFormat config document =
     let
         device =
@@ -128,7 +128,7 @@ responsivePreFormat config document =
                     l
 
 
-renderSameHeightImgRow : Int -> Document msg -> Document msg
+renderSameHeightImgRow : Int -> Document -> Document
 renderSameHeightImgRow containerWidth document =
     case document of
         Leaf _ ->
@@ -232,8 +232,8 @@ renderSameHeightImgRow containerWidth document =
                             { leafContent = Image im.meta
                             , id = im.id
                             , attrs =
-                                [ StyleElementAttr <| height (px (floor im.newHeight))
-                                , StyleElementAttr <| width (px (floor im.newWidth))
+                                [ Height (floor im.newHeight)
+                                , Width (floor im.newWidth)
                                 ]
                                     ++ im.attrs
                             }
