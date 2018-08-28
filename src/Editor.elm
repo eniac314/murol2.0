@@ -38,16 +38,13 @@ type Msg
     | RefreshSizes
     | NoOp
     | SelectDoc Int
-    | HoverDoc Int
 
 
 type alias Model =
     { config : Config Msg
     , selectedNode : Maybe Int
-    , hoveredNode : Maybe Int
     , document : DocZipper
     , currentNodeBackup : Document
-    , hasRefreshed : Bool
     }
 
 
@@ -56,11 +53,15 @@ init doc flags =
         ( doc_, idsToTrack ) =
             setSizeTrackedDocUids doc
 
+        handlers =
+            { click = SelectDoc
+            , dblClick = \_ -> NoOp
+            }
+
         config =
             { width = 1920
             , height = 1080
             , sizesDict =
-                --Dict.empty
                 Dict.fromList
                     (List.map
                         (\uid -> ( uid, { docWidth = 0, docHeight = 0 } ))
@@ -68,6 +69,8 @@ init doc flags =
                     )
             , customElems = Dict.empty
             , styleSheet = defaulStyleSheet
+            , onLoadMsg = \_ -> RefreshSizes
+            , zipperHandlers = Just handlers
             }
     in
     ( { config = config
@@ -75,11 +78,8 @@ init doc flags =
       , document =
             doc_
                 |> initZip
-
-      --|> addSelectors handlers
+                |> addSelectors
       , currentNodeBackup = doc_
-      , hoveredNode = Nothing
-      , hasRefreshed = False
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
@@ -138,23 +138,12 @@ update msg model =
                             { currentConfig
                                 | sizesDict = newSizesDict
                             }
-                        , hasRefreshed = newSizesDict == currentConfig.sizesDict
                       }
                     , Cmd.none
                     )
 
                 Err (Dom.NotFound s) ->
                     ( model, Cmd.none )
-
-        HoverDoc id ->
-            ( { model
-                | document =
-                    extractDoc model.document
-                        |> toogleHoverClass id
-                        |> (\nd -> updateCurrent nd model.document)
-              }
-            , Cmd.none
-            )
 
         SelectDoc id ->
             case
@@ -169,7 +158,7 @@ update msg model =
                 Just newDocument ->
                     ( { model
                         | currentNodeBackup = extractDoc newDocument
-                        , document = newDocument --addSelectors handlers newDocument
+                        , document = addSelectors newDocument
                         , selectedNode = Just id
                       }
                     , Cmd.none
@@ -184,14 +173,6 @@ update msg model =
             ( model, Cmd.none )
 
 
-handlers =
-    { click = SelectDoc
-    , dblClick = \_ -> NoOp
-    , mouseEnter = HoverDoc
-    , mouseLeave = HoverDoc
-    }
-
-
 view model =
     { title = "editor"
     , body =
@@ -200,7 +181,7 @@ view model =
                 |> rewind
                 |> extractDoc
                 |> responsivePreFormat model.config
-                |> renderDoc model.config (\_ -> RefreshSizes)
+                |> renderDoc model.config
              --|> (\doc -> lazy (\ws -> renderDoc ws doc) model.winSize)
             )
 

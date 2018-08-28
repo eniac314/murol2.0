@@ -10,6 +10,7 @@ import Element
         , Element
         , alignLeft
         , alignRight
+        , alpha
         , centerX
         , classifyDevice
         , column
@@ -23,6 +24,7 @@ import Element
         , link
         , maximum
         , minimum
+        , mouseOver
         , newTabLink
         , none
         , paddingEach
@@ -54,9 +56,9 @@ import Set exposing (..)
 import StyleSheets exposing (..)
 
 
-renderDoc : Config msg -> (Int -> msg) -> Document -> Element msg
-renderDoc config onLoadMsg document =
-    case renderDoc_ config onLoadMsg document of
+renderDoc : Config msg -> Document -> Element msg
+renderDoc config document =
+    case renderDoc_ config document of
         [ doc ] ->
             doc
 
@@ -64,8 +66,8 @@ renderDoc config onLoadMsg document =
             el [] (text "erreur de rendu document")
 
 
-renderDoc_ : Config msg -> (Int -> msg) -> Document -> List (Element msg)
-renderDoc_ config onLoadMsg document =
+renderDoc_ : Config msg -> Document -> List (Element msg)
+renderDoc_ config document =
     let
         device =
             classifyDevice config
@@ -74,21 +76,21 @@ renderDoc_ config onLoadMsg document =
         Node { nodeLabel, id, attrs } children ->
             case nodeLabel of
                 Column ->
-                    renderColumn config onLoadMsg id attrs children
+                    renderColumn config id attrs children
 
                 Row ->
-                    renderRow config onLoadMsg id attrs children
+                    renderRow config id attrs children
 
                 TextColumn ->
-                    renderTextColumn config onLoadMsg id attrs children
+                    renderTextColumn config id attrs children
 
                 ResponsiveBloc ->
-                    renderResponsiveBloc config onLoadMsg id attrs children
+                    renderResponsiveBloc config id attrs children
 
         Leaf { leafContent, id, attrs } ->
             case leafContent of
                 Image meta ->
-                    renderImage config onLoadMsg id attrs meta
+                    renderImage config id attrs meta
 
                 TextBlock xs ->
                     renderTextBlock config attrs xs
@@ -101,32 +103,36 @@ renderDoc_ config onLoadMsg document =
 
 
 renderTextBlock config attrs xs =
-    List.map (renderTextBlockElement config) xs
+    List.map (renderTextBlockElement config attrs) xs
 
 
-renderTextBlockElement config tbe =
+renderTextBlockElement config tbAttrs tbe =
     case tbe of
         Paragraph attrs xs ->
             paragraph
                 (config.styleSheet.paragraphStyle
+                    ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
-                (List.map (renderTextBlockPrimitive config) xs)
+                (List.map (renderTextBlockPrimitive config tbAttrs) xs)
 
         UList attrs xs ->
-            column (renderAttrs config attrs)
-                (List.map (renderLi config) xs)
+            column
+                (renderAttrs config tbAttrs
+                    ++ renderAttrs config attrs
+                )
+                (List.map (renderLi config tbAttrs) xs)
 
         TBPrimitive p ->
-            renderTextBlockPrimitive config p
+            renderTextBlockPrimitive config tbAttrs p
 
 
-renderTextBlockPrimitive : Config msg -> TextBlockPrimitive -> Element msg
-renderTextBlockPrimitive config p =
+renderTextBlockPrimitive config tbAttrs p =
     case p of
         Text attrs s ->
             el
                 (config.styleSheet.textStyle
+                    ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
                 (text s)
@@ -141,6 +147,7 @@ renderTextBlockPrimitive config p =
             in
             linkFun
                 (config.styleSheet.linkStyle
+                    ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
                 { url = url
@@ -156,66 +163,69 @@ renderTextBlockPrimitive config p =
             paragraph
                 ([ Region.heading level ]
                     ++ headingStyle
+                    ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
                 [ text s ]
 
 
-renderLi config li =
+renderLi config tbAttrs li =
     row
-        [ spacing 10
-        , paddingEach
+        ([ spacing 10
+         , paddingEach
             { top = 0
             , left = 20
             , right = 0
             , bottom = 0
             }
-        ]
-        ([ el [] (text "=>") ] ++ List.map (renderTextBlockPrimitive config) li)
+         ]
+            ++ renderAttrs config tbAttrs
+        )
+        ([ el [] (text "=>") ] ++ List.map (renderTextBlockPrimitive config tbAttrs) li)
 
 
-renderColumn config onLoadMsg id attrs children =
+renderColumn config id attrs children =
     [ column
         (config.styleSheet.columnStyle
             ++ idStyle config.styleSheet id
             ++ [ width (maximum config.width fill) ]
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config onLoadMsg) children)
+        (List.concatMap (renderDoc_ config) children)
     ]
 
 
-renderRow config onLoadMsg id attrs children =
+renderRow config id attrs children =
     [ row
         (config.styleSheet.rowStyle
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config onLoadMsg) children)
+        (List.concatMap (renderDoc_ config) children)
     ]
 
 
-renderTextColumn config onLoadMsg id attrs children =
+renderTextColumn config id attrs children =
     [ textColumn
         (config.styleSheet.textColumnStyle
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config onLoadMsg) children)
+        (List.concatMap (renderDoc_ config) children)
     ]
 
 
-renderResponsiveBloc config onLoadMsg id attrs children =
+renderResponsiveBloc config id attrs children =
     [ row
         (config.styleSheet.responsiveBlocStyle
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config onLoadMsg) children)
+        (List.concatMap (renderDoc_ config) children)
     ]
 
 
-renderImage config onLoadMsg ({ uid, styleId, classes } as id) attrs { src, caption, size } =
+renderImage config ({ uid, styleId, classes } as id) attrs { src, caption, size } =
     let
         device =
             classifyDevice config
@@ -240,7 +250,7 @@ renderImage config onLoadMsg ({ uid, styleId, classes } as id) attrs { src, capt
             Html.img
                 [ Attr.style "width" "100%"
                 , Attr.style "height" "auto"
-                , Html.Events.on "load" (Decode.succeed (onLoadMsg uid))
+                , Html.Events.on "load" (Decode.succeed (config.onLoadMsg uid))
                 , Attr.src src_
                 ]
                 []
@@ -432,5 +442,26 @@ renderAttrs config attrs =
                     [ Attr.id s
                         |> htmlAttribute
                     ]
+
+                ZipperAttr uid zipperEventHandler ->
+                    case config.zipperHandlers of
+                        Nothing ->
+                            []
+
+                        Just handlers ->
+                            case zipperEventHandler of
+                                ZipperOnClick ->
+                                    [ Events.onClick (handlers.click uid) ]
+
+                                ZipperOnDblClick ->
+                                    [ Events.onDoubleClick (handlers.dblClick uid) ]
+
+                                ZipperOnMouseOver ->
+                                    [ mouseOver
+                                        [ alpha 0.5
+                                        ]
+                                    , pointer
+                                    , htmlAttribute <| Attr.style "transition" "0.5s"
+                                    ]
     in
     List.concatMap renderAttr attrs

@@ -103,7 +103,15 @@ type alias Config msg =
             }
     , customElems :
         Dict String (Element msg)
+    , onLoadMsg : Int -> msg
     , styleSheet : StyleSheet msg
+    , zipperHandlers : Maybe (ZipperHandlers msg)
+    }
+
+
+type alias ZipperHandlers msg =
+    { click : Int -> msg
+    , dblClick : Int -> msg
     }
 
 
@@ -138,6 +146,15 @@ type DocAttribute
     | HtmlId String
     | Bold
     | Italic
+    | ZipperAttr Int ZipperEventHandler
+
+
+type ZipperEventHandler
+    = ZipperOnClick
+    | ZipperOnDblClick
+      --| ZipperOnMouseEnter
+      --| ZipperOnMouseLeave
+    | ZipperOnMouseOver
 
 
 type DocColor

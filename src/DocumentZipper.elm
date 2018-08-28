@@ -152,43 +152,37 @@ break p xs =
     helper xs []
 
 
+addSelectors : DocZipper -> DocZipper
+addSelectors ({ current, contexts } as dz) =
+    let
+        selectors id =
+            [ ZipperAttr id.uid ZipperOnClick
+            , ZipperAttr id.uid ZipperOnDblClick
+            , ZipperAttr id.uid ZipperOnMouseOver
+            ]
 
---addSelectors :
---    { click : Int ->
---    , dblClick : Int ->
---    , mouseEnter : Int ->
---    , mouseLeave : Int ->
---    }
---    -> DocZipper
---    -> DocZipper
---addSelectors handlers ({ current, contexts } as dz) =
---    let
---        selectors id =
---            [ StyleElementAttr (Events.onClick (handlers.click id.uid))
---            , StyleElementAttr (Events.onDoubleClick (handlers.dblClick id.uid))
---            , StyleElementAttr (Events.onMouseEnter (handlers.mouseEnter id.uid))
---            , StyleElementAttr (Events.onMouseLeave (handlers.mouseLeave id.uid))
---            ]
---        addSelector doc =
---            case doc of
---                Leaf ({ leafContent, id, attrs } as lv) ->
---                    Leaf
---                        { lv
---                            | attrs =
---                                selectors id ++ attrs
---                        }
---                Node ({ nodeLabel, id, attrs } as nv) children ->
---                    Node
---                        { nv
---                            | attrs =
---                                selectors id ++ attrs
---                        }
---                        children
---    in
---    case toogleClass "selected" current of
---        Node nv children ->
---            { dz
---                | current = Node nv (List.map addSelector children)
---            }
---        _ ->
---            dz
+        addSelector doc =
+            case doc of
+                Leaf ({ leafContent, id, attrs } as lv) ->
+                    Leaf
+                        { lv
+                            | attrs =
+                                selectors id ++ attrs
+                        }
+
+                Node ({ nodeLabel, id, attrs } as nv) children ->
+                    Node
+                        { nv
+                            | attrs =
+                                selectors id ++ attrs
+                        }
+                        children
+    in
+    case toogleClass "selected" current of
+        Node nv children ->
+            { dz
+                | current = Node nv (List.map addSelector children)
+            }
+
+        _ ->
+            dz
