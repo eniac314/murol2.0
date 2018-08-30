@@ -179,10 +179,14 @@ addSelectors ({ current, contexts } as dz) =
                         children
     in
     case toogleClass "selected" current of
+        --case current of
         Node nv children ->
             { dz
                 | current = Node nv (List.map addSelector children)
             }
 
-        _ ->
-            dz
+        Leaf lv ->
+            --dz
+            { dz
+                | current = Leaf lv
+            }

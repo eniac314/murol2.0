@@ -4,16 +4,18 @@ module Editor exposing (..)
 
 import Browser exposing (document)
 import Browser.Dom as Dom
-import Browser.Events exposing (onResize)
+import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
 import Dict exposing (..)
 import Document exposing (..)
 import DocumentResponsive exposing (..)
 import DocumentView exposing (..)
 import DocumentZipper exposing (..)
-import Element exposing (layout)
+import Element exposing (..)
 import Element.Font as Font
 import Element.Lazy exposing (lazy)
 import Html exposing (div, text)
+import Html.Events.Extra.Wheel as Wheel
+import Json.Decode as Decode
 import SampleDocs exposing (..)
 import StyleSheets exposing (..)
 import Table exposing (..)
@@ -38,6 +40,9 @@ type Msg
     | RefreshSizes
     | NoOp
     | SelectDoc Int
+    | WheelEvent Wheel.Event
+    | KeyDown String
+    | KeyUp String
 
 
 type alias Model =
@@ -45,6 +50,7 @@ type alias Model =
     , selectedNode : Maybe Int
     , document : DocZipper
     , currentNodeBackup : Document
+    , controlDown : Bool
     }
 
 
@@ -71,6 +77,8 @@ init doc flags =
             , styleSheet = defaulStyleSheet
             , onLoadMsg = \_ -> RefreshSizes
             , zipperHandlers = Just handlers
+            , editMode = True
+            , containersBkgColors = False
             }
     in
     ( { config = config
@@ -80,6 +88,7 @@ init doc flags =
                 |> initZip
                 |> addSelectors
       , currentNodeBackup = doc_
+      , controlDown = False
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
@@ -90,6 +99,8 @@ init doc flags =
 subscriptions model =
     Sub.batch
         [ onResize WinResize
+        , onKeyDown (Decode.map KeyDown keyDecoder)
+        , onKeyUp (Decode.map KeyUp keyDecoder)
         ]
 
 
@@ -164,6 +175,39 @@ update msg model =
                     , Cmd.none
                     )
 
+        WheelEvent e ->
+            let
+                newDoc =
+                    model.document
+                        |> updateCurrent model.currentNodeBackup
+                        |> zipUp
+            in
+            if e.deltaY > 0 then
+                ( { model
+                    | document =
+                        Maybe.map addSelectors newDoc
+                            |> Maybe.withDefault model.document
+                    , currentNodeBackup =
+                        Maybe.map extractDoc newDoc
+                            |> Maybe.withDefault model.currentNodeBackup
+                  }
+                , Cmd.none
+                )
+            else
+                ( model, Cmd.none )
+
+        KeyDown s ->
+            if s == "Control" then
+                ( { model | controlDown = True }, Cmd.none )
+            else
+                ( model, Cmd.none )
+
+        KeyUp s ->
+            if s == "Control" then
+                ( { model | controlDown = False }, Cmd.none )
+            else
+                ( model, Cmd.none )
+
         RefreshSizes ->
             ( model
             , updateSizes model.config
@@ -176,7 +220,14 @@ update msg model =
 view model =
     { title = "editor"
     , body =
-        [ layout []
+        [ layout
+            ([]
+                ++ (if model.controlDown then
+                        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
+                    else
+                        []
+                   )
+            )
             (model.document
                 |> rewind
                 |> extractDoc
@@ -185,9 +236,17 @@ view model =
              --|> (\doc -> lazy (\ws -> renderDoc ws doc) model.winSize)
             )
 
-        --, Html.text <| Debug.toString model.winSize
+        --, Html.text <| Debug.toString model.controlDown
         ]
     }
+
+
+mainInterface model =
+    column
+        [ width fill ]
+        [ row []
+            []
+        ]
 
 
 updateSizes : Config Msg -> Cmd Msg
@@ -199,3 +258,8 @@ updateSizes { sizesDict } =
     Dict.keys sizesDict
         |> List.map (\uid -> cmd uid ("sizeTracked" ++ String.fromInt uid))
         |> Cmd.batch
+
+
+keyDecoder : Decode.Decoder String
+keyDecoder =
+    Decode.field "key" Decode.string

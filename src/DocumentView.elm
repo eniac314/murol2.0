@@ -33,6 +33,7 @@ import Element
         , pointer
         , px
         , rgb
+        , rgba
         , row
         , scrollbarX
         , shrink
@@ -187,6 +188,11 @@ renderLi config tbAttrs li =
 renderColumn config id attrs children =
     [ column
         (config.styleSheet.columnStyle
+            ++ (if config.containersBkgColors then
+                    [ Background.color (rgba 0 1 0 0.3) ]
+                else
+                    []
+               )
             ++ idStyle config.styleSheet id
             ++ [ width (maximum config.width fill) ]
             ++ renderAttrs config attrs
@@ -198,6 +204,11 @@ renderColumn config id attrs children =
 renderRow config id attrs children =
     [ row
         (config.styleSheet.rowStyle
+            ++ (if config.containersBkgColors then
+                    [ Background.color (rgba 1 0 0 0.3) ]
+                else
+                    []
+               )
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
@@ -208,6 +219,11 @@ renderRow config id attrs children =
 renderTextColumn config id attrs children =
     [ textColumn
         (config.styleSheet.textColumnStyle
+            ++ (if config.containersBkgColors then
+                    [ Background.color (rgba 0 0 1 0.3) ]
+                else
+                    []
+               )
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
@@ -309,6 +325,7 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
 
                --, paddingXY 15 0
                ]
+            ++ renderAttrs config attrs
         )
         { data = data
         , columns = columns
@@ -377,6 +394,11 @@ renderAttrs config attrs =
                             , left = 15
                             }
                         ]
+                            ++ (if config.editMode then
+                                    [ htmlAttribute <| Attr.style "z-index" "99" ]
+                                else
+                                    []
+                               )
 
                 AlignLeft ->
                     if
@@ -394,6 +416,11 @@ renderAttrs config attrs =
                             , left = 0
                             }
                         ]
+                            ++ (if config.editMode then
+                                    [ htmlAttribute <| Attr.style "z-index" "99" ]
+                                else
+                                    []
+                               )
 
                 Pointer ->
                     [ pointer ]
@@ -458,10 +485,9 @@ renderAttrs config attrs =
 
                                 ZipperOnMouseOver ->
                                     [ mouseOver
-                                        [ alpha 0.5
-                                        ]
+                                        [ Background.color <| rgba 0.8 0.8 0.8 0.5 ]
                                     , pointer
-                                    , htmlAttribute <| Attr.style "transition" "0.5s"
+                                    , htmlAttribute <| Attr.style "transition" "0.3s"
                                     ]
     in
     List.concatMap renderAttr attrs

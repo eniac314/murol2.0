@@ -1,5 +1,3 @@
-- remplacer Link - Text - List - Paragraph par TextBlock?
-
 - faire un parser String <-> TextBloc
 
 - Table.elm functions DocTable <-> TableMeta
@@ -7,3 +5,14 @@
 - 2 possibiltés pour les custom leaves:
 	* hardcoded
 	* parsed (String -> Element Never)?
+
+- demander tradeoffs z-index
+
+- enlever config du model?
+
+- colaboratory : https://colab.research.google.com/notebooks/welcome.ipynb#scrollTo=oYZkU7ZN3CL0
+
+- remove background colors, selected and hovered class from stylesheet
+	put them in documentView associated with config flags
+
+- ajouter video

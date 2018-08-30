@@ -106,6 +106,8 @@ type alias Config msg =
     , onLoadMsg : Int -> msg
     , styleSheet : StyleSheet msg
     , zipperHandlers : Maybe (ZipperHandlers msg)
+    , editMode : Bool
+    , containersBkgColors : Bool
     }
 
 

@@ -62,7 +62,7 @@ responsivePreFormat config document =
                                             in
                                             Leaf
                                                 { leafContent = lv.leafContent
-                                                , id = { lId | classes = Set.insert "colImg" id.classes }
+                                                , id = { lId | classes = Set.insert "colImg" lId.classes }
                                                 , attrs = lv.attrs
                                                 }
 

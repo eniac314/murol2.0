@@ -36,20 +36,22 @@ defaulStyleSheet =
     , columnStyle =
         [ spacing 15
         , centerX
-        , Background.color (rgba 0 1 0 0.3)
 
+        --, Background.color (rgba 0 1 0 0.3)
         --, padding 15
         ]
     , rowStyle =
         [ --spacing 15
           --spaceEvenly
           width fill
-        , Background.color (rgba 1 0 0 0.3)
+
+        --, Background.color (rgba 1 0 0 0.3)
         ]
     , textColumnStyle =
         [ spacing 15
         , width fill
-        , Background.color (rgba 0 0 1 0.3)
+
+        --, Background.color (rgba 0 0 1 0.3)
         ]
     , respBlocStyle =
         []
@@ -113,15 +115,16 @@ defaulStyleSheet =
                 , ( "rowImg"
                   , []
                   )
-                , ( "hovered"
-                  , [ alpha 0.5
-                    , htmlAttribute
-                        (Attr.style "transition" "0.5s")
-                    , pointer
-                    ]
-                  )
                 , ( "selected"
-                  , []
+                  , [ --Border.width 4
+                      --  , Border.color (rgb 0 0 0)
+                      Border.shadow
+                        { offset = ( 4, 4 )
+                        , size = 5
+                        , blur = 10
+                        , color = rgba 0 0 0 0.16
+                        }
+                    ]
                   )
                 , ( "sameHeightImgsRow"
                   , [ spaceEvenly
