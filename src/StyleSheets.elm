@@ -36,22 +36,13 @@ defaulStyleSheet =
     , columnStyle =
         [ spacing 15
         , centerX
-
-        --, Background.color (rgba 0 1 0 0.3)
-        --, padding 15
         ]
     , rowStyle =
-        [ --spacing 15
-          --spaceEvenly
-          width fill
-
-        --, Background.color (rgba 1 0 0 0.3)
+        [ width fill
         ]
     , textColumnStyle =
         [ spacing 15
         , width fill
-
-        --, Background.color (rgba 0 0 1 0.3)
         ]
     , respBlocStyle =
         []
@@ -97,6 +88,7 @@ defaulStyleSheet =
                     , spacing 15
                     , Font.family [ Font.typeface "Arial" ]
                     , Font.size 16
+                    , width (maximum 900 fill)
                     ]
                   )
                 ]

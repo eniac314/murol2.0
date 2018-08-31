@@ -390,12 +390,12 @@ renderAttrs config attrs =
                         , paddingEach
                             { top = 0
                             , right = 0
-                            , bottom = 15
+                            , bottom = 0
                             , left = 15
                             }
                         ]
                             ++ (if config.editMode then
-                                    [ htmlAttribute <| Attr.style "z-index" "99" ]
+                                    [ htmlAttribute <| Attr.style "z-index" "1" ]
                                 else
                                     []
                                )
@@ -412,12 +412,12 @@ renderAttrs config attrs =
                         , paddingEach
                             { top = 0
                             , right = 15
-                            , bottom = 15
+                            , bottom = 0
                             , left = 0
                             }
                         ]
                             ++ (if config.editMode then
-                                    [ htmlAttribute <| Attr.style "z-index" "99" ]
+                                    [ htmlAttribute <| Attr.style "z-index" "1" ]
                                 else
                                     []
                                )

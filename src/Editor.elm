@@ -1,6 +1,7 @@
 module Editor exposing (..)
 
 --import DocumentSerializer exposing (..)
+--import Html exposing (div, text)
 
 import Browser exposing (document)
 import Browser.Dom as Dom
@@ -11,10 +12,14 @@ import DocumentResponsive exposing (..)
 import DocumentView exposing (..)
 import DocumentZipper exposing (..)
 import Element exposing (..)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Events exposing (..)
 import Element.Font as Font
+import Element.Input as Input
 import Element.Lazy exposing (lazy)
-import Html exposing (div, text)
 import Html.Events.Extra.Wheel as Wheel
+import Icons exposing (..)
 import Json.Decode as Decode
 import SampleDocs exposing (..)
 import StyleSheets exposing (..)
@@ -43,6 +48,17 @@ type Msg
     | WheelEvent Wheel.Event
     | KeyDown String
     | KeyUp String
+    | MenuClick
+    | MenuClickOff
+    | TopEntryFocused String
+    | SetPreviewMode PreviewMode
+
+
+type PreviewMode
+    = PreviewBigScreen
+    | PreviewScreen
+    | PreviewTablet
+    | PreviewPhone
 
 
 type alias Model =
@@ -51,6 +67,9 @@ type alias Model =
     , document : DocZipper
     , currentNodeBackup : Document
     , controlDown : Bool
+    , menuClicked : Bool
+    , menuFocused : String
+    , previewMode : PreviewMode
     }
 
 
@@ -89,6 +108,9 @@ init doc flags =
                 |> addSelectors
       , currentNodeBackup = doc_
       , controlDown = False
+      , menuClicked = False
+      , menuFocused = ""
+      , previewMode = PreviewBigScreen
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
@@ -108,11 +130,14 @@ update msg model =
     case msg of
         WinResize width height ->
             let
-                ws =
+                cfg =
                     model.config
+
+                newConfig =
+                    { cfg | width = width, height = height }
             in
-            ( { model | config = { ws | width = width, height = height } }
-            , Cmd.batch [ updateSizes model.config ]
+            ( { model | config = newConfig }
+            , Cmd.batch [ updateSizes newConfig ]
             )
 
         CurrentViewport vp ->
@@ -213,6 +238,47 @@ update msg model =
             , updateSizes model.config
             )
 
+        MenuClick ->
+            ( { model | menuClicked = not model.menuClicked }
+            , Cmd.none
+            )
+
+        MenuClickOff ->
+            ( { model | menuClicked = False }
+            , Cmd.none
+            )
+
+        TopEntryFocused label ->
+            ( { model | menuFocused = label }
+            , Cmd.none
+            )
+
+        SetPreviewMode pm ->
+            let
+                config =
+                    model.config
+
+                newWidth =
+                    case pm of
+                        PreviewBigScreen ->
+                            1920
+
+                        PreviewScreen ->
+                            1268
+
+                        PreviewTablet ->
+                            1024
+
+                        PreviewPhone ->
+                            480
+
+                newConfig =
+                    { config | width = newWidth }
+            in
+            ( { model | previewMode = pm, config = newConfig }
+            , updateSizes newConfig
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -220,20 +286,26 @@ update msg model =
 view model =
     { title = "editor"
     , body =
-        [ layout
-            ([]
-                ++ (if model.controlDown then
-                        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
-                    else
-                        []
-                   )
-            )
-            (model.document
-                |> rewind
-                |> extractDoc
-                |> responsivePreFormat model.config
-                |> renderDoc model.config
-             --|> (\doc -> lazy (\ws -> renderDoc ws doc) model.winSize)
+        [ Element.layout
+            []
+            (column
+                ([ width fill
+                 , height (maximum model.config.height fill)
+                 ]
+                    ++ (if model.controlDown then
+                            [ htmlAttribute <| Wheel.onWheel WheelEvent ]
+                        else
+                            []
+                       )
+                    ++ (if model.menuClicked then
+                            [ onClick MenuClickOff ]
+                        else
+                            []
+                       )
+                )
+                [ mainInterface model
+                , documentView model
+                ]
             )
 
         --, Html.text <| Debug.toString model.controlDown
@@ -241,12 +313,223 @@ view model =
     }
 
 
+mainInterface : Model -> Element Msg
 mainInterface model =
     column
-        [ width fill ]
-        [ row []
-            []
+        [ width fill
+        , Font.size 15
+        , spacing 10
         ]
+        [ mainMenu model.menuClicked [] model.menuFocused
+        , row
+            [ width fill
+            , spacing 15
+            , padding 15
+            , Background.color (rgb 0.9 0.9 0.9)
+            ]
+            [ Input.button buttonStyle
+                { onPress = Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (html <| plusSquare)
+                        , text "Ajouter"
+                        ]
+                }
+
+            --, Input.button buttonStyle
+            --    { onPress = Nothing
+            --    , label =
+            --     html <| minusSquare
+            --    }
+            , Input.button buttonStyle
+                { onPress = Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (html <| xSquare)
+                        , text "Supprimer"
+                        ]
+                }
+            , Input.button buttonStyle
+                { onPress = Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (html <| settings)
+                        , text "Préférences"
+                        ]
+                }
+            ]
+        ]
+
+
+mainMenu clicked flags currentFocus =
+    let
+        topEntry ( label, submenu ) =
+            el
+                ([ mouseOver
+                    [ Background.color (rgb 0.9 0.9 0.9) ]
+                 , onMouseEnter (TopEntryFocused label)
+                 , onClick MenuClick
+                 , paddingXY 10 5
+                 , pointer
+                 ]
+                    ++ (if clicked && currentFocus == label then
+                            [ below
+                                (column
+                                    [ spacing 15
+                                    , Background.color (rgb 1 1 1)
+                                    , Border.width 1
+                                    , Border.color (rgb 0.8 0.8 0.8)
+                                    ]
+                                    (List.map groupEntry submenu)
+                                )
+                            , Background.color (rgb 0.9 0.9 0.9)
+
+                            --, Border.widthEach
+                            --    { top = 1
+                            --    , bottom = 0
+                            --    , left = 1
+                            --    , right = 1
+                            --    }
+                            --, Border.color (rgb 0.8 0.8 0.8)
+                            ]
+                        else
+                            []
+                       )
+                )
+                (text label)
+
+        groupEntry group =
+            column
+                [ spacing 0
+                , width fill
+                ]
+                (List.map menuEntry group)
+
+        menuEntry { label, msg, flag, icon } =
+            row
+                [ onClick msg
+                , mouseOver
+                    [ Background.color (rgb 0.9 0.9 0.9) ]
+                , width fill
+                , paddingXY 10 5
+                ]
+                [ text label ]
+
+        defEntry =
+            { label = ""
+            , msg = NoOp
+            , flag = Nothing
+            , icon = Nothing
+            }
+
+        menuData =
+            --Dict.fromList
+            [ ( "Fichier"
+              , [ [ { defEntry | label = "Ouvrir page" }
+                  , { defEntry | label = "Sauvegarder" }
+                  , { defEntry | label = "Retour menu principal" }
+                  ]
+                ]
+              )
+            , ( "Mise en page"
+              , [ [ { defEntry | label = "Copier" }
+                  , { defEntry | label = "Coller" }
+                  ]
+                , [ { defEntry | label = "Supprimer" }
+                  , { defEntry | label = "Modifier selection" }
+                  ]
+                ]
+              )
+            , ( "Affichage"
+              , [ [ { defEntry
+                        | label = "Structure du document"
+                        , flag = Just "showStruct"
+                    }
+                  , { defEntry
+                        | label = "Editeur de feuille de style"
+                        , flag = Just "showStyleSheetEditor"
+                    }
+                  ]
+                , [ { defEntry
+                        | label = "Grand écran"
+                        , flag = Just "BigScreen"
+                        , msg = SetPreviewMode PreviewBigScreen
+                    }
+                  , { defEntry
+                        | label = "Petit écran"
+                        , flag = Just "SmallScreen"
+                        , msg = SetPreviewMode PreviewScreen
+                    }
+                  , { defEntry
+                        | label = "Tablette"
+                        , flag = Just "Tablet"
+                        , msg = SetPreviewMode PreviewTablet
+                    }
+                  , { defEntry
+                        | label = "Téléphone"
+                        , flag = Just "Phone"
+                        , msg = SetPreviewMode PreviewPhone
+                    }
+                  ]
+                ]
+              )
+            , ( "Aide"
+              , [ [ { defEntry | label = "A propos" }
+                  ]
+                ]
+              )
+            ]
+    in
+    row
+        [--onMouseLeave MenuClickOff
+        ]
+        (List.map topEntry menuData)
+
+
+
+--|> Dict.values)
+
+
+documentView model =
+    column
+        [ --, centerX
+          scrollbarY
+        , width fill
+
+        --, height fill
+        ]
+        [ column
+            [ case model.previewMode of
+                PreviewBigScreen ->
+                    width fill
+
+                PreviewScreen ->
+                    width (px 1268)
+
+                PreviewTablet ->
+                    width (px 1024)
+
+                PreviewPhone ->
+                    width (px 480)
+            , centerX
+            ]
+            [ model.document
+                |> rewind
+                |> extractDoc
+                |> responsivePreFormat model.config
+                |> renderDoc model.config
+            ]
+        ]
+
+
+buttonStyle =
+    [ Border.rounded 5
+    , Font.center
+    , centerY
+    , paddingXY 5 3
+    , mouseOver
+        [ Background.color (rgb 0.95 0.95 0.95) ]
+    ]
 
 
 updateSizes : Config Msg -> Cmd Msg

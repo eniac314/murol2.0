@@ -13,7 +13,7 @@
             "elm/regex": "1.0.0",
             "elm/svg": "1.0.0",
             "elm/time": "1.0.0",
-            "mdgriffith/stylish-elephants": "8.1.0",
+            "mdgriffith/elm-ui": "1.0.0",
             "mpizenberg/elm-pointer-events": "3.0.0"
         },
         "indirect": {

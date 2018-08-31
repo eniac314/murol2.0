@@ -468,3 +468,12 @@ makeDataGrid i j =
     Array.initialize
         (i - 1)
         (always <| Array.initialize (j - 1) (always ""))
+
+
+toTableMeta : DocTable -> TableMeta
+toTableMeta docTable =
+    { style = docTable.currentStyle
+    , nbrRows = docTable.nbrRows
+    , nbrCols = docTable.nbrCols
+    , data = Array.toList docTable.data
+    }
