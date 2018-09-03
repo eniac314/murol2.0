@@ -1,3 +1,7 @@
+- separation groupes main menu
+
+- refaire keyboard subs 
+
 - faire un parser String <-> TextBloc
 
 - Table.elm functions DocTable <-> TableMeta
@@ -34,3 +38,5 @@
 	* textBlock
 	* video
 	* customElement
+
+- make menu flag system

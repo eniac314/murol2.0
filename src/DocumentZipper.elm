@@ -135,6 +135,19 @@ zipRight { current, contexts } =
                         }
 
 
+deleteCurrent : DocZipper -> Maybe DocZipper
+deleteCurrent { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            Just
+                { current = Node parent (left ++ right)
+                , contexts = cs
+                }
+
+
 break : (a -> Bool) -> List a -> ( List a, List a )
 break p xs =
     let

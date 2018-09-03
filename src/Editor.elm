@@ -1,7 +1,6 @@
 module Editor exposing (..)
 
 --import DocumentSerializer exposing (..)
---import Html exposing (div, text)
 
 import Browser exposing (document)
 import Browser.Dom as Dom
@@ -46,12 +45,15 @@ type Msg
     | NoOp
     | SelectDoc Int
     | WheelEvent Wheel.Event
+    | DeleteSelected
+    | Undo
     | KeyDown String
     | KeyUp String
     | MenuClick
     | MenuClickOff
     | TopEntryFocused String
     | SetPreviewMode PreviewMode
+    | ToogleCountainersColors
 
 
 type PreviewMode
@@ -66,11 +68,16 @@ type alias Model =
     , selectedNode : Maybe Int
     , document : DocZipper
     , currentNodeBackup : Document
+    , undoCache : List ( DocZipper, Document )
     , controlDown : Bool
     , menuClicked : Bool
     , menuFocused : String
     , previewMode : PreviewMode
     }
+
+
+undoCacheDepth =
+    4
 
 
 init doc flags =
@@ -107,6 +114,7 @@ init doc flags =
                 |> initZip
                 |> addSelectors
       , currentNodeBackup = doc_
+      , undoCache = []
       , controlDown = False
       , menuClicked = False
       , menuFocused = ""
@@ -221,6 +229,40 @@ update msg model =
             else
                 ( model, Cmd.none )
 
+        DeleteSelected ->
+            let
+                newDoc =
+                    deleteCurrent model.document
+            in
+            ( { model
+                | document =
+                    Maybe.map addSelectors newDoc
+                        |> Maybe.withDefault model.document
+                , currentNodeBackup =
+                    Maybe.map extractDoc newDoc
+                        |> Maybe.withDefault model.currentNodeBackup
+                , undoCache =
+                    ( model.document, model.currentNodeBackup )
+                        :: model.undoCache
+                        |> List.take undoCacheDepth
+              }
+            , Cmd.none
+            )
+
+        Undo ->
+            case model.undoCache of
+                [] ->
+                    ( model, Cmd.none )
+
+                ( zipper, nodeBckp ) :: xs ->
+                    ( { model
+                        | document = zipper
+                        , currentNodeBackup = nodeBckp
+                        , undoCache = xs
+                      }
+                    , updateSizes model.config
+                    )
+
         KeyDown s ->
             if s == "Control" then
                 ( { model | controlDown = True }, Cmd.none )
@@ -278,6 +320,19 @@ update msg model =
             ( { model | previewMode = pm, config = newConfig }
             , updateSizes newConfig
             )
+
+        ToogleCountainersColors ->
+            let
+                config =
+                    model.config
+
+                newConfig =
+                    { config
+                        | containersBkgColors =
+                            not config.containersBkgColors
+                    }
+            in
+            ( { model | config = newConfig }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -342,7 +397,7 @@ mainInterface model =
             --     html <| minusSquare
             --    }
             , Input.button buttonStyle
-                { onPress = Nothing
+                { onPress = Just DeleteSelected
                 , label =
                     row [ spacing 10 ]
                         [ el [] (html <| xSquare)
@@ -435,6 +490,11 @@ mainMenu clicked flags currentFocus =
               , [ [ { defEntry | label = "Copier" }
                   , { defEntry | label = "Coller" }
                   ]
+                , [ { defEntry
+                        | label = "Annuler"
+                        , msg = Undo
+                    }
+                  ]
                 , [ { defEntry | label = "Supprimer" }
                   , { defEntry | label = "Modifier selection" }
                   ]
@@ -469,6 +529,12 @@ mainMenu clicked flags currentFocus =
                         | label = "Téléphone"
                         , flag = Just "Phone"
                         , msg = SetPreviewMode PreviewPhone
+                    }
+                  ]
+                , [ { defEntry
+                        | label = "Couleurs conteneurs"
+                        , flag = Just "ContainersColors"
+                        , msg = ToogleCountainersColors
                     }
                   ]
                 ]
