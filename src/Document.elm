@@ -15,11 +15,25 @@ type Document
     | Leaf LeafValue
 
 
+type alias NodeValue =
+    { nodeLabel : NodeLabel
+    , id : Id
+    , attrs : List DocAttribute
+    }
+
+
 type NodeLabel
-    = Column
-    | Row
+    = DocColumn
+    | DocRow
     | TextColumn
     | ResponsiveBloc
+
+
+type alias LeafValue =
+    { leafContent : LeafContent
+    , id : Id
+    , attrs : List DocAttribute
+    }
 
 
 type LeafContent
@@ -44,20 +58,6 @@ type TextBlockPrimitive
     | Link (List DocAttribute) LinkMeta
       --| Bold String
     | Heading (List DocAttribute) ( Int, String )
-
-
-type alias LeafValue =
-    { leafContent : LeafContent
-    , id : Id
-    , attrs : List DocAttribute
-    }
-
-
-type alias NodeValue =
-    { nodeLabel : NodeLabel
-    , id : Id
-    , attrs : List DocAttribute
-    }
 
 
 type ImageSrc
@@ -96,6 +96,7 @@ type alias TableMeta =
 type alias Config msg =
     { width : Int
     , height : Int
+    , mainInterfaceHeight : Int
     , sizesDict :
         Dict Int
             { docWidth : Int
@@ -112,8 +113,9 @@ type alias Config msg =
 
 
 type alias ZipperHandlers msg =
-    { click : Int -> msg
-    , dblClick : Int -> msg
+    { nodeClick : Int -> msg
+    , nodeDblClick : Int -> msg
+    , leafClick : Int -> msg
     }
 
 
@@ -152,11 +154,11 @@ type DocAttribute
 
 
 type ZipperEventHandler
-    = ZipperOnClick
-    | ZipperOnDblClick
-      --| ZipperOnMouseEnter
-      --| ZipperOnMouseLeave
-    | ZipperOnMouseOver
+    = OnNodeClick
+    | OnNodeDblClick
+    | OnNodeMouseOver
+    | OnLeafClick
+    | OnLeafMouseOver
 
 
 type DocColor
@@ -230,6 +232,25 @@ fixUids nextUid document =
 
         Leaf ({ id } as lv) ->
             Leaf { lv | id = { id | uid = nextUid } }
+
+
+
+--fixUids2 : Int -> Document -> (Document, Int)
+--fixUids2 nextUid document =
+--    case document of
+--        Node ({ id } as nv) children ->
+--            Node { nv | id = { id | uid = nextUid } }
+--                (List.foldr
+--                    (\doc ( done, cUid ) ->
+--                        let (fixed, nUid) = fixUids2 nUid doc
+--                        in
+--                        ( fixUids2 nUid doc :: done, nUid + 1 ))
+--                    ( [], nextUid + 1 )
+--                    children
+--                    |> Tuple.first
+--                )
+--        Leaf ({ id } as lv) ->
+--            (Leaf { lv | id = { id | uid = nextUid } }, 1)
 
 
 setSizeTrackedDocUids : Document -> ( Document, List Int )

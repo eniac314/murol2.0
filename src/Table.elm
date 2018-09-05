@@ -59,35 +59,38 @@ type alias DocTable =
     }
 
 
-main : Program () DocTable Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        }
+
+--main : Program () DocTable Msg
+--main =
+--    Browser.element
+--        { init = init
+--        , update = update
+--        , view = view
+--        , subscriptions = subscriptions
+--        }
+--subscriptions model =
+--    Sub.none
+--init flags =
 
 
-subscriptions model =
-    Sub.none
+init =
+    { mode = Edit
+    , data = Array.empty
+    , nbrRows = 0
+    , nbrCols = 0
+    , nbrRowsInput = ""
+    , nbrColsInput = ""
+    , error = ""
+    , setupDone = False
+    , currentStyle = "bleu-blanc"
+    , styleSelectorInput = ""
+    , styleSelectorFocused = False
+    }
 
 
-init flags =
-    ( { mode = Edit
-      , data = Array.empty
-      , nbrRows = 0
-      , nbrCols = 0
-      , nbrRowsInput = ""
-      , nbrColsInput = ""
-      , error = ""
-      , setupDone = False
-      , currentStyle = "bleu-blanc"
-      , styleSelectorInput = ""
-      , styleSelectorFocused = False
-      }
-    , Cmd.none
-    )
+
+--, Cmd.none
+--)
 
 
 update msg model =
@@ -96,14 +99,16 @@ update msg model =
             ( { model
                 | nbrRowsInput = s
               }
-            , Cmd.none
+              --, Cmd.none
+            , Nothing
             )
 
         SetNbrCols s ->
             ( { model
                 | nbrColsInput = s
               }
-            , Cmd.none
+              --, Cmd.none
+            , Nothing
             )
 
         SetStyle s ->
@@ -119,14 +124,21 @@ update msg model =
 
                 --, styleSelectorFocused = False
               }
-            , Cmd.none
+              --, Cmd.none
+            , Nothing
             )
 
         FocusStyleSelector ->
-            ( { model | styleSelectorFocused = not model.styleSelectorFocused }, Cmd.none )
+            ( { model | styleSelectorFocused = not model.styleSelectorFocused }
+              --, Cmd.none
+            , Nothing
+            )
 
         BlurStyleSelector ->
-            ( { model | styleSelectorFocused = False }, Cmd.none )
+            ( { model | styleSelectorFocused = False }
+              --, Cmd.none
+            , Nothing
+            )
 
         InitializeTable ->
             let
@@ -161,7 +173,8 @@ update msg model =
                 , data = data
                 , setupDone = True
               }
-            , Cmd.none
+              --, Cmd.none
+            , Nothing
             )
 
         DataInput ( i, j ) s ->
@@ -176,7 +189,8 @@ update msg model =
                                 (Array.set j s a)
                                 model.data
               }
-            , Cmd.none
+              --, Cmd.none
+            , Nothing
             )
 
         SwapDisplayMode ->
@@ -190,7 +204,8 @@ update msg model =
                     else
                         DisplayOnly
               }
-            , Cmd.none
+              --, Cmd.none
+            , Nothing
             )
 
 

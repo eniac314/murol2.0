@@ -12,7 +12,7 @@ sampleDoc1 =
     Node
         { attrs = []
         , id = { classes = Set.fromList [], styleId = Just "root", uid = 0 }
-        , nodeLabel = Column
+        , nodeLabel = DocColumn
         }
         [ Leaf
             { attrs = []
@@ -86,7 +86,7 @@ sampleDoc1 =
             , Node
                 { attrs = []
                 , id = { classes = Set.fromList [ "sameHeightImgsRow" ], styleId = Nothing, uid = 8 }
-                , nodeLabel = Row
+                , nodeLabel = DocRow
                 }
                 [ Leaf
                     { attrs = []
@@ -177,7 +177,7 @@ sampleDoc1 =
             , Node
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
-                , nodeLabel = Column
+                , nodeLabel = DocColumn
                 }
                 [ Leaf
                     { attrs = []
@@ -221,7 +221,7 @@ sampleDoc1 =
         , Node
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
-            , nodeLabel = Column
+            , nodeLabel = DocColumn
             }
             [ Leaf
                 { attrs = []
@@ -280,7 +280,7 @@ sampleDoc1 =
                 , styleId = Nothing
                 , uid = 4
                 }
-            , nodeLabel = Row
+            , nodeLabel = DocRow
             }
             [ Leaf
                 { attrs = []
@@ -353,7 +353,7 @@ sampleDoc1 =
             , Node
                 { attrs = [ AlignRight ]
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 3 }
-                , nodeLabel = Column
+                , nodeLabel = DocColumn
                 }
                 [ Leaf
                     { attrs = []

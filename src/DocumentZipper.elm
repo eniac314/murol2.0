@@ -31,6 +31,29 @@ extractDoc { current, contexts } =
     current
 
 
+findInCurrent : DocZipper -> (Document -> Bool) -> List Document
+findInCurrent docZipper p =
+    let
+        doc =
+            extractDoc docZipper
+
+        helper doc_ =
+            case doc of
+                Node _ children ->
+                    if p doc then
+                        [ doc_ ]
+                    else
+                        List.concatMap helper children
+
+                Leaf _ ->
+                    if p doc then
+                        [ doc_ ]
+                    else
+                        []
+    in
+    helper doc
+
+
 updateCurrent : Document -> DocZipper -> DocZipper
 updateCurrent new { current, contexts } =
     { current = new, contexts = contexts }
@@ -168,10 +191,15 @@ break p xs =
 addSelectors : DocZipper -> DocZipper
 addSelectors ({ current, contexts } as dz) =
     let
-        selectors id =
-            [ ZipperAttr id.uid ZipperOnClick
-            , ZipperAttr id.uid ZipperOnDblClick
-            , ZipperAttr id.uid ZipperOnMouseOver
+        nodeSelectors id =
+            [ ZipperAttr id.uid OnNodeClick
+            , ZipperAttr id.uid OnNodeDblClick
+            , ZipperAttr id.uid OnNodeMouseOver
+            ]
+
+        leafSelectors id =
+            [ ZipperAttr id.uid OnLeafClick
+            , ZipperAttr id.uid OnLeafMouseOver
             ]
 
         addSelector doc =
@@ -180,14 +208,14 @@ addSelectors ({ current, contexts } as dz) =
                     Leaf
                         { lv
                             | attrs =
-                                selectors id ++ attrs
+                                nodeSelectors id ++ attrs
                         }
 
                 Node ({ nodeLabel, id, attrs } as nv) children ->
                     Node
                         { nv
                             | attrs =
-                                selectors id ++ attrs
+                                nodeSelectors id ++ attrs
                         }
                         children
     in

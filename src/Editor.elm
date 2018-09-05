@@ -8,6 +8,7 @@ import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
 import Dict exposing (..)
 import Document exposing (..)
 import DocumentResponsive exposing (..)
+import DocumentStructView exposing (..)
 import DocumentView exposing (..)
 import DocumentZipper exposing (..)
 import Element exposing (..)
@@ -17,6 +18,7 @@ import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
+import Html.Attributes as HtmlAttr
 import Html.Events.Extra.Wheel as Wheel
 import Icons exposing (..)
 import Json.Decode as Decode
@@ -42,8 +44,10 @@ type Msg
     | CurrentViewportOf Int (Result Dom.Error Dom.Viewport)
     | WinResize Int Int
     | RefreshSizes
+    | MainInterfaceViewport (Result Dom.Error Dom.Viewport)
     | NoOp
     | SelectDoc Int
+    | OpenEditorPlugin Int
     | WheelEvent Wheel.Event
     | DeleteSelected
     | Undo
@@ -54,6 +58,7 @@ type Msg
     | TopEntryFocused String
     | SetPreviewMode PreviewMode
     | ToogleCountainersColors
+    | TablePluginMsg Table.Msg
 
 
 type PreviewMode
@@ -61,6 +66,13 @@ type PreviewMode
     | PreviewScreen
     | PreviewTablet
     | PreviewPhone
+
+
+type EditorPlugin
+    = ImagePlugin
+    | TablePlugin
+    | CustomElementPlugin
+    | TextBlockPlugin
 
 
 type alias Model =
@@ -73,6 +85,8 @@ type alias Model =
     , menuClicked : Bool
     , menuFocused : String
     , previewMode : PreviewMode
+    , currentPlugin : Maybe EditorPlugin
+    , tablePlugin : Table.DocTable
     }
 
 
@@ -86,13 +100,15 @@ init doc flags =
             setSizeTrackedDocUids doc
 
         handlers =
-            { click = SelectDoc
-            , dblClick = \_ -> NoOp
+            { nodeClick = SelectDoc
+            , nodeDblClick = \_ -> NoOp
+            , leafClick = OpenEditorPlugin
             }
 
         config =
             { width = 1920
             , height = 1080
+            , mainInterfaceHeight = 75
             , sizesDict =
                 Dict.fromList
                     (List.map
@@ -119,9 +135,13 @@ init doc flags =
       , menuClicked = False
       , menuFocused = ""
       , previewMode = PreviewBigScreen
+      , currentPlugin = Nothing
+      , tablePlugin = Table.init
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
+        , Task.attempt MainInterfaceViewport
+            (Dom.getViewportOf "mainInterface")
         ]
     )
 
@@ -189,6 +209,26 @@ update msg model =
                 Err (Dom.NotFound s) ->
                     ( model, Cmd.none )
 
+        MainInterfaceViewport res ->
+            case res of
+                Ok { viewport } ->
+                    let
+                        currentConfig =
+                            model.config
+                    in
+                    ( { model
+                        | config =
+                            { currentConfig
+                                | mainInterfaceHeight =
+                                    round viewport.height
+                            }
+                      }
+                    , Cmd.none
+                    )
+
+                Err (Dom.NotFound s) ->
+                    ( model, Cmd.none )
+
         SelectDoc id ->
             case
                 zipDown (hasUid id)
@@ -207,6 +247,34 @@ update msg model =
                       }
                     , Cmd.none
                     )
+
+        OpenEditorPlugin uid ->
+            let
+                isCorrectLeaf doc =
+                    case doc of
+                        Node _ _ ->
+                            False
+
+                        Leaf { id } ->
+                            id.uid == uid
+
+                maybeLeaf =
+                    findInCurrent model.document isCorrectLeaf
+                        |> List.head
+            in
+            case maybeLeaf of
+                Just (Leaf { leafContent, id, attrs }) ->
+                    case leafContent of
+                        Table _ ->
+                            ( { model | currentPlugin = Just TablePlugin }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         WheelEvent e ->
             let
@@ -334,6 +402,13 @@ update msg model =
             in
             ( { model | config = newConfig }, Cmd.none )
 
+        TablePluginMsg tableMsg ->
+            let
+                ( newTablePlugin, mbNewTable ) =
+                    Table.update tableMsg model.tablePlugin
+            in
+            ( model, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -346,6 +421,8 @@ view model =
             (column
                 ([ width fill
                  , height (maximum model.config.height fill)
+
+                 --, clip
                  ]
                     ++ (if model.controlDown then
                             [ htmlAttribute <| Wheel.onWheel WheelEvent ]
@@ -359,7 +436,22 @@ view model =
                        )
                 )
                 [ mainInterface model
-                , documentView model
+                , row
+                    [ width fill
+
+                    --trick to make the columns scrollable
+                    , clip
+                    , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+
+                    -- works too
+                    --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
+                    ]
+                    [ documentStructView
+                        model.config
+                        model.selectedNode
+                        (extractDoc <| rewind model.document)
+                    , documentView model
+                    ]
                 ]
             )
 
@@ -373,13 +465,13 @@ mainInterface model =
     column
         [ width fill
         , Font.size 15
-        , spacing 10
+        , htmlAttribute <| HtmlAttr.id "mainInterface"
         ]
         [ mainMenu model.menuClicked [] model.menuFocused
         , row
             [ width fill
             , spacing 15
-            , padding 15
+            , paddingXY 15 10
             , Background.color (rgb 0.9 0.9 0.9)
             ]
             [ Input.button buttonStyle
@@ -561,8 +653,7 @@ documentView model =
         [ --, centerX
           scrollbarY
         , width fill
-
-        --, height fill
+        , height fill
         ]
         [ column
             [ case model.previewMode of

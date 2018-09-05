@@ -49,7 +49,7 @@ responsivePreFormat config document =
     case document of
         Node ({ nodeLabel, id, attrs } as nv) children ->
             case nodeLabel of
-                Column ->
+                DocColumn ->
                     let
                         addColImgClass doc =
                             case doc of
@@ -77,7 +77,7 @@ responsivePreFormat config document =
                     in
                     Node nv (List.map (responsivePreFormat config) children_)
 
-                Row ->
+                DocRow ->
                     if
                         hasClass "sameHeightImgsRow" document
                             && containsOnly isImage document
@@ -94,7 +94,7 @@ responsivePreFormat config document =
 
                 TextColumn ->
                     if device.class == Phone || device.class == Tablet then
-                        responsivePreFormat config <| Node { nv | nodeLabel = Column } children
+                        responsivePreFormat config <| Node { nv | nodeLabel = DocColumn } children
                     else
                         Node nv (List.map (responsivePreFormat config) children)
 

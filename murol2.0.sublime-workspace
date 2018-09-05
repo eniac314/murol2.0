@@ -4,11 +4,35 @@
 		"selected_items":
 		[
 			[
-				"Doc",
-				"DocZipper"
+				"Table",
+				"TablePlugin"
+			],
+			[
+				"pl",
+				"currentPlugin"
+			],
+			[
+				"cur",
+				"currentPlugin"
+			],
+			[
+				"Editor",
+				"EditorPlugin"
+			],
+			[
+				"ma",
+				"maybeLeaf"
 			],
 			[
 				"Do",
+				"Document"
+			],
+			[
+				"D",
+				"Document"
+			],
+			[
+				"Doc",
 				"DocZipper"
 			],
 			[
@@ -200,10 +224,6 @@
 				"tableStyle"
 			],
 			[
-				"Table",
-				"TableStyle"
-			],
-			[
 				"cell",
 				"cellStyle"
 			],
@@ -270,10 +290,6 @@
 			[
 				"max",
 				"maxRows"
-			],
-			[
-				"D",
-				"DisplayOnly"
 			],
 			[
 				"Di",
@@ -498,22 +514,6 @@
 			[
 				"Ima",
 				"ImageMeta"
-			],
-			[
-				"ne",
-				"neverWrapper"
-			],
-			[
-				"Align",
-				"AlignRight"
-			],
-			[
-				"E",
-				"Editor"
-			],
-			[
-				"Text",
-				"TextNode"
 			]
 		]
 	},
@@ -523,15 +523,7 @@
 			"file": "src/DocumentZipper.elm",
 			"settings":
 			{
-				"buffer_size": 4994,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/DocumentResponsive.elm",
-			"settings":
-			{
-				"buffer_size": 9479,
+				"buffer_size": 5681,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -540,91 +532,26 @@
 			"file": "src/DocumentView.elm",
 			"settings":
 			{
-				"buffer_size": 14143,
+				"buffer_size": 14495,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "elm.json",
+			"file": "src/Editor.elm",
 			"settings":
 			{
-				"buffer_size": 680,
+				"buffer_size": 18337,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/DocumentSerializer.elm",
+			"file": "/home/eniac314/prog/elm/elmCallbacks/SubComponent.elm",
 			"settings":
 			{
-				"buffer_size": 4276,
-				"encoding": "UTF-8",
+				"buffer_size": 1557,
 				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/TextBlock.elm",
-			"settings":
-			{
-				"buffer_size": 3997,
-				"line_ending": "Unix",
-				"name": "module TextBlock exposing (.."
-			}
-		},
-		{
-			"file": "src/Table.elm",
-			"settings":
-			{
-				"buffer_size": 13962,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/Icons.elm",
-			"settings":
-			{
-				"buffer_size": 7638,
-				"encoding": "UTF-8",
-				"line_ending": "Unix",
-				"name": "module Icons exposing ( airplay ) import Html expo"
-			}
-		},
-		{
-			"file": "murol2.0.sublime-project",
-			"settings":
-			{
-				"buffer_size": 45,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "textBlock.html",
-			"settings":
-			{
-				"buffer_size": 1716,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "index.html",
-			"settings":
-			{
-				"buffer_size": 334,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "notes",
-			"settings":
-			{
-				"buffer_size": 773,
-				"encoding": "UTF-8",
-				"line_ending": "Unix",
-				"name": "- rajouter un cas CustomLeaf String dans LeafConte"
 			}
 		}
 	],
@@ -692,12 +619,6 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
-	"expanded_folders":
-	[
-		"/home/eniac314/prog/elm/murol2.0",
-		"/home/eniac314/prog/elm/murol2.0/js",
-		"/home/eniac314/prog/elm/murol2.0/src"
-	],
 	"file_history":
 	[
 		"/home/eniac314/prog/elm/murol2.0/src/StyleSheets.elm",
@@ -835,9 +756,10 @@
 	},
 	"find_in_files":
 	{
-		"height": 96.0,
+		"height": 102.0,
 		"where_history":
 		[
+			""
 		]
 	},
 	"find_state":
@@ -845,6 +767,7 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"handlers",
 			"onMouseOver",
 			"Document msg",
 			"DocAttribute msg",
@@ -893,7 +816,7 @@
 	"groups":
 	[
 		{
-			"selected": 11,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -902,15 +825,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4994,
+						"buffer_size": 5681,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3411,
-								3411
+								913,
+								913
 							]
 						],
 						"settings":
@@ -921,7 +844,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2052.0,
+						"translation.y": 324.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 2,
@@ -929,50 +852,19 @@
 				},
 				{
 					"buffer": 1,
-					"file": "src/DocumentResponsive.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 9479,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1755,
-								1755
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1421.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
 					"file": "src/DocumentView.elm",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 14143,
+						"buffer_size": 14495,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								14143,
-								14143
+								14216,
+								14216
 							]
 						],
 						"settings":
@@ -983,58 +875,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8353.0,
+						"translation.y": 8406.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "elm.json",
+					"buffer": 2,
+					"file": "src/Editor.elm",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 680,
+						"buffer_size": 18337,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								680,
-								680
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 486.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 9,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "src/DocumentSerializer.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 4276,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4179,
-								4179
+								5818,
+								5818
 							]
 						],
 						"settings":
@@ -1045,220 +906,41 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2862.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 10,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "src/TextBlock.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3997,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3306,
-								3306
-							]
-						],
-						"settings":
-						{
-							"auto_name": "module TextBlock exposing (..",
-							"rainbowth.lispy": false,
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1836.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "src/Table.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 13962,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								12233,
-								12233
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 7273.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "src/Icons.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 7638,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1699,
-								1699
-							]
-						],
-						"settings":
-						{
-							"auto_name": "module Icons exposing ( airplay ) import Html expo",
-							"rainbowth.lispy": false,
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 3383.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "murol2.0.sublime-project",
-					"semi_transient": true,
-					"settings":
-					{
-						"buffer_size": 45,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/JavaScript/JSON.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "textBlock.html",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1716,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1591,
-								1591
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/HTML/HTML.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 8,
-					"type": "text"
-				},
-				{
-					"buffer": 10,
-					"file": "index.html",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 334,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								125,
-								125
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/HTML/HTML.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 11,
-					"type": "text"
-				},
-				{
-					"buffer": 11,
-					"file": "notes",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 773,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								48,
-								48
-							]
-						],
-						"settings":
-						{
-							"auto_name": "- rajouter un cas CustomLeaf String dans LeafConte",
-							"rainbowth.lispy": false,
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 270.0,
+						"translation.y": 3718.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/home/eniac314/prog/elm/elmCallbacks/SubComponent.elm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1557,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								33,
+								33
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
 					"type": "text"
 				}
 			]
@@ -1266,7 +948,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 28.0
 	},
 	"input":
 	{
@@ -1315,7 +997,7 @@
 	"project": "murol2.0.sublime-project",
 	"replace":
 	{
-		"height": 71.0
+		"height": 52.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1339,7 +1021,7 @@
 		[
 			[
 				"",
-				"~/prog/elm/uminokirin/uminokirin.sublime-project"
+				"~/prog/elm/mairieMurol/mairieMurol.sublime-project"
 			]
 		],
 		"width": 380.0

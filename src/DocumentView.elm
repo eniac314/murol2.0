@@ -3,46 +3,7 @@ module DocumentView exposing (..)
 import Array exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
-import Element
-    exposing
-        ( Attribute
-        , DeviceClass(..)
-        , Element
-        , alignLeft
-        , alignRight
-        , alpha
-        , centerX
-        , classifyDevice
-        , column
-        , el
-        , fill
-        , height
-        , html
-        , htmlAttribute
-        , image
-        , indexedTable
-        , link
-        , maximum
-        , minimum
-        , mouseOver
-        , newTabLink
-        , none
-        , paddingEach
-        , paddingXY
-        , paragraph
-        , pointer
-        , px
-        , rgb
-        , rgba
-        , row
-        , scrollbarX
-        , shrink
-        , spacing
-        , spacingXY
-        , text
-        , textColumn
-        , width
-        )
+import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
@@ -76,10 +37,10 @@ renderDoc_ config document =
     case document of
         Node { nodeLabel, id, attrs } children ->
             case nodeLabel of
-                Column ->
+                DocColumn ->
                     renderColumn config id attrs children
 
-                Row ->
+                DocRow ->
                     renderRow config id attrs children
 
                 TextColumn ->
@@ -477,16 +438,24 @@ renderAttrs config attrs =
 
                         Just handlers ->
                             case zipperEventHandler of
-                                ZipperOnClick ->
-                                    [ Events.onClick (handlers.click uid) ]
+                                OnNodeClick ->
+                                    [ Events.onClick (handlers.nodeClick uid) ]
 
-                                ZipperOnDblClick ->
-                                    [ Events.onDoubleClick (handlers.dblClick uid) ]
+                                OnNodeDblClick ->
+                                    [ Events.onDoubleClick (handlers.nodeDblClick uid) ]
 
-                                ZipperOnMouseOver ->
+                                OnNodeMouseOver ->
                                     [ mouseOver
                                         [ Background.color <| rgba 0.8 0.8 0.8 0.5 ]
                                     , pointer
+                                    , htmlAttribute <| Attr.style "transition" "0.3s"
+                                    ]
+
+                                OnLeafClick ->
+                                    [ Events.onClick (handlers.leafClick uid) ]
+
+                                OnLeafMouseOver ->
+                                    [ pointer
                                     , htmlAttribute <| Attr.style "transition" "0.3s"
                                     ]
     in
