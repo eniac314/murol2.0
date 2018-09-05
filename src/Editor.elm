@@ -124,7 +124,7 @@ init doc flags =
             }
     in
     ( { config = config
-      , selectedNode = Nothing
+      , selectedNode = Just 0
       , document =
             doc_
                 |> initZip
@@ -291,6 +291,16 @@ update msg model =
                     , currentNodeBackup =
                         Maybe.map extractDoc newDoc
                             |> Maybe.withDefault model.currentNodeBackup
+                    , selectedNode =
+                        case
+                            Maybe.map extractDoc newDoc
+                                |> Maybe.map getUid
+                        of
+                            Nothing ->
+                                model.selectedNode
+
+                            Just uid ->
+                                Just uid
                   }
                 , Cmd.none
                 )

@@ -215,6 +215,24 @@ isImage document =
             False
 
 
+getUid doc =
+    case doc of
+        Leaf { leafContent, id, attrs } ->
+            id.uid
+
+        Node { nodeLabel, id, attrs } _ ->
+            id.uid
+
+
+docSize doc =
+    case doc of
+        Leaf _ ->
+            1
+
+        Node _ xs ->
+            List.foldr (\d acc -> docSize d + acc) 1 xs
+
+
 fixUids : Int -> Document -> Document
 fixUids nextUid document =
     case document of
@@ -224,7 +242,7 @@ fixUids nextUid document =
         Node ({ id } as nv) children ->
             Node { nv | id = { id | uid = nextUid } }
                 (List.foldr
-                    (\doc ( done, nUid ) -> ( fixUids nUid doc :: done, nUid + 1 ))
+                    (\doc ( done, nUid ) -> ( fixUids nUid doc :: done, nUid + docSize doc ))
                     ( [], nextUid + 1 )
                     children
                     |> Tuple.first
@@ -232,25 +250,6 @@ fixUids nextUid document =
 
         Leaf ({ id } as lv) ->
             Leaf { lv | id = { id | uid = nextUid } }
-
-
-
---fixUids2 : Int -> Document -> (Document, Int)
---fixUids2 nextUid document =
---    case document of
---        Node ({ id } as nv) children ->
---            Node { nv | id = { id | uid = nextUid } }
---                (List.foldr
---                    (\doc ( done, cUid ) ->
---                        let (fixed, nUid) = fixUids2 nUid doc
---                        in
---                        ( fixUids2 nUid doc :: done, nUid + 1 ))
---                    ( [], nextUid + 1 )
---                    children
---                    |> Tuple.first
---                )
---        Leaf ({ id } as lv) ->
---            (Leaf { lv | id = { id | uid = nextUid } }, 1)
 
 
 setSizeTrackedDocUids : Document -> ( Document, List Int )

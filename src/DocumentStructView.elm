@@ -43,11 +43,24 @@ mainPanel config selectedNode document =
 
 
 type Child
-    = LastChild
-    | NotLastChild
+    = LastChild Bool
+    | NotLastChild Bool
 
 
 docTreeView config offsets ( sNode, selection ) document =
+    let
+        sel =
+            selection
+                || (Maybe.map (\i -> i == getUid document) sNode
+                        |> Maybe.withDefault False
+                   )
+
+        labelFontColor =
+            if sel then
+                Font.color (rgba 0 0 0 1)
+            else
+                Font.color (rgba 0.8 0.8 0.8 1)
+    in
     case document of
         Node { nodeLabel, id, attrs } xs ->
             let
@@ -56,28 +69,19 @@ docTreeView config offsets ( sNode, selection ) document =
 
                 ( firsts, last ) =
                     ( List.take (l - 1) xs, List.drop (l - 1) xs )
-
-                sel =
-                    selection
-                        || (Maybe.map (\i -> i == id.uid) sNode
-                                |> Maybe.withDefault False
-                           )
             in
             [ row [ width fill ]
-                [ el
-                    [ if sel then
-                        Font.color (rgba 0 0 1 1)
-                      else
-                        Font.color (rgba 0.8 0.8 0.8 1)
-                    ]
-                    (text <| prefix offsets)
-                , el [] (text <| nodeLabelToString nodeLabel ++ " " ++ String.fromInt id.uid)
-                ]
+                (prefix offsets
+                    ++ [ el
+                            [ labelFontColor ]
+                            (text <| nodeLabelToString nodeLabel)
+                       ]
+                )
             ]
                 ++ List.concatMap
                     (docTreeView
                         config
-                        (NotLastChild
+                        (NotLastChild sel
                             :: offsets
                         )
                         ( sNode, sel )
@@ -86,52 +90,71 @@ docTreeView config offsets ( sNode, selection ) document =
                 ++ List.concatMap
                     (docTreeView
                         config
-                        (LastChild :: offsets)
+                        (LastChild sel :: offsets)
                         ( sNode, sel )
                     )
                     last
 
         Leaf { leafContent, id, attrs } ->
-            let
-                sel =
-                    selection
-                        || (Maybe.map (\i -> i == id.uid) sNode
-                                |> Maybe.withDefault False
-                           )
-            in
             [ row []
-                [ el
-                    [ if sel then
-                        Font.color (rgba 0 0 1 1)
-                      else
-                        Font.color (rgba 0.8 0.8 0.8 1)
-                    ]
-                    (text <| prefix offsets)
-                , el [] (text <| leafContentToString leafContent ++ " " ++ String.fromInt id.uid)
-                ]
+                (prefix offsets
+                    ++ [ el
+                            [ labelFontColor ]
+                            (text <| leafContentToString leafContent)
+                       ]
+                )
             ]
 
 
 prefix offsets =
     let
+        attrs sel =
+            [ if sel then
+                Font.color (rgba 0 0 1 1)
+              else
+                Font.color (rgba 0.8 0.8 0.8 1)
+            ]
+
         helper acc indexes =
             case indexes of
                 [] ->
+                    [ row [] acc ]
+
+                (LastChild sel) :: [] ->
                     acc
+                        ++ [ el
+                                (attrs sel)
+                                (text <| String.repeat 3 " " ++ "└─ ")
+                           ]
 
-                LastChild :: [] ->
-                    acc ++ (String.repeat 3 " " ++ "└─ ")
+                (NotLastChild sel) :: [] ->
+                    acc
+                        ++ [ el
+                                (attrs sel)
+                                (text <| String.repeat 3 " " ++ "├─ ")
+                           ]
 
-                NotLastChild :: [] ->
-                    acc ++ (String.repeat 3 " " ++ "├─ ")
+                (LastChild sel) :: xs ->
+                    helper
+                        (acc
+                            ++ [ row
+                                    (attrs sel)
+                                    [ text <| String.repeat 3 " " ++ " " ]
+                               ]
+                        )
+                        xs
 
-                LastChild :: xs ->
-                    helper (acc ++ String.repeat 3 " " ++ " ") xs
-
-                NotLastChild :: xs ->
-                    helper (acc ++ String.repeat 3 " " ++ "│") xs
+                (NotLastChild sel) :: xs ->
+                    helper
+                        (acc
+                            ++ [ el
+                                    (attrs sel)
+                                    (text <| String.repeat 3 " " ++ "│")
+                               ]
+                        )
+                        xs
     in
-    helper "" (List.reverse offsets)
+    helper [] (List.reverse offsets)
 
 
 nodeLabelToString nl =
