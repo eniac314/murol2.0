@@ -264,3 +264,19 @@ alignRight =
         , Svg.line [ x1 "21", y1 "14", x2 "3", y2 "14" ] []
         , Svg.line [ x1 "21", y1 "18", x2 "7", y2 "18" ] []
         ]
+
+
+chevronsUp : Html msg
+chevronsUp =
+    svgFeatherIcon "chevrons-up"
+        [ Svg.polyline [ points "17 11 12 6 7 11" ] []
+        , Svg.polyline [ points "17 18 12 13 7 18" ] []
+        ]
+
+
+chevronsDown : Html msg
+chevronsDown =
+    svgFeatherIcon "chevrons-down"
+        [ Svg.polyline [ points "7 13 12 18 17 13" ] []
+        , Svg.polyline [ points "7 6 12 11 17 6" ] []
+        ]

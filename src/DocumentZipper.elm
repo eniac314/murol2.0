@@ -112,6 +112,10 @@ zipDown p { current, contexts } =
                         }
 
 
+
+-- On the page left is up, right is down!
+
+
 zipLeft : DocZipper -> Maybe DocZipper
 zipLeft { current, contexts } =
     case contexts of
@@ -152,6 +156,52 @@ zipRight { current, contexts } =
                         , contexts =
                             { parent = parent
                             , left = left ++ [ current ]
+                            , right = ds
+                            }
+                                :: cs
+                        }
+
+
+swapLeft : DocZipper -> Maybe DocZipper
+swapLeft { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            case List.reverse left of
+                [] ->
+                    Nothing
+
+                d :: ds ->
+                    Just
+                        { current = current
+                        , contexts =
+                            { parent = parent
+                            , left = List.reverse ds
+                            , right = d :: right
+                            }
+                                :: cs
+                        }
+
+
+swapRight : DocZipper -> Maybe DocZipper
+swapRight { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            case right of
+                [] ->
+                    Nothing
+
+                d :: ds ->
+                    Just
+                        { current = current
+                        , contexts =
+                            { parent = parent
+                            , left = left ++ [ d ]
                             , right = ds
                             }
                                 :: cs

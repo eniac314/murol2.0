@@ -43,6 +43,10 @@ type LeafContent
     | TextBlock (List TextBlockElement)
 
 
+
+--| EmptyLeaf
+
+
 type TextBlockElement
     = Paragraph (List DocAttribute) (List TextBlockPrimitive)
     | UList (List DocAttribute) (List Li)

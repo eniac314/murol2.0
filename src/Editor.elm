@@ -49,6 +49,8 @@ type Msg
     | SelectDoc Int
     | OpenEditorPlugin Int
     | WheelEvent Wheel.Event
+    | SwapLeft
+    | SwapRight
     | DeleteSelected
     | Undo
     | KeyDown String
@@ -276,6 +278,26 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        SwapLeft ->
+            case swapLeft model.document of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newDoc ->
+                    ( { model | document = newDoc }
+                    , Cmd.none
+                    )
+
+        SwapRight ->
+            case swapRight model.document of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newDoc ->
+                    ( { model | document = newDoc }
+                    , Cmd.none
+                    )
+
         WheelEvent e ->
             let
                 newDoc =
@@ -488,8 +510,24 @@ mainInterface model =
                 { onPress = Nothing
                 , label =
                     row [ spacing 10 ]
-                        [ el [] (html <| plusSquare)
-                        , text "Ajouter"
+                        [ row
+                            []
+                            [ el [] (html <| plusSquare)
+                            , el [] (html <| chevronsUp)
+                            ]
+                        , text "Ajouter au dessus"
+                        ]
+                }
+            , Input.button buttonStyle
+                { onPress = Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ row
+                            []
+                            [ el [] (html <| plusSquare)
+                            , el [] (html <| chevronsDown)
+                            ]
+                        , text "Ajouter en dessous"
                         ]
                 }
 
@@ -499,11 +537,35 @@ mainInterface model =
             --     html <| minusSquare
             --    }
             , Input.button buttonStyle
+                { onPress = Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (html <| edit)
+                        , text "Modifier"
+                        ]
+                }
+            , Input.button buttonStyle
                 { onPress = Just DeleteSelected
                 , label =
                     row [ spacing 10 ]
                         [ el [] (html <| xSquare)
                         , text "Supprimer"
+                        ]
+                }
+            , Input.button buttonStyle
+                { onPress = Just SwapLeft
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (html <| chevronsUp)
+                        , text "Monter"
+                        ]
+                }
+            , Input.button buttonStyle
+                { onPress = Just SwapRight
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (html <| chevronsDown)
+                        , text "Descendre"
                         ]
                 }
             , Input.button buttonStyle
@@ -685,6 +747,8 @@ documentView model =
                 |> extractDoc
                 |> responsivePreFormat model.config
                 |> renderDoc model.config
+
+            --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
             ]
         ]
 
