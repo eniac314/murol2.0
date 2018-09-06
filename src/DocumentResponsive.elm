@@ -127,6 +127,9 @@ responsivePreFormat config document =
                 CustomElement s ->
                     l
 
+                EmptyLeaf ->
+                    l
+
 
 renderSameHeightImgRow : Int -> Document -> Document
 renderSameHeightImgRow containerWidth document =

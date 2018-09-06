@@ -41,10 +41,7 @@ type LeafContent
     | Table TableMeta
     | CustomElement String
     | TextBlock (List TextBlockElement)
-
-
-
---| EmptyLeaf
+    | EmptyLeaf
 
 
 type TextBlockElement
@@ -60,7 +57,6 @@ type alias Li =
 type TextBlockPrimitive
     = Text (List DocAttribute) String
     | Link (List DocAttribute) LinkMeta
-      --| Bold String
     | Heading (List DocAttribute) ( Int, String )
 
 
@@ -117,10 +113,15 @@ type alias Config msg =
 
 
 type alias ZipperHandlers msg =
-    { nodeClick : Int -> msg
-    , nodeDblClick : Int -> msg
+    { clickHandler : Int -> msg
+    , dblClickHandler : Int -> msg
     , leafClick : Int -> msg
     }
+
+
+type PluginResult a
+    = PluginQuit
+    | PluginData a
 
 
 type alias Id =
@@ -158,11 +159,10 @@ type DocAttribute
 
 
 type ZipperEventHandler
-    = OnNodeClick
-    | OnNodeDblClick
-    | OnNodeMouseOver
+    = OnClick
+    | OnDblClick
+    | OnMouseOver
     | OnLeafClick
-    | OnLeafMouseOver
 
 
 type DocColor

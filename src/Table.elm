@@ -1,7 +1,6 @@
 module Table exposing (..)
 
 import Array exposing (..)
-import Browser exposing (element)
 import Dict exposing (..)
 import Document exposing (..)
 import Element exposing (..)
@@ -42,6 +41,8 @@ type Msg
     | InitializeTable
     | DataInput ( Int, Int ) String
     | SwapDisplayMode
+    | SaveAndQuit
+    | Quit
 
 
 type alias DocTable =
@@ -59,38 +60,35 @@ type alias DocTable =
     }
 
 
+init mbTableMeta =
+    case mbTableMeta of
+        Nothing ->
+            { mode = Edit
+            , data = Array.empty
+            , nbrRows = 0
+            , nbrCols = 0
+            , nbrRowsInput = ""
+            , nbrColsInput = ""
+            , error = ""
+            , setupDone = False
+            , currentStyle = "bleu-blanc"
+            , styleSelectorInput = ""
+            , styleSelectorFocused = False
+            }
 
---main : Program () DocTable Msg
---main =
---    Browser.element
---        { init = init
---        , update = update
---        , view = view
---        , subscriptions = subscriptions
---        }
---subscriptions model =
---    Sub.none
---init flags =
-
-
-init =
-    { mode = Edit
-    , data = Array.empty
-    , nbrRows = 0
-    , nbrCols = 0
-    , nbrRowsInput = ""
-    , nbrColsInput = ""
-    , error = ""
-    , setupDone = False
-    , currentStyle = "bleu-blanc"
-    , styleSelectorInput = ""
-    , styleSelectorFocused = False
-    }
-
-
-
---, Cmd.none
---)
+        Just { style, nbrRows, nbrCols, data } ->
+            { mode = Edit
+            , data = Array.fromList data
+            , nbrRows = nbrRows
+            , nbrCols = nbrCols
+            , nbrRowsInput = ""
+            , nbrColsInput = ""
+            , error = ""
+            , setupDone = True
+            , currentStyle = style
+            , styleSelectorInput = ""
+            , styleSelectorFocused = False
+            }
 
 
 update msg model =
@@ -99,7 +97,6 @@ update msg model =
             ( { model
                 | nbrRowsInput = s
               }
-              --, Cmd.none
             , Nothing
             )
 
@@ -107,7 +104,6 @@ update msg model =
             ( { model
                 | nbrColsInput = s
               }
-              --, Cmd.none
             , Nothing
             )
 
@@ -124,19 +120,16 @@ update msg model =
 
                 --, styleSelectorFocused = False
               }
-              --, Cmd.none
             , Nothing
             )
 
         FocusStyleSelector ->
             ( { model | styleSelectorFocused = not model.styleSelectorFocused }
-              --, Cmd.none
             , Nothing
             )
 
         BlurStyleSelector ->
             ( { model | styleSelectorFocused = False }
-              --, Cmd.none
             , Nothing
             )
 
@@ -173,7 +166,6 @@ update msg model =
                 , data = data
                 , setupDone = True
               }
-              --, Cmd.none
             , Nothing
             )
 
@@ -189,7 +181,6 @@ update msg model =
                                 (Array.set j s a)
                                 model.data
               }
-              --, Cmd.none
             , Nothing
             )
 
@@ -204,15 +195,26 @@ update msg model =
                     else
                         DisplayOnly
               }
-              --, Cmd.none
             , Nothing
             )
 
+        SaveAndQuit ->
+            ( model
+            , Just <| PluginData (toTableMeta model)
+            )
 
-view : DocTable -> Html.Html Msg
+        Quit ->
+            ( model
+            , Just PluginQuit
+            )
+
+
+view : DocTable -> Element Msg
 view model =
-    layout
+    el
         [ Font.size 14
+        , width fill
+        , alignTop
         ]
         (case model.mode of
             DisplayOnly ->
@@ -232,7 +234,7 @@ displayOnlyView model =
                     [ spacing 15 ]
                     [ Input.button buttonStyle
                         { onPress = Just SwapDisplayMode
-                        , label = text "Editer"
+                        , label = text "Modifier"
                         }
                     ]
                 ]
@@ -308,11 +310,11 @@ editView model =
                 column []
                     [ row
                         [ spacing 15 ]
-                        [ styleSelector model
-                        , Input.button buttonStyle
+                        [ Input.button buttonStyle
                             { onPress = Just SwapDisplayMode
                             , label = text "Aperçu"
                             }
+                        , styleSelector model
                         ]
                     ]
             else
@@ -414,6 +416,17 @@ editView model =
         ]
         [ interfaceView
         , tableView
+        , row
+            [ spacing 15 ]
+            [ Input.button buttonStyle
+                { onPress = Just Quit
+                , label = text "Quitter"
+                }
+            , Input.button buttonStyle
+                { onPress = Just SaveAndQuit
+                , label = text "Valider et Quitter"
+                }
+            ]
         ]
 
 
@@ -425,7 +438,7 @@ textInputStyle =
 
 
 buttonStyle =
-    [ Background.color (rgb 0.7 0.7 0.7)
+    [ Background.color (rgb 0.9 0.9 0.9)
     , Border.rounded 5
     , Font.center
     , centerY

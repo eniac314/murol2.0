@@ -51,6 +51,8 @@ type Msg
     | WheelEvent Wheel.Event
     | SwapLeft
     | SwapRight
+    | AddNewLeft
+    | AddNewRight
     | DeleteSelected
     | Undo
     | KeyDown String
@@ -79,10 +81,10 @@ type EditorPlugin
 
 type alias Model =
     { config : Config Msg
-    , selectedNode : Maybe Int
     , document : DocZipper
     , currentNodeBackup : Document
     , undoCache : List ( DocZipper, Document )
+    , nextUid : Int
     , controlDown : Bool
     , menuClicked : Bool
     , menuFocused : String
@@ -102,8 +104,8 @@ init doc flags =
             setSizeTrackedDocUids doc
 
         handlers =
-            { nodeClick = SelectDoc
-            , nodeDblClick = \_ -> NoOp
+            { clickHandler = SelectDoc
+            , dblClickHandler = \_ -> NoOp
             , leafClick = OpenEditorPlugin
             }
 
@@ -126,19 +128,19 @@ init doc flags =
             }
     in
     ( { config = config
-      , selectedNode = Just 0
       , document =
             doc_
                 |> initZip
-                |> addSelectors
+                |> addZipperHandlers
       , currentNodeBackup = doc_
       , undoCache = []
+      , nextUid = docSize doc_
       , controlDown = False
       , menuClicked = False
       , menuFocused = ""
       , previewMode = PreviewBigScreen
       , currentPlugin = Nothing
-      , tablePlugin = Table.init
+      , tablePlugin = Table.init Nothing
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
@@ -244,8 +246,7 @@ update msg model =
                 Just newDocument ->
                     ( { model
                         | currentNodeBackup = extractDoc newDocument
-                        , document = addSelectors newDocument
-                        , selectedNode = Just id
+                        , document = addZipperHandlers newDocument
                       }
                     , Cmd.none
                     )
@@ -267,8 +268,11 @@ update msg model =
             case maybeLeaf of
                 Just (Leaf { leafContent, id, attrs }) ->
                     case leafContent of
-                        Table _ ->
-                            ( { model | currentPlugin = Just TablePlugin }
+                        Table tm ->
+                            ( { model
+                                | currentPlugin = Just TablePlugin
+                                , tablePlugin = Table.init (Just tm)
+                              }
                             , Cmd.none
                             )
 
@@ -298,6 +302,32 @@ update msg model =
                     , Cmd.none
                     )
 
+        AddNewLeft ->
+            case addNewLeft model.nextUid model.document of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newDoc ->
+                    ( { model
+                        | document = newDoc
+                        , nextUid = model.nextUid + 1
+                      }
+                    , Cmd.none
+                    )
+
+        AddNewRight ->
+            case addNewRight model.nextUid model.document of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newDoc ->
+                    ( { model
+                        | document = newDoc
+                        , nextUid = model.nextUid + 1
+                      }
+                    , Cmd.none
+                    )
+
         WheelEvent e ->
             let
                 newDoc =
@@ -308,21 +338,11 @@ update msg model =
             if e.deltaY > 0 then
                 ( { model
                     | document =
-                        Maybe.map addSelectors newDoc
+                        Maybe.map addZipperHandlers newDoc
                             |> Maybe.withDefault model.document
                     , currentNodeBackup =
                         Maybe.map extractDoc newDoc
                             |> Maybe.withDefault model.currentNodeBackup
-                    , selectedNode =
-                        case
-                            Maybe.map extractDoc newDoc
-                                |> Maybe.map getUid
-                        of
-                            Nothing ->
-                                model.selectedNode
-
-                            Just uid ->
-                                Just uid
                   }
                 , Cmd.none
                 )
@@ -336,7 +356,7 @@ update msg model =
             in
             ( { model
                 | document =
-                    Maybe.map addSelectors newDoc
+                    Maybe.map addZipperHandlers newDoc
                         |> Maybe.withDefault model.document
                 , currentNodeBackup =
                     Maybe.map extractDoc newDoc
@@ -436,10 +456,46 @@ update msg model =
 
         TablePluginMsg tableMsg ->
             let
-                ( newTablePlugin, mbNewTable ) =
+                ( newTablePlugin, mbPluginData ) =
                     Table.update tableMsg model.tablePlugin
             in
-            ( model, Cmd.none )
+            case mbPluginData of
+                Nothing ->
+                    ( { model | tablePlugin = newTablePlugin }
+                    , Cmd.none
+                    )
+
+                Just PluginQuit ->
+                    ( { model
+                        | tablePlugin = newTablePlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                Just (PluginData tm) ->
+                    case extractDoc model.document of
+                        Leaf ({ leafContent } as lv) ->
+                            case leafContent of
+                                Table _ ->
+                                    let
+                                        newDoc =
+                                            updateCurrent
+                                                (Leaf { lv | leafContent = Table tm })
+                                                model.document
+                                    in
+                                    ( { model
+                                        | document = newDoc
+                                        , currentPlugin = Nothing
+                                      }
+                                    , Cmd.none
+                                    )
+
+                                _ ->
+                                    ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -453,10 +509,8 @@ view model =
             (column
                 ([ width fill
                  , height (maximum model.config.height fill)
-
-                 --, clip
                  ]
-                    ++ (if model.controlDown then
+                    ++ (if model.currentPlugin == Nothing && model.controlDown then
                             [ htmlAttribute <| Wheel.onWheel WheelEvent ]
                         else
                             []
@@ -480,9 +534,16 @@ view model =
                     ]
                     [ documentStructView
                         model.config
-                        model.selectedNode
+                        (extractDoc model.document
+                            |> getUid
+                        )
                         (extractDoc <| rewind model.document)
-                    , documentView model
+                    , case model.currentPlugin of
+                        Nothing ->
+                            documentView model
+
+                        Just plugin ->
+                            pluginView model plugin
                     ]
                 ]
             )
@@ -507,7 +568,7 @@ mainInterface model =
             , Background.color (rgb 0.9 0.9 0.9)
             ]
             [ Input.button buttonStyle
-                { onPress = Nothing
+                { onPress = ifNotInPlugin model.currentPlugin AddNewLeft
                 , label =
                     row [ spacing 10 ]
                         [ row
@@ -519,7 +580,7 @@ mainInterface model =
                         ]
                 }
             , Input.button buttonStyle
-                { onPress = Nothing
+                { onPress = ifNotInPlugin model.currentPlugin AddNewRight
                 , label =
                     row [ spacing 10 ]
                         [ row
@@ -545,7 +606,7 @@ mainInterface model =
                         ]
                 }
             , Input.button buttonStyle
-                { onPress = Just DeleteSelected
+                { onPress = ifNotInPlugin model.currentPlugin DeleteSelected
                 , label =
                     row [ spacing 10 ]
                         [ el [] (html <| xSquare)
@@ -553,7 +614,7 @@ mainInterface model =
                         ]
                 }
             , Input.button buttonStyle
-                { onPress = Just SwapLeft
+                { onPress = ifNotInPlugin model.currentPlugin SwapLeft
                 , label =
                     row [ spacing 10 ]
                         [ el [] (html <| chevronsUp)
@@ -561,11 +622,19 @@ mainInterface model =
                         ]
                 }
             , Input.button buttonStyle
-                { onPress = Just SwapRight
+                { onPress = ifNotInPlugin model.currentPlugin SwapRight
                 , label =
                     row [ spacing 10 ]
                         [ el [] (html <| chevronsDown)
                         , text "Descendre"
+                        ]
+                }
+            , Input.button buttonStyle
+                { onPress = Just RefreshSizes
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (html <| refreshCw)
+                        , text "Rafraichir"
                         ]
                 }
             , Input.button buttonStyle
@@ -578,6 +647,15 @@ mainInterface model =
                 }
             ]
         ]
+
+
+ifNotInPlugin currentPlugin msg =
+    case currentPlugin of
+        Nothing ->
+            Just msg
+
+        Just _ ->
+            Nothing
 
 
 mainMenu clicked flags currentFocus =
@@ -652,6 +730,7 @@ mainMenu clicked flags currentFocus =
               )
             , ( "Mise en page"
               , [ [ { defEntry | label = "Copier" }
+                  , { defEntry | label = "Couper" }
                   , { defEntry | label = "Coller" }
                   ]
                 , [ { defEntry
@@ -722,10 +801,9 @@ mainMenu clicked flags currentFocus =
 
 documentView model =
     column
-        [ --, centerX
-          scrollbarY
+        [ scrollbarY
+        , height fill -- needed to be able to scroll
         , width fill
-        , height fill
         ]
         [ column
             [ case model.previewMode of
@@ -751,6 +829,22 @@ documentView model =
             --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
             ]
         ]
+
+
+pluginView model plugin =
+    case plugin of
+        ImagePlugin ->
+            el [] (text "Nothing  here yet!")
+
+        TablePlugin ->
+            Table.view model.tablePlugin
+                |> Element.map TablePluginMsg
+
+        CustomElementPlugin ->
+            el [] (text "Nothing  here yet!")
+
+        TextBlockPlugin ->
+            el [] (text "Nothing  here yet!")
 
 
 buttonStyle =

@@ -4,6 +4,7 @@ import Document exposing (..)
 import Element exposing (..)
 import Element.Events as Events
 import Html.Events exposing (on, onMouseOut, onMouseOver)
+import Set exposing (empty)
 
 
 type alias DocZipper =
@@ -185,6 +186,66 @@ swapLeft { current, contexts } =
                         }
 
 
+addNewLeft : Int -> DocZipper -> Maybe DocZipper
+addNewLeft nextUid { current, contexts } =
+    let
+        newDoc =
+            Leaf
+                { leafContent = EmptyLeaf
+                , id =
+                    { uid = nextUid
+                    , styleId = Nothing
+                    , classes = Set.empty
+                    }
+                , attrs = []
+                }
+    in
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            Just
+                { current = current
+                , contexts =
+                    { parent = parent
+                    , left = left ++ [ newDoc ]
+                    , right = right
+                    }
+                        :: cs
+                }
+
+
+addNewRight : Int -> DocZipper -> Maybe DocZipper
+addNewRight nextUid { current, contexts } =
+    let
+        newDoc =
+            Leaf
+                { leafContent = EmptyLeaf
+                , id =
+                    { uid = nextUid
+                    , styleId = Nothing
+                    , classes = Set.empty
+                    }
+                , attrs = []
+                }
+    in
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            Just
+                { current = current
+                , contexts =
+                    { parent = parent
+                    , left = left
+                    , right = newDoc :: right
+                    }
+                        :: cs
+                }
+
+
 swapRight : DocZipper -> Maybe DocZipper
 swapRight { current, contexts } =
     case contexts of
@@ -238,46 +299,47 @@ break p xs =
     helper xs []
 
 
-addSelectors : DocZipper -> DocZipper
-addSelectors ({ current, contexts } as dz) =
+addZipperHandlers : DocZipper -> DocZipper
+addZipperHandlers ({ current, contexts } as dz) =
     let
-        nodeSelectors id =
-            [ ZipperAttr id.uid OnNodeClick
-            , ZipperAttr id.uid OnNodeDblClick
-            , ZipperAttr id.uid OnNodeMouseOver
+        handlers id =
+            [ ZipperAttr id.uid OnClick
+            , ZipperAttr id.uid OnDblClick
+            , ZipperAttr id.uid OnMouseOver
             ]
 
-        leafSelectors id =
-            [ ZipperAttr id.uid OnLeafClick
-            , ZipperAttr id.uid OnLeafMouseOver
-            ]
-
-        addSelector doc =
+        addHandlersToChild doc =
             case doc of
                 Leaf ({ leafContent, id, attrs } as lv) ->
                     Leaf
                         { lv
                             | attrs =
-                                nodeSelectors id ++ attrs
+                                handlers id ++ attrs
                         }
 
                 Node ({ nodeLabel, id, attrs } as nv) children ->
                     Node
                         { nv
                             | attrs =
-                                nodeSelectors id ++ attrs
+                                handlers id ++ attrs
                         }
                         children
     in
     case toogleClass "selected" current of
-        --case current of
         Node nv children ->
             { dz
-                | current = Node nv (List.map addSelector children)
+                | current = Node nv (List.map addHandlersToChild children)
             }
 
-        Leaf lv ->
-            --dz
+        Leaf ({ leafContent, id, attrs } as lv) ->
+            let
+                newLeaf =
+                    Leaf
+                        { lv
+                            | attrs =
+                                ZipperAttr id.uid OnLeafClick :: attrs
+                        }
+            in
             { dz
-                | current = Leaf lv
+                | current = newLeaf
             }

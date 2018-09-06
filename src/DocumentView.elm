@@ -63,6 +63,9 @@ renderDoc_ config document =
                 CustomElement s ->
                     renderCustomElement config id attrs s
 
+                EmptyLeaf ->
+                    renderEmptyLeaf config id attrs
+
 
 renderTextBlock config attrs xs =
     List.map (renderTextBlockElement config attrs) xs
@@ -300,6 +303,23 @@ renderCustomElement config id attrs s =
     ]
 
 
+renderEmptyLeaf config id attrs =
+    [ row
+        ([ width fill
+         , height (px 100)
+         , Background.color (rgba 0 0 0.8 0.5)
+         ]
+            ++ renderAttrs config attrs
+        )
+        [ el
+            [ centerX
+            , centerY
+            ]
+            (text "Cellule vide")
+        ]
+    ]
+
+
 idStyle { customStyles } { uid, styleId, classes } =
     (styleId
         |> Maybe.andThen
@@ -438,13 +458,13 @@ renderAttrs config attrs =
 
                         Just handlers ->
                             case zipperEventHandler of
-                                OnNodeClick ->
-                                    [ Events.onClick (handlers.nodeClick uid) ]
+                                OnClick ->
+                                    [ Events.onClick (handlers.clickHandler uid) ]
 
-                                OnNodeDblClick ->
-                                    [ Events.onDoubleClick (handlers.nodeDblClick uid) ]
+                                OnDblClick ->
+                                    [ Events.onDoubleClick (handlers.dblClickHandler uid) ]
 
-                                OnNodeMouseOver ->
+                                OnMouseOver ->
                                     [ mouseOver
                                         [ Background.color <| rgba 0.8 0.8 0.8 0.5 ]
                                     , pointer
@@ -452,11 +472,11 @@ renderAttrs config attrs =
                                     ]
 
                                 OnLeafClick ->
-                                    [ Events.onClick (handlers.leafClick uid) ]
-
-                                OnLeafMouseOver ->
                                     [ pointer
+                                    , mouseOver
+                                        [ Background.color <| rgba 0.8 0.8 0.8 0.5 ]
                                     , htmlAttribute <| Attr.style "transition" "0.3s"
+                                    , Events.onClick (handlers.leafClick uid)
                                     ]
     in
     List.concatMap renderAttr attrs

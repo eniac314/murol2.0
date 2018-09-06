@@ -51,9 +51,7 @@ docTreeView config offsets ( sNode, selection ) document =
     let
         sel =
             selection
-                || (Maybe.map (\i -> i == getUid document) sNode
-                        |> Maybe.withDefault False
-                   )
+                || (\i -> i == getUid document) sNode
 
         labelFontColor =
             if sel then
@@ -185,3 +183,6 @@ leafContentToString lc =
 
         TextBlock xs ->
             "Zone de texte"
+
+        EmptyLeaf ->
+            "Cellule vide"
