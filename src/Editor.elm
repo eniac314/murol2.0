@@ -253,16 +253,8 @@ update msg model =
 
         OpenEditorPlugin uid ->
             let
-                isCorrectLeaf doc =
-                    case doc of
-                        Node _ _ ->
-                            False
-
-                        Leaf { id } ->
-                            id.uid == uid
-
                 maybeLeaf =
-                    findInCurrent model.document isCorrectLeaf
+                    findInCurrent model.document (hasUid uid)
                         |> List.head
             in
             case maybeLeaf of
@@ -598,7 +590,8 @@ mainInterface model =
             --     html <| minusSquare
             --    }
             , Input.button buttonStyle
-                { onPress = Nothing
+                { onPress =
+                    Just <| OpenEditorPlugin (getUid << extractDoc <| model.document)
                 , label =
                     row [ spacing 10 ]
                         [ el [] (html <| edit)

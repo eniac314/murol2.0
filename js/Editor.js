@@ -7659,16 +7659,11 @@ var author$project$Editor$update = F2(
 				}
 			case 7:
 				var uid = msg.a;
-				var isCorrectLeaf = function (doc) {
-					if (!doc.$) {
-						return false;
-					} else {
-						var id = doc.a.d;
-						return _Utils_eq(id.v, uid);
-					}
-				};
 				var maybeLeaf = elm$core$List$head(
-					A2(author$project$DocumentZipper$findInCurrent, model.a, isCorrectLeaf));
+					A2(
+						author$project$DocumentZipper$findInCurrent,
+						model.a,
+						author$project$Document$hasUid(uid)));
 				if ((!maybeLeaf.$) && (maybeLeaf.a.$ === 1)) {
 					var leafContent = maybeLeaf.a.a.a7;
 					var id = maybeLeaf.a.a.d;
@@ -7691,7 +7686,19 @@ var author$project$Editor$update = F2(
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				}
 			case 9:
-				var _n7 = author$project$DocumentZipper$swapLeft(model.a);
+				var _n6 = author$project$DocumentZipper$swapLeft(model.a);
+				if (_n6.$ === 1) {
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				} else {
+					var newDoc = _n6.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{a: newDoc}),
+						elm$core$Platform$Cmd$none);
+				}
+			case 10:
+				var _n7 = author$project$DocumentZipper$swapRight(model.a);
 				if (_n7.$ === 1) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
@@ -7702,8 +7709,8 @@ var author$project$Editor$update = F2(
 							{a: newDoc}),
 						elm$core$Platform$Cmd$none);
 				}
-			case 10:
-				var _n8 = author$project$DocumentZipper$swapRight(model.a);
+			case 11:
+				var _n8 = A2(author$project$DocumentZipper$addNewLeft, model.G, model.a);
 				if (_n8.$ === 1) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
@@ -7711,27 +7718,15 @@ var author$project$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{a: newDoc}),
-						elm$core$Platform$Cmd$none);
-				}
-			case 11:
-				var _n9 = A2(author$project$DocumentZipper$addNewLeft, model.G, model.a);
-				if (_n9.$ === 1) {
-					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-				} else {
-					var newDoc = _n9.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
 							{a: newDoc, G: model.G + 1}),
 						elm$core$Platform$Cmd$none);
 				}
 			case 12:
-				var _n10 = A2(author$project$DocumentZipper$addNewRight, model.G, model.a);
-				if (_n10.$ === 1) {
+				var _n9 = A2(author$project$DocumentZipper$addNewRight, model.G, model.a);
+				if (_n9.$ === 1) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
-					var newDoc = _n10.a;
+					var newDoc = _n9.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -7780,14 +7775,14 @@ var author$project$Editor$update = F2(
 						}),
 					elm$core$Platform$Cmd$none);
 			case 14:
-				var _n11 = model.aj;
-				if (!_n11.b) {
+				var _n10 = model.aj;
+				if (!_n10.b) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
-					var _n12 = _n11.a;
-					var zipper = _n12.a;
-					var nodeBckp = _n12.b;
-					var xs = _n11.b;
+					var _n11 = _n10.a;
+					var zipper = _n11.a;
+					var nodeBckp = _n11.b;
+					var xs = _n10.b;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -7866,9 +7861,9 @@ var author$project$Editor$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 22:
 				var tableMsg = msg.a;
-				var _n14 = A2(author$project$Table$update, tableMsg, model.aa);
-				var newTablePlugin = _n14.a;
-				var mbPluginData = _n14.b;
+				var _n13 = A2(author$project$Table$update, tableMsg, model.aa);
+				var newTablePlugin = _n13.a;
+				var mbPluginData = _n13.b;
 				if (mbPluginData.$ === 1) {
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -7877,7 +7872,7 @@ var author$project$Editor$update = F2(
 						elm$core$Platform$Cmd$none);
 				} else {
 					if (!mbPluginData.a.$) {
-						var _n16 = mbPluginData.a;
+						var _n15 = mbPluginData.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -7885,9 +7880,9 @@ var author$project$Editor$update = F2(
 							elm$core$Platform$Cmd$none);
 					} else {
 						var tm = mbPluginData.a.a;
-						var _n17 = author$project$DocumentZipper$extractDoc(model.a);
-						if (_n17.$ === 1) {
-							var lv = _n17.a;
+						var _n16 = author$project$DocumentZipper$extractDoc(model.a);
+						if (_n16.$ === 1) {
+							var lv = _n16.a;
 							var leafContent = lv.a7;
 							if (leafContent.$ === 1) {
 								var newDoc = A2(
@@ -15204,7 +15199,9 @@ var author$project$Editor$mainInterface = function (model) {
 										mdgriffith$elm_ui$Element$html(author$project$Icons$edit)),
 										mdgriffith$elm_ui$Element$text('Modifier')
 									])),
-							I: elm$core$Maybe$Nothing
+							I: elm$core$Maybe$Just(
+								author$project$Editor$OpenEditorPlugin(
+									A3(elm$core$Basics$composeL, author$project$Document$getUid, author$project$DocumentZipper$extractDoc, model.a)))
 						}),
 						A2(
 						mdgriffith$elm_ui$Element$Input$button,
