@@ -86,8 +86,7 @@ type EditorPlugin
 type alias Model =
     { config : Config Msg
     , document : DocZipper
-    , currentContainerBackup : Document
-    , undoCache : List ( DocZipper, Document )
+    , undoCache : List DocZipper
     , nextUid : Int
     , controlDown : Bool
     , menuClicked : Bool
@@ -132,11 +131,7 @@ init doc flags =
             }
     in
     ( { config = config
-      , document =
-            doc_
-                |> initZip
-                |> addZipperHandlers
-      , currentContainerBackup = doc_
+      , document = initZip doc_
       , undoCache = []
       , nextUid = docSize doc_
       , controlDown = False
@@ -239,18 +234,14 @@ update msg model =
 
         SelectDoc id ->
             case
-                zipDown (hasUid id)
-                    (updateCurrent model.currentContainerBackup
-                        model.document
-                    )
+                zipDown (hasUid id) model.document
             of
                 Nothing ->
                     ( model, Cmd.none )
 
                 Just newDocument ->
                     ( { model
-                        | currentContainerBackup = extractDoc newDocument
-                        , document = addZipperHandlers newDocument
+                        | document = newDocument
                       }
                     , Cmd.none
                     )
@@ -326,18 +317,12 @@ update msg model =
         WheelEvent e ->
             let
                 newDoc =
-                    model.document
-                        |> updateCurrent model.currentContainerBackup
-                        |> zipUp
+                    zipUp model.document
             in
             if e.deltaY > 0 then
                 ( { model
                     | document =
-                        Maybe.map addZipperHandlers newDoc
-                            |> Maybe.withDefault model.document
-                    , currentContainerBackup =
-                        Maybe.map extractDoc newDoc
-                            |> Maybe.withDefault model.currentContainerBackup
+                        Maybe.withDefault model.document newDoc
                   }
                 , Cmd.none
                 )
@@ -351,13 +336,10 @@ update msg model =
             in
             ( { model
                 | document =
-                    Maybe.map addZipperHandlers newDoc
-                        |> Maybe.withDefault model.document
-                , currentContainerBackup =
-                    Maybe.map extractDoc newDoc
-                        |> Maybe.withDefault model.currentContainerBackup
+                    Maybe.withDefault model.document
+                        newDoc
                 , undoCache =
-                    ( model.document, model.currentContainerBackup )
+                    model.document
                         :: model.undoCache
                         |> List.take undoCacheDepth
                 , nextUid = model.nextUid + 1
@@ -370,10 +352,9 @@ update msg model =
                 [] ->
                     ( model, Cmd.none )
 
-                ( zipper, containerBckp ) :: xs ->
+                zipper :: xs ->
                     ( { model
                         | document = zipper
-                        , currentContainerBackup = containerBckp
                         , undoCache = xs
                       }
                     , updateSizes model.config
@@ -818,6 +799,7 @@ documentView model =
             , centerX
             ]
             [ model.document
+                |> addZipperHandlers
                 |> rewind
                 |> extractDoc
                 |> responsivePreFormat model.config
