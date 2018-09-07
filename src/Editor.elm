@@ -344,7 +344,7 @@ update msg model =
         DeleteSelected ->
             let
                 newDoc =
-                    deleteCurrent model.document
+                    safeDeleteCurrent model.nextUid model.document
             in
             ( { model
                 | document =
@@ -357,6 +357,7 @@ update msg model =
                     ( model.document, model.currentNodeBackup )
                         :: model.undoCache
                         |> List.take undoCacheDepth
+                , nextUid = model.nextUid + 1
               }
             , Cmd.none
             )

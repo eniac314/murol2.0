@@ -282,6 +282,37 @@ deleteCurrent { current, contexts } =
                 }
 
 
+safeDeleteCurrent : Int -> DocZipper -> Maybe DocZipper
+safeDeleteCurrent nextUid { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            let
+                newDoc =
+                    Leaf
+                        { leafContent = EmptyLeaf
+                        , id =
+                            { uid = nextUid
+                            , styleId = Nothing
+                            , classes = Set.empty
+                            }
+                        , attrs = []
+                        }
+            in
+            if left == [] && right == [] then
+                Just
+                    { current = Node parent [ newDoc ]
+                    , contexts = cs
+                    }
+            else
+                Just
+                    { current = Node parent (left ++ right)
+                    , contexts = cs
+                    }
+
+
 break : (a -> Bool) -> List a -> ( List a, List a )
 break p xs =
     let
