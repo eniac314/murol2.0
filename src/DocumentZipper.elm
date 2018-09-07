@@ -311,40 +311,27 @@ addZipperHandlers dz =
 
         addHandlerToNeighbours doc =
             let
-                currentUid =
-                    getUid (extractDoc doc)
-            in
-            zipUp doc
-                |> Maybe.andThen
-                    (\parent ->
-                        case extractDoc parent of
-                            Cell _ ->
-                                Nothing
+                path =
+                    getPath doc
+                        |> Tuple.first
+                        |> List.tail
+                        |> Maybe.withDefault []
 
-                            Container nv xs ->
-                                Just <|
-                                    updateCurrent
-                                        (Container nv <|
-                                            List.map
-                                                (\neighbour ->
-                                                    let
-                                                        nUid =
-                                                            getUid neighbour
-                                                    in
-                                                    if nUid /= currentUid then
-                                                        addAttrs neighbour
-                                                            [ ZipperAttr
-                                                                nUid
-                                                                OnNeighbourClick
-                                                            ]
-                                                    else
-                                                        neighbour
-                                                )
-                                                xs
-                                        )
-                                        parent
-                    )
-                |> Maybe.andThen (zipDown (hasUid currentUid))
+                newDoc =
+                    applyToContexts
+                        (\d ->
+                            addAttrs d
+                                [ ZipperAttr
+                                    (getUid d)
+                                    OnNeighbourClick
+                                ]
+                        )
+                        (getPath doc
+                            |> Tuple.first
+                        )
+                        doc
+            in
+            zipDownPath path newDoc
                 |> Maybe.withDefault doc
     in
     case toogleClass "selected" current of
@@ -379,3 +366,67 @@ getPath document =
                     helper parent (getUid (extractDoc doc) :: acc)
     in
     helper document []
+
+
+zipDownPath : List Int -> DocZipper -> Maybe DocZipper
+zipDownPath path document =
+    case path of
+        [] ->
+            Just document
+
+        uid :: xs ->
+            case zipDown (hasUid uid) document of
+                Nothing ->
+                    Nothing
+
+                Just child ->
+                    zipDownPath xs child
+
+
+applyToContexts : (Document -> Document) -> List Int -> DocZipper -> DocZipper
+applyToContexts f path zipper =
+    let
+        document =
+            rewind zipper
+                |> extractDoc
+
+        uid =
+            getUid (extractDoc zipper)
+
+        shouldNotApply currentUid =
+            List.member currentUid path || (currentUid == uid)
+
+        helper doc =
+            let
+                currentUid =
+                    getUid doc
+            in
+            case doc of
+                Cell lv ->
+                    if currentUid == uid then
+                        doc
+                    else
+                        f doc
+
+                Container cv xs ->
+                    if List.member currentUid path then
+                        if currentUid == uid then
+                            doc
+                        else
+                            Container cv (List.map helper xs)
+                    else
+                        f (Container cv (List.map helper xs))
+
+        --Cell lv ->
+        --    if shouldNotApply currentUid then
+        --        doc
+        --    else
+        --        Cell lv
+        --Container cv xs ->
+        --    if shouldNotApply currentUid then
+        --        doc
+        --    else
+        --        Container cv (List.map helper xs)
+    in
+    helper document
+        |> initZip

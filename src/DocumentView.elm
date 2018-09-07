@@ -459,7 +459,10 @@ renderAttrs config attrs =
                         Just handlers ->
                             case zipperEventHandler of
                                 OnContainerClick ->
-                                    [ Events.onClick (handlers.containerClickHandler uid) ]
+                                    [ Events.onClick (handlers.containerClickHandler uid)
+
+                                    --, Background.color (rgba 0 1 0 0.2)
+                                    ]
 
                                 OnContainerDblClick ->
                                     [ Events.onDoubleClick (handlers.containerDblClickHandler uid) ]
@@ -476,12 +479,17 @@ renderAttrs config attrs =
                                     , mouseOver
                                         [ Background.color <| rgba 0.8 0.8 0.8 0.5 ]
                                     , htmlAttribute <| Attr.style "transition" "0.3s"
-                                    , Events.onClick handlers.cellClick
+                                    , Events.onDoubleClick handlers.cellClick
+
+                                    --, Background.color (rgba 0 0 1 0.2)
                                     ]
 
                                 OnNeighbourClick ->
                                     [ Events.onClick (handlers.neighbourClickHandler uid)
                                     , pointer
+
+                                    --, Border.width 1
+                                    --, Border.color (rgb 1 0 0)
                                     ]
     in
     List.concatMap renderAttr attrs

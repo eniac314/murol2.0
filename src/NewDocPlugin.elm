@@ -24,6 +24,7 @@ view config =
             , spacing 15
             , Border.width 1
             , Border.color (rgba 0.9 0.9 0.9 1)
+            , padding 15
             ]
             [ el [ Font.size 18 ] (text "Nouveau conteneur")
             , row
@@ -73,6 +74,7 @@ view config =
         , column
             [ width fill
             , spacing 15
+            , padding 15
             , Border.width 1
             , Border.color (rgba 0.9 0.9 0.9 1)
             ]

@@ -52,6 +52,7 @@ type Msg
     | EditCell
     | WheelEvent Wheel.Event
     | ZipUp
+    | Rewind
     | SwapLeft
     | SwapRight
     | AddNewLeft
@@ -112,7 +113,7 @@ init doc flags =
             { containerClickHandler = SelectDoc
             , containerDblClickHandler = \_ -> NoOp
             , cellClick = EditCell
-            , neighbourClickHandler = \_ -> ZipUp
+            , neighbourClickHandler = \_ -> Rewind
             }
 
         config =
@@ -338,6 +339,14 @@ update msg model =
                     Maybe.withDefault
                         model.document
                         (zipUp model.document)
+              }
+            , Cmd.none
+            )
+
+        Rewind ->
+            ( { model
+                | document =
+                    rewind model.document
               }
             , Cmd.none
             )

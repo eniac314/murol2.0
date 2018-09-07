@@ -4671,10 +4671,10 @@ var author$project$Editor$MainInterfaceViewport = function (a) {
 var author$project$Editor$NoOp = {$: 5};
 var author$project$Editor$PreviewBigScreen = 0;
 var author$project$Editor$RefreshSizes = {$: 3};
+var author$project$Editor$Rewind = {$: 10};
 var author$project$Editor$SelectDoc = function (a) {
 	return {$: 6, a: a};
 };
-var author$project$Editor$ZipUp = {$: 9};
 var elm$core$Dict$RBEmpty_elm_builtin = {$: -2};
 var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Dict$Black = 1;
@@ -5908,7 +5908,7 @@ var author$project$Editor$init = F2(
 				return author$project$Editor$NoOp;
 			},
 			dF: function (_n3) {
-				return author$project$Editor$ZipUp;
+				return author$project$Editor$Rewind;
 			}
 		};
 		var _n0 = author$project$Document$setSizeTrackedDocUids(doc);
@@ -5960,10 +5960,10 @@ var author$project$Editor$init = F2(
 					])));
 	});
 var author$project$Editor$KeyDown = function (a) {
-	return {$: 18, a: a};
+	return {$: 19, a: a};
 };
 var author$project$Editor$KeyUp = function (a) {
-	return {$: 19, a: a};
+	return {$: 20, a: a};
 };
 var author$project$Editor$WinResize = F2(
 	function (a, b) {
@@ -6355,6 +6355,45 @@ var author$project$DocumentZipper$extractDoc = function (_n0) {
 	var contexts = _n0.b;
 	return current;
 };
+var author$project$DocumentZipper$zipUp = function (_n0) {
+	var current = _n0.c;
+	var contexts = _n0.b;
+	if (!contexts.b) {
+		return elm$core$Maybe$Nothing;
+	} else {
+		var parent = contexts.a.k;
+		var left = contexts.a.a8;
+		var right = contexts.a.be;
+		var cs = contexts.b;
+		return elm$core$Maybe$Just(
+			{
+				b: cs,
+				c: A2(
+					author$project$Document$Container,
+					parent,
+					_Utils_ap(
+						left,
+						_Utils_ap(
+							_List_fromArray(
+								[current]),
+							right)))
+			});
+	}
+};
+var author$project$DocumentZipper$rewind = function (docZipper) {
+	rewind:
+	while (true) {
+		var _n0 = author$project$DocumentZipper$zipUp(docZipper);
+		if (_n0.$ === 1) {
+			return docZipper;
+		} else {
+			var docZipper_ = _n0.a;
+			var $temp$docZipper = docZipper_;
+			docZipper = $temp$docZipper;
+			continue rewind;
+		}
+	}
+};
 var author$project$DocumentZipper$safeDeleteCurrent = F2(
 	function (nextUid, _n0) {
 		var current = _n0.c;
@@ -6515,31 +6554,6 @@ var author$project$DocumentZipper$zipDown = F2(
 			}
 		}
 	});
-var author$project$DocumentZipper$zipUp = function (_n0) {
-	var current = _n0.c;
-	var contexts = _n0.b;
-	if (!contexts.b) {
-		return elm$core$Maybe$Nothing;
-	} else {
-		var parent = contexts.a.k;
-		var left = contexts.a.a8;
-		var right = contexts.a.be;
-		var cs = contexts.b;
-		return elm$core$Maybe$Just(
-			{
-				b: cs,
-				c: A2(
-					author$project$Document$Container,
-					parent,
-					_Utils_ap(
-						left,
-						_Utils_ap(
-							_List_fromArray(
-								[current]),
-							right)))
-			});
-	}
-};
 var author$project$Editor$NewDocPlugin = 4;
 var author$project$Editor$TablePlugin = 1;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
@@ -7184,7 +7198,7 @@ var author$project$Editor$update = F2(
 				}
 			case 7:
 				return author$project$Editor$openPlugin(model);
-			case 10:
+			case 11:
 				var _n4 = author$project$DocumentZipper$swapLeft(model.a);
 				if (_n4.$ === 1) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -7196,7 +7210,7 @@ var author$project$Editor$update = F2(
 							{a: newDoc}),
 						elm$core$Platform$Cmd$none);
 				}
-			case 11:
+			case 12:
 				var _n5 = author$project$DocumentZipper$swapRight(model.a);
 				if (_n5.$ === 1) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -7208,7 +7222,7 @@ var author$project$Editor$update = F2(
 							{a: newDoc}),
 						elm$core$Platform$Cmd$none);
 				}
-			case 12:
+			case 13:
 				var _n6 = A2(author$project$DocumentZipper$addNewLeft, model.i, model.a);
 				if (_n6.$ === 1) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -7220,7 +7234,7 @@ var author$project$Editor$update = F2(
 							{a: newDoc, i: model.i + 1}),
 						elm$core$Platform$Cmd$none);
 				}
-			case 13:
+			case 14:
 				var _n7 = A2(author$project$DocumentZipper$addNewRight, model.i, model.a);
 				if (_n7.$ === 1) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -7232,7 +7246,7 @@ var author$project$Editor$update = F2(
 							{a: newDoc, i: model.i + 1}),
 						elm$core$Platform$Cmd$none);
 				}
-			case 14:
+			case 15:
 				var newDoc = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -7243,7 +7257,7 @@ var author$project$Editor$update = F2(
 							i: model.i + 2
 						}),
 					elm$core$Platform$Cmd$none);
-			case 15:
+			case 16:
 				var newDoc = msg.a;
 				var _n8 = author$project$Editor$openPlugin(
 					_Utils_update(
@@ -7281,7 +7295,15 @@ var author$project$Editor$update = F2(
 								author$project$DocumentZipper$zipUp(model.a))
 						}),
 					elm$core$Platform$Cmd$none);
-			case 16:
+			case 10:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							a: author$project$DocumentZipper$rewind(model.a)
+						}),
+					elm$core$Platform$Cmd$none);
+			case 17:
 				var newDoc = A2(author$project$DocumentZipper$safeDeleteCurrent, model.i, model.a);
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -7295,7 +7317,7 @@ var author$project$Editor$update = F2(
 								A2(elm$core$List$cons, model.a, model.ai))
 						}),
 					elm$core$Platform$Cmd$none);
-			case 17:
+			case 18:
 				var _n9 = model.ai;
 				if (!_n9.b) {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -7308,14 +7330,14 @@ var author$project$Editor$update = F2(
 							{a: zipper, ai: xs}),
 						author$project$Editor$updateSizes(model.e));
 				}
-			case 18:
+			case 19:
 				var s = msg.a;
 				return (s === 'Control') ? _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{ao: true}),
 					elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-			case 19:
+			case 20:
 				var s = msg.a;
 				return (s === 'Control') ? _Utils_Tuple2(
 					_Utils_update(
@@ -7326,26 +7348,26 @@ var author$project$Editor$update = F2(
 				return _Utils_Tuple2(
 					model,
 					author$project$Editor$updateSizes(model.e));
-			case 20:
+			case 21:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{R: !model.R}),
 					elm$core$Platform$Cmd$none);
-			case 21:
+			case 22:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{R: false}),
 					elm$core$Platform$Cmd$none);
-			case 22:
+			case 23:
 				var label = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{aN: label}),
 					elm$core$Platform$Cmd$none);
-			case 23:
+			case 24:
 				var pm = msg.a;
 				var newWidth = function () {
 					switch (pm) {
@@ -7368,7 +7390,7 @@ var author$project$Editor$update = F2(
 						model,
 						{e: newConfig, aU: pm}),
 					author$project$Editor$updateSizes(newConfig));
-			case 24:
+			case 25:
 				var config = model.e;
 				var newConfig = _Utils_update(
 					config,
@@ -7378,7 +7400,7 @@ var author$project$Editor$update = F2(
 						model,
 						{e: newConfig}),
 					elm$core$Platform$Cmd$none);
-			case 25:
+			case 26:
 				var tableMsg = msg.a;
 				var _n11 = A2(author$project$TablePlugin$update, tableMsg, model._);
 				var newTablePlugin = _n11.a;
@@ -12342,21 +12364,7 @@ var author$project$DocumentStructView$documentStructView = F3(
 					A3(author$project$DocumentStructView$mainPanel, config, selectedContainer, document)
 				]));
 	});
-var author$project$DocumentZipper$rewind = function (docZipper) {
-	rewind:
-	while (true) {
-		var _n0 = author$project$DocumentZipper$zipUp(docZipper);
-		if (_n0.$ === 1) {
-			return docZipper;
-		} else {
-			var docZipper_ = _n0.a;
-			var $temp$docZipper = docZipper_;
-			docZipper = $temp$docZipper;
-			continue rewind;
-		}
-	}
-};
-var author$project$Editor$MenuClickOff = {$: 21};
+var author$project$Editor$MenuClickOff = {$: 22};
 var author$project$Editor$WheelEvent = function (a) {
 	return {$: 8, a: a};
 };
@@ -13165,7 +13173,7 @@ var author$project$DocumentView$renderAttrs = F2(
 											])),
 										mdgriffith$elm_ui$Element$htmlAttribute(
 										A2(elm$html$Html$Attributes$style, 'transition', '0.3s')),
-										mdgriffith$elm_ui$Element$Events$onClick(handlers.cB)
+										mdgriffith$elm_ui$Element$Events$onDoubleClick(handlers.cB)
 									]);
 							default:
 								return _List_fromArray(
@@ -14420,7 +14428,101 @@ var author$project$Document$toogleClass = F2(
 					}));
 		}
 	});
-var elm$core$Basics$neq = _Utils_notEqual;
+var author$project$DocumentZipper$applyToContexts = F3(
+	function (f, path, zipper) {
+		var uid = author$project$Document$getUid(
+			author$project$DocumentZipper$extractDoc(zipper));
+		var shouldNotApply = function (currentUid) {
+			return A2(elm$core$List$member, currentUid, path) || _Utils_eq(currentUid, uid);
+		};
+		var helper = function (doc) {
+			var currentUid = author$project$Document$getUid(doc);
+			if (doc.$ === 1) {
+				var lv = doc.a;
+				return _Utils_eq(currentUid, uid) ? doc : f(doc);
+			} else {
+				var cv = doc.a;
+				var xs = doc.b;
+				return A2(elm$core$List$member, currentUid, path) ? (_Utils_eq(currentUid, uid) ? doc : A2(
+					author$project$Document$Container,
+					cv,
+					A2(elm$core$List$map, helper, xs))) : f(
+					A2(
+						author$project$Document$Container,
+						cv,
+						A2(elm$core$List$map, helper, xs)));
+			}
+		};
+		var document = author$project$DocumentZipper$extractDoc(
+			author$project$DocumentZipper$rewind(zipper));
+		return author$project$DocumentZipper$initZip(
+			helper(document));
+	});
+var author$project$DocumentZipper$getPath = function (document) {
+	var helper = F2(
+		function (doc, acc) {
+			helper:
+			while (true) {
+				var _n0 = author$project$DocumentZipper$zipUp(doc);
+				if (_n0.$ === 1) {
+					return _Utils_Tuple2(
+						A2(
+							elm$core$List$cons,
+							author$project$Document$getUid(
+								author$project$DocumentZipper$extractDoc(doc)),
+							acc),
+						doc);
+				} else {
+					var parent = _n0.a;
+					var $temp$doc = parent,
+						$temp$acc = A2(
+						elm$core$List$cons,
+						author$project$Document$getUid(
+							author$project$DocumentZipper$extractDoc(doc)),
+						acc);
+					doc = $temp$doc;
+					acc = $temp$acc;
+					continue helper;
+				}
+			}
+		});
+	return A2(helper, document, _List_Nil);
+};
+var author$project$DocumentZipper$zipDownPath = F2(
+	function (path, document) {
+		zipDownPath:
+		while (true) {
+			if (!path.b) {
+				return elm$core$Maybe$Just(document);
+			} else {
+				var uid = path.a;
+				var xs = path.b;
+				var _n1 = A2(
+					author$project$DocumentZipper$zipDown,
+					author$project$Document$hasUid(uid),
+					document);
+				if (_n1.$ === 1) {
+					return elm$core$Maybe$Nothing;
+				} else {
+					var child = _n1.a;
+					var $temp$path = xs,
+						$temp$document = child;
+					path = $temp$path;
+					document = $temp$document;
+					continue zipDownPath;
+				}
+			}
+		}
+	});
+var elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(xs);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
 var author$project$DocumentZipper$addZipperHandlers = function (dz) {
 	var handlers = function (uid) {
 		return _List_fromArray(
@@ -14438,47 +14540,31 @@ var author$project$DocumentZipper$addZipperHandlers = function (dz) {
 				author$project$Document$getUid(doc)));
 	};
 	var addHandlerToNeighbours = function (doc) {
-		var currentUid = author$project$Document$getUid(
-			author$project$DocumentZipper$extractDoc(doc));
+		var path = A2(
+			elm$core$Maybe$withDefault,
+			_List_Nil,
+			elm$core$List$tail(
+				author$project$DocumentZipper$getPath(doc).a));
+		var newDoc = A3(
+			author$project$DocumentZipper$applyToContexts,
+			function (d) {
+				return A2(
+					author$project$Document$addAttrs,
+					d,
+					_List_fromArray(
+						[
+							A2(
+							author$project$Document$ZipperAttr,
+							author$project$Document$getUid(d),
+							3)
+						]));
+			},
+			author$project$DocumentZipper$getPath(doc).a,
+			doc);
 		return A2(
 			elm$core$Maybe$withDefault,
 			doc,
-			A2(
-				elm$core$Maybe$andThen,
-				author$project$DocumentZipper$zipDown(
-					author$project$Document$hasUid(currentUid)),
-				A2(
-					elm$core$Maybe$andThen,
-					function (parent) {
-						var _n2 = author$project$DocumentZipper$extractDoc(parent);
-						if (_n2.$ === 1) {
-							return elm$core$Maybe$Nothing;
-						} else {
-							var nv = _n2.a;
-							var xs = _n2.b;
-							return elm$core$Maybe$Just(
-								A2(
-									author$project$DocumentZipper$updateCurrent,
-									A2(
-										author$project$Document$Container,
-										nv,
-										A2(
-											elm$core$List$map,
-											function (neighbour) {
-												var nUid = author$project$Document$getUid(neighbour);
-												return (!_Utils_eq(nUid, currentUid)) ? A2(
-													author$project$Document$addAttrs,
-													neighbour,
-													_List_fromArray(
-														[
-															A2(author$project$Document$ZipperAttr, nUid, 3)
-														])) : neighbour;
-											},
-											xs)),
-									parent));
-						}
-					},
-					author$project$DocumentZipper$zipUp(doc))));
+			A2(author$project$DocumentZipper$zipDownPath, path, newDoc));
 	};
 	var _n0 = addHandlerToNeighbours(dz);
 	var current = _n0.c;
@@ -14559,11 +14645,11 @@ var author$project$Editor$documentView = function (model) {
 					]))
 			]));
 };
-var author$project$Editor$AddNewLeft = {$: 12};
-var author$project$Editor$AddNewRight = {$: 13};
-var author$project$Editor$DeleteSelected = {$: 16};
-var author$project$Editor$SwapLeft = {$: 10};
-var author$project$Editor$SwapRight = {$: 11};
+var author$project$Editor$AddNewLeft = {$: 13};
+var author$project$Editor$AddNewRight = {$: 14};
+var author$project$Editor$DeleteSelected = {$: 17};
+var author$project$Editor$SwapLeft = {$: 11};
+var author$project$Editor$SwapRight = {$: 12};
 var mdgriffith$elm_ui$Internal$Flag$borderRound = mdgriffith$elm_ui$Internal$Flag$flag(17);
 var mdgriffith$elm_ui$Element$Border$rounded = function (radius) {
 	return A2(
@@ -14596,18 +14682,18 @@ var author$project$Editor$ifNotInPlugin = F2(
 			return elm$core$Maybe$Nothing;
 		}
 	});
-var author$project$Editor$MenuClick = {$: 20};
+var author$project$Editor$MenuClick = {$: 21};
 var author$project$Editor$PreviewPhone = 3;
 var author$project$Editor$PreviewScreen = 1;
 var author$project$Editor$PreviewTablet = 2;
 var author$project$Editor$SetPreviewMode = function (a) {
+	return {$: 24, a: a};
+};
+var author$project$Editor$ToogleCountainersColors = {$: 25};
+var author$project$Editor$TopEntryFocused = function (a) {
 	return {$: 23, a: a};
 };
-var author$project$Editor$ToogleCountainersColors = {$: 24};
-var author$project$Editor$TopEntryFocused = function (a) {
-	return {$: 22, a: a};
-};
-var author$project$Editor$Undo = {$: 17};
+var author$project$Editor$Undo = {$: 18};
 var mdgriffith$elm_ui$Internal$Model$Below = 1;
 var mdgriffith$elm_ui$Element$below = function (element) {
 	return A2(mdgriffith$elm_ui$Internal$Model$Nearby, 1, element);
@@ -15386,13 +15472,13 @@ var author$project$Editor$mainInterface = function (model) {
 			]));
 };
 var author$project$Editor$CreateNewCell = function (a) {
-	return {$: 15, a: a};
+	return {$: 16, a: a};
 };
 var author$project$Editor$CreateNewContainer = function (a) {
-	return {$: 14, a: a};
+	return {$: 15, a: a};
 };
 var author$project$Editor$TablePluginMsg = function (a) {
-	return {$: 25, a: a};
+	return {$: 26, a: a};
 };
 var author$project$Document$DocRow = 1;
 var author$project$Document$ResponsiveBloc = 3;
@@ -15451,7 +15537,8 @@ var author$project$NewDocPlugin$view = function (config) {
 						mdgriffith$elm_ui$Element$spacing(15),
 						mdgriffith$elm_ui$Element$Border$width(1),
 						mdgriffith$elm_ui$Element$Border$color(
-						A4(mdgriffith$elm_ui$Element$rgba, 0.9, 0.9, 0.9, 1))
+						A4(mdgriffith$elm_ui$Element$rgba, 0.9, 0.9, 0.9, 1)),
+						mdgriffith$elm_ui$Element$padding(15)
 					]),
 				_List_fromArray(
 					[
@@ -15550,6 +15637,7 @@ var author$project$NewDocPlugin$view = function (config) {
 					[
 						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 						mdgriffith$elm_ui$Element$spacing(15),
+						mdgriffith$elm_ui$Element$padding(15),
 						mdgriffith$elm_ui$Element$Border$width(1),
 						mdgriffith$elm_ui$Element$Border$color(
 						A4(mdgriffith$elm_ui$Element$rgba, 0.9, 0.9, 0.9, 1))
