@@ -50,3 +50,7 @@
 - make menu flag system
 
 - remove empty docs before saving
+
+- check elm test for testing uuid uniqueness invariants
+
+- dblClick to edit cell?

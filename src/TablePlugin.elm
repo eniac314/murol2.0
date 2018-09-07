@@ -1,6 +1,7 @@
 module TablePlugin exposing (..)
 
 import Array exposing (..)
+import Browser exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
 import Element exposing (..)
@@ -43,6 +44,19 @@ type Msg
     | SwapDisplayMode
     | SaveAndQuit
     | Quit
+
+
+
+--main : Program () DocTable Msg
+--main =
+--    Browser.sandbox
+--        { init = init Nothing
+--        , update =
+--            \model msg ->
+--                update model msg
+--                    |> Tuple.first
+--        , view = view
+--        }
 
 
 type alias DocTable =
@@ -221,6 +235,7 @@ update msg model =
 
 view : DocTable -> Element Msg
 view model =
+    --layout [] <|
     el
         [ Font.size 14
         , width fill
@@ -504,8 +519,8 @@ styleSelector model =
 makeDataGrid : Int -> Int -> Data
 makeDataGrid i j =
     Array.initialize
-        (i - 1)
-        (always <| Array.initialize (j - 1) (always ""))
+        i
+        (always <| Array.initialize j (always ""))
 
 
 toTableMeta : DocTable -> TableMeta

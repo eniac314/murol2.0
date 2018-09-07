@@ -365,3 +365,17 @@ addZipperHandlers dz =
             { contexts = contexts
             , current = newCell
             }
+
+
+getPath : DocZipper -> ( List Int, DocZipper )
+getPath document =
+    let
+        helper doc acc =
+            case zipUp doc of
+                Nothing ->
+                    ( getUid (extractDoc doc) :: acc, doc )
+
+                Just parent ->
+                    helper parent (getUid (extractDoc doc) :: acc)
+    in
+    helper document []

@@ -6737,11 +6737,11 @@ var author$project$TablePlugin$makeDataGrid = F2(
 	function (i, j) {
 		return A2(
 			elm$core$Array$initialize,
-			i - 1,
+			i,
 			elm$core$Basics$always(
 				A2(
 					elm$core$Array$initialize,
-					j - 1,
+					j,
 					elm$core$Basics$always(''))));
 	});
 var author$project$TablePlugin$maxCols = 30;

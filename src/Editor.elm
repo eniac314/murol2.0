@@ -2,6 +2,7 @@ module Editor exposing (..)
 
 --import DocumentSerializer exposing (..)
 
+import Array exposing (..)
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
