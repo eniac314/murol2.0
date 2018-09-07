@@ -113,8 +113,9 @@ type alias Config msg =
 
 
 type alias ZipperHandlers msg =
-    { clickHandler : Int -> msg
-    , dblClickHandler : Int -> msg
+    { containerClickHandler : Int -> msg
+    , containerDblClickHandler : Int -> msg
+    , neighbourClickHandler : Int -> msg
     , cellClick : msg
     }
 
@@ -159,9 +160,10 @@ type DocAttribute
 
 
 type ZipperEventHandler
-    = OnClick
-    | OnDblClick
-    | OnMouseOver
+    = OnContainerClick
+    | OnContainerDblClick
+    | OnContainerMouseOver
+    | OnNeighbourClick
     | OnCellClick
 
 
@@ -340,6 +342,25 @@ toogleHoverClass uid document =
                     )
                     children
                 )
+
+
+addAttrs : Document -> List DocAttribute -> Document
+addAttrs doc newAttrs =
+    case doc of
+        Cell ({ cellContent, id, attrs } as lv) ->
+            Cell
+                { lv
+                    | attrs =
+                        newAttrs ++ attrs
+                }
+
+        Container ({ containerLabel, id, attrs } as nv) children ->
+            Container
+                { nv
+                    | attrs =
+                        newAttrs ++ attrs
+                }
+                children
 
 
 newCell nextUid cellContent =

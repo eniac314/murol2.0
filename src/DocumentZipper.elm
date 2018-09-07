@@ -295,35 +295,62 @@ break p xs =
 
 
 addZipperHandlers : DocZipper -> DocZipper
-addZipperHandlers ({ current, contexts } as dz) =
+addZipperHandlers dz =
     let
-        handlers id =
-            [ ZipperAttr id.uid OnClick
-            , ZipperAttr id.uid OnDblClick
-            , ZipperAttr id.uid OnMouseOver
+        { current, contexts } =
+            addHandlerToNeighbours dz
+
+        handlers uid =
+            [ ZipperAttr uid OnContainerClick
+            , ZipperAttr uid OnContainerDblClick
+            , ZipperAttr uid OnContainerMouseOver
             ]
 
         addHandlersToChild doc =
-            case doc of
-                Cell ({ cellContent, id, attrs } as lv) ->
-                    Cell
-                        { lv
-                            | attrs =
-                                handlers id ++ attrs
-                        }
+            addAttrs doc (handlers (getUid doc))
 
-                Container ({ containerLabel, id, attrs } as nv) children ->
-                    Container
-                        { nv
-                            | attrs =
-                                handlers id ++ attrs
-                        }
-                        children
+        addHandlerToNeighbours doc =
+            let
+                currentUid =
+                    getUid (extractDoc doc)
+            in
+            zipUp doc
+                |> Maybe.andThen
+                    (\parent ->
+                        case extractDoc parent of
+                            Cell _ ->
+                                Nothing
+
+                            Container nv xs ->
+                                Just <|
+                                    updateCurrent
+                                        (Container nv <|
+                                            List.map
+                                                (\neighbour ->
+                                                    let
+                                                        nUid =
+                                                            getUid neighbour
+                                                    in
+                                                    if nUid /= currentUid then
+                                                        addAttrs neighbour
+                                                            [ ZipperAttr
+                                                                nUid
+                                                                OnNeighbourClick
+                                                            ]
+                                                    else
+                                                        neighbour
+                                                )
+                                                xs
+                                        )
+                                        parent
+                    )
+                |> Maybe.andThen (zipDown (hasUid currentUid))
+                |> Maybe.withDefault doc
     in
     case toogleClass "selected" current of
         Container nv children ->
-            { dz
-                | current = Container nv (List.map addHandlersToChild children)
+            { contexts = contexts
+            , current = Container nv (List.map addHandlersToChild children)
             }
 
         Cell ({ cellContent, id, attrs } as lv) ->
@@ -335,6 +362,6 @@ addZipperHandlers ({ current, contexts } as dz) =
                                 ZipperAttr id.uid OnCellClick :: attrs
                         }
             in
-            { dz
-                | current = newCell
+            { contexts = contexts
+            , current = newCell
             }

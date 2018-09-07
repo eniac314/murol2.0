@@ -50,6 +50,7 @@ type Msg
     | SelectDoc Int
     | EditCell
     | WheelEvent Wheel.Event
+    | ZipUp
     | SwapLeft
     | SwapRight
     | AddNewLeft
@@ -107,9 +108,10 @@ init doc flags =
             setSizeTrackedDocUids doc
 
         handlers =
-            { clickHandler = SelectDoc
-            , dblClickHandler = \_ -> NoOp
+            { containerClickHandler = SelectDoc
+            , containerDblClickHandler = \_ -> NoOp
             , cellClick = EditCell
+            , neighbourClickHandler = \_ -> ZipUp
             }
 
         config =
@@ -232,9 +234,9 @@ update msg model =
                 Err (Dom.NotFound s) ->
                     ( model, Cmd.none )
 
-        SelectDoc id ->
+        SelectDoc uid ->
             case
-                zipDown (hasUid id) model.document
+                zipDown (hasUid uid) model.document
             of
                 Nothing ->
                     ( model, Cmd.none )
@@ -328,6 +330,16 @@ update msg model =
                 )
             else
                 ( model, Cmd.none )
+
+        ZipUp ->
+            ( { model
+                | document =
+                    Maybe.withDefault
+                        model.document
+                        (zipUp model.document)
+              }
+            , Cmd.none
+            )
 
         DeleteSelected ->
             let
