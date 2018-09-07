@@ -11,37 +11,37 @@ import StyleSheets exposing (..)
 
 
 type Document
-    = Node NodeValue (List Document)
-    | Leaf LeafValue
+    = Container ContainerValue (List Document)
+    | Cell CellValue
 
 
-type alias NodeValue =
-    { nodeLabel : NodeLabel
+type alias ContainerValue =
+    { containerLabel : ContainerLabel
     , id : Id
     , attrs : List DocAttribute
     }
 
 
-type NodeLabel
+type ContainerLabel
     = DocColumn
     | DocRow
     | TextColumn
     | ResponsiveBloc
 
 
-type alias LeafValue =
-    { leafContent : LeafContent
+type alias CellValue =
+    { cellContent : CellContent
     , id : Id
     , attrs : List DocAttribute
     }
 
 
-type LeafContent
+type CellContent
     = Image ImageMeta
     | Table TableMeta
     | CustomElement String
     | TextBlock (List TextBlockElement)
-    | EmptyLeaf
+    | EmptyCell
 
 
 type TextBlockElement
@@ -115,7 +115,7 @@ type alias Config msg =
 type alias ZipperHandlers msg =
     { clickHandler : Int -> msg
     , dblClickHandler : Int -> msg
-    , leafClick : Int -> msg
+    , cellClick : msg
     }
 
 
@@ -162,7 +162,7 @@ type ZipperEventHandler
     = OnClick
     | OnDblClick
     | OnMouseOver
-    | OnLeafClick
+    | OnCellClick
 
 
 type DocColor
@@ -177,74 +177,74 @@ toSeColor (DocColor r g b) =
 hasUid : Int -> Document -> Bool
 hasUid id document =
     case document of
-        Node nv _ ->
+        Container nv _ ->
             id == nv.id.uid
 
-        Leaf lv ->
+        Cell lv ->
             id == lv.id.uid
 
 
 hasClass : String -> Document -> Bool
 hasClass class document =
     case document of
-        Node nv _ ->
+        Container nv _ ->
             Set.member class nv.id.classes
 
-        Leaf lv ->
+        Cell lv ->
             Set.member class lv.id.classes
 
 
 containsOnly : (Document -> Bool) -> Document -> Bool
 containsOnly p document =
     case document of
-        Node nv children ->
+        Container nv children ->
             List.foldr (\d acc -> p d && acc) True children
 
-        Leaf _ ->
+        Cell _ ->
             False
 
 
 isImage : Document -> Bool
 isImage document =
     case document of
-        Leaf lv ->
-            case lv.leafContent of
+        Cell lv ->
+            case lv.cellContent of
                 Image _ ->
                     True
 
                 _ ->
                     False
 
-        Node _ _ ->
+        Container _ _ ->
             False
 
 
 getUid doc =
     case doc of
-        Leaf { leafContent, id, attrs } ->
+        Cell { cellContent, id, attrs } ->
             id.uid
 
-        Node { nodeLabel, id, attrs } _ ->
+        Container { containerLabel, id, attrs } _ ->
             id.uid
 
 
 docSize doc =
     case doc of
-        Leaf _ ->
+        Cell _ ->
             1
 
-        Node _ xs ->
+        Container _ xs ->
             List.foldr (\d acc -> docSize d + acc) 1 xs
 
 
 fixUids : Int -> Document -> Document
 fixUids nextUid document =
     case document of
-        Node ({ id } as nv) [] ->
-            Node { nv | id = { id | uid = nextUid } } []
+        Container ({ id } as nv) [] ->
+            Container { nv | id = { id | uid = nextUid } } []
 
-        Node ({ id } as nv) children ->
-            Node { nv | id = { id | uid = nextUid } }
+        Container ({ id } as nv) children ->
+            Container { nv | id = { id | uid = nextUid } }
                 (List.foldr
                     (\doc ( done, nUid ) -> ( fixUids nUid doc :: done, nUid + docSize doc ))
                     ( [], nextUid + 1 )
@@ -252,8 +252,8 @@ fixUids nextUid document =
                     |> Tuple.first
                 )
 
-        Leaf ({ id } as lv) ->
-            Leaf { lv | id = { id | uid = nextUid } }
+        Cell ({ id } as lv) ->
+            Cell { lv | id = { id | uid = nextUid } }
 
 
 setSizeTrackedDocUids : Document -> ( Document, List Int )
@@ -263,7 +263,7 @@ setSizeTrackedDocUids document =
             HtmlId ("sizeTracked" ++ String.fromInt uid)
     in
     case document of
-        Node ({ id, attrs } as nv) children ->
+        Container ({ id, attrs } as nv) children ->
             let
                 ( newChildren, newUids ) =
                     List.map setSizeTrackedDocUids children
@@ -271,15 +271,15 @@ setSizeTrackedDocUids document =
                         |> Tuple.mapSecond List.concat
             in
             if hasClass "sameHeightImgsRow" document then
-                ( Node { nv | attrs = htmlId id.uid :: nv.attrs } newChildren
+                ( Container { nv | attrs = htmlId id.uid :: nv.attrs } newChildren
                 , id.uid :: newUids
                 )
             else
-                ( Node nv newChildren
+                ( Container nv newChildren
                 , newUids
                 )
 
-        Leaf lv ->
+        Cell lv ->
             ( document, [] )
 
 
@@ -293,11 +293,11 @@ addClass class document =
             }
     in
     case document of
-        Node nv children ->
-            Node { nv | id = newId nv.id } children
+        Container nv children ->
+            Container { nv | id = newId nv.id } children
 
-        Leaf lv ->
-            Leaf { lv | id = newId lv.id }
+        Cell lv ->
+            Cell { lv | id = newId lv.id }
 
 
 toogleClass : String -> Document -> Document
@@ -313,24 +313,24 @@ toogleClass class document =
             }
     in
     case document of
-        Node nv children ->
-            Node { nv | id = newId nv.id } children
+        Container nv children ->
+            Container { nv | id = newId nv.id } children
 
-        Leaf lv ->
-            Leaf { lv | id = newId lv.id }
+        Cell lv ->
+            Cell { lv | id = newId lv.id }
 
 
 toogleHoverClass : Int -> Document -> Document
 toogleHoverClass uid document =
     case document of
-        Leaf _ ->
+        Cell _ ->
             document
 
-        Node _ [] ->
+        Container _ [] ->
             document
 
-        Node nv children ->
-            Node nv
+        Container nv children ->
+            Container nv
                 (List.map
                     (\c ->
                         if hasUid uid c then
@@ -340,3 +340,44 @@ toogleHoverClass uid document =
                     )
                     children
                 )
+
+
+newCell nextUid cellContent =
+    Cell
+        { cellContent = cellContent
+        , id =
+            { uid = nextUid
+            , styleId = Nothing
+            , classes = Set.empty
+            }
+        , attrs = []
+        }
+
+
+emptyCell nextUid =
+    newCell nextUid EmptyCell
+
+
+newTable nextUid =
+    newCell
+        nextUid
+        (Table
+            { style = ""
+            , nbrRows = 0
+            , nbrCols = 0
+            , data = []
+            }
+        )
+
+
+newContainer nextUid containerLabel =
+    Container
+        { containerLabel = containerLabel
+        , id =
+            { uid = nextUid
+            , styleId = Nothing
+            , classes = Set.empty
+            }
+        , attrs = []
+        }
+        [ emptyCell (nextUid + 1) ]

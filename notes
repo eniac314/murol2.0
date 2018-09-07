@@ -1,4 +1,4 @@
-- renderDoc pour conteneurs vide
+- edit features for containers
 
 - auto scroll to new leaf
 
@@ -48,3 +48,5 @@
 	* customElement
 
 - make menu flag system
+
+- remove empty docs before saving

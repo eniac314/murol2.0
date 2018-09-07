@@ -1,4 +1,4 @@
-module Table exposing (..)
+module TablePlugin exposing (..)
 
 import Array exposing (..)
 import Dict exposing (..)
@@ -60,35 +60,45 @@ type alias DocTable =
     }
 
 
+emptyDocTable =
+    { mode = Edit
+    , data = Array.empty
+    , nbrRows = 0
+    , nbrCols = 0
+    , nbrRowsInput = ""
+    , nbrColsInput = ""
+    , error = ""
+    , setupDone = False
+    , currentStyle = "bleu-blanc"
+    , styleSelectorInput = ""
+    , styleSelectorFocused = False
+    }
+
+
 init mbTableMeta =
     case mbTableMeta of
         Nothing ->
-            { mode = Edit
-            , data = Array.empty
-            , nbrRows = 0
-            , nbrCols = 0
-            , nbrRowsInput = ""
-            , nbrColsInput = ""
-            , error = ""
-            , setupDone = False
-            , currentStyle = "bleu-blanc"
-            , styleSelectorInput = ""
-            , styleSelectorFocused = False
-            }
+            --First time initialisation
+            emptyDocTable
 
         Just { style, nbrRows, nbrCols, data } ->
-            { mode = Edit
-            , data = Array.fromList data
-            , nbrRows = nbrRows
-            , nbrCols = nbrCols
-            , nbrRowsInput = ""
-            , nbrColsInput = ""
-            , error = ""
-            , setupDone = True
-            , currentStyle = style
-            , styleSelectorInput = ""
-            , styleSelectorFocused = False
-            }
+            if data == [] then
+                --New Table cell
+                emptyDocTable
+            else
+                -- Existing Table cell
+                { mode = Edit
+                , data = Array.fromList data
+                , nbrRows = nbrRows
+                , nbrCols = nbrCols
+                , nbrRowsInput = ""
+                , nbrColsInput = ""
+                , error = ""
+                , setupDone = True
+                , currentStyle = style
+                , styleSelectorInput = ""
+                , styleSelectorFocused = False
+                }
 
 
 update msg model =

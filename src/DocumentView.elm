@@ -35,8 +35,8 @@ renderDoc_ config document =
             classifyDevice config
     in
     case document of
-        Node { nodeLabel, id, attrs } children ->
-            case nodeLabel of
+        Container { containerLabel, id, attrs } children ->
+            case containerLabel of
                 DocColumn ->
                     renderColumn config id attrs children
 
@@ -49,8 +49,8 @@ renderDoc_ config document =
                 ResponsiveBloc ->
                     renderResponsiveBloc config id attrs children
 
-        Leaf { leafContent, id, attrs } ->
-            case leafContent of
+        Cell { cellContent, id, attrs } ->
+            case cellContent of
                 Image meta ->
                     renderImage config id attrs meta
 
@@ -63,8 +63,8 @@ renderDoc_ config document =
                 CustomElement s ->
                     renderCustomElement config id attrs s
 
-                EmptyLeaf ->
-                    renderEmptyLeaf config id attrs
+                EmptyCell ->
+                    renderEmptyCell config id attrs
 
 
 renderTextBlock config attrs xs =
@@ -303,7 +303,7 @@ renderCustomElement config id attrs s =
     ]
 
 
-renderEmptyLeaf config id attrs =
+renderEmptyCell config id attrs =
     [ row
         ([ width fill
          , height (px 100)
@@ -471,12 +471,12 @@ renderAttrs config attrs =
                                     , htmlAttribute <| Attr.style "transition" "0.3s"
                                     ]
 
-                                OnLeafClick ->
+                                OnCellClick ->
                                     [ pointer
                                     , mouseOver
                                         [ Background.color <| rgba 0.8 0.8 0.8 0.5 ]
                                     , htmlAttribute <| Attr.style "transition" "0.3s"
-                                    , Events.onClick (handlers.leafClick uid)
+                                    , Events.onClick handlers.cellClick
                                     ]
     in
     List.concatMap renderAttr attrs

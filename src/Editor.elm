@@ -22,9 +22,10 @@ import Html.Attributes as HtmlAttr
 import Html.Events.Extra.Wheel as Wheel
 import Icons exposing (..)
 import Json.Decode as Decode
+import NewDocPlugin exposing (..)
 import SampleDocs exposing (..)
 import StyleSheets exposing (..)
-import Table exposing (..)
+import TablePlugin exposing (..)
 import Task exposing (perform)
 import Time exposing (..)
 
@@ -47,12 +48,14 @@ type Msg
     | MainInterfaceViewport (Result Dom.Error Dom.Viewport)
     | NoOp
     | SelectDoc Int
-    | OpenEditorPlugin Int
+    | EditCell
     | WheelEvent Wheel.Event
     | SwapLeft
     | SwapRight
     | AddNewLeft
     | AddNewRight
+    | CreateNewContainer Document
+    | CreateNewCell Document
     | DeleteSelected
     | Undo
     | KeyDown String
@@ -62,7 +65,7 @@ type Msg
     | TopEntryFocused String
     | SetPreviewMode PreviewMode
     | ToogleCountainersColors
-    | TablePluginMsg Table.Msg
+    | TablePluginMsg TablePlugin.Msg
 
 
 type PreviewMode
@@ -77,12 +80,13 @@ type EditorPlugin
     | TablePlugin
     | CustomElementPlugin
     | TextBlockPlugin
+    | NewDocPlugin
 
 
 type alias Model =
     { config : Config Msg
     , document : DocZipper
-    , currentNodeBackup : Document
+    , currentContainerBackup : Document
     , undoCache : List ( DocZipper, Document )
     , nextUid : Int
     , controlDown : Bool
@@ -90,7 +94,7 @@ type alias Model =
     , menuFocused : String
     , previewMode : PreviewMode
     , currentPlugin : Maybe EditorPlugin
-    , tablePlugin : Table.DocTable
+    , tablePlugin : TablePlugin.DocTable
     }
 
 
@@ -106,7 +110,7 @@ init doc flags =
         handlers =
             { clickHandler = SelectDoc
             , dblClickHandler = \_ -> NoOp
-            , leafClick = OpenEditorPlugin
+            , cellClick = EditCell
             }
 
         config =
@@ -132,7 +136,7 @@ init doc flags =
             doc_
                 |> initZip
                 |> addZipperHandlers
-      , currentNodeBackup = doc_
+      , currentContainerBackup = doc_
       , undoCache = []
       , nextUid = docSize doc_
       , controlDown = False
@@ -140,7 +144,7 @@ init doc flags =
       , menuFocused = ""
       , previewMode = PreviewBigScreen
       , currentPlugin = Nothing
-      , tablePlugin = Table.init Nothing
+      , tablePlugin = TablePlugin.init Nothing
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
@@ -236,7 +240,7 @@ update msg model =
         SelectDoc id ->
             case
                 zipDown (hasUid id)
-                    (updateCurrent model.currentNodeBackup
+                    (updateCurrent model.currentContainerBackup
                         model.document
                     )
             of
@@ -245,34 +249,14 @@ update msg model =
 
                 Just newDocument ->
                     ( { model
-                        | currentNodeBackup = extractDoc newDocument
+                        | currentContainerBackup = extractDoc newDocument
                         , document = addZipperHandlers newDocument
                       }
                     , Cmd.none
                     )
 
-        OpenEditorPlugin uid ->
-            let
-                maybeLeaf =
-                    findInCurrent model.document (hasUid uid)
-                        |> List.head
-            in
-            case maybeLeaf of
-                Just (Leaf { leafContent, id, attrs }) ->
-                    case leafContent of
-                        Table tm ->
-                            ( { model
-                                | currentPlugin = Just TablePlugin
-                                , tablePlugin = Table.init (Just tm)
-                              }
-                            , Cmd.none
-                            )
-
-                        _ ->
-                            ( model, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+        EditCell ->
+            openPlugin model
 
         SwapLeft ->
             case swapLeft model.document of
@@ -320,11 +304,30 @@ update msg model =
                     , Cmd.none
                     )
 
+        CreateNewContainer newDoc ->
+            ( { model
+                | document = updateCurrent newDoc model.document
+                , nextUid = model.nextUid + 2
+                , currentPlugin = Nothing
+              }
+            , Cmd.none
+            )
+
+        CreateNewCell newDoc ->
+            let
+                ( newModel, cmd ) =
+                    { model | document = updateCurrent newDoc model.document }
+                        |> openPlugin
+            in
+            ( { newModel | nextUid = model.nextUid + 1 }
+            , Cmd.batch [ cmd ]
+            )
+
         WheelEvent e ->
             let
                 newDoc =
                     model.document
-                        |> updateCurrent model.currentNodeBackup
+                        |> updateCurrent model.currentContainerBackup
                         |> zipUp
             in
             if e.deltaY > 0 then
@@ -332,9 +335,9 @@ update msg model =
                     | document =
                         Maybe.map addZipperHandlers newDoc
                             |> Maybe.withDefault model.document
-                    , currentNodeBackup =
+                    , currentContainerBackup =
                         Maybe.map extractDoc newDoc
-                            |> Maybe.withDefault model.currentNodeBackup
+                            |> Maybe.withDefault model.currentContainerBackup
                   }
                 , Cmd.none
                 )
@@ -350,11 +353,11 @@ update msg model =
                 | document =
                     Maybe.map addZipperHandlers newDoc
                         |> Maybe.withDefault model.document
-                , currentNodeBackup =
+                , currentContainerBackup =
                     Maybe.map extractDoc newDoc
-                        |> Maybe.withDefault model.currentNodeBackup
+                        |> Maybe.withDefault model.currentContainerBackup
                 , undoCache =
-                    ( model.document, model.currentNodeBackup )
+                    ( model.document, model.currentContainerBackup )
                         :: model.undoCache
                         |> List.take undoCacheDepth
                 , nextUid = model.nextUid + 1
@@ -367,10 +370,10 @@ update msg model =
                 [] ->
                     ( model, Cmd.none )
 
-                ( zipper, nodeBckp ) :: xs ->
+                ( zipper, containerBckp ) :: xs ->
                     ( { model
                         | document = zipper
-                        , currentNodeBackup = nodeBckp
+                        , currentContainerBackup = containerBckp
                         , undoCache = xs
                       }
                     , updateSizes model.config
@@ -450,7 +453,7 @@ update msg model =
         TablePluginMsg tableMsg ->
             let
                 ( newTablePlugin, mbPluginData ) =
-                    Table.update tableMsg model.tablePlugin
+                    TablePlugin.update tableMsg model.tablePlugin
             in
             case mbPluginData of
                 Nothing ->
@@ -468,13 +471,13 @@ update msg model =
 
                 Just (PluginData tm) ->
                     case extractDoc model.document of
-                        Leaf ({ leafContent } as lv) ->
-                            case leafContent of
+                        Cell ({ cellContent } as lv) ->
+                            case cellContent of
                                 Table _ ->
                                     let
                                         newDoc =
                                             updateCurrent
-                                                (Leaf { lv | leafContent = Table tm })
+                                                (Cell { lv | cellContent = Table tm })
                                                 model.document
                                     in
                                     ( { model
@@ -592,7 +595,7 @@ mainInterface model =
             --    }
             , Input.button buttonStyle
                 { onPress =
-                    Just <| OpenEditorPlugin (getUid << extractDoc <| model.document)
+                    Just EditCell
                 , label =
                     row [ spacing 10 ]
                         [ el [] (html <| edit)
@@ -831,7 +834,7 @@ pluginView model plugin =
             el [] (text "Nothing  here yet!")
 
         TablePlugin ->
-            Table.view model.tablePlugin
+            TablePlugin.view model.tablePlugin
                 |> Element.map TablePluginMsg
 
         CustomElementPlugin ->
@@ -839,6 +842,13 @@ pluginView model plugin =
 
         TextBlockPlugin ->
             el [] (text "Nothing  here yet!")
+
+        NewDocPlugin ->
+            NewDocPlugin.view
+                { createNewCell = CreateNewCell
+                , createNewContainer = CreateNewContainer
+                , nextUid = model.nextUid
+                }
 
 
 buttonStyle =
@@ -865,3 +875,30 @@ updateSizes { sizesDict } =
 keyDecoder : Decode.Decoder String
 keyDecoder =
     Decode.field "key" Decode.string
+
+
+openPlugin : Model -> ( Model, Cmd Msg )
+openPlugin model =
+    case extractDoc model.document of
+        Cell { cellContent, id, attrs } ->
+            case cellContent of
+                Table tm ->
+                    ( { model
+                        | currentPlugin = Just TablePlugin
+                        , tablePlugin = TablePlugin.init (Just tm)
+                      }
+                    , Cmd.none
+                    )
+
+                EmptyCell ->
+                    ( { model
+                        | currentPlugin = Just NewDocPlugin
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )

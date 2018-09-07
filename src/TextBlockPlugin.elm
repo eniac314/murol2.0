@@ -1,4 +1,4 @@
-module TextBlock exposing (..)
+module TextBlockPlugin exposing (..)
 
 import Browser exposing (element)
 import Document exposing (..)

@@ -10,8 +10,8 @@ import Set exposing (toList)
 --    Debug.todo ""
 
 
-encodeLeafContent : LeafContent -> Value
-encodeLeafContent lv =
+encodeCellContent : CellContent -> Value
+encodeCellContent lv =
     case lv of
         Image im ->
             object

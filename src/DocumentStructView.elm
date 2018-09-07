@@ -10,7 +10,7 @@ import Element.Input as Input
 import Icons exposing (..)
 
 
-documentStructView config selectedNode document =
+documentStructView config selectedContainer document =
     column
         [ spacing 15
         , scrollbars
@@ -25,7 +25,7 @@ documentStructView config selectedNode document =
             ]
         ]
         [ menuView config
-        , mainPanel config selectedNode document
+        , mainPanel config selectedContainer document
         ]
 
 
@@ -34,12 +34,12 @@ menuView config =
         []
 
 
-mainPanel config selectedNode document =
+mainPanel config selectedContainer document =
     column
         [ spacing 2
         , padding 15
         ]
-        (docTreeView config [] ( selectedNode, False ) document)
+        (docTreeView config [] ( selectedContainer, False ) document)
 
 
 type Child
@@ -47,11 +47,11 @@ type Child
     | NotLastChild Bool
 
 
-docTreeView config offsets ( sNode, selection ) document =
+docTreeView config offsets ( sContainer, selection ) document =
     let
         sel =
             selection
-                || (\i -> i == getUid document) sNode
+                || (\i -> i == getUid document) sContainer
 
         labelFontColor =
             if sel then
@@ -60,7 +60,7 @@ docTreeView config offsets ( sNode, selection ) document =
                 Font.color (rgba 0.8 0.8 0.8 1)
     in
     case document of
-        Node { nodeLabel, id, attrs } xs ->
+        Container { containerLabel, id, attrs } xs ->
             let
                 l =
                     List.length xs
@@ -72,7 +72,7 @@ docTreeView config offsets ( sNode, selection ) document =
                 (prefix offsets
                     ++ [ el
                             [ labelFontColor ]
-                            (text <| nodeLabelToString nodeLabel)
+                            (text <| containerLabelToString containerLabel)
                        ]
                 )
             ]
@@ -82,23 +82,23 @@ docTreeView config offsets ( sNode, selection ) document =
                         (NotLastChild sel
                             :: offsets
                         )
-                        ( sNode, sel )
+                        ( sContainer, sel )
                     )
                     firsts
                 ++ List.concatMap
                     (docTreeView
                         config
                         (LastChild sel :: offsets)
-                        ( sNode, sel )
+                        ( sContainer, sel )
                     )
                     last
 
-        Leaf { leafContent, id, attrs } ->
+        Cell { cellContent, id, attrs } ->
             [ row []
                 (prefix offsets
                     ++ [ el
                             [ labelFontColor ]
-                            (text <| leafContentToString leafContent)
+                            (text <| cellContentToString cellContent)
                        ]
                 )
             ]
@@ -155,7 +155,7 @@ prefix offsets =
     helper [] (List.reverse offsets)
 
 
-nodeLabelToString nl =
+containerLabelToString nl =
     case nl of
         DocColumn ->
             "Colonne"
@@ -170,7 +170,7 @@ nodeLabelToString nl =
             "Bloc réactif"
 
 
-leafContentToString lc =
+cellContentToString lc =
     case lc of
         Image _ ->
             "Image"
@@ -184,5 +184,5 @@ leafContentToString lc =
         TextBlock xs ->
             "Zone de texte"
 
-        EmptyLeaf ->
+        EmptyCell ->
             "Cellule vide"

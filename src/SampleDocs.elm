@@ -9,44 +9,44 @@ import Set exposing (..)
 
 sampleDoc1 : Document
 sampleDoc1 =
-    Node
+    Container
         { attrs = []
         , id = { classes = Set.fromList [], styleId = Just "root", uid = 0 }
-        , nodeLabel = DocColumn
+        , containerLabel = DocColumn
         }
-        [ Leaf
+        [ Cell
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-            , leafContent =
+            , cellContent =
                 TextBlock
                     [ TBPrimitive (Heading [] ( 1, "Découvrir Murol" ))
                     , TBPrimitive (Heading [] ( 2, "Le bourg de Murol" ))
                     ]
             }
-        , Node
+        , Container
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
-            , nodeLabel = TextColumn
+            , containerLabel = TextColumn
             }
-            [ Leaf
+            [ Cell
                 { attrs = [ AlignLeft ]
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 14 }
-                , leafContent = Image { caption = Nothing, size = { imgHeight = 300, imgWidth = 300 }, src = UrlSrc "images/2 Murol, le bourg.jpg" }
+                , cellContent = Image { caption = Nothing, size = { imgHeight = 300, imgWidth = 300 }, src = UrlSrc "images/2 Murol, le bourg.jpg" }
                 }
-            , Leaf
+            , Cell
                 { attrs = [ AlignRight ]
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 13 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size = { imgHeight = 772, imgWidth = 576 }
                         , src = UrlSrc "images/illustration animations estivales.jpg"
                         }
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-                , leafContent =
+                , cellContent =
                     TextBlock
                         [ Paragraph []
                             [ Text [] "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
@@ -83,15 +83,15 @@ sampleDoc1 =
                             ]
                         ]
                 }
-            , Node
+            , Container
                 { attrs = []
                 , id = { classes = Set.fromList [ "sameHeightImgsRow" ], styleId = Nothing, uid = 8 }
-                , nodeLabel = DocRow
+                , containerLabel = DocRow
                 }
-                [ Leaf
+                [ Cell
                     { attrs = []
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 13 }
-                    , leafContent =
+                    , cellContent =
                         Image
                             { caption = Nothing
                             , size =
@@ -101,7 +101,7 @@ sampleDoc1 =
                             , src = UrlSrc "images/famillePlus.jpg"
                             }
                     }
-                , Leaf
+                , Cell
                     { attrs = []
                     , id =
                         { classes =
@@ -109,7 +109,7 @@ sampleDoc1 =
                         , styleId = Nothing
                         , uid = 12
                         }
-                    , leafContent =
+                    , cellContent =
                         Image
                             { caption = Nothing
                             , size =
@@ -119,7 +119,7 @@ sampleDoc1 =
                             , src = UrlSrc "images/Station_Tourisme_RVB.jpg"
                             }
                     }
-                , Leaf
+                , Cell
                     { attrs = []
                     , id =
                         { classes =
@@ -127,7 +127,7 @@ sampleDoc1 =
                         , styleId = Nothing
                         , uid = 11
                         }
-                    , leafContent =
+                    , cellContent =
                         Image
                             { caption = Nothing
                             , size =
@@ -137,7 +137,7 @@ sampleDoc1 =
                             , src = UrlSrc "images/Village fleuri.png"
                             }
                     }
-                , Leaf
+                , Cell
                     { attrs = []
                     , id =
                         { classes =
@@ -145,7 +145,7 @@ sampleDoc1 =
                         , styleId = Nothing
                         , uid = 10
                         }
-                    , leafContent =
+                    , cellContent =
                         Image
                             { caption = Nothing
                             , size =
@@ -155,7 +155,7 @@ sampleDoc1 =
                             , src = UrlSrc "images/StationVertegf.jpg"
                             }
                     }
-                , Leaf
+                , Cell
                     { attrs = []
                     , id =
                         { classes =
@@ -163,7 +163,7 @@ sampleDoc1 =
                         , styleId = Nothing
                         , uid = 9
                         }
-                    , leafContent =
+                    , cellContent =
                         Image
                             { caption = Nothing
                             , size =
@@ -174,39 +174,39 @@ sampleDoc1 =
                             }
                     }
                 ]
-            , Node
+            , Container
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
-                , nodeLabel = DocColumn
+                , containerLabel = DocColumn
                 }
-                [ Leaf
+                [ Cell
                     { attrs = []
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-                    , leafContent =
+                    , cellContent =
                         TextBlock
                             [ Paragraph []
                                 [ Text [] "L'altitude minimale, 785 mètres, se trouve à l'est, au lieu-dit les Chazeaux, là où la Couze Chambon quitte le territoire communal et entre sur celui de Saint-Nectaire. L'altitude maximale avec 1 500 mètres est localisée au nord-ouest, sur les pentes nord du puy de la Croix-Morand, en limite de la commune de Chambon-sur-Lac. "
                                 ]
                             ]
                     }
-                , Leaf
+                , Cell
                     { attrs = []
                     , id =
                         { classes = Set.fromList []
                         , styleId = Nothing
                         , uid = 10
                         }
-                    , leafContent =
+                    , cellContent =
                         Image
                             { caption = Nothing
                             , size = { imgHeight = 250, imgWidth = 377 }
                             , src = UrlSrc "images/lac3.jpg"
                             }
                     }
-                , Leaf
+                , Cell
                     { attrs = []
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-                    , leafContent =
+                    , cellContent =
                         TextBlock
                             [ Paragraph []
                                 [ Text [] "Établi le long de la Couze Chambon et à l'intersection des routes départementales 5 et 996, le village de Murol se situe en distances orthodromiques, sept kilomètres au nord de Besse-en-Chandesse et seize kilomètres à l'est de La Bourboule."
@@ -218,15 +218,15 @@ sampleDoc1 =
                     }
                 ]
             ]
-        , Node
+        , Container
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
-            , nodeLabel = DocColumn
+            , containerLabel = DocColumn
             }
-            [ Leaf
+            [ Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 9 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size =
@@ -236,10 +236,10 @@ sampleDoc1 =
                         , src = UrlSrc "images/prélong.jpg"
                         }
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size =
@@ -249,10 +249,10 @@ sampleDoc1 =
                         , src = UrlSrc "images/museePeintre.jpeg"
                         }
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size =
@@ -262,10 +262,10 @@ sampleDoc1 =
                         , src = UrlSrc "images/bourg2.jpg"
                         }
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size = { imgHeight = 772, imgWidth = 576 }
@@ -273,49 +273,49 @@ sampleDoc1 =
                         }
                 }
             ]
-        , Node
+        , Container
             { attrs = []
             , id =
                 { classes = Set.fromList [ "sameHeightImgsRow" ]
                 , styleId = Nothing
                 , uid = 4
                 }
-            , nodeLabel = DocRow
+            , containerLabel = DocRow
             }
-            [ Leaf
+            [ Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size = { imgHeight = 250, imgWidth = 333 }
                         , src = UrlSrc "images/prélong.jpg"
                         }
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size = { imgHeight = 250, imgWidth = 333 }
                         , src = UrlSrc "images/museePeintre.jpeg"
                         }
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size = { imgHeight = 250, imgWidth = 377 }
                         , src = UrlSrc "images/bourg2.jpg"
                         }
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size =
@@ -326,49 +326,49 @@ sampleDoc1 =
                         }
                 }
             ]
-        , Leaf
+        , Cell
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
-            , leafContent =
+            , cellContent =
                 TextBlock
                     [ TBPrimitive <|
                         Heading [] ( 1, "Office de Tourisme communautaire du massif du Sancy" )
                     ]
             }
-        , Node
+        , Container
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 2 }
-            , nodeLabel = TextColumn
+            , containerLabel = TextColumn
             }
-            [ Leaf
+            [ Cell
                 { attrs = [ AlignLeft ]
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
-                , leafContent =
+                , cellContent =
                     Image
                         { caption = Nothing
                         , size = { imgHeight = 300, imgWidth = 400 }
                         , src = UrlSrc "images/OT.jpg"
                         }
                 }
-            , Node
+            , Container
                 { attrs = [ AlignRight ]
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 3 }
-                , nodeLabel = DocColumn
+                , containerLabel = DocColumn
                 }
-                [ Leaf
+                [ Cell
                     { attrs = []
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
-                    , leafContent =
+                    , cellContent =
                         Image
                             { caption = Nothing
                             , size = { imgHeight = 167, imgWidth = 125 }
                             , src = UrlSrc "images/sancy_hiver.jpg"
                             }
                     }
-                , Leaf
+                , Cell
                     { attrs = []
                     , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
-                    , leafContent =
+                    , cellContent =
                         TextBlock
                             [ TBPrimitive <|
                                 Link []
@@ -380,15 +380,15 @@ sampleDoc1 =
                     }
                 ]
             ]
-        , Node
+        , Container
             { attrs = []
             , id = { classes = Set.fromList [], styleId = Nothing, uid = 1 }
-            , nodeLabel = TextColumn
+            , containerLabel = TextColumn
             }
-            [ Leaf
+            [ Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
-                , leafContent =
+                , cellContent =
                     TextBlock
                         [ TBPrimitive <|
                             Heading [] ( 3, "Adresse:" )
@@ -405,10 +405,10 @@ sampleDoc1 =
                             Heading [] ( 3, "Horaires:" )
                         ]
                 }
-            , Leaf
+            , Cell
                 { attrs = []
                 , id = { classes = Set.fromList [], styleId = Nothing, uid = 2 }
-                , leafContent =
+                , cellContent =
                     Table
                         { style = "bleu-blanc"
                         , nbrRows = 3

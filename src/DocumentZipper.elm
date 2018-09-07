@@ -14,7 +14,7 @@ type alias DocZipper =
 
 
 type alias Context =
-    { parent : NodeValue
+    { parent : ContainerValue
     , left : List Document
     , right : List Document
     }
@@ -40,13 +40,13 @@ findInCurrent docZipper p =
 
         helper doc_ =
             case doc of
-                Node _ children ->
+                Container _ children ->
                     if p doc then
                         [ doc_ ]
                     else
                         List.concatMap helper children
 
-                Leaf _ ->
+                Cell _ ->
                     if p doc then
                         [ doc_ ]
                     else
@@ -78,7 +78,7 @@ zipUp { current, contexts } =
 
         { parent, left, right } :: cs ->
             Just
-                { current = Node parent (left ++ [ current ] ++ right)
+                { current = Container parent (left ++ [ current ] ++ right)
                 , contexts = cs
                 }
 
@@ -86,13 +86,13 @@ zipUp { current, contexts } =
 zipDown : (Document -> Bool) -> DocZipper -> Maybe DocZipper
 zipDown p { current, contexts } =
     case current of
-        Leaf _ ->
+        Cell _ ->
             Nothing
 
-        Node _ [] ->
+        Container _ [] ->
             Nothing
 
-        Node nv ds ->
+        Container nv ds ->
             let
                 ( l, r ) =
                     break p ds
@@ -188,18 +188,6 @@ swapLeft { current, contexts } =
 
 addNewLeft : Int -> DocZipper -> Maybe DocZipper
 addNewLeft nextUid { current, contexts } =
-    let
-        newDoc =
-            Leaf
-                { leafContent = EmptyLeaf
-                , id =
-                    { uid = nextUid
-                    , styleId = Nothing
-                    , classes = Set.empty
-                    }
-                , attrs = []
-                }
-    in
     case contexts of
         [] ->
             Nothing
@@ -209,7 +197,7 @@ addNewLeft nextUid { current, contexts } =
                 { current = current
                 , contexts =
                     { parent = parent
-                    , left = left ++ [ newDoc ]
+                    , left = left ++ [ emptyCell nextUid ]
                     , right = right
                     }
                         :: cs
@@ -218,18 +206,6 @@ addNewLeft nextUid { current, contexts } =
 
 addNewRight : Int -> DocZipper -> Maybe DocZipper
 addNewRight nextUid { current, contexts } =
-    let
-        newDoc =
-            Leaf
-                { leafContent = EmptyLeaf
-                , id =
-                    { uid = nextUid
-                    , styleId = Nothing
-                    , classes = Set.empty
-                    }
-                , attrs = []
-                }
-    in
     case contexts of
         [] ->
             Nothing
@@ -240,7 +216,7 @@ addNewRight nextUid { current, contexts } =
                 , contexts =
                     { parent = parent
                     , left = left
-                    , right = newDoc :: right
+                    , right = emptyCell nextUid :: right
                     }
                         :: cs
                 }
@@ -277,7 +253,7 @@ deleteCurrent { current, contexts } =
 
         { parent, left, right } :: cs ->
             Just
-                { current = Node parent (left ++ right)
+                { current = Container parent (left ++ right)
                 , contexts = cs
                 }
 
@@ -289,26 +265,14 @@ safeDeleteCurrent nextUid { current, contexts } =
             Nothing
 
         { parent, left, right } :: cs ->
-            let
-                newDoc =
-                    Leaf
-                        { leafContent = EmptyLeaf
-                        , id =
-                            { uid = nextUid
-                            , styleId = Nothing
-                            , classes = Set.empty
-                            }
-                        , attrs = []
-                        }
-            in
             if left == [] && right == [] then
                 Just
-                    { current = Node parent [ newDoc ]
+                    { current = Container parent [ emptyCell nextUid ]
                     , contexts = cs
                     }
             else
                 Just
-                    { current = Node parent (left ++ right)
+                    { current = Container parent (left ++ right)
                     , contexts = cs
                     }
 
@@ -341,15 +305,15 @@ addZipperHandlers ({ current, contexts } as dz) =
 
         addHandlersToChild doc =
             case doc of
-                Leaf ({ leafContent, id, attrs } as lv) ->
-                    Leaf
+                Cell ({ cellContent, id, attrs } as lv) ->
+                    Cell
                         { lv
                             | attrs =
                                 handlers id ++ attrs
                         }
 
-                Node ({ nodeLabel, id, attrs } as nv) children ->
-                    Node
+                Container ({ containerLabel, id, attrs } as nv) children ->
+                    Container
                         { nv
                             | attrs =
                                 handlers id ++ attrs
@@ -357,20 +321,20 @@ addZipperHandlers ({ current, contexts } as dz) =
                         children
     in
     case toogleClass "selected" current of
-        Node nv children ->
+        Container nv children ->
             { dz
-                | current = Node nv (List.map addHandlersToChild children)
+                | current = Container nv (List.map addHandlersToChild children)
             }
 
-        Leaf ({ leafContent, id, attrs } as lv) ->
+        Cell ({ cellContent, id, attrs } as lv) ->
             let
-                newLeaf =
-                    Leaf
+                newCell =
+                    Cell
                         { lv
                             | attrs =
-                                ZipperAttr id.uid OnLeafClick :: attrs
+                                ZipperAttr id.uid OnCellClick :: attrs
                         }
             in
             { dz
-                | current = newLeaf
+                | current = newCell
             }

@@ -47,21 +47,21 @@ responsivePreFormat config document =
             classifyDevice config
     in
     case document of
-        Node ({ nodeLabel, id, attrs } as nv) children ->
-            case nodeLabel of
+        Container ({ containerLabel, id, attrs } as nv) children ->
+            case containerLabel of
                 DocColumn ->
                     let
                         addColImgClass doc =
                             case doc of
-                                (Leaf lv) as l ->
-                                    case lv.leafContent of
+                                (Cell lv) as l ->
+                                    case lv.cellContent of
                                         Image meta ->
                                             let
                                                 lId =
                                                     lv.id
                                             in
-                                            Leaf
-                                                { leafContent = lv.leafContent
+                                            Cell
+                                                { cellContent = lv.cellContent
                                                 , id = { lId | classes = Set.insert "colImg" lId.classes }
                                                 , attrs = lv.attrs
                                                 }
@@ -75,7 +75,7 @@ responsivePreFormat config document =
                         children_ =
                             List.map addColImgClass children
                     in
-                    Node nv (List.map (responsivePreFormat config) children_)
+                    Container nv (List.map (responsivePreFormat config) children_)
 
                 DocRow ->
                     if
@@ -88,21 +88,21 @@ responsivePreFormat config document =
 
                             Nothing ->
                                 renderSameHeightImgRow config.width document
-                        --Node nv (List.map (responsivePreFormat config) children)
+                        --Container nv (List.map (responsivePreFormat config) children)
                     else
-                        Node nv (List.map (responsivePreFormat config) children)
+                        Container nv (List.map (responsivePreFormat config) children)
 
                 TextColumn ->
                     if device.class == Phone || device.class == Tablet then
-                        responsivePreFormat config <| Node { nv | nodeLabel = DocColumn } children
+                        responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
                     else
-                        Node nv (List.map (responsivePreFormat config) children)
+                        Container nv (List.map (responsivePreFormat config) children)
 
                 ResponsiveBloc ->
-                    Node nv (List.map (responsivePreFormat config) children)
+                    Container nv (List.map (responsivePreFormat config) children)
 
-        (Leaf { leafContent, id, attrs }) as l ->
-            case leafContent of
+        (Cell { cellContent, id, attrs }) as l ->
+            case cellContent of
                 Image meta ->
                     l
 
@@ -115,8 +115,8 @@ responsivePreFormat config document =
                             && meta.nbrCols
                             > meta.nbrRows
                     then
-                        Leaf
-                            { leafContent =
+                        Cell
+                            { cellContent =
                                 Table (flipTable meta)
                             , id = id
                             , attrs = attrs
@@ -127,27 +127,27 @@ responsivePreFormat config document =
                 CustomElement s ->
                     l
 
-                EmptyLeaf ->
+                EmptyCell ->
                     l
 
 
 renderSameHeightImgRow : Int -> Document -> Document
 renderSameHeightImgRow containerWidth document =
     case document of
-        Leaf _ ->
+        Cell _ ->
             document
 
-        Node id_ children ->
+        Container id_ children ->
             let
                 images =
                     List.foldr
                         (\doc acc ->
                             case doc of
-                                Node _ _ ->
+                                Container _ _ ->
                                     acc
 
-                                Leaf lv ->
-                                    case lv.leafContent of
+                                Cell lv ->
+                                    case lv.cellContent of
                                         Image ({ src, caption, size } as meta) ->
                                             { meta = meta
                                             , id = lv.id
@@ -228,11 +228,11 @@ renderSameHeightImgRow containerWidth document =
                         )
                         imgsScaledToMinHeight
             in
-            Node id_ <|
+            Container id_ <|
                 List.map
                     (\im ->
-                        Leaf
-                            { leafContent = Image im.meta
+                        Cell
+                            { cellContent = Image im.meta
                             , id = im.id
                             , attrs =
                                 [ Height (floor im.newHeight)
