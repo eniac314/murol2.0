@@ -60,6 +60,9 @@ type Msg
     | CreateNewContainer Document
     | CreateNewCell Document
     | DeleteSelected
+    | Copy
+    | Cut
+    | Paste
     | Undo
     | KeyDown String
     | KeyUp String
@@ -90,6 +93,7 @@ type alias Model =
     { config : Config Msg
     , document : DocZipper
     , undoCache : List DocZipper
+    , clipboard : Maybe Document
     , nextUid : Int
     , controlDown : Bool
     , menuClicked : Bool
@@ -136,6 +140,7 @@ init doc flags =
     in
     ( { config = config
       , document = initZip doc_
+      , clipboard = Nothing
       , undoCache = []
       , nextUid = docSize doc_
       , controlDown = False
@@ -369,6 +374,53 @@ update msg model =
             , Cmd.none
             )
 
+        Copy ->
+            ( { model
+                | clipboard =
+                    Just <| extractDoc model.document
+              }
+            , Cmd.none
+            )
+
+        Cut ->
+            let
+                currentDoc =
+                    extractDoc model.document
+
+                newDoc =
+                    safeDeleteCurrent model.nextUid model.document
+            in
+            ( { model
+                | document =
+                    Maybe.withDefault model.document
+                        newDoc
+                , undoCache =
+                    model.document
+                        :: model.undoCache
+                        |> List.take undoCacheDepth
+                , nextUid = model.nextUid + 1
+                , clipboard = Just currentDoc
+              }
+            , Cmd.none
+            )
+
+        Paste ->
+            case ( extractDoc model.document, model.clipboard ) of
+                ( Container cv xs, Just doc ) ->
+                    let
+                        newDoc =
+                            Container cv (xs ++ [ doc ])
+                    in
+                    ( { model
+                        | document = updateCurrent newDoc model.document
+                        , clipboard = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         Undo ->
             case model.undoCache of
                 [] ->
@@ -520,7 +572,17 @@ view model =
                             []
                        )
                 )
-                [ mainInterface model
+                [ mainInterface
+                    { clicked = model.menuClicked
+
+                    --, flags = []
+                    , currentFocus = model.menuFocused
+                    , isInPlugin = model.currentPlugin /= Nothing
+                    , clipboardEmpty = model.clipboard == Nothing
+                    , undoCacheEmpty = model.undoCache == []
+                    , previewMode = model.previewMode
+                    , containersBkgColors = model.config.containersBkgColors
+                    }
                 , row
                     [ width fill
 
@@ -552,113 +614,142 @@ view model =
     }
 
 
-mainInterface : Model -> Element Msg
-mainInterface model =
+type alias MenuConfig =
+    { clicked : Bool
+    , currentFocus : String
+    , isInPlugin : Bool
+    , clipboardEmpty : Bool
+    , undoCacheEmpty : Bool
+    , previewMode : PreviewMode
+    , containersBkgColors : Bool
+    }
+
+
+mainInterface : MenuConfig -> Element Msg
+mainInterface config =
+    let
+        interfaceButton buttonConfig =
+            Input.button (menuButtonStyle buttonConfig.isActive)
+                { onPress =
+                    if buttonConfig.isActive then
+                        buttonConfig.msg
+                    else
+                        Nothing
+                , label =
+                    case buttonConfig.icons of
+                        [] ->
+                            el [] (text buttonConfig.labelText)
+
+                        icons_ ->
+                            row [ spacing 10 ]
+                                [ row
+                                    []
+                                    (List.map (\i -> el [] (html <| i)) icons_)
+                                , text buttonConfig.labelText
+                                ]
+                }
+
+        defButtonConfig =
+            { icons = []
+            , labelText = ""
+            , isActive = True
+            , msg = Nothing
+            }
+
+        menuButtonStyle isActive =
+            [ Border.rounded 5
+            , Font.center
+            , centerY
+            , paddingXY 5 3
+            , mouseOver
+                [ Background.color (rgb 0.95 0.95 0.95) ]
+            ]
+                ++ (if isActive then
+                        [ pointer ]
+                    else
+                        [ Font.color (rgb 0.7 0.7 0.7)
+                        , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                        ]
+                   )
+    in
     column
         [ width fill
         , Font.size 15
         , htmlAttribute <| HtmlAttr.id "mainInterface"
         ]
-        [ mainMenu model.menuClicked [] model.menuFocused
+        [ mainMenu config
         , row
             [ width fill
             , spacing 15
             , paddingXY 15 10
             , Background.color (rgb 0.9 0.9 0.9)
             ]
-            [ Input.button buttonStyle
-                { onPress = ifNotInPlugin model.currentPlugin AddNewLeft
-                , label =
-                    row [ spacing 10 ]
-                        [ row
-                            []
-                            [ el [] (html <| plusSquare)
-                            , el [] (html <| chevronsUp)
-                            ]
-                        , text "Ajouter au dessus"
+            (List.map interfaceButton <|
+                [ { defButtonConfig
+                    | icons = [ plusSquare ]
+                    , labelText = "Ajouter"
+                    , msg = Nothing
+                  }
+                , { defButtonConfig
+                    | icons =
+                        [ plusSquare
+                        , chevronsUp
                         ]
-                }
-            , Input.button buttonStyle
-                { onPress = ifNotInPlugin model.currentPlugin AddNewRight
-                , label =
-                    row [ spacing 10 ]
-                        [ row
-                            []
-                            [ el [] (html <| plusSquare)
-                            , el [] (html <| chevronsDown)
-                            ]
-                        , text "Ajouter en dessous"
+                    , labelText = "Ajouter au dessus"
+                    , msg = Just AddNewLeft
+                  }
+                , { defButtonConfig
+                    | icons =
+                        [ plusSquare
+                        , chevronsDown
                         ]
-                }
-
-            --, Input.button buttonStyle
-            --    { onPress = Nothing
-            --    , label =
-            --     html <| minusSquare
-            --    }
-            , Input.button buttonStyle
-                { onPress =
-                    Just EditCell
-                , label =
-                    row [ spacing 10 ]
-                        [ el [] (html <| edit)
-                        , text "Modifier"
-                        ]
-                }
-            , Input.button buttonStyle
-                { onPress = ifNotInPlugin model.currentPlugin DeleteSelected
-                , label =
-                    row [ spacing 10 ]
-                        [ el [] (html <| xSquare)
-                        , text "Supprimer"
-                        ]
-                }
-            , Input.button buttonStyle
-                { onPress = ifNotInPlugin model.currentPlugin SwapLeft
-                , label =
-                    row [ spacing 10 ]
-                        [ el [] (html <| chevronsUp)
-                        , text "Monter"
-                        ]
-                }
-            , Input.button buttonStyle
-                { onPress = ifNotInPlugin model.currentPlugin SwapRight
-                , label =
-                    row [ spacing 10 ]
-                        [ el [] (html <| chevronsDown)
-                        , text "Descendre"
-                        ]
-                }
-            , Input.button buttonStyle
-                { onPress = Just RefreshSizes
-                , label =
-                    row [ spacing 10 ]
-                        [ el [] (html <| refreshCw)
-                        , text "Rafraichir"
-                        ]
-                }
-            , Input.button buttonStyle
-                { onPress = Nothing
-                , label =
-                    row [ spacing 10 ]
-                        [ el [] (html <| settings)
-                        , text "Préférences"
-                        ]
-                }
-            ]
+                    , labelText = "Ajouter en dessous"
+                    , msg = Just AddNewRight
+                  }
+                , { defButtonConfig
+                    | icons = [ edit ]
+                    , labelText = "Modifier"
+                    , msg = Just EditCell
+                  }
+                , { defButtonConfig
+                    | icons = [ xSquare ]
+                    , labelText = "Supprimer"
+                    , msg = Just DeleteSelected
+                  }
+                , { defButtonConfig
+                    | icons = [ chevronsUp ]
+                    , labelText = "Monter"
+                    , msg = Just SwapLeft
+                  }
+                , { defButtonConfig
+                    | icons = [ chevronsDown ]
+                    , labelText = "Descendre"
+                    , msg = Just SwapRight
+                  }
+                , { defButtonConfig
+                    | icons = [ refreshCw ]
+                    , labelText = "Rafraichir"
+                    , msg = Just RefreshSizes
+                  }
+                , { defButtonConfig
+                    | icons = [ settings ]
+                    , labelText = "Préférences"
+                    , msg = Nothing
+                  }
+                ]
+            )
         ]
 
 
-ifNotInPlugin currentPlugin msg =
-    case currentPlugin of
-        Nothing ->
-            Just msg
-
-        Just _ ->
-            Nothing
+ifNotInPlugin isInPlugin msg =
+    if isInPlugin then
+        Nothing
+    else
+        Just msg
 
 
-mainMenu clicked flags currentFocus =
+mainMenu : MenuConfig -> Element Msg
+mainMenu config =
     let
         topEntry ( label, submenu ) =
             el
@@ -667,33 +758,40 @@ mainMenu clicked flags currentFocus =
                  , onMouseEnter (TopEntryFocused label)
                  , onClick MenuClick
                  , paddingXY 10 5
-                 , pointer
                  ]
-                    ++ (if clicked && currentFocus == label then
+                    ++ (if config.clicked && config.currentFocus == label then
                             [ below
                                 (column
-                                    [ spacing 15
+                                    [ spacing 5
+                                    , paddingXY 0 5
                                     , Background.color (rgb 1 1 1)
                                     , Border.width 1
                                     , Border.color (rgb 0.8 0.8 0.8)
                                     ]
-                                    (List.map groupEntry submenu)
+                                    (List.map groupEntry submenu
+                                        |> List.intersperse
+                                            (el
+                                                [ width fill
+                                                , Font.center
+                                                , Border.widthEach
+                                                    { top = 1
+                                                    , left = 0
+                                                    , right = 0
+                                                    , bottom = 0
+                                                    }
+                                                , Border.color (rgb 0.9 0.9 0.9)
+                                                ]
+                                                Element.none
+                                            )
+                                    )
                                 )
                             , Background.color (rgb 0.9 0.9 0.9)
-
-                            --, Border.widthEach
-                            --    { top = 1
-                            --    , bottom = 0
-                            --    , left = 1
-                            --    , right = 1
-                            --    }
-                            --, Border.color (rgb 0.8 0.8 0.8)
                             ]
                         else
                             []
                        )
                 )
-                (text label)
+                (el [ pointer ] (text label))
 
         groupEntry group =
             column
@@ -702,36 +800,68 @@ mainMenu clicked flags currentFocus =
                 ]
                 (List.map menuEntry group)
 
-        menuEntry { label, msg, flag, icon } =
+        menuEntry { label, msg, icon, isActive, isSelected, isSelectable } =
             row
-                [ onClick msg
-                , mouseOver
+                ([ width fill
+                 , paddingXY 10 5
+                 , mouseOver
                     [ Background.color (rgb 0.9 0.9 0.9) ]
-                , width fill
-                , paddingXY 10 5
-                ]
-                [ text label ]
+                 , spacing 5
+                 ]
+                    ++ (if isActive then
+                            [ onClick msg
+                            , pointer
+                            ]
+                        else
+                            [ Font.color (rgb 0.7 0.7 0.7)
+                            , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                            ]
+                       )
+                )
+                (if isSelected then
+                    [ el [] (html <| checkSquare 15)
+                    , text label
+                    ]
+                 else if isSelectable then
+                    [ el [] (html <| square 15)
+                    , text label
+                    ]
+                 else
+                    [ text label ]
+                )
 
         defEntry =
             { label = ""
             , msg = NoOp
-            , flag = Nothing
             , icon = Nothing
+            , isActive = True
+            , isSelectable = False
+            , isSelected = False
             }
 
         menuData =
-            --Dict.fromList
             [ ( "Fichier"
               , [ [ { defEntry | label = "Ouvrir page" }
                   , { defEntry | label = "Sauvegarder" }
-                  , { defEntry | label = "Retour menu principal" }
+                  ]
+                , [ { defEntry | label = "Retour menu principal" }
                   ]
                 ]
               )
             , ( "Mise en page"
-              , [ [ { defEntry | label = "Copier" }
-                  , { defEntry | label = "Couper" }
-                  , { defEntry | label = "Coller" }
+              , [ [ { defEntry
+                        | label = "Copier"
+                        , msg = Copy
+                    }
+                  , { defEntry
+                        | label = "Couper"
+                        , msg = Cut
+                    }
+                  , { defEntry
+                        | label = "Coller"
+                        , msg = Paste
+                        , isActive = not config.clipboardEmpty
+                    }
                   ]
                 , [ { defEntry
                         | label = "Annuler"
@@ -739,45 +869,51 @@ mainMenu clicked flags currentFocus =
                     }
                   ]
                 , [ { defEntry | label = "Supprimer" }
-                  , { defEntry | label = "Modifier selection" }
+                  , { defEntry
+                        | label = "Modifier selection"
+                        , msg = EditCell
+                    }
                   ]
                 ]
               )
             , ( "Affichage"
               , [ [ { defEntry
                         | label = "Structure du document"
-                        , flag = Just "showStruct"
                     }
                   , { defEntry
                         | label = "Editeur de feuille de style"
-                        , flag = Just "showStyleSheetEditor"
                     }
                   ]
                 , [ { defEntry
                         | label = "Grand écran"
-                        , flag = Just "BigScreen"
                         , msg = SetPreviewMode PreviewBigScreen
+                        , isSelected = config.previewMode == PreviewBigScreen
+                        , isSelectable = True
                     }
                   , { defEntry
                         | label = "Petit écran"
-                        , flag = Just "SmallScreen"
                         , msg = SetPreviewMode PreviewScreen
+                        , isSelected = config.previewMode == PreviewScreen
+                        , isSelectable = True
                     }
                   , { defEntry
                         | label = "Tablette"
-                        , flag = Just "Tablet"
                         , msg = SetPreviewMode PreviewTablet
+                        , isSelected = config.previewMode == PreviewTablet
+                        , isSelectable = True
                     }
                   , { defEntry
                         | label = "Téléphone"
-                        , flag = Just "Phone"
                         , msg = SetPreviewMode PreviewPhone
+                        , isSelected = config.previewMode == PreviewPhone
+                        , isSelectable = True
                     }
                   ]
                 , [ { defEntry
                         | label = "Couleurs conteneurs"
-                        , flag = Just "ContainersColors"
                         , msg = ToogleCountainersColors
+                        , isSelected = config.containersBkgColors
+                        , isSelectable = True
                     }
                   ]
                 ]
@@ -790,8 +926,7 @@ mainMenu clicked flags currentFocus =
             ]
     in
     row
-        [--onMouseLeave MenuClickOff
-        ]
+        []
         (List.map topEntry menuData)
 
 

@@ -20,6 +20,21 @@ svgFeatherIcon className =
         ]
 
 
+customSvgFeatherIcon : Int -> String -> List (Svg msg) -> Html msg
+customSvgFeatherIcon size className =
+    svg
+        [ class <| "feather feather-" ++ className
+        , fill "none"
+        , height (String.fromInt size)
+        , stroke "currentColor"
+        , strokeLinecap "round"
+        , strokeLinejoin "round"
+        , strokeWidth "2"
+        , viewBox "0 0 24 24"
+        , width (String.fromInt size)
+        ]
+
+
 link2 : Html msg
 link2 =
     svgFeatherIcon "link-2"
@@ -288,4 +303,29 @@ refreshCw =
         [ Svg.polyline [ points "23 4 23 10 17 10" ] []
         , Svg.polyline [ points "1 20 1 14 7 14" ] []
         , Svg.path [ d "M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" ] []
+        ]
+
+
+checkSquare : Int -> Html msg
+checkSquare size =
+    customSvgFeatherIcon size
+        "check-square"
+        [ Svg.polyline [ points "9 11 12 14 22 4" ] []
+        , Svg.path [ d "M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" ] []
+        ]
+
+
+square : Int -> Html msg
+square size =
+    customSvgFeatherIcon size
+        "square"
+        [ Svg.rect
+            [ Svg.Attributes.x "3"
+            , y "3"
+            , width "18"
+            , height "18"
+            , rx "2"
+            , ry "2"
+            ]
+            []
         ]

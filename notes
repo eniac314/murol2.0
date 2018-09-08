@@ -1,18 +1,13 @@
+- ajouter simple (insert in container)? 
+
 - edit features for containers
 
 - auto scroll to new leaf
-
-- ajouter copy/cut/paste
-
-- ameliorer zip up?
-
-- separation groupes main menu
 
 - refaire keyboard subs 
 
 - faire un parser String <-> TextBloc
 
-- Table.elm functions DocTable <-> TableMeta
 
 - 2 possibiltés pour les custom leaves:
 	* hardcoded
@@ -47,10 +42,6 @@
 	* video
 	* customElement
 
-- make menu flag system
-
 - remove empty docs before saving
 
 - check elm test for testing uuid uniqueness invariants
-
-- dblClick to edit cell?
