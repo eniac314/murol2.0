@@ -1,3 +1,5 @@
+- fix add sizetracked ids happening only at init time!!
+
 - ajouter simple (insert in container)? 
 
 - edit features for containers
@@ -45,3 +47,5 @@
 - remove empty docs before saving
 
 - check elm test for testing uuid uniqueness invariants
+
+- if working with ports check billstclair/elm-port-funnel

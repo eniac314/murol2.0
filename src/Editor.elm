@@ -252,6 +252,10 @@ update msg model =
                     ( { model
                         | document = newDocument
                       }
+                      --, Cmd.batch
+                      --    [ jumpToSelection
+                      --        (getStyleId <| extractDoc newDocument)
+                      --    ]
                     , Cmd.none
                     )
 
@@ -580,6 +584,14 @@ view model =
                     , isInPlugin = model.currentPlugin /= Nothing
                     , clipboardEmpty = model.clipboard == Nothing
                     , undoCacheEmpty = model.undoCache == []
+                    , selectionIsRoot = zipUp model.document == Nothing
+                    , selectionIsContainer =
+                        case extractDoc model.document of
+                            Container _ _ ->
+                                True
+
+                            _ ->
+                                False
                     , previewMode = model.previewMode
                     , containersBkgColors = model.config.containersBkgColors
                     }
@@ -620,6 +632,8 @@ type alias MenuConfig =
     , isInPlugin : Bool
     , clipboardEmpty : Bool
     , undoCacheEmpty : Bool
+    , selectionIsRoot : Bool
+    , selectionIsContainer : Bool
     , previewMode : PreviewMode
     , containersBkgColors : Bool
     }
@@ -652,7 +666,7 @@ mainInterface config =
         defButtonConfig =
             { icons = []
             , labelText = ""
-            , isActive = True
+            , isActive = not config.isInPlugin
             , msg = Nothing
             }
 
@@ -689,6 +703,9 @@ mainInterface config =
                     | icons = [ plusSquare ]
                     , labelText = "Ajouter"
                     , msg = Nothing
+                    , isActive =
+                        not config.isInPlugin
+                            && config.selectionIsContainer
                   }
                 , { defButtonConfig
                     | icons =
@@ -697,6 +714,9 @@ mainInterface config =
                         ]
                     , labelText = "Ajouter au dessus"
                     , msg = Just AddNewLeft
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
                   }
                 , { defButtonConfig
                     | icons =
@@ -705,47 +725,58 @@ mainInterface config =
                         ]
                     , labelText = "Ajouter en dessous"
                     , msg = Just AddNewRight
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
                   }
                 , { defButtonConfig
                     | icons = [ edit ]
                     , labelText = "Modifier"
                     , msg = Just EditCell
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsContainer
+                            && not config.selectionIsRoot
                   }
                 , { defButtonConfig
                     | icons = [ xSquare ]
                     , labelText = "Supprimer"
                     , msg = Just DeleteSelected
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
                   }
                 , { defButtonConfig
                     | icons = [ chevronsUp ]
                     , labelText = "Monter"
                     , msg = Just SwapLeft
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
                   }
                 , { defButtonConfig
                     | icons = [ chevronsDown ]
                     , labelText = "Descendre"
                     , msg = Just SwapRight
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
                   }
                 , { defButtonConfig
                     | icons = [ refreshCw ]
                     , labelText = "Rafraichir"
                     , msg = Just RefreshSizes
+                    , isActive = True
                   }
                 , { defButtonConfig
                     | icons = [ settings ]
                     , labelText = "Préférences"
                     , msg = Nothing
+                    , isActive = False
                   }
                 ]
             )
         ]
-
-
-ifNotInPlugin isInPlugin msg =
-    if isInPlugin then
-        Nothing
-    else
-        Just msg
 
 
 mainMenu : MenuConfig -> Element Msg
@@ -841,10 +872,19 @@ mainMenu config =
 
         menuData =
             [ ( "Fichier"
-              , [ [ { defEntry | label = "Ouvrir page" }
-                  , { defEntry | label = "Sauvegarder" }
+              , [ [ { defEntry
+                        | label = "Ouvrir page"
+                        , isActive = False && not config.isInPlugin
+                    }
+                  , { defEntry
+                        | label = "Sauvegarder"
+                        , isActive = False && not config.isInPlugin
+                    }
                   ]
-                , [ { defEntry | label = "Retour menu principal" }
+                , [ { defEntry
+                        | label = "Retour menu principal"
+                        , isActive = False && not config.isInPlugin
+                    }
                   ]
                 ]
               )
@@ -852,26 +892,42 @@ mainMenu config =
               , [ [ { defEntry
                         | label = "Copier"
                         , msg = Copy
+                        , isActive = not config.isInPlugin
                     }
                   , { defEntry
                         | label = "Couper"
                         , msg = Cut
+                        , isActive = not config.isInPlugin
                     }
                   , { defEntry
                         | label = "Coller"
                         , msg = Paste
-                        , isActive = not config.clipboardEmpty
+                        , isActive =
+                            not config.clipboardEmpty
+                                && not config.isInPlugin
                     }
                   ]
                 , [ { defEntry
                         | label = "Annuler"
                         , msg = Undo
+                        , isActive =
+                            not config.undoCacheEmpty
+                                && not config.isInPlugin
                     }
                   ]
-                , [ { defEntry | label = "Supprimer" }
+                , [ { defEntry
+                        | label = "Supprimer"
+                        , isActive =
+                            not config.isInPlugin
+                                && not config.selectionIsRoot
+                    }
                   , { defEntry
                         | label = "Modifier selection"
                         , msg = EditCell
+                        , isActive =
+                            not config.isInPlugin
+                                && not config.selectionIsContainer
+                                && not config.selectionIsRoot
                     }
                   ]
                 ]
@@ -879,9 +935,13 @@ mainMenu config =
             , ( "Affichage"
               , [ [ { defEntry
                         | label = "Structure du document"
+                        , isSelectable = True
+                        , isActive = False
                     }
                   , { defEntry
                         | label = "Editeur de feuille de style"
+                        , isSelectable = True
+                        , isActive = False
                     }
                   ]
                 , [ { defEntry
@@ -919,7 +979,10 @@ mainMenu config =
                 ]
               )
             , ( "Aide"
-              , [ [ { defEntry | label = "A propos" }
+              , [ [ { defEntry
+                        | label = "A propos"
+                        , isActive = False
+                    }
                   ]
                 ]
               )
@@ -930,15 +993,12 @@ mainMenu config =
         (List.map topEntry menuData)
 
 
-
---|> Dict.values)
-
-
 documentView model =
     column
         [ scrollbarY
         , height fill -- needed to be able to scroll
         , width fill
+        , htmlAttribute <| HtmlAttr.style "id" "documentContainer"
         ]
         [ column
             [ case model.previewMode of
@@ -990,6 +1050,13 @@ pluginView model plugin =
                 }
 
 
+
+--{ createNewCell = \_ -> NoOp
+--, createNewContainer = \_ -> NoOp
+--, nextUid = model.nextUid
+--}
+
+
 buttonStyle =
     [ Border.rounded 5
     , Font.center
@@ -1009,6 +1076,18 @@ updateSizes { sizesDict } =
     Dict.keys sizesDict
         |> List.map (\uid -> cmd uid ("sizeTracked" ++ String.fromInt uid))
         |> Cmd.batch
+
+
+jumpToSelection : Maybe String -> Cmd Msg
+jumpToSelection mbSelectionId =
+    case mbSelectionId of
+        Nothing ->
+            Cmd.none
+
+        Just selectionId ->
+            Dom.getViewportOf selectionId
+                |> Task.andThen (\vp -> Dom.setViewportOf "documentContainer" 0 vp.viewport.y)
+                |> Task.attempt (\_ -> NoOp)
 
 
 keyDecoder : Decode.Decoder String

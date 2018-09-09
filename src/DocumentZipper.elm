@@ -309,6 +309,7 @@ addZipperHandlers dz =
         addHandlersToChild doc =
             addAttrs doc (handlers (getUid doc))
 
+        --|> setStyleIdIfNone ("selected" ++ String.fromInt (getUid doc))
         addHandlerToNeighbours doc =
             let
                 path =
@@ -333,8 +334,13 @@ addZipperHandlers dz =
             in
             zipDownPath path newDoc
                 |> Maybe.withDefault doc
+
+        currentWithCssSelectors =
+            toogleClass "selected" current
+
+        --|> setStyleIdIfNone ("selected" ++ String.fromInt (getUid current))
     in
-    case toogleClass "selected" current of
+    case currentWithCssSelectors of
         Container nv children ->
             { contexts = contexts
             , current = Container nv (List.map addHandlersToChild children)

@@ -230,15 +230,6 @@ getUid doc =
             id.uid
 
 
-docSize doc =
-    case doc of
-        Cell _ ->
-            1
-
-        Container _ xs ->
-            List.foldr (\d acc -> docSize d + acc) 1 xs
-
-
 fixUids : Int -> Document -> Document
 fixUids nextUid document =
     case document of
@@ -256,6 +247,58 @@ fixUids nextUid document =
 
         Cell ({ id } as lv) ->
             Cell { lv | id = { id | uid = nextUid } }
+
+
+docSize doc =
+    case doc of
+        Cell _ ->
+            1
+
+        Container _ xs ->
+            List.foldr (\d acc -> docSize d + acc) 1 xs
+
+
+getStyleId doc =
+    case doc of
+        Cell cv ->
+            cv.id.styleId
+
+        Container cv _ ->
+            cv.id.styleId
+
+
+setStyleId sid doc =
+    case doc of
+        Cell ({ cellContent, id, attrs } as cv) ->
+            Cell
+                { cv | id = { id | styleId = Just sid } }
+
+        Container ({ containerLabel, id, attrs } as cv) xs ->
+            Container
+                { cv | id = { id | styleId = Just sid } }
+                xs
+
+
+setStyleIdIfNone sid doc =
+    case doc of
+        Cell ({ cellContent, id, attrs } as cv) ->
+            case id.styleId of
+                Nothing ->
+                    Cell
+                        { cv | id = { id | styleId = Just sid } }
+
+                Just _ ->
+                    doc
+
+        Container ({ containerLabel, id, attrs } as cv) xs ->
+            case id.styleId of
+                Nothing ->
+                    Container
+                        { cv | id = { id | styleId = Just sid } }
+                        xs
+
+                Just _ ->
+                    doc
 
 
 setSizeTrackedDocUids : Document -> ( Document, List Int )
