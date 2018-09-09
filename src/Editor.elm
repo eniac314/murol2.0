@@ -252,11 +252,11 @@ update msg model =
                     ( { model
                         | document = newDocument
                       }
-                      --, Cmd.batch
-                      --    [ jumpToSelection
-                      --        (getStyleId <| extractDoc newDocument)
-                      --    ]
-                    , Cmd.none
+                    , Cmd.batch
+                        [ jumpToSelection
+                            (getHtmlId <| extractDoc newDocument)
+                        ]
+                      --, Cmd.none
                     )
 
         EditCell ->

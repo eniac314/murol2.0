@@ -205,7 +205,7 @@ renderResponsiveBloc config id attrs children =
     ]
 
 
-renderImage config ({ uid, styleId, classes } as id) attrs { src, caption, size } =
+renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, size } =
     let
         device =
             classifyDevice config
@@ -320,8 +320,8 @@ renderEmptyCell config id attrs =
     ]
 
 
-idStyle { customStyles } { uid, styleId, classes } =
-    (styleId
+idStyle { customStyles } { uid, docStyleId, htmlId, classes } =
+    (docStyleId
         |> Maybe.andThen
             (\id ->
                 Dict.get
@@ -330,6 +330,13 @@ idStyle { customStyles } { uid, styleId, classes } =
             )
         |> Maybe.withDefault []
     )
+        ++ (htmlId
+                |> Maybe.map
+                    (\hid ->
+                        [ htmlAttribute <| Attr.id hid ]
+                    )
+                |> Maybe.withDefault []
+           )
         ++ (List.filterMap
                 (\c ->
                     Dict.get
@@ -445,11 +452,6 @@ renderAttrs config attrs =
 
                 Italic ->
                     [ Font.italic ]
-
-                HtmlId s ->
-                    [ Attr.id s
-                        |> htmlAttribute
-                    ]
 
                 ZipperAttr uid zipperEventHandler ->
                     case config.zipperHandlers of

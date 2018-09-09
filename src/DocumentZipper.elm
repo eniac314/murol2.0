@@ -308,8 +308,8 @@ addZipperHandlers dz =
 
         addHandlersToChild doc =
             addAttrs doc (handlers (getUid doc))
+                |> setHtmlIdIfNone ("selected" ++ String.fromInt (getUid doc))
 
-        --|> setStyleIdIfNone ("selected" ++ String.fromInt (getUid doc))
         addHandlerToNeighbours doc =
             let
                 path =
@@ -337,8 +337,7 @@ addZipperHandlers dz =
 
         currentWithCssSelectors =
             toogleClass "selected" current
-
-        --|> setStyleIdIfNone ("selected" ++ String.fromInt (getUid current))
+                |> setHtmlIdIfNone ("selected" ++ String.fromInt (getUid current))
     in
     case currentWithCssSelectors of
         Container nv children ->

@@ -11,12 +11,12 @@ sampleDoc1 : Document
 sampleDoc1 =
     Container
         { attrs = []
-        , id = { classes = Set.fromList [], styleId = Just "root", uid = 0 }
+        , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Just "root", uid = 0 }
         , containerLabel = DocColumn
         }
         [ Cell
             { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+            , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
             , cellContent =
                 TextBlock
                     [ TBPrimitive (Heading [] ( 1, "Découvrir Murol" ))
@@ -25,17 +25,17 @@ sampleDoc1 =
             }
         , Container
             { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
+            , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 6 }
             , containerLabel = TextColumn
             }
             [ Cell
                 { attrs = [ AlignLeft ]
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 14 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 14 }
                 , cellContent = Image { caption = Nothing, size = { imgHeight = 300, imgWidth = 300 }, src = UrlSrc "images/2 Murol, le bourg.jpg" }
                 }
             , Cell
                 { attrs = [ AlignRight ]
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 13 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 13 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -45,7 +45,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
                 , cellContent =
                     TextBlock
                         [ Paragraph []
@@ -85,12 +85,12 @@ sampleDoc1 =
                 }
             , Container
                 { attrs = []
-                , id = { classes = Set.fromList [ "sameHeightImgsRow" ], styleId = Nothing, uid = 8 }
+                , id = { classes = Set.fromList [ "sameHeightImgsRow" ], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
                 , containerLabel = DocRow
                 }
                 [ Cell
                     { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 13 }
+                    , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 13 }
                     , cellContent =
                         Image
                             { caption = Nothing
@@ -106,7 +106,8 @@ sampleDoc1 =
                     , id =
                         { classes =
                             Set.fromList []
-                        , styleId = Nothing
+                        , htmlId = Nothing
+                        , docStyleId = Nothing
                         , uid = 12
                         }
                     , cellContent =
@@ -124,7 +125,8 @@ sampleDoc1 =
                     , id =
                         { classes =
                             Set.fromList []
-                        , styleId = Nothing
+                        , htmlId = Nothing
+                        , docStyleId = Nothing
                         , uid = 11
                         }
                     , cellContent =
@@ -142,7 +144,8 @@ sampleDoc1 =
                     , id =
                         { classes =
                             Set.fromList []
-                        , styleId = Nothing
+                        , htmlId = Nothing
+                        , docStyleId = Nothing
                         , uid = 10
                         }
                     , cellContent =
@@ -160,7 +163,8 @@ sampleDoc1 =
                     , id =
                         { classes =
                             Set.fromList [ "rowImg" ]
-                        , styleId = Nothing
+                        , htmlId = Nothing
+                        , docStyleId = Nothing
                         , uid = 9
                         }
                     , cellContent =
@@ -176,12 +180,12 @@ sampleDoc1 =
                 ]
             , Container
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 7 }
                 , containerLabel = DocColumn
                 }
                 [ Cell
                     { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+                    , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
                     , cellContent =
                         TextBlock
                             [ Paragraph []
@@ -193,7 +197,8 @@ sampleDoc1 =
                     { attrs = []
                     , id =
                         { classes = Set.fromList []
-                        , styleId = Nothing
+                        , htmlId = Nothing
+                        , docStyleId = Nothing
                         , uid = 10
                         }
                     , cellContent =
@@ -205,7 +210,7 @@ sampleDoc1 =
                     }
                 , Cell
                     { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+                    , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
                     , cellContent =
                         TextBlock
                             [ Paragraph []
@@ -220,12 +225,12 @@ sampleDoc1 =
             ]
         , Container
             { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
+            , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 5 }
             , containerLabel = DocColumn
             }
             [ Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 9 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 9 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -238,7 +243,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -251,7 +256,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 7 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -264,7 +269,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 6 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -277,14 +282,15 @@ sampleDoc1 =
             { attrs = []
             , id =
                 { classes = Set.fromList [ "sameHeightImgsRow" ]
-                , styleId = Nothing
+                , htmlId = Nothing
+                , docStyleId = Nothing
                 , uid = 4
                 }
             , containerLabel = DocRow
             }
             [ Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 8 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -294,7 +300,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 7 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 7 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -304,7 +310,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 6 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 6 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -314,7 +320,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 5 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -328,7 +334,7 @@ sampleDoc1 =
             ]
         , Cell
             { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
+            , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 4 }
             , cellContent =
                 TextBlock
                     [ TBPrimitive <|
@@ -337,12 +343,12 @@ sampleDoc1 =
             }
         , Container
             { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 2 }
+            , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 2 }
             , containerLabel = TextColumn
             }
             [ Cell
                 { attrs = [ AlignLeft ]
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 4 }
                 , cellContent =
                     Image
                         { caption = Nothing
@@ -352,12 +358,12 @@ sampleDoc1 =
                 }
             , Container
                 { attrs = [ AlignRight ]
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 3 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 3 }
                 , containerLabel = DocColumn
                 }
                 [ Cell
                     { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 5 }
+                    , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 5 }
                     , cellContent =
                         Image
                             { caption = Nothing
@@ -367,7 +373,7 @@ sampleDoc1 =
                     }
                 , Cell
                     { attrs = []
-                    , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
+                    , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 4 }
                     , cellContent =
                         TextBlock
                             [ TBPrimitive <|
@@ -382,12 +388,12 @@ sampleDoc1 =
             ]
         , Container
             { attrs = []
-            , id = { classes = Set.fromList [], styleId = Nothing, uid = 1 }
+            , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 1 }
             , containerLabel = TextColumn
             }
             [ Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 4 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 4 }
                 , cellContent =
                     TextBlock
                         [ TBPrimitive <|
@@ -407,7 +413,7 @@ sampleDoc1 =
                 }
             , Cell
                 { attrs = []
-                , id = { classes = Set.fromList [], styleId = Nothing, uid = 2 }
+                , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 2 }
                 , cellContent =
                     Table
                         { style = "bleu-blanc"

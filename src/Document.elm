@@ -127,7 +127,8 @@ type PluginResult a
 
 type alias Id =
     { uid : Int
-    , styleId : Maybe String
+    , docStyleId : Maybe String
+    , htmlId : Maybe String
     , classes : Set String
     }
 
@@ -153,7 +154,6 @@ type DocAttribute
     | FontAlignRight
     | Center
     | Justify
-    | HtmlId String
     | Bold
     | Italic
     | ZipperAttr Int ZipperEventHandler
@@ -258,43 +258,86 @@ docSize doc =
             List.foldr (\d acc -> docSize d + acc) 1 xs
 
 
-getStyleId doc =
+getDocStyleId doc =
     case doc of
         Cell cv ->
-            cv.id.styleId
+            cv.id.docStyleId
 
         Container cv _ ->
-            cv.id.styleId
+            cv.id.docStyleId
 
 
-setStyleId sid doc =
+setDocStyleId sid doc =
     case doc of
         Cell ({ cellContent, id, attrs } as cv) ->
             Cell
-                { cv | id = { id | styleId = Just sid } }
+                { cv | id = { id | docStyleId = Just sid } }
 
         Container ({ containerLabel, id, attrs } as cv) xs ->
             Container
-                { cv | id = { id | styleId = Just sid } }
+                { cv | id = { id | docStyleId = Just sid } }
                 xs
 
 
-setStyleIdIfNone sid doc =
+setDocStyleIdIfNone sid doc =
     case doc of
         Cell ({ cellContent, id, attrs } as cv) ->
-            case id.styleId of
+            case id.docStyleId of
                 Nothing ->
                     Cell
-                        { cv | id = { id | styleId = Just sid } }
+                        { cv | id = { id | docStyleId = Just sid } }
 
                 Just _ ->
                     doc
 
         Container ({ containerLabel, id, attrs } as cv) xs ->
-            case id.styleId of
+            case id.docStyleId of
                 Nothing ->
                     Container
-                        { cv | id = { id | styleId = Just sid } }
+                        { cv | id = { id | docStyleId = Just sid } }
+                        xs
+
+                Just _ ->
+                    doc
+
+
+getHtmlId doc =
+    case doc of
+        Cell cv ->
+            cv.id.htmlId
+
+        Container cv _ ->
+            cv.id.htmlId
+
+
+setHtmlId sid doc =
+    case doc of
+        Cell ({ cellContent, id, attrs } as cv) ->
+            Cell
+                { cv | id = { id | htmlId = Just sid } }
+
+        Container ({ containerLabel, id, attrs } as cv) xs ->
+            Container
+                { cv | id = { id | htmlId = Just sid } }
+                xs
+
+
+setHtmlIdIfNone sid doc =
+    case doc of
+        Cell ({ cellContent, id, attrs } as cv) ->
+            case id.htmlId of
+                Nothing ->
+                    Cell
+                        { cv | id = { id | htmlId = Just sid } }
+
+                Just _ ->
+                    doc
+
+        Container ({ containerLabel, id, attrs } as cv) xs ->
+            case id.htmlId of
+                Nothing ->
+                    Container
+                        { cv | id = { id | htmlId = Just sid } }
                         xs
 
                 Just _ ->
@@ -305,7 +348,7 @@ setSizeTrackedDocUids : Document -> ( Document, List Int )
 setSizeTrackedDocUids document =
     let
         htmlId uid =
-            HtmlId ("sizeTracked" ++ String.fromInt uid)
+            "sizeTracked" ++ String.fromInt uid
     in
     case document of
         Container ({ id, attrs } as nv) children ->
@@ -316,7 +359,7 @@ setSizeTrackedDocUids document =
                         |> Tuple.mapSecond List.concat
             in
             if hasClass "sameHeightImgsRow" document then
-                ( Container { nv | attrs = htmlId id.uid :: nv.attrs } newChildren
+                ( setHtmlId (htmlId id.uid) document
                 , id.uid :: newUids
                 )
             else
@@ -411,8 +454,9 @@ newCell nextUid cellContent =
         { cellContent = cellContent
         , id =
             { uid = nextUid
-            , styleId = Nothing
+            , docStyleId = Nothing
             , classes = Set.empty
+            , htmlId = Nothing
             }
         , attrs = []
         }
@@ -439,8 +483,9 @@ newContainer nextUid containerLabel =
         { containerLabel = containerLabel
         , id =
             { uid = nextUid
-            , styleId = Nothing
+            , docStyleId = Nothing
             , classes = Set.empty
+            , htmlId = Nothing
             }
         , attrs = []
         }
