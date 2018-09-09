@@ -11,7 +11,7 @@ sampleDoc1 : Document
 sampleDoc1 =
     Container
         { attrs = []
-        , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Just "root", uid = 0 }
+        , id = { classes = Set.fromList [], htmlId = Just "mainContainer", docStyleId = Just "root", uid = 0 }
         , containerLabel = DocColumn
         }
         [ Cell

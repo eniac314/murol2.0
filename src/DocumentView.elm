@@ -18,18 +18,8 @@ import Set exposing (..)
 import StyleSheets exposing (..)
 
 
-renderDoc : Config msg -> Document -> Element msg
+renderDoc : Config msg -> Document -> List (Element msg)
 renderDoc config document =
-    case renderDoc_ config document of
-        [ doc ] ->
-            doc
-
-        _ ->
-            el [] (text "erreur de rendu document")
-
-
-renderDoc_ : Config msg -> Document -> List (Element msg)
-renderDoc_ config document =
     let
         device =
             classifyDevice config
@@ -161,7 +151,7 @@ renderColumn config id attrs children =
             ++ [ width (maximum config.width fill) ]
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config) children)
+        (List.concatMap (renderDoc config) children)
     ]
 
 
@@ -176,7 +166,7 @@ renderRow config id attrs children =
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config) children)
+        (List.concatMap (renderDoc config) children)
     ]
 
 
@@ -191,7 +181,7 @@ renderTextColumn config id attrs children =
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config) children)
+        (List.concatMap (renderDoc config) children)
     ]
 
 
@@ -201,7 +191,7 @@ renderResponsiveBloc config id attrs children =
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
-        (List.concatMap (renderDoc_ config) children)
+        (List.concatMap (renderDoc config) children)
     ]
 
 
@@ -289,7 +279,9 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
 
                --, paddingXY 15 0
                ]
+            ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
+         --++ idStyle config.styleSheet id
         )
         { data = data
         , columns = columns
@@ -309,6 +301,7 @@ renderEmptyCell config id attrs =
          , height (px 100)
          , Background.color (rgba 0 0 0.8 0.5)
          ]
+            ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs
         )
         [ el

@@ -6,6 +6,7 @@ import Array exposing (..)
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
+import Delay exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
 import DocumentResponsive exposing (..)
@@ -71,6 +72,7 @@ type Msg
     | TopEntryFocused String
     | SetPreviewMode PreviewMode
     | ToogleCountainersColors
+    | JumpTo (Maybe String)
     | TablePluginMsg TablePlugin.Msg
 
 
@@ -253,10 +255,7 @@ update msg model =
                         | document = newDocument
                       }
                     , Cmd.batch
-                        [ jumpToSelection
-                            (getHtmlId <| extractDoc newDocument)
-                        ]
-                      --, Cmd.none
+                        []
                     )
 
         EditCell ->
@@ -292,7 +291,14 @@ update msg model =
                         | document = newDoc
                         , nextUid = model.nextUid + 1
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ jumpTo
+                            (Just <|
+                                ("defaultHtmlId"
+                                    ++ String.fromInt model.nextUid
+                                )
+                            )
+                        ]
                     )
 
         AddNewRight ->
@@ -305,7 +311,14 @@ update msg model =
                         | document = newDoc
                         , nextUid = model.nextUid + 1
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ jumpTo
+                            (Just <|
+                                ("defaultHtmlId"
+                                    ++ String.fromInt model.nextUid
+                                )
+                            )
+                        ]
                     )
 
         CreateNewContainer newDoc ->
@@ -314,7 +327,8 @@ update msg model =
                 , nextUid = model.nextUid + 2
                 , currentPlugin = Nothing
               }
-            , Cmd.none
+            , Cmd.batch
+                []
             )
 
         CreateNewCell newDoc ->
@@ -324,7 +338,8 @@ update msg model =
                         |> openPlugin
             in
             ( { newModel | nextUid = model.nextUid + 1 }
-            , Cmd.batch [ cmd ]
+            , Cmd.batch
+                [ cmd ]
             )
 
         WheelEvent e ->
@@ -509,6 +524,9 @@ update msg model =
             in
             ( { model | config = newConfig }, Cmd.none )
 
+        JumpTo id ->
+            ( model, jumpTo id )
+
         TablePluginMsg tableMsg ->
             let
                 ( newTablePlugin, mbPluginData ) =
@@ -517,7 +535,8 @@ update msg model =
             case mbPluginData of
                 Nothing ->
                     ( { model | tablePlugin = newTablePlugin }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ jumpTo <| getHtmlId (extractDoc model.document) ]
                     )
 
                 Just PluginQuit ->
@@ -525,7 +544,8 @@ update msg model =
                         | tablePlugin = newTablePlugin
                         , currentPlugin = Nothing
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ jumpTo <| getHtmlId (extractDoc model.document) ]
                     )
 
                 Just (PluginData tm) ->
@@ -993,38 +1013,66 @@ mainMenu config =
         (List.map topEntry menuData)
 
 
+
+--documentView model =
+--    column
+--        [ scrollbarY
+--        , height fill -- needed to be able to scroll
+--        , width fill
+--        , htmlAttribute <| HtmlAttr.id "documentContainer"
+--        ]
+--        [ column
+--            [ case model.previewMode of
+--                PreviewBigScreen ->
+--                    width fill
+--                PreviewScreen ->
+--                    width (px 1268)
+--                PreviewTablet ->
+--                    width (px 1024)
+--                PreviewPhone ->
+--                    width (px 480)
+--            , centerX
+--            , htmlAttribute <| HtmlAttr.id "documentContainer2"
+--            ]
+--            [ model.document
+--                |> addZipperHandlers
+--                |> rewind
+--                |> extractDoc
+--                |> responsivePreFormat model.config
+--                |> renderDoc model.config
+--            --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
+--            ]
+--        ]
+
+
 documentView model =
     column
         [ scrollbarY
         , height fill -- needed to be able to scroll
         , width fill
-        , htmlAttribute <| HtmlAttr.style "id" "documentContainer"
+        , htmlAttribute <| HtmlAttr.id "documentContainer"
+        , case model.previewMode of
+            PreviewBigScreen ->
+                width fill
+
+            PreviewScreen ->
+                width (px 1268)
+
+            PreviewTablet ->
+                width (px 1024)
+
+            PreviewPhone ->
+                width (px 480)
+        , centerX
         ]
-        [ column
-            [ case model.previewMode of
-                PreviewBigScreen ->
-                    width fill
-
-                PreviewScreen ->
-                    width (px 1268)
-
-                PreviewTablet ->
-                    width (px 1024)
-
-                PreviewPhone ->
-                    width (px 480)
-            , centerX
-            ]
-            [ model.document
-                |> addZipperHandlers
-                |> rewind
-                |> extractDoc
-                |> responsivePreFormat model.config
-                |> renderDoc model.config
-
-            --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
-            ]
-        ]
+        (model.document
+            |> addZipperHandlers
+            |> rewind
+            |> extractDoc
+            |> responsivePreFormat model.config
+            |> renderDoc model.config
+         --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
+        )
 
 
 pluginView model plugin =
@@ -1078,16 +1126,56 @@ updateSizes { sizesDict } =
         |> Cmd.batch
 
 
-jumpToSelection : Maybe String -> Cmd Msg
-jumpToSelection mbSelectionId =
-    case mbSelectionId of
+jumpTo : Maybe String -> Cmd Msg
+jumpTo mbId =
+    case mbId of
         Nothing ->
             Cmd.none
 
-        Just selectionId ->
-            Dom.getViewportOf selectionId
-                |> Task.andThen (\vp -> Dom.setViewportOf "documentContainer" 0 vp.viewport.y)
+        Just destId ->
+            Dom.getElement "defaultHtmlId0"
+                |> Task.andThen
+                    (\mainContInfo ->
+                        Dom.getElement
+                            destId
+                            |> Task.andThen
+                                (\el ->
+                                    Dom.setViewportOf "documentContainer"
+                                        0
+                                        (el.element.y
+                                            - mainContInfo.element.y
+                                            - 50
+                                        )
+                                )
+                    )
                 |> Task.attempt (\_ -> NoOp)
+
+
+
+--Dom.getElement "defaultHtmlId0"
+--    |> Task.andThen
+--        (\dcVP ->
+--            let
+--                _ =
+--                    Debug.log "docContainer viewport" dcVP
+--            in
+--            Dom.getElement
+--                (Debug.log "destId" destId)
+--                |> Task.andThen
+--                    (\el ->
+--                        Dom.setViewportOf "documentContainer"
+--                            0
+--                            (--abs
+--                             --(if dcVP.element.y > 0 then
+--                             --    dcVP.element.y + 75
+--                             -- else
+--                             --    dcVP.element.y
+--                             --)
+--                             (Debug.log "element" el).element.y - dcVP.element.y - 50
+--                            )
+--                    )
+--        )
+--    |> Task.attempt (\_ -> NoOp)
 
 
 keyDecoder : Decode.Decoder String

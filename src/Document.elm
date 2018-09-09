@@ -234,10 +234,25 @@ fixUids : Int -> Document -> Document
 fixUids nextUid document =
     case document of
         Container ({ id } as nv) [] ->
-            Container { nv | id = { id | uid = nextUid } } []
+            Container
+                { nv
+                    | id =
+                        { id
+                            | uid = nextUid
+                            , htmlId = Just <| "defaultHtmlId" ++ String.fromInt nextUid
+                        }
+                }
+                []
 
         Container ({ id } as nv) children ->
-            Container { nv | id = { id | uid = nextUid } }
+            Container
+                { nv
+                    | id =
+                        { id
+                            | uid = nextUid
+                            , htmlId = Just <| "defaultHtmlId" ++ String.fromInt nextUid
+                        }
+                }
                 (List.foldr
                     (\doc ( done, nUid ) -> ( fixUids nUid doc :: done, nUid + docSize doc ))
                     ( [], nextUid + 1 )
@@ -246,7 +261,14 @@ fixUids nextUid document =
                 )
 
         Cell ({ id } as lv) ->
-            Cell { lv | id = { id | uid = nextUid } }
+            Cell
+                { lv
+                    | id =
+                        { id
+                            | uid = nextUid
+                            , htmlId = Just <| "defaultHtmlId" ++ String.fromInt nextUid
+                        }
+                }
 
 
 docSize doc =
@@ -456,7 +478,8 @@ newCell nextUid cellContent =
             { uid = nextUid
             , docStyleId = Nothing
             , classes = Set.empty
-            , htmlId = Nothing
+            , htmlId =
+                Just ("defaultHtmlId" ++ String.fromInt nextUid)
             }
         , attrs = []
         }
@@ -485,7 +508,8 @@ newContainer nextUid containerLabel =
             { uid = nextUid
             , docStyleId = Nothing
             , classes = Set.empty
-            , htmlId = Nothing
+            , htmlId =
+                Just ("defaultHtmlId" ++ String.fromInt nextUid)
             }
         , attrs = []
         }
