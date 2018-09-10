@@ -1,6 +1,7 @@
 module DocumentZipper
     exposing
         ( DocZipper
+        , addNewInside
         , addNewLeft
         , addNewRight
         , addZipperHandlers
@@ -19,6 +20,7 @@ module DocumentZipper
         )
 
 import Document exposing (..)
+import DocumentEditorHelpers exposing (..)
 import Html.Events exposing (on, onMouseOut, onMouseOver)
 
 
@@ -66,6 +68,26 @@ rewind docZipper =
 
         Just docZipper_ ->
             rewind docZipper_
+
+
+rewindLeft : DocZipper -> DocZipper
+rewindLeft docZipper =
+    case zipLeft docZipper of
+        Nothing ->
+            docZipper
+
+        Just docZipper_ ->
+            rewindLeft docZipper_
+
+
+rewindRight : DocZipper -> DocZipper
+rewindRight docZipper =
+    case zipRight docZipper of
+        Nothing ->
+            docZipper
+
+        Just docZipper_ ->
+            rewindRight docZipper_
 
 
 zipUp : DocZipper -> Maybe DocZipper
@@ -229,6 +251,11 @@ swapRight { current, contexts } =
                         }
 
 
+
+--NOTE: all functions altering the zipper by creating a new cell or container
+--zip the selection to the new element.
+
+
 addNewLeft : Int -> DocZipper -> Maybe DocZipper
 addNewLeft nextUid { current, contexts } =
     case contexts of
@@ -236,15 +263,15 @@ addNewLeft nextUid { current, contexts } =
             Nothing
 
         { parent, left, right } :: cs ->
-            Just
-                { current = current
-                , contexts =
-                    { parent = parent
-                    , left = left ++ [ emptyCell nextUid ]
-                    , right = right
-                    }
-                        :: cs
+            { current = current
+            , contexts =
+                { parent = parent
+                , left = left ++ [ emptyCell nextUid ]
+                , right = right
                 }
+                    :: cs
+            }
+                |> zipLeft
 
 
 addNewRight : Int -> DocZipper -> Maybe DocZipper
@@ -254,15 +281,28 @@ addNewRight nextUid { current, contexts } =
             Nothing
 
         { parent, left, right } :: cs ->
-            Just
-                { current = current
-                , contexts =
-                    { parent = parent
-                    , left = left
-                    , right = emptyCell nextUid :: right
-                    }
-                        :: cs
+            { current = current
+            , contexts =
+                { parent = parent
+                , left = left
+                , right = emptyCell nextUid :: right
                 }
+                    :: cs
+            }
+                |> zipRight
+
+
+addNewInside : Int -> DocZipper -> Maybe DocZipper
+addNewInside nextUid { current, contexts } =
+    case current of
+        Container cv xs ->
+            Just
+                { current = Container cv (emptyCell nextUid :: xs)
+                , contexts = contexts
+                }
+
+        Cell _ ->
+            Nothing
 
 
 deleteCurrent : DocZipper -> Maybe DocZipper
@@ -305,11 +345,15 @@ safeDeleteCurrent nextUid { current, contexts } =
 
 addZipperHandlers : DocZipper -> DocZipper
 addZipperHandlers dz =
+    -- NOTE: Add ZipperAttr attributes in order to make the zipper clickable.
+    -- The view handlers are in Editor.model.config.handlers and are applied
+    -- by the renderAttr function in DocumentView.elm
     let
         { current, contexts } =
             addHandlerToNeighbours dz
 
         handlers uid =
+            -- NOTE: these are using to navigate down the Document zipper.
             [ ZipperAttr uid OnContainerClick
             , ZipperAttr uid OnContainerDblClick
             , ZipperAttr uid OnContainerMouseOver
@@ -319,6 +363,8 @@ addZipperHandlers dz =
             addAttrs doc (handlers (getUid doc))
 
         addHandlerToNeighbours doc =
+            -- NOTE: this handler is used to rewind the zipper when one clicks
+            -- outside the selected subtree
             let
                 path =
                     getPath doc
@@ -353,6 +399,8 @@ addZipperHandlers dz =
             }
 
         Cell ({ cellContent, id, attrs } as lv) ->
+            -- NOTE: this handler is used to start editing the selected cell
+            -- by double clicking on it.
             let
                 newCell =
                     Cell
@@ -428,7 +476,7 @@ getPath document =
 
 applyToContexts : (Document -> Document) -> List Int -> DocZipper -> DocZipper
 applyToContexts f path zipper =
-    -- Note: Apply f to every Container and cell execpt
+    -- Note: Apply f to every Container and cell except
     --  * the selection subtree
     --  * the containers making up the selection subtree's path
     let

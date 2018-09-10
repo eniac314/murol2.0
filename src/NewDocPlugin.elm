@@ -1,6 +1,7 @@
 module NewDocPlugin exposing (..)
 
 import Document exposing (..)
+import DocumentEditorHelpers exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border

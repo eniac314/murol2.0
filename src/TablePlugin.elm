@@ -4,15 +4,18 @@ import Array exposing (..)
 import Browser exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
+import DocumentEditorHelpers exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
 import Html exposing (Html)
+import Html.Attributes as HtmlAttr
 import StyleSheets exposing (..)
 
 
@@ -37,13 +40,25 @@ type Msg
     = SetNbrRows String
     | SetNbrCols String
     | SetStyle String
-    | FocusStyleSelector
-    | BlurStyleSelector
+    | StyleSelectorClick
+    | StyleSelectorClickOff
     | InitializeTable
     | DataInput ( Int, Int ) String
+    | CellFocused (Maybe ( Int, Int ))
+      --| CellFocusOff
+    | RemoveSelectedRow
+    | RemoveSelectedCol
+    | AddNew Direction
     | SwapDisplayMode
     | SaveAndQuit
     | Quit
+
+
+type Direction
+    = Up
+    | Down
+    | Left
+    | Right
 
 
 
@@ -71,6 +86,7 @@ type alias DocTable =
     , currentStyle : String
     , styleSelectorFocused : Bool
     , styleSelectorInput : String
+    , currentFocusedCell : Maybe ( Int, Int )
     }
 
 
@@ -86,6 +102,7 @@ emptyDocTable =
     , currentStyle = "bleu-blanc"
     , styleSelectorInput = ""
     , styleSelectorFocused = False
+    , currentFocusedCell = Nothing
     }
 
 
@@ -112,9 +129,11 @@ init mbTableMeta =
                 , currentStyle = style
                 , styleSelectorInput = ""
                 , styleSelectorFocused = False
+                , currentFocusedCell = Nothing
                 }
 
 
+update : Msg -> DocTable -> ( DocTable, Maybe (PluginResult TableMeta) )
 update msg model =
     case msg of
         SetNbrRows s ->
@@ -141,19 +160,22 @@ update msg model =
 
                         Just _ ->
                             s
-
-                --, styleSelectorFocused = False
               }
             , Nothing
             )
 
-        FocusStyleSelector ->
-            ( { model | styleSelectorFocused = not model.styleSelectorFocused }
+        StyleSelectorClick ->
+            ( { model
+                | styleSelectorFocused = not model.styleSelectorFocused
+                , currentFocusedCell = Nothing
+              }
             , Nothing
             )
 
-        BlurStyleSelector ->
-            ( { model | styleSelectorFocused = False }
+        StyleSelectorClickOff ->
+            ( { model
+                | styleSelectorFocused = False
+              }
             , Nothing
             )
 
@@ -208,6 +230,206 @@ update msg model =
             , Nothing
             )
 
+        CellFocused mbFocus ->
+            ( { model | currentFocusedCell = mbFocus }
+            , Nothing
+            )
+
+        RemoveSelectedRow ->
+            case model.currentFocusedCell of
+                Nothing ->
+                    ( model, Nothing )
+
+                Just ( ri, ci ) ->
+                    let
+                        newData =
+                            Array.toIndexedList model.data
+                                |> List.filter (\( i, _ ) -> i /= ri)
+                                |> List.map Tuple.second
+                                |> Array.fromList
+                    in
+                    ( { model
+                        | data = newData
+                        , nbrRows = model.nbrRows + 1
+                        , currentFocusedCell = Nothing
+                      }
+                    , Nothing
+                    )
+
+        RemoveSelectedCol ->
+            case model.currentFocusedCell of
+                Nothing ->
+                    ( model, Nothing )
+
+                Just ( ri, ci ) ->
+                    let
+                        newData =
+                            model.data
+                                |> Array.map
+                                    (\row ->
+                                        Array.toIndexedList row
+                                            |> List.filter (\( j, _ ) -> j /= ci)
+                                            |> List.map Tuple.second
+                                            |> Array.fromList
+                                    )
+                    in
+                    ( { model
+                        | data = newData
+                        , nbrCols = model.nbrCols - 1
+                        , currentFocusedCell = Nothing
+                      }
+                    , Nothing
+                    )
+
+        AddNew direction ->
+            case ( direction, model.currentFocusedCell ) of
+                ( Up, Nothing ) ->
+                    let
+                        newRow =
+                            Array.fromList
+                                [ Array.initialize model.nbrCols (always "") ]
+                    in
+                    ( { model
+                        | data = Array.append newRow model.data
+                        , nbrRows = model.nbrRows + 1
+                      }
+                    , Nothing
+                    )
+
+                ( Down, Nothing ) ->
+                    let
+                        newRow =
+                            Array.initialize model.nbrCols (always "")
+                    in
+                    ( { model
+                        | data = Array.push newRow model.data
+                        , nbrRows = model.nbrRows + 1
+                      }
+                    , Nothing
+                    )
+
+                ( Left, Nothing ) ->
+                    let
+                        newData =
+                            model.data
+                                |> Array.map
+                                    (\row -> Array.append (Array.fromList [ "" ]) row)
+                    in
+                    ( { model
+                        | data = newData
+                        , nbrCols = model.nbrCols + 1
+                      }
+                    , Nothing
+                    )
+
+                ( Right, Nothing ) ->
+                    let
+                        newData =
+                            model.data
+                                |> Array.map
+                                    (\row -> Array.push "" row)
+                    in
+                    ( { model
+                        | data = newData
+                        , nbrCols = model.nbrCols + 1
+                      }
+                    , Nothing
+                    )
+
+                ( Up, Just ( i, j ) ) ->
+                    let
+                        newRow =
+                            Array.fromList
+                                [ Array.initialize model.nbrCols (always "") ]
+
+                        topHalf =
+                            Array.slice 0 i model.data
+
+                        bottomHalf =
+                            Array.slice i model.nbrRows model.data
+
+                        newData =
+                            Array.append newRow bottomHalf
+                                |> Array.append topHalf
+                    in
+                    ( { model
+                        | data = newData
+                        , currentFocusedCell = Nothing
+                        , nbrRows = model.nbrRows + 1
+                      }
+                    , Nothing
+                    )
+
+                ( Down, Just ( i, j ) ) ->
+                    let
+                        newRow =
+                            Array.fromList
+                                [ Array.initialize model.nbrCols (always "") ]
+
+                        topHalf =
+                            Array.slice 0 (i + 1) model.data
+
+                        bottomHalf =
+                            Array.slice (i + 1) model.nbrRows model.data
+
+                        newData =
+                            Array.append newRow bottomHalf
+                                |> Array.append topHalf
+                    in
+                    ( { model
+                        | data = newData
+                        , currentFocusedCell = Nothing
+                        , nbrRows = model.nbrRows + 1
+                      }
+                    , Nothing
+                    )
+
+                ( Left, Just ( i, j ) ) ->
+                    let
+                        addNewCell row =
+                            let
+                                leftHalf =
+                                    Array.slice 0 j row
+
+                                rightHalf =
+                                    Array.slice j model.nbrCols row
+                            in
+                            Array.append (Array.push "" leftHalf) rightHalf
+
+                        newData =
+                            Array.map addNewCell model.data
+                    in
+                    ( { model
+                        | data = newData
+                        , currentFocusedCell = Nothing
+                        , nbrCols = model.nbrCols + 1
+                      }
+                    , Nothing
+                    )
+
+                ( Right, Just ( i, j ) ) ->
+                    let
+                        addNewCell row =
+                            let
+                                leftHalf =
+                                    Array.slice 0 (j + 1) row
+
+                                rightHalf =
+                                    Array.slice (j + 1) model.nbrCols row
+                            in
+                            Array.append (Array.push "" leftHalf) rightHalf
+
+                        newData =
+                            Array.map addNewCell model.data
+                    in
+                    ( { model
+                        | data = newData
+                        , currentFocusedCell = Nothing
+                        , nbrCols = model.nbrCols + 1
+                      }
+                    , Nothing
+                    )
+
         SwapDisplayMode ->
             ( { model
                 | mode =
@@ -218,6 +440,7 @@ update msg model =
                         Edit
                     else
                         DisplayOnly
+                , currentFocusedCell = Nothing
               }
             , Nothing
             )
@@ -237,10 +460,21 @@ view : DocTable -> Element Msg
 view model =
     --layout [] <|
     el
-        [ Font.size 14
-        , width fill
-        , alignTop
-        ]
+        ([ Font.size 14
+         , width fill
+         , alignTop
+         ]
+            ++ (if model.styleSelectorFocused then
+                    [ Events.onClick StyleSelectorClickOff ]
+                else
+                    []
+               )
+         --++ (if model.currentFocusedCell /= Nothing then
+         --        [ Events.onClick CellFocusOff ]
+         --    else
+         --        []
+         --   )
+        )
         (case model.mode of
             DisplayOnly ->
                 displayOnlyView model
@@ -257,7 +491,7 @@ displayOnlyView model =
             column []
                 [ row
                     [ spacing 15 ]
-                    [ Input.button buttonStyle
+                    [ Input.button (buttonStyle True)
                         { onPress = Just SwapDisplayMode
                         , label = text "Modifier"
                         }
@@ -330,16 +564,59 @@ displayOnlyView model =
 editView : DocTable -> Element Msg
 editView model =
     let
+        canRemove =
+            focusIsValid model.currentFocusedCell model.data
+
         interfaceView =
             if model.setupDone then
-                column []
+                column [ spacing 15 ]
                     [ row
                         [ spacing 15 ]
-                        [ Input.button buttonStyle
-                            { onPress = Just SwapDisplayMode
+                        [ Input.button (buttonStyle True)
+                            { onPress =
+                                Just SwapDisplayMode
                             , label = text "Aperçu"
                             }
                         , styleSelector model
+                        , Input.button (buttonStyle canRemove)
+                            { onPress =
+                                if canRemove then
+                                    Just RemoveSelectedRow
+                                else
+                                    Nothing
+                            , label = text "Supprimer ligne"
+                            }
+                        , Input.button (buttonStyle canRemove)
+                            { onPress =
+                                if canRemove then
+                                    Just RemoveSelectedCol
+                                else
+                                    Nothing
+                            , label = text "Supprimer colonne"
+                            }
+                        ]
+                    , row
+                        [ spacing 15 ]
+                        [ Input.button (buttonStyle True)
+                            { onPress =
+                                Just (AddNew Up)
+                            , label = text "Insérer au dessus"
+                            }
+                        , Input.button (buttonStyle True)
+                            { onPress =
+                                Just (AddNew Down)
+                            , label = text "Insérer en dessous"
+                            }
+                        , Input.button (buttonStyle True)
+                            { onPress =
+                                Just (AddNew Left)
+                            , label = text "Insérer à gauche"
+                            }
+                        , Input.button (buttonStyle True)
+                            { onPress =
+                                Just (AddNew Right)
+                            , label = text "Insérer à droite"
+                            }
                         ]
                     ]
             else
@@ -364,7 +641,7 @@ editView model =
                             , label =
                                 Input.labelLeft [ centerY ] (el [] (text "Nbr lignes"))
                             }
-                        , Input.button buttonStyle
+                        , Input.button (buttonStyle True)
                             { onPress = Just InitializeTable
                             , label = text "Créer table"
                             }
@@ -389,18 +666,32 @@ editView model =
                                     |> Maybe.map .containerStyle
                                     |> Maybe.withDefault []
                                 )
-                                (el
+                                (Keyed.el
                                     ((Dict.get model.currentStyle tableStyles
                                         |> Maybe.map .cellStyle
                                         |> Maybe.withDefault (\_ -> [])
                                      )
                                         ri
+                                        ++ (case model.currentFocusedCell of
+                                                Nothing ->
+                                                    []
+
+                                                Just ( i, j ) ->
+                                                    if i == ri && j == ci then
+                                                        [ Background.color (rgba 0 0 1 0.2) ]
+                                                    else
+                                                        []
+                                           )
                                     )
-                                    (Input.multiline
+                                    ( String.fromInt (ri * 100 + ci)
+                                    , Input.multiline
                                         [ Border.width 0
                                         , centerY
                                         , Background.color (rgba 1 1 1 0)
+                                        , Events.onClick (CellFocused <| Just ( ri, ci ))
                                         , focused [ Border.glow (rgb 1 1 1) 0 ]
+
+                                        --, Events.onLoseFocus (CellFocused Nothing)
                                         ]
                                         { onChange =
                                             DataInput ( ri, ci )
@@ -441,17 +732,23 @@ editView model =
         ]
         [ interfaceView
         , tableView
-        , row
-            [ spacing 15 ]
-            [ Input.button buttonStyle
-                { onPress = Just Quit
-                , label = text "Quitter"
-                }
-            , Input.button buttonStyle
-                { onPress = Just SaveAndQuit
-                , label = text "Valider et Quitter"
-                }
-            ]
+        , if model.setupDone then
+            row
+                [ spacing 15 ]
+                [ Input.button (buttonStyle True)
+                    { onPress = Just Quit
+                    , label = text "Quitter"
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress = Just SaveAndQuit
+                    , label = text "Valider et Quitter"
+                    }
+                ]
+          else
+            Element.none
+
+        --, paragraph [] [ text <| Debug.toString model.data ]
+        --, paragraph [] [ text <| Debug.toString (test model.currentFocusedCell model.data) ]
         ]
 
 
@@ -462,21 +759,41 @@ textInputStyle =
     ]
 
 
-buttonStyle =
-    [ Background.color (rgb 0.9 0.9 0.9)
-    , Border.rounded 5
+buttonStyle isActive =
+    [ Border.rounded 5
     , Font.center
     , centerY
     , padding 5
-    , mouseOver [ Font.color (rgb 255 255 255) ]
     ]
+        ++ (if isActive then
+                [ Background.color (rgb 0.9 0.9 0.9)
+                , mouseOver [ Font.color (rgb 255 255 255) ]
+                ]
+            else
+                [ Background.color (rgb 0.95 0.95 0.95)
+                , Font.color (rgb 0.7 0.7 0.7)
+                , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                ]
+           )
+
+
+focusIsValid : Maybe ( Int, Int ) -> Data -> Bool
+focusIsValid mbFocus data =
+    Maybe.andThen
+        (\( i, j ) ->
+            Array.get i data
+                |> Maybe.map (\row -> Array.get j row)
+        )
+        mbFocus
+        |> Maybe.map (\_ -> True)
+        |> Maybe.withDefault False
 
 
 styleSelector model =
     row
         []
         [ Input.text
-            [ Events.onClick FocusStyleSelector
+            [ Events.onClick StyleSelectorClick
 
             --, Events.onLoseFocus BlurStyleSelector
             , width (px 150)

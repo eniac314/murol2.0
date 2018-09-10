@@ -5,6 +5,7 @@ import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
 import Dict exposing (fromList)
 import Document exposing (..)
+import DocumentEditorHelpers exposing (..)
 import DocumentResponsive exposing (..)
 import DocumentStructView exposing (..)
 import DocumentView exposing (..)
@@ -97,6 +98,7 @@ type Msg
     | SwapLeft
     | SwapRight
     | EditCell
+    | AddNewInside
     | AddNewLeft
     | AddNewRight
     | CreateNewContainer Document
@@ -264,7 +266,7 @@ update msg model =
             )
 
         JumpTo id ->
-            ( model, jumpTo id )
+            ( model, scrollTo id )
 
         KeyDown s ->
             if s == "Control" then
@@ -326,7 +328,9 @@ update msg model =
 
                 Just newDoc ->
                     ( { model | document = newDoc }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc newDoc)
+                        ]
                     )
 
         SwapRight ->
@@ -336,11 +340,26 @@ update msg model =
 
                 Just newDoc ->
                     ( { model | document = newDoc }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc newDoc)
+                        ]
                     )
 
         EditCell ->
             openPlugin model
+
+        AddNewInside ->
+            case addNewInside model.nextUid model.document of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newDoc ->
+                    ( { model
+                        | document = newDoc
+                        , nextUid = model.nextUid + 1
+                      }
+                    , Cmd.none
+                    )
 
         AddNewLeft ->
             case addNewLeft model.nextUid model.document of
@@ -353,12 +372,7 @@ update msg model =
                         , nextUid = model.nextUid + 1
                       }
                     , Cmd.batch
-                        [ jumpTo
-                            (Just <|
-                                ("defaultHtmlId"
-                                    ++ String.fromInt model.nextUid
-                                )
-                            )
+                        [ scrollTo <| getHtmlId (extractDoc newDoc)
                         ]
                     )
 
@@ -373,12 +387,7 @@ update msg model =
                         , nextUid = model.nextUid + 1
                       }
                     , Cmd.batch
-                        [ jumpTo
-                            (Just <|
-                                ("defaultHtmlId"
-                                    ++ String.fromInt model.nextUid
-                                )
-                            )
+                        [ scrollTo <| getHtmlId (extractDoc newDoc)
                         ]
                     )
 
@@ -550,7 +559,7 @@ update msg model =
                 Nothing ->
                     ( { model | tablePlugin = newTablePlugin }
                     , Cmd.batch
-                        [ jumpTo <| getHtmlId (extractDoc model.document) ]
+                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
                     )
 
                 Just PluginQuit ->
@@ -559,7 +568,7 @@ update msg model =
                         , currentPlugin = Nothing
                       }
                     , Cmd.batch
-                        [ jumpTo <| getHtmlId (extractDoc model.document) ]
+                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
                     )
 
                 Just (PluginData tm) ->
@@ -831,7 +840,7 @@ mainInterface config =
                 [ { defButtonConfig
                     | icons = [ plusSquare ]
                     , labelText = "Ajouter"
-                    , msg = Nothing
+                    , msg = Just AddNewInside
                     , isActive =
                         not config.isInPlugin
                             && config.selectionIsContainer
@@ -1139,8 +1148,8 @@ updateSizes { sizesDict } =
         |> Cmd.batch
 
 
-jumpTo : Maybe String -> Cmd Msg
-jumpTo mbId =
+scrollTo : Maybe String -> Cmd Msg
+scrollTo mbId =
     case mbId of
         Nothing ->
             Cmd.none

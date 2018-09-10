@@ -1,4 +1,5 @@
-- fix add sizetracked ids happening only at init time!!
+- fix add sizetracked ids happening only at init time
+	|-> recompute when adding/editing? new image
 
 - ajouter simple (insert in container)? 
 

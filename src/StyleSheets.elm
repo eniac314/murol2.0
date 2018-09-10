@@ -116,6 +116,9 @@ defaulStyleSheet =
                         , blur = 10
                         , color = rgba 0 0 0 0.16
                         }
+
+                    --, Background.color
+                    --    (rgba 0 1 0 0.5)
                     ]
                   )
                 , ( "sameHeightImgsRow"

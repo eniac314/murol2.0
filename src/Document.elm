@@ -10,6 +10,11 @@ import Set exposing (..)
 import StyleSheets exposing (..)
 
 
+----------------------------
+-- Document specification --
+----------------------------
+
+
 type Document
     = Container ContainerValue (List Document)
     | Cell CellValue
@@ -120,11 +125,6 @@ type alias ZipperHandlers msg =
     }
 
 
-type PluginResult a
-    = PluginQuit
-    | PluginData a
-
-
 type alias Id =
     { uid : Int
     , docStyleId : Maybe String
@@ -169,6 +169,12 @@ type ZipperEventHandler
 
 type DocColor
     = DocColor Float Float Float
+
+
+
+-------------------------------------
+-- Document common helper functions--
+-------------------------------------
 
 
 toSeColor : DocColor -> Color
@@ -238,56 +244,6 @@ getUid doc =
 
         Container { containerLabel, id, attrs } _ ->
             id.uid
-
-
-fixUids : Int -> Document -> Document
-fixUids nextUid document =
-    case document of
-        Container ({ id } as nv) [] ->
-            Container
-                { nv
-                    | id =
-                        { id
-                            | uid = nextUid
-                            , htmlId = Just <| "defaultHtmlId" ++ String.fromInt nextUid
-                        }
-                }
-                []
-
-        Container ({ id } as nv) children ->
-            Container
-                { nv
-                    | id =
-                        { id
-                            | uid = nextUid
-                            , htmlId = Just <| "defaultHtmlId" ++ String.fromInt nextUid
-                        }
-                }
-                (List.foldr
-                    (\doc ( done, nUid ) -> ( fixUids nUid doc :: done, nUid + docSize doc ))
-                    ( [], nextUid + 1 )
-                    children
-                    |> Tuple.first
-                )
-
-        Cell ({ id } as lv) ->
-            Cell
-                { lv
-                    | id =
-                        { id
-                            | uid = nextUid
-                            , htmlId = Just <| "defaultHtmlId" ++ String.fromInt nextUid
-                        }
-                }
-
-
-docSize doc =
-    case doc of
-        Cell _ ->
-            1
-
-        Container _ xs ->
-            List.foldr (\d acc -> docSize d + acc) 1 xs
 
 
 getDocStyleId doc =
@@ -440,28 +396,6 @@ toogleClass class document =
             Cell { lv | id = newId lv.id }
 
 
-toogleHoverClass : Int -> Document -> Document
-toogleHoverClass uid document =
-    case document of
-        Cell _ ->
-            document
-
-        Container _ [] ->
-            document
-
-        Container nv children ->
-            Container nv
-                (List.map
-                    (\c ->
-                        if hasUid uid c then
-                            toogleClass "hovered" c
-                        else
-                            c
-                    )
-                    children
-                )
-
-
 addAttrs : Document -> List DocAttribute -> Document
 addAttrs doc newAttrs =
     case doc of
@@ -479,48 +413,3 @@ addAttrs doc newAttrs =
                         newAttrs ++ attrs
                 }
                 children
-
-
-newCell nextUid cellContent =
-    Cell
-        { cellContent = cellContent
-        , id =
-            { uid = nextUid
-            , docStyleId = Nothing
-            , classes = Set.empty
-            , htmlId =
-                Just ("defaultHtmlId" ++ String.fromInt nextUid)
-            }
-        , attrs = []
-        }
-
-
-emptyCell nextUid =
-    newCell nextUid EmptyCell
-
-
-newTable nextUid =
-    newCell
-        nextUid
-        (Table
-            { style = ""
-            , nbrRows = 0
-            , nbrCols = 0
-            , data = []
-            }
-        )
-
-
-newContainer nextUid containerLabel =
-    Container
-        { containerLabel = containerLabel
-        , id =
-            { uid = nextUid
-            , docStyleId = Nothing
-            , classes = Set.empty
-            , htmlId =
-                Just ("defaultHtmlId" ++ String.fromInt nextUid)
-            }
-        , attrs = []
-        }
-        [ emptyCell (nextUid + 1) ]

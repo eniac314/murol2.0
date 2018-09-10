@@ -299,7 +299,7 @@ renderEmptyCell config id attrs =
     [ row
         ([ width fill
          , height (px 100)
-         , Background.color (rgba 0 0 0.8 0.5)
+         , Background.color (rgba 0 0 1 0.2)
          ]
             ++ idStyle config.styleSheet id
             ++ renderAttrs config attrs

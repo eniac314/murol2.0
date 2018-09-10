@@ -2,6 +2,7 @@ module SampleDocs exposing (..)
 
 import Array exposing (fromList)
 import Document exposing (..)
+import DocumentEditorHelpers exposing (fixUids)
 import Element exposing (centerX, fill, height, layout, maximum, px, width)
 import Html.Attributes as Attr
 import Set exposing (..)
