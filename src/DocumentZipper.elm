@@ -1,10 +1,25 @@
-module DocumentZipper exposing (..)
+module DocumentZipper
+    exposing
+        ( DocZipper
+        , addNewLeft
+        , addNewRight
+        , addZipperHandlers
+        , deleteCurrent
+        , extractDoc
+        , initZip
+        , rewind
+        , safeDeleteCurrent
+        , swapLeft
+        , swapRight
+        , updateCurrent
+        , zipDown
+        , zipLeft
+        , zipRight
+        , zipUp
+        )
 
 import Document exposing (..)
-import Element exposing (..)
-import Element.Events as Events
 import Html.Events exposing (on, onMouseOut, onMouseOver)
-import Set exposing (empty)
 
 
 type alias DocZipper =
@@ -32,32 +47,15 @@ extractDoc { current, contexts } =
     current
 
 
-findInCurrent : DocZipper -> (Document -> Bool) -> List Document
-findInCurrent docZipper p =
-    let
-        doc =
-            extractDoc docZipper
-
-        helper doc_ =
-            case doc of
-                Container _ children ->
-                    if p doc then
-                        [ doc_ ]
-                    else
-                        List.concatMap helper children
-
-                Cell _ ->
-                    if p doc then
-                        [ doc_ ]
-                    else
-                        []
-    in
-    helper doc
-
-
 updateCurrent : Document -> DocZipper -> DocZipper
 updateCurrent new { current, contexts } =
     { current = new, contexts = contexts }
+
+
+
+-------------------------------
+-- Moving the zipper position--
+-------------------------------
 
 
 rewind : DocZipper -> DocZipper
@@ -113,8 +111,23 @@ zipDown p { current, contexts } =
                         }
 
 
+zipDownPath : List Int -> DocZipper -> Maybe DocZipper
+zipDownPath path document =
+    case path of
+        [] ->
+            Just document
 
--- On the page left is up, right is down!
+        uid :: xs ->
+            case zipDown (hasUid uid) document of
+                Nothing ->
+                    Nothing
+
+                Just child ->
+                    zipDownPath xs child
+
+
+
+-- NOTE: On the page left is up, right is down!
 
 
 zipLeft : DocZipper -> Maybe DocZipper
@@ -163,6 +176,13 @@ zipRight { current, contexts } =
                         }
 
 
+
+----------------------
+-- Zipper mutations --
+----------------------
+-- NOTE: On the page left is up, right is down!
+
+
 swapLeft : DocZipper -> Maybe DocZipper
 swapLeft { current, contexts } =
     case contexts of
@@ -181,6 +201,29 @@ swapLeft { current, contexts } =
                             { parent = parent
                             , left = List.reverse ds
                             , right = d :: right
+                            }
+                                :: cs
+                        }
+
+
+swapRight : DocZipper -> Maybe DocZipper
+swapRight { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            case right of
+                [] ->
+                    Nothing
+
+                d :: ds ->
+                    Just
+                        { current = current
+                        , contexts =
+                            { parent = parent
+                            , left = left ++ [ d ]
+                            , right = ds
                             }
                                 :: cs
                         }
@@ -222,29 +265,6 @@ addNewRight nextUid { current, contexts } =
                 }
 
 
-swapRight : DocZipper -> Maybe DocZipper
-swapRight { current, contexts } =
-    case contexts of
-        [] ->
-            Nothing
-
-        { parent, left, right } :: cs ->
-            case right of
-                [] ->
-                    Nothing
-
-                d :: ds ->
-                    Just
-                        { current = current
-                        , contexts =
-                            { parent = parent
-                            , left = left ++ [ d ]
-                            , right = ds
-                            }
-                                :: cs
-                        }
-
-
 deleteCurrent : DocZipper -> Maybe DocZipper
 deleteCurrent { current, contexts } =
     case contexts of
@@ -277,21 +297,10 @@ safeDeleteCurrent nextUid { current, contexts } =
                     }
 
 
-break : (a -> Bool) -> List a -> ( List a, List a )
-break p xs =
-    let
-        helper ys left =
-            case ys of
-                [] ->
-                    ( left, [] )
 
-                y :: ys_ ->
-                    if p y then
-                        ( List.reverse left, y :: ys_ )
-                    else
-                        helper ys_ (y :: left)
-    in
-    helper xs []
+--------------------
+-- Zipper handlers--
+--------------------
 
 
 addZipperHandlers : DocZipper -> DocZipper
@@ -309,7 +318,6 @@ addZipperHandlers dz =
         addHandlersToChild doc =
             addAttrs doc (handlers (getUid doc))
 
-        --|> setHtmlIdIfNone ("selected" ++ String.fromInt (getUid doc))
         addHandlerToNeighbours doc =
             let
                 path =
@@ -337,8 +345,6 @@ addZipperHandlers dz =
 
         currentWithCssSelectors =
             toogleClass "selected" current
-
-        --|> setHtmlIdIfNone ("selected" ++ String.fromInt (getUid current))
     in
     case currentWithCssSelectors of
         Container nv children ->
@@ -360,6 +366,52 @@ addZipperHandlers dz =
             }
 
 
+
+---------------------
+-- Helper functions--
+---------------------
+
+
+break : (a -> Bool) -> List a -> ( List a, List a )
+break p xs =
+    let
+        helper ys left =
+            case ys of
+                [] ->
+                    ( left, [] )
+
+                y :: ys_ ->
+                    if p y then
+                        ( List.reverse left, y :: ys_ )
+                    else
+                        helper ys_ (y :: left)
+    in
+    helper xs []
+
+
+findInCurrent : DocZipper -> (Document -> Bool) -> List Document
+findInCurrent docZipper p =
+    let
+        doc =
+            extractDoc docZipper
+
+        helper doc_ =
+            case doc of
+                Container _ children ->
+                    if p doc then
+                        [ doc_ ]
+                    else
+                        List.concatMap helper children
+
+                Cell _ ->
+                    if p doc then
+                        [ doc_ ]
+                    else
+                        []
+    in
+    helper doc
+
+
 getPath : DocZipper -> ( List Int, DocZipper )
 getPath document =
     let
@@ -374,23 +426,11 @@ getPath document =
     helper document []
 
 
-zipDownPath : List Int -> DocZipper -> Maybe DocZipper
-zipDownPath path document =
-    case path of
-        [] ->
-            Just document
-
-        uid :: xs ->
-            case zipDown (hasUid uid) document of
-                Nothing ->
-                    Nothing
-
-                Just child ->
-                    zipDownPath xs child
-
-
 applyToContexts : (Document -> Document) -> List Int -> DocZipper -> DocZipper
 applyToContexts f path zipper =
+    -- Note: Apply f to every Container and cell execpt
+    --  * the selection subtree
+    --  * the containers making up the selection subtree's path
     let
         document =
             rewind zipper
@@ -422,17 +462,6 @@ applyToContexts f path zipper =
                             Container cv (List.map helper xs)
                     else
                         f (Container cv (List.map helper xs))
-
-        --Cell lv ->
-        --    if shouldNotApply currentUid then
-        --        doc
-        --    else
-        --        Cell lv
-        --Container cv xs ->
-        --    if shouldNotApply currentUid then
-        --        doc
-        --    else
-        --        Container cv (List.map helper xs)
     in
     helper document
         |> initZip

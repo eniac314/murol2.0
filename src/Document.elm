@@ -1,7 +1,7 @@
 module Document exposing (..)
 
 import Array exposing (Array)
-import Dict exposing (..)
+import Dict exposing (Dict)
 import Element exposing (..)
 import Html.Attributes as Attr
 import Html.Events exposing (on)
@@ -218,6 +218,16 @@ isImage document =
                     False
 
         Container _ _ ->
+            False
+
+
+isContainer : Document -> Bool
+isContainer document =
+    case document of
+        Container _ _ ->
+            True
+
+        _ ->
             False
 
 

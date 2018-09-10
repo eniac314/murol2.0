@@ -4,8 +4,6 @@
 
 - edit features for containers
 
-- auto scroll to new leaf
-
 - refaire keyboard subs 
 
 - faire un parser String <-> TextBloc
@@ -35,7 +33,7 @@
 
 - visualisation structure document
 
-- local storage autosave
+- local storage autosave (check for version bump of billstclair/elm-localstorage, currently 4.0.3 )
 
 - editorPlugins:
 	* table

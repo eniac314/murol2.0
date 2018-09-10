@@ -1,13 +1,9 @@
 module Editor exposing (..)
 
---import DocumentSerializer exposing (..)
-
-import Array exposing (..)
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
-import Delay exposing (..)
-import Dict exposing (..)
+import Dict exposing (fromList)
 import Document exposing (..)
 import DocumentResponsive exposing (..)
 import DocumentStructView exposing (..)
@@ -29,7 +25,6 @@ import SampleDocs exposing (..)
 import StyleSheets exposing (..)
 import TablePlugin exposing (..)
 import Task exposing (perform)
-import Time exposing (..)
 
 
 main : Program () Model Msg
@@ -42,53 +37,13 @@ main =
         }
 
 
-type Msg
-    = CurrentViewport Dom.Viewport
-    | CurrentViewportOf Int (Result Dom.Error Dom.Viewport)
-    | WinResize Int Int
-    | RefreshSizes
-    | MainInterfaceViewport (Result Dom.Error Dom.Viewport)
-    | NoOp
-    | SelectDoc Int
-    | EditCell
-    | WheelEvent Wheel.Event
-    | ZipUp
-    | Rewind
-    | SwapLeft
-    | SwapRight
-    | AddNewLeft
-    | AddNewRight
-    | CreateNewContainer Document
-    | CreateNewCell Document
-    | DeleteSelected
-    | Copy
-    | Cut
-    | Paste
-    | Undo
-    | KeyDown String
-    | KeyUp String
-    | MenuClick
-    | MenuClickOff
-    | TopEntryFocused String
-    | SetPreviewMode PreviewMode
-    | ToogleCountainersColors
-    | JumpTo (Maybe String)
-    | TablePluginMsg TablePlugin.Msg
-
-
-type PreviewMode
-    = PreviewBigScreen
-    | PreviewScreen
-    | PreviewTablet
-    | PreviewPhone
-
-
-type EditorPlugin
-    = ImagePlugin
-    | TablePlugin
-    | CustomElementPlugin
-    | TextBlockPlugin
-    | NewDocPlugin
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ onResize WinResize
+        , onKeyDown (Decode.map KeyDown keyDecoder)
+        , onKeyUp (Decode.map KeyUp keyDecoder)
+        ]
 
 
 type alias Model =
@@ -106,10 +61,74 @@ type alias Model =
     }
 
 
+type PreviewMode
+    = PreviewBigScreen
+    | PreviewScreen
+    | PreviewTablet
+    | PreviewPhone
+
+
+type EditorPlugin
+    = ImagePlugin
+    | TablePlugin
+    | CustomElementPlugin
+    | TextBlockPlugin
+    | NewDocPlugin
+
+
+type Msg
+    = ----------------------------------------------
+      -- Dom manipulation && Dom events processing--
+      ----------------------------------------------
+      CurrentViewport Dom.Viewport
+    | CurrentViewportOf Int (Result Dom.Error Dom.Viewport)
+    | WinResize Int Int
+    | RefreshSizes
+    | MainInterfaceViewport (Result Dom.Error Dom.Viewport)
+    | JumpTo (Maybe String)
+    | KeyDown String
+    | KeyUp String
+      ---------------------------------
+      -- Document Zipper manipulation--
+      ---------------------------------
+    | SelectDoc Int
+    | WheelEvent Wheel.Event
+    | Rewind
+    | SwapLeft
+    | SwapRight
+    | EditCell
+    | AddNewLeft
+    | AddNewRight
+    | CreateNewContainer Document
+    | CreateNewCell Document
+    | DeleteSelected
+    | Copy
+    | Cut
+    | Paste
+    | Undo
+      --------------
+      -- Main menu--
+      --------------
+    | MenuClick
+    | MenuClickOff
+    | TopEntryFocused String
+    | SetPreviewMode PreviewMode
+    | ToogleCountainersColors
+      -----------------------------
+      -- Plugins messages routing--
+      -----------------------------
+    | TablePluginMsg TablePlugin.Msg
+      ---------
+      -- Misc--
+      ---------
+    | NoOp
+
+
 undoCacheDepth =
     4
 
 
+init : Document -> flags -> ( Model, Cmd Msg )
 init doc flags =
     let
         ( doc_, idsToTrack ) =
@@ -160,28 +179,12 @@ init doc flags =
     )
 
 
-subscriptions model =
-    Sub.batch
-        [ onResize WinResize
-        , onKeyDown (Decode.map KeyDown keyDecoder)
-        , onKeyUp (Decode.map KeyUp keyDecoder)
-        ]
-
-
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        WinResize width height ->
-            let
-                cfg =
-                    model.config
-
-                newConfig =
-                    { cfg | width = width, height = height }
-            in
-            ( { model | config = newConfig }
-            , Cmd.batch [ updateSizes newConfig ]
-            )
-
+        ----------------------------------------------
+        -- Dom manipulation && Dom events processing--
+        ----------------------------------------------
         CurrentViewport vp ->
             let
                 ws =
@@ -243,6 +246,41 @@ update msg model =
                 Err (Dom.NotFound s) ->
                     ( model, Cmd.none )
 
+        WinResize width height ->
+            let
+                cfg =
+                    model.config
+
+                newConfig =
+                    { cfg | width = width, height = height }
+            in
+            ( { model | config = newConfig }
+            , Cmd.batch [ updateSizes newConfig ]
+            )
+
+        RefreshSizes ->
+            ( model
+            , updateSizes model.config
+            )
+
+        JumpTo id ->
+            ( model, jumpTo id )
+
+        KeyDown s ->
+            if s == "Control" then
+                ( { model | controlDown = True }, Cmd.none )
+            else
+                ( model, Cmd.none )
+
+        KeyUp s ->
+            if s == "Control" then
+                ( { model | controlDown = False }, Cmd.none )
+            else
+                ( model, Cmd.none )
+
+        ---------------------------------
+        -- Document Zipper manipulation--
+        ---------------------------------
         SelectDoc uid ->
             case
                 zipDown (hasUid uid) model.document
@@ -258,8 +296,28 @@ update msg model =
                         []
                     )
 
-        EditCell ->
-            openPlugin model
+        WheelEvent e ->
+            let
+                newDoc =
+                    zipUp model.document
+            in
+            if e.deltaY > 0 then
+                ( { model
+                    | document =
+                        Maybe.withDefault model.document newDoc
+                  }
+                , Cmd.none
+                )
+            else
+                ( model, Cmd.none )
+
+        Rewind ->
+            ( { model
+                | document =
+                    rewind model.document
+              }
+            , Cmd.none
+            )
 
         SwapLeft ->
             case swapLeft model.document of
@@ -280,6 +338,9 @@ update msg model =
                     ( { model | document = newDoc }
                     , Cmd.none
                     )
+
+        EditCell ->
+            openPlugin model
 
         AddNewLeft ->
             case addNewLeft model.nextUid model.document of
@@ -340,39 +401,6 @@ update msg model =
             ( { newModel | nextUid = model.nextUid + 1 }
             , Cmd.batch
                 [ cmd ]
-            )
-
-        WheelEvent e ->
-            let
-                newDoc =
-                    zipUp model.document
-            in
-            if e.deltaY > 0 then
-                ( { model
-                    | document =
-                        Maybe.withDefault model.document newDoc
-                  }
-                , Cmd.none
-                )
-            else
-                ( model, Cmd.none )
-
-        ZipUp ->
-            ( { model
-                | document =
-                    Maybe.withDefault
-                        model.document
-                        (zipUp model.document)
-              }
-            , Cmd.none
-            )
-
-        Rewind ->
-            ( { model
-                | document =
-                    rewind model.document
-              }
-            , Cmd.none
             )
 
         DeleteSelected ->
@@ -453,23 +481,9 @@ update msg model =
                     , updateSizes model.config
                     )
 
-        KeyDown s ->
-            if s == "Control" then
-                ( { model | controlDown = True }, Cmd.none )
-            else
-                ( model, Cmd.none )
-
-        KeyUp s ->
-            if s == "Control" then
-                ( { model | controlDown = False }, Cmd.none )
-            else
-                ( model, Cmd.none )
-
-        RefreshSizes ->
-            ( model
-            , updateSizes model.config
-            )
-
+        --------------
+        -- Main menu--
+        --------------
         MenuClick ->
             ( { model | menuClicked = not model.menuClicked }
             , Cmd.none
@@ -524,9 +538,9 @@ update msg model =
             in
             ( { model | config = newConfig }, Cmd.none )
 
-        JumpTo id ->
-            ( model, jumpTo id )
-
+        -----------------------------
+        -- Plugins messages routing--
+        -----------------------------
         TablePluginMsg tableMsg ->
             let
                 ( newTablePlugin, mbPluginData ) =
@@ -572,10 +586,14 @@ update msg model =
                         _ ->
                             ( model, Cmd.none )
 
+        ---------
+        -- Misc--
+        ---------
         NoOp ->
             ( model, Cmd.none )
 
 
+view : Model -> Browser.Document Msg
 view model =
     { title = "editor"
     , body =
@@ -585,11 +603,11 @@ view model =
                 ([ width fill
                  , height (maximum model.config.height fill)
                  ]
-                    ++ (if model.currentPlugin == Nothing && model.controlDown then
-                            [ htmlAttribute <| Wheel.onWheel WheelEvent ]
-                        else
-                            []
-                       )
+                    --++ (if model.currentPlugin == Nothing && model.controlDown then
+                    --        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
+                    --    else
+                    --        []
+                    --   )
                     ++ (if model.menuClicked then
                             [ onClick MenuClickOff ]
                         else
@@ -598,31 +616,23 @@ view model =
                 )
                 [ mainInterface
                     { clicked = model.menuClicked
-
-                    --, flags = []
                     , currentFocus = model.menuFocused
                     , isInPlugin = model.currentPlugin /= Nothing
                     , clipboardEmpty = model.clipboard == Nothing
                     , undoCacheEmpty = model.undoCache == []
                     , selectionIsRoot = zipUp model.document == Nothing
-                    , selectionIsContainer =
-                        case extractDoc model.document of
-                            Container _ _ ->
-                                True
-
-                            _ ->
-                                False
+                    , selectionIsContainer = isContainer (extractDoc model.document)
                     , previewMode = model.previewMode
                     , containersBkgColors = model.config.containersBkgColors
                     }
                 , row
                     [ width fill
 
-                    --trick to make the columns scrollable
+                    --NOTE: trick to make the columns scrollable
                     , clip
                     , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
 
-                    -- works too
+                    --NOTE: works too
                     --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
                     ]
                     [ documentStructView
@@ -640,10 +650,109 @@ view model =
                     ]
                 ]
             )
-
-        --, Html.text <| Debug.toString model.controlDown
         ]
     }
+
+
+documentView : Model -> Element Msg
+documentView model =
+    column
+        [ scrollbarY
+        , height fill -- needed to be able to scroll
+        , width fill
+        , htmlAttribute <| HtmlAttr.id "documentContainer"
+        , case model.previewMode of
+            PreviewBigScreen ->
+                width fill
+
+            PreviewScreen ->
+                width (px 1268)
+
+            PreviewTablet ->
+                width (px 1024)
+
+            PreviewPhone ->
+                width (px 480)
+        , centerX
+        ]
+        (model.document
+            |> addZipperHandlers
+            |> rewind
+            |> extractDoc
+            |> responsivePreFormat model.config
+            |> renderDoc model.config
+         --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
+        )
+
+
+
+-------------------------------
+-- Plugins views loading code--
+-------------------------------
+
+
+pluginView : Model -> EditorPlugin -> Element Msg
+pluginView model plugin =
+    case plugin of
+        ImagePlugin ->
+            el [] (text "Nothing  here yet!")
+
+        TablePlugin ->
+            TablePlugin.view model.tablePlugin
+                |> Element.map TablePluginMsg
+
+        CustomElementPlugin ->
+            el [] (text "Nothing  here yet!")
+
+        TextBlockPlugin ->
+            el [] (text "Nothing  here yet!")
+
+        NewDocPlugin ->
+            NewDocPlugin.view
+                { createNewCell = CreateNewCell
+                , createNewContainer = CreateNewContainer
+                , nextUid = model.nextUid
+                }
+
+
+
+--{ createNewCell = \_ -> NoOp
+--, createNewContainer = \_ -> NoOp
+--, nextUid = model.nextUid
+--}
+
+
+openPlugin : Model -> ( Model, Cmd Msg )
+openPlugin model =
+    case extractDoc model.document of
+        Cell { cellContent, id, attrs } ->
+            case cellContent of
+                Table tm ->
+                    ( { model
+                        | currentPlugin = Just TablePlugin
+                        , tablePlugin = TablePlugin.init (Just tm)
+                      }
+                    , Cmd.none
+                    )
+
+                EmptyCell ->
+                    ( { model
+                        | currentPlugin = Just NewDocPlugin
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+
+---------------
+-- Main menu --
+---------------
 
 
 type alias MenuConfig =
@@ -1014,105 +1123,9 @@ mainMenu config =
 
 
 
---documentView model =
---    column
---        [ scrollbarY
---        , height fill -- needed to be able to scroll
---        , width fill
---        , htmlAttribute <| HtmlAttr.id "documentContainer"
---        ]
---        [ column
---            [ case model.previewMode of
---                PreviewBigScreen ->
---                    width fill
---                PreviewScreen ->
---                    width (px 1268)
---                PreviewTablet ->
---                    width (px 1024)
---                PreviewPhone ->
---                    width (px 480)
---            , centerX
---            , htmlAttribute <| HtmlAttr.id "documentContainer2"
---            ]
---            [ model.document
---                |> addZipperHandlers
---                |> rewind
---                |> extractDoc
---                |> responsivePreFormat model.config
---                |> renderDoc model.config
---            --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
---            ]
---        ]
-
-
-documentView model =
-    column
-        [ scrollbarY
-        , height fill -- needed to be able to scroll
-        , width fill
-        , htmlAttribute <| HtmlAttr.id "documentContainer"
-        , case model.previewMode of
-            PreviewBigScreen ->
-                width fill
-
-            PreviewScreen ->
-                width (px 1268)
-
-            PreviewTablet ->
-                width (px 1024)
-
-            PreviewPhone ->
-                width (px 480)
-        , centerX
-        ]
-        (model.document
-            |> addZipperHandlers
-            |> rewind
-            |> extractDoc
-            |> responsivePreFormat model.config
-            |> renderDoc model.config
-         --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
-        )
-
-
-pluginView model plugin =
-    case plugin of
-        ImagePlugin ->
-            el [] (text "Nothing  here yet!")
-
-        TablePlugin ->
-            TablePlugin.view model.tablePlugin
-                |> Element.map TablePluginMsg
-
-        CustomElementPlugin ->
-            el [] (text "Nothing  here yet!")
-
-        TextBlockPlugin ->
-            el [] (text "Nothing  here yet!")
-
-        NewDocPlugin ->
-            NewDocPlugin.view
-                { createNewCell = CreateNewCell
-                , createNewContainer = CreateNewContainer
-                , nextUid = model.nextUid
-                }
-
-
-
---{ createNewCell = \_ -> NoOp
---, createNewContainer = \_ -> NoOp
---, nextUid = model.nextUid
---}
-
-
-buttonStyle =
-    [ Border.rounded 5
-    , Font.center
-    , centerY
-    , paddingXY 5 3
-    , mouseOver
-        [ Background.color (rgb 0.95 0.95 0.95) ]
-    ]
+---------------------
+-- Helper functions--
+---------------------
 
 
 updateSizes : Config Msg -> Cmd Msg
@@ -1151,60 +1164,6 @@ jumpTo mbId =
                 |> Task.attempt (\_ -> NoOp)
 
 
-
---Dom.getElement "defaultHtmlId0"
---    |> Task.andThen
---        (\dcVP ->
---            let
---                _ =
---                    Debug.log "docContainer viewport" dcVP
---            in
---            Dom.getElement
---                (Debug.log "destId" destId)
---                |> Task.andThen
---                    (\el ->
---                        Dom.setViewportOf "documentContainer"
---                            0
---                            (--abs
---                             --(if dcVP.element.y > 0 then
---                             --    dcVP.element.y + 75
---                             -- else
---                             --    dcVP.element.y
---                             --)
---                             (Debug.log "element" el).element.y - dcVP.element.y - 50
---                            )
---                    )
---        )
---    |> Task.attempt (\_ -> NoOp)
-
-
 keyDecoder : Decode.Decoder String
 keyDecoder =
     Decode.field "key" Decode.string
-
-
-openPlugin : Model -> ( Model, Cmd Msg )
-openPlugin model =
-    case extractDoc model.document of
-        Cell { cellContent, id, attrs } ->
-            case cellContent of
-                Table tm ->
-                    ( { model
-                        | currentPlugin = Just TablePlugin
-                        , tablePlugin = TablePlugin.init (Just tm)
-                      }
-                    , Cmd.none
-                    )
-
-                EmptyCell ->
-                    ( { model
-                        | currentPlugin = Just NewDocPlugin
-                      }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
