@@ -8351,7 +8351,13 @@ var author$project$Editor$update = F2(
 									_Utils_update(
 										model,
 										{K: elm$core$Maybe$Nothing, a: newDoc}),
-									elm$core$Platform$Cmd$none);
+									elm$core$Platform$Cmd$batch(
+										_List_fromArray(
+											[
+												author$project$Editor$scrollTo(
+												author$project$Document$getHtmlId(
+													author$project$DocumentZipper$extractDoc(model.a)))
+											])));
 							} else {
 								return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 							}

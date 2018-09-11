@@ -586,7 +586,8 @@ update msg model =
                                         | document = newDoc
                                         , currentPlugin = Nothing
                                       }
-                                    , Cmd.none
+                                    , Cmd.batch
+                                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
                                     )
 
                                 _ ->
