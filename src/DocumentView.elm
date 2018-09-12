@@ -78,6 +78,20 @@ renderTextBlockElement config tbAttrs tbe =
                 )
                 (List.map (renderLi config tbAttrs) xs)
 
+        Heading attrs ( level, s ) ->
+            let
+                headingStyle =
+                    Dict.get level config.styleSheet.headingStyles
+                        |> Maybe.withDefault []
+            in
+            paragraph
+                ([ Region.heading level ]
+                    ++ headingStyle
+                    ++ renderAttrs config tbAttrs
+                    ++ renderAttrs config attrs
+                )
+                [ text s ]
+
         TBPrimitive p ->
             renderTextBlockPrimitive config tbAttrs p
 
@@ -108,20 +122,6 @@ renderTextBlockPrimitive config tbAttrs p =
                 { url = url
                 , label = text label
                 }
-
-        Heading attrs ( level, s ) ->
-            let
-                headingStyle =
-                    Dict.get level config.styleSheet.headingStyles
-                        |> Maybe.withDefault []
-            in
-            paragraph
-                ([ Region.heading level ]
-                    ++ headingStyle
-                    ++ renderAttrs config tbAttrs
-                    ++ renderAttrs config attrs
-                )
-                [ text s ]
 
 
 renderLi config tbAttrs li =

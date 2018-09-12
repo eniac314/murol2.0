@@ -20,8 +20,8 @@ sampleDoc1 =
             , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 8 }
             , cellContent =
                 TextBlock
-                    [ TBPrimitive (Heading [] ( 1, "Découvrir Murol" ))
-                    , TBPrimitive (Heading [] ( 2, "Le bourg de Murol" ))
+                    [ Heading [] ( 1, "Découvrir Murol" )
+                    , Heading [] ( 2, "Le bourg de Murol" )
                     ]
             }
         , Container
@@ -338,8 +338,7 @@ sampleDoc1 =
             , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 4 }
             , cellContent =
                 TextBlock
-                    [ TBPrimitive <|
-                        Heading [] ( 1, "Office de Tourisme communautaire du massif du Sancy" )
+                    [ Heading [] ( 1, "Office de Tourisme communautaire du massif du Sancy" )
                     ]
             }
         , Container
@@ -397,8 +396,7 @@ sampleDoc1 =
                 , id = { classes = Set.fromList [], htmlId = Nothing, docStyleId = Nothing, uid = 4 }
                 , cellContent =
                     TextBlock
-                        [ TBPrimitive <|
-                            Heading [] ( 3, "Adresse:" )
+                        [ Heading [] ( 3, "Adresse:" )
                         , Paragraph []
                             [ Text [] "Rue de jassaguet - 63790 Murol"
                             ]
@@ -408,8 +406,7 @@ sampleDoc1 =
                         , Paragraph []
                             [ Text [] "Fax : 04 73 88 60 23"
                             ]
-                        , TBPrimitive <|
-                            Heading [] ( 3, "Horaires:" )
+                        , Heading [] ( 3, "Horaires:" )
                         ]
                 }
             , Cell

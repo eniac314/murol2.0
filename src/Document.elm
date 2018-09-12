@@ -52,6 +52,7 @@ type CellContent
 type TextBlockElement
     = Paragraph (List DocAttribute) (List TextBlockPrimitive)
     | UList (List DocAttribute) (List Li)
+    | Heading (List DocAttribute) ( Int, String )
     | TBPrimitive TextBlockPrimitive
 
 
@@ -62,7 +63,6 @@ type alias Li =
 type TextBlockPrimitive
     = Text (List DocAttribute) String
     | Link (List DocAttribute) LinkMeta
-    | Heading (List DocAttribute) ( Int, String )
 
 
 type ImageSrc

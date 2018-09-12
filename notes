@@ -48,3 +48,5 @@
 - check elm test for testing uuid uniqueness invariants
 
 - if working with ports check billstclair/elm-port-funnel
+
+- height shrink in Input.multiline fo Table

@@ -32,7 +32,9 @@
         }
 
         set selection(offset){
-        	this.setSelectionRange(offset.start,offset.stop);
+        	this._textarea = this.querySelector('textarea');
+        	this._textarea.focus();
+        	this._textarea.setSelectionRange(offset.start,offset.stop);
         }
 
 	    connectedCallback() {
