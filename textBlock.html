@@ -31,6 +31,10 @@
         	return this._cols || "0";
         }
 
+        set selection(offset){
+        	this.setSelectionRange(offset.start,offset.stop);
+        }
+
 	    connectedCallback() {
 	    	this._textarea = this.querySelector('textarea');
             

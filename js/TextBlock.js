@@ -5454,13 +5454,16 @@ var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$TextBlockPlugin$init = function (flags) {
 	return _Utils_Tuple2(
-		{nbrCols: elm$core$Maybe$Nothing, parsedContent: _List_Nil, parserDebug: '', rawInput: '', selected: elm$core$Maybe$Nothing},
+		{cursorPos: elm$core$Maybe$Nothing, nbrCols: elm$core$Maybe$Nothing, parsedContent: _List_Nil, parserDebug: '', rawInput: '', selected: elm$core$Maybe$Nothing},
 		elm$core$Platform$Cmd$none);
 };
 var elm$core$Platform$Sub$batch = _Platform_batch;
 var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$TextBlockPlugin$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
+};
+var author$project$TextBlockPlugin$ParagraphElement = function (a) {
+	return {$: 'ParagraphElement', a: a};
 };
 var elm$core$Basics$identity = function (x) {
 	return x;
@@ -5654,6 +5657,17 @@ var elm$parser$Parser$keyword = function (kwd) {
 			kwd,
 			elm$parser$Parser$ExpectingKeyword(kwd)));
 };
+var elm$parser$Parser$Advanced$spaces = elm$parser$Parser$Advanced$chompWhile(
+	function (c) {
+		return _Utils_eq(
+			c,
+			_Utils_chr(' ')) || (_Utils_eq(
+			c,
+			_Utils_chr('\n')) || _Utils_eq(
+			c,
+			_Utils_chr('\r')));
+	});
+var elm$parser$Parser$spaces = elm$parser$Parser$Advanced$spaces;
 var elm$parser$Parser$Advanced$succeed = function (a) {
 	return elm$parser$Parser$Advanced$Parser(
 		function (s) {
@@ -5668,19 +5682,10 @@ var author$project$TextBlockPlugin$break = elm$parser$Parser$backtrackable(
 			elm$parser$Parser$ignorer,
 			A2(
 				elm$parser$Parser$ignorer,
-				A2(
-					elm$parser$Parser$ignorer,
-					A2(
-						elm$parser$Parser$ignorer,
-						elm$parser$Parser$succeed(_Utils_Tuple0),
-						author$project$TextBlockPlugin$reallyspaces),
-					elm$parser$Parser$keyword('\n')),
+				elm$parser$Parser$succeed(_Utils_Tuple0),
 				author$project$TextBlockPlugin$reallyspaces),
 			elm$parser$Parser$keyword('\n')),
-		author$project$TextBlockPlugin$reallyspaces));
-var author$project$TextBlockPlugin$ParagraphElement = function (a) {
-	return {$: 'ParagraphElement', a: a};
-};
+		elm$parser$Parser$spaces));
 var author$project$TextBlockPlugin$TextPrimitive = function (a) {
 	return {$: 'TextPrimitive', a: a};
 };
@@ -5718,7 +5723,7 @@ var author$project$TextBlockPlugin$groupWordsIntoText = function (prims) {
 					} else {
 						if (!buffer.b) {
 							var $temp$buffer = buffer,
-								$temp$acc = acc,
+								$temp$acc = A2(elm$core$List$cons, x, acc),
 								$temp$xs = xs_;
 							buffer = $temp$buffer;
 							acc = $temp$acc;
@@ -5792,10 +5797,44 @@ var elm$parser$Parser$chompUntil = function (str) {
 	return elm$parser$Parser$Advanced$chompUntil(
 		elm$parser$Parser$toToken(str));
 };
+var elm$core$String$slice = _String_slice;
+var elm$parser$Parser$Advanced$mapChompedString = F2(
+	function (func, _n0) {
+		var parse = _n0.a;
+		return elm$parser$Parser$Advanced$Parser(
+			function (s0) {
+				var _n1 = parse(s0);
+				if (_n1.$ === 'Bad') {
+					var p = _n1.a;
+					var x = _n1.b;
+					return A2(elm$parser$Parser$Advanced$Bad, p, x);
+				} else {
+					var p = _n1.a;
+					var a = _n1.b;
+					var s1 = _n1.c;
+					return A3(
+						elm$parser$Parser$Advanced$Good,
+						p,
+						A2(
+							func,
+							A3(elm$core$String$slice, s0.offset, s1.offset, s0.src),
+							a),
+						s1);
+				}
+			});
+	});
+var elm$parser$Parser$Advanced$getChompedString = function (parser) {
+	return A2(elm$parser$Parser$Advanced$mapChompedString, elm$core$Basics$always, parser);
+};
+var elm$parser$Parser$getChompedString = elm$parser$Parser$Advanced$getChompedString;
+var elm$parser$Parser$Advanced$getOffset = elm$parser$Parser$Advanced$Parser(
+	function (s) {
+		return A3(elm$parser$Parser$Advanced$Good, false, s.offset, s);
+	});
+var elm$parser$Parser$getOffset = elm$parser$Parser$Advanced$getOffset;
 var elm$parser$Parser$ExpectingInt = {$: 'ExpectingInt'};
 var elm$parser$Parser$Advanced$consumeBase = _Parser_consumeBase;
 var elm$parser$Parser$Advanced$consumeBase16 = _Parser_consumeBase16;
-var elm$core$String$slice = _String_slice;
 var elm$core$String$toFloat = _String_toFloat;
 var elm$parser$Parser$Advanced$bumpOffset = F2(
 	function (newOffset, s) {
@@ -5953,17 +5992,6 @@ var elm$parser$Parser$Advanced$keeper = F2(
 		return A3(elm$parser$Parser$Advanced$map2, elm$core$Basics$apL, parseFunc, parseArg);
 	});
 var elm$parser$Parser$keeper = elm$parser$Parser$Advanced$keeper;
-var elm$parser$Parser$Advanced$spaces = elm$parser$Parser$Advanced$chompWhile(
-	function (c) {
-		return _Utils_eq(
-			c,
-			_Utils_chr(' ')) || (_Utils_eq(
-			c,
-			_Utils_chr('\n')) || _Utils_eq(
-			c,
-			_Utils_chr('\r')));
-	});
-var elm$parser$Parser$spaces = elm$parser$Parser$Advanced$spaces;
 var elm$parser$Parser$ExpectingSymbol = function (a) {
 	return {$: 'ExpectingSymbol', a: a};
 };
@@ -6002,65 +6030,132 @@ var elm$parser$Parser$token = function (str) {
 var author$project$TextBlockPlugin$heading = A2(
 	elm$parser$Parser$keeper,
 	A2(
-		elm$parser$Parser$ignorer,
+		elm$parser$Parser$keeper,
 		A2(
-			elm$parser$Parser$ignorer,
+			elm$parser$Parser$keeper,
 			A2(
-				elm$parser$Parser$ignorer,
+				elm$parser$Parser$keeper,
+				A2(
+					elm$parser$Parser$ignorer,
+					elm$parser$Parser$succeed(
+						F4(
+							function (start, uid, val, stop) {
+								return author$project$TextBlockPlugin$HeadingPrimitive(
+									{start: start, stop: stop, uid: uid, value: val});
+							})),
+					elm$parser$Parser$spaces),
 				A2(
 					elm$parser$Parser$ignorer,
 					A2(
 						elm$parser$Parser$ignorer,
 						A2(
 							elm$parser$Parser$ignorer,
-							elm$parser$Parser$succeed(author$project$TextBlockPlugin$HeadingPrimitive),
-							elm$parser$Parser$spaces),
-						elm$parser$Parser$symbol('<')),
-					elm$parser$Parser$spaces),
-				elm$parser$Parser$token('titre-')),
-			elm$parser$Parser$int),
-		elm$parser$Parser$spaces),
-	A2(
-		elm$parser$Parser$ignorer,
-		A2(
-			elm$parser$Parser$ignorer,
+							A2(
+								elm$parser$Parser$ignorer,
+								A2(
+									elm$parser$Parser$ignorer,
+									elm$parser$Parser$getOffset,
+									elm$parser$Parser$symbol('<')),
+								elm$parser$Parser$spaces),
+							elm$parser$Parser$token('titre-')),
+						elm$parser$Parser$int),
+					elm$parser$Parser$spaces)),
 			A2(
 				elm$parser$Parser$ignorer,
 				A2(elm$parser$Parser$ignorer, elm$parser$Parser$int, elm$parser$Parser$spaces),
-				elm$parser$Parser$symbol('>')),
-			elm$parser$Parser$chompUntil('<')),
-		elm$parser$Parser$keyword('</>')));
+				elm$parser$Parser$symbol('>'))),
+		A2(
+			elm$parser$Parser$ignorer,
+			elm$parser$Parser$getChompedString(
+				elm$parser$Parser$chompUntil('<')),
+			elm$parser$Parser$keyword('</>'))),
+	elm$parser$Parser$getOffset);
+var author$project$TextBlockPlugin$InlineStylePrimitive = function (a) {
+	return {$: 'InlineStylePrimitive', a: a};
+};
+var author$project$TextBlockPlugin$inlineStyle = A2(
+	elm$parser$Parser$keeper,
+	A2(
+		elm$parser$Parser$keeper,
+		A2(
+			elm$parser$Parser$keeper,
+			A2(
+				elm$parser$Parser$keeper,
+				A2(
+					elm$parser$Parser$ignorer,
+					elm$parser$Parser$succeed(
+						F4(
+							function (start, uid, val, stop) {
+								return author$project$TextBlockPlugin$InlineStylePrimitive(
+									{start: start, stop: stop, uid: uid, value: val});
+							})),
+					elm$parser$Parser$spaces),
+				A2(
+					elm$parser$Parser$ignorer,
+					A2(
+						elm$parser$Parser$ignorer,
+						A2(
+							elm$parser$Parser$ignorer,
+							A2(
+								elm$parser$Parser$ignorer,
+								elm$parser$Parser$getOffset,
+								elm$parser$Parser$symbol('<')),
+							elm$parser$Parser$spaces),
+						elm$parser$Parser$keyword('style')),
+					elm$parser$Parser$spaces)),
+			A2(
+				elm$parser$Parser$ignorer,
+				A2(elm$parser$Parser$ignorer, elm$parser$Parser$int, elm$parser$Parser$spaces),
+				elm$parser$Parser$symbol('>'))),
+		A2(
+			elm$parser$Parser$ignorer,
+			elm$parser$Parser$getChompedString(
+				elm$parser$Parser$chompUntil('<')),
+			elm$parser$Parser$keyword('</>'))),
+	elm$parser$Parser$getOffset);
 var author$project$TextBlockPlugin$LinkPrimitive = function (a) {
 	return {$: 'LinkPrimitive', a: a};
 };
 var author$project$TextBlockPlugin$link = A2(
 	elm$parser$Parser$keeper,
 	A2(
-		elm$parser$Parser$ignorer,
+		elm$parser$Parser$keeper,
 		A2(
-			elm$parser$Parser$ignorer,
+			elm$parser$Parser$keeper,
 			A2(
-				elm$parser$Parser$ignorer,
+				elm$parser$Parser$keeper,
+				A2(
+					elm$parser$Parser$ignorer,
+					elm$parser$Parser$succeed(
+						F4(
+							function (start, uid, val, stop) {
+								return author$project$TextBlockPlugin$LinkPrimitive(
+									{start: start, stop: stop, uid: uid, value: val});
+							})),
+					elm$parser$Parser$spaces),
 				A2(
 					elm$parser$Parser$ignorer,
 					A2(
 						elm$parser$Parser$ignorer,
-						elm$parser$Parser$succeed(author$project$TextBlockPlugin$LinkPrimitive),
-						elm$parser$Parser$spaces),
-					elm$parser$Parser$symbol('<')),
-				elm$parser$Parser$spaces),
-			elm$parser$Parser$keyword('lien')),
-		elm$parser$Parser$spaces),
-	A2(
-		elm$parser$Parser$ignorer,
-		A2(
-			elm$parser$Parser$ignorer,
+						A2(
+							elm$parser$Parser$ignorer,
+							A2(
+								elm$parser$Parser$ignorer,
+								elm$parser$Parser$getOffset,
+								elm$parser$Parser$symbol('<')),
+							elm$parser$Parser$spaces),
+						elm$parser$Parser$keyword('lien')),
+					elm$parser$Parser$spaces)),
 			A2(
 				elm$parser$Parser$ignorer,
 				A2(elm$parser$Parser$ignorer, elm$parser$Parser$int, elm$parser$Parser$spaces),
-				elm$parser$Parser$symbol('>')),
-			elm$parser$Parser$chompUntil('<')),
-		elm$parser$Parser$keyword('</>')));
+				elm$parser$Parser$symbol('>'))),
+		A2(
+			elm$parser$Parser$ignorer,
+			elm$parser$Parser$getChompedString(
+				elm$parser$Parser$chompUntil('<')),
+			elm$parser$Parser$keyword('</>'))),
+	elm$parser$Parser$getOffset);
 var elm$parser$Parser$Advanced$Append = F2(
 	function (a, b) {
 		return {$: 'Append', a: a, b: b};
@@ -6108,40 +6203,12 @@ var author$project$TextBlockPlugin$allPrimitivesButText = elm$parser$Parser$oneO
 	_List_fromArray(
 		[
 			elm$parser$Parser$backtrackable(author$project$TextBlockPlugin$link),
+			elm$parser$Parser$backtrackable(author$project$TextBlockPlugin$inlineStyle),
 			author$project$TextBlockPlugin$heading
 		]));
 var author$project$TextBlockPlugin$WordPrimitive = function (a) {
 	return {$: 'WordPrimitive', a: a};
 };
-var elm$parser$Parser$Advanced$mapChompedString = F2(
-	function (func, _n0) {
-		var parse = _n0.a;
-		return elm$parser$Parser$Advanced$Parser(
-			function (s0) {
-				var _n1 = parse(s0);
-				if (_n1.$ === 'Bad') {
-					var p = _n1.a;
-					var x = _n1.b;
-					return A2(elm$parser$Parser$Advanced$Bad, p, x);
-				} else {
-					var p = _n1.a;
-					var a = _n1.b;
-					var s1 = _n1.c;
-					return A3(
-						elm$parser$Parser$Advanced$Good,
-						p,
-						A2(
-							func,
-							A3(elm$core$String$slice, s0.offset, s1.offset, s0.src),
-							a),
-						s1);
-				}
-			});
-	});
-var elm$parser$Parser$Advanced$getChompedString = function (parser) {
-	return A2(elm$parser$Parser$Advanced$mapChompedString, elm$core$Basics$always, parser);
-};
-var elm$parser$Parser$getChompedString = elm$parser$Parser$Advanced$getChompedString;
 var elm$parser$Parser$Advanced$map = F2(
 	function (func, _n0) {
 		var parse = _n0.a;
@@ -6329,14 +6396,14 @@ var author$project$TextBlockPlugin$uList = function () {
 						return elm$parser$Parser$Done(
 							elm$core$List$reverse(prims));
 					},
-					elm$parser$Parser$end),
+					author$project$TextBlockPlugin$break),
 					A2(
 					elm$parser$Parser$map,
 					function (_n1) {
 						return elm$parser$Parser$Done(
 							elm$core$List$reverse(prims));
 					},
-					author$project$TextBlockPlugin$break),
+					elm$parser$Parser$end),
 					A2(
 					elm$parser$Parser$keeper,
 					elm$parser$Parser$succeed(
@@ -6379,13 +6446,6 @@ var author$project$TextBlockPlugin$textBlock = function () {
 							elm$core$List$reverse(elems));
 					},
 					elm$parser$Parser$end),
-					A2(
-					elm$parser$Parser$map,
-					function (_n1) {
-						return elm$parser$Parser$Done(
-							elm$core$List$reverse(elems));
-					},
-					author$project$TextBlockPlugin$break),
 					elm$parser$Parser$backtrackable(
 					A2(
 						elm$parser$Parser$keeper,
@@ -6542,21 +6602,27 @@ var author$project$TextBlockPlugin$update = F2(
 		switch (msg.$) {
 			case 'TextInput':
 				var s = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							parserDebug: elm$core$Debug$toString(
-								A2(elm$parser$Parser$run, author$project$TextBlockPlugin$textBlock, s)),
-							rawInput: s
-						}),
-					elm$core$Platform$Cmd$none);
+				var _n1 = A2(elm$parser$Parser$run, author$project$TextBlockPlugin$textBlock, s);
+				if (_n1.$ === 'Ok') {
+					var res = _n1.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								parserDebug: elm$core$Debug$toString(res),
+								rawInput: s
+							}),
+						elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				}
 			case 'NewSelection':
 				var s = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
+							cursorPos: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Just(s.start) : elm$core$Maybe$Nothing,
 							selected: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(s)
 						}),
 					elm$core$Platform$Cmd$none);
@@ -11516,35 +11582,36 @@ var elm$core$Basics$composeL = F3(
 	});
 var mdgriffith$elm_ui$Internal$Model$unstyled = A2(elm$core$Basics$composeL, mdgriffith$elm_ui$Internal$Model$Unstyled, elm$core$Basics$always);
 var mdgriffith$elm_ui$Element$html = mdgriffith$elm_ui$Internal$Model$unstyled;
-var author$project$TextBlockPlugin$customTextArea = function (attrs) {
-	return A2(
-		mdgriffith$elm_ui$Element$el,
-		attrs,
-		mdgriffith$elm_ui$Element$html(
-			A3(
-				elm$html$Html$node,
-				'custom-textarea',
-				_List_fromArray(
-					[
-						elm$html$Html$Events$onInput(author$project$TextBlockPlugin$TextInput),
-						A2(elm$html$Html$Events$on, 'Selection', author$project$TextBlockPlugin$decodeSelection),
-						A2(elm$html$Html$Events$on, 'Loaded', author$project$TextBlockPlugin$decodeLoaded)
-					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$textarea,
-						_List_fromArray(
-							[
-								A2(elm$html$Html$Attributes$style, 'font-family', 'Arial'),
-								A2(elm$html$Html$Attributes$style, 'font-size', '16px'),
-								elm$html$Html$Attributes$cols(60),
-								A2(elm$html$Html$Attributes$style, 'height', '500px'),
-								A2(elm$html$Html$Attributes$style, 'spellcheck', 'false')
-							]),
-						_List_Nil)
-					]))));
-};
+var author$project$TextBlockPlugin$customTextArea = F2(
+	function (attrs, cursorPos) {
+		return A2(
+			mdgriffith$elm_ui$Element$el,
+			attrs,
+			mdgriffith$elm_ui$Element$html(
+				A3(
+					elm$html$Html$node,
+					'custom-textarea',
+					_List_fromArray(
+						[
+							elm$html$Html$Events$onInput(author$project$TextBlockPlugin$TextInput),
+							A2(elm$html$Html$Events$on, 'Selection', author$project$TextBlockPlugin$decodeSelection),
+							A2(elm$html$Html$Events$on, 'Loaded', author$project$TextBlockPlugin$decodeLoaded)
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$textarea,
+							_List_fromArray(
+								[
+									A2(elm$html$Html$Attributes$style, 'font-family', 'Arial'),
+									A2(elm$html$Html$Attributes$style, 'font-size', '16px'),
+									elm$html$Html$Attributes$cols(60),
+									A2(elm$html$Html$Attributes$style, 'height', '500px'),
+									A2(elm$html$Html$Attributes$style, 'spellcheck', 'false')
+								]),
+							_List_Nil)
+						]))));
+	});
 var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$svg = elm$svg$Svg$trustedNode('svg');
 var elm$svg$Svg$Attributes$class = _VirtualDom_attribute('class');
@@ -12539,10 +12606,36 @@ var author$project$TextBlockPlugin$view = function (model) {
 			_List_fromArray(
 				[
 					author$project$TextBlockPlugin$interfaceView(model),
-					author$project$TextBlockPlugin$customTextArea(
+					A2(
+					author$project$TextBlockPlugin$customTextArea,
 					_List_fromArray(
 						[
 							mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+						]),
+					model.cursorPos),
+					A2(
+					mdgriffith$elm_ui$Element$paragraph,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$width(
+							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+						]),
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$text(
+							elm$core$Debug$toString(model.selected))
+						])),
+					A2(
+					mdgriffith$elm_ui$Element$paragraph,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$width(
+							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+						]),
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$text(
+							elm$core$Debug$toString(model.cursorPos))
 						])),
 					A2(
 					mdgriffith$elm_ui$Element$paragraph,

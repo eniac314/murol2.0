@@ -22,9 +22,12 @@ import Parser exposing (..)
 type alias DocTextBlock =
     { rawInput : String
     , selected : Maybe Selection
+    , cursorPos : Maybe Int
     , nbrCols : Maybe Int
     , parsedContent : List TextBlockElement
     , parserDebug : String
+
+    --, links : List PrimitiveMeta
     }
 
 
@@ -60,9 +63,12 @@ subscriptions model =
 init flags =
     ( { rawInput = ""
       , selected = Nothing
+      , cursorPos = Nothing
       , nbrCols = Nothing
       , parsedContent = []
       , parserDebug = ""
+
+      --, links = []
       }
     , Cmd.none
     )
@@ -71,13 +77,21 @@ init flags =
 update msg model =
     case msg of
         TextInput s ->
-            ( { model
-                | rawInput = s
-                , parserDebug =
-                    Debug.toString (run textBlock s)
-              }
-            , Cmd.none
-            )
+            case run textBlock s of
+                Ok res ->
+                    ( { model
+                        | rawInput = s
+                        , parserDebug =
+                            Debug.toString res
+
+                        --, links =
+                        --    getLinks res
+                      }
+                    , Cmd.none
+                    )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         NewSelection s ->
             ( { model
@@ -86,6 +100,11 @@ update msg model =
                         Nothing
                     else
                         Just s
+                , cursorPos =
+                    if s.start == s.finish then
+                        Just s.start
+                    else
+                        Nothing
               }
             , Cmd.none
             )
@@ -111,8 +130,11 @@ view model =
             , spacing 15
             ]
             [ interfaceView model
-            , customTextArea
-                [ width fill ]
+            , customTextArea [ width fill ] model.cursorPos
+            , Element.paragraph [ width (maximum 500 fill) ]
+                [ Element.text <| Debug.toString model.selected ]
+            , Element.paragraph [ width (maximum 500 fill) ]
+                [ Element.text <| Debug.toString model.cursorPos ]
             , Element.paragraph [ width (maximum 500 fill) ]
                 [ Element.text <| Debug.toString model.parserDebug ]
             ]
@@ -146,7 +168,7 @@ textBlocPreview model =
         []
 
 
-customTextArea attrs =
+customTextArea attrs cursorPos =
     el attrs
         (html <|
             node "custom-textarea"
@@ -218,10 +240,19 @@ type Element
 
 
 type Primitive
-    = LinkPrimitive Int
-    | HeadingPrimitive Int
+    = LinkPrimitive PrimitiveMeta
+    | HeadingPrimitive PrimitiveMeta
+    | InlineStylePrimitive PrimitiveMeta
     | TextPrimitive String
     | WordPrimitive String
+
+
+type alias PrimitiveMeta =
+    { start : Int
+    , stop : Int
+    , uid : Int
+    , value : String
+    }
 
 
 textBlock : Parser (List Element)
@@ -230,7 +261,6 @@ textBlock =
         helper elems =
             oneOf
                 [ Parser.map (\_ -> Done (List.reverse elems)) end
-                , Parser.map (\_ -> Done (List.reverse elems)) break
                 , succeed (\ul -> Loop (ul :: elems))
                     |= uList
                     |> backtrackable
@@ -262,8 +292,8 @@ uList =
     let
         helper prims =
             oneOf
-                [ Parser.map (\_ -> Done (List.reverse prims)) end
-                , Parser.map (\_ -> Done (List.reverse prims)) break
+                [ Parser.map (\_ -> Done (List.reverse prims)) break
+                , Parser.map (\_ -> Done (List.reverse prims)) end
                 , succeed (\p -> Loop (p :: prims))
                     |= primitive
                 ]
@@ -280,23 +310,30 @@ uList =
 
 reallyspaces : Parser ()
 reallyspaces =
-  chompWhile (\c -> c == ' ') 
+    chompWhile (\c -> c == ' ')
+
 
 break =
     succeed ()
         |. reallyspaces
         |. keyword "\n"
-        |. reallyspaces
-        |. keyword "\n"
-        |. reallyspaces
+        |. spaces
         |> backtrackable
 
 
 link : Parser Primitive
 link =
     succeed
-        LinkPrimitive
+        (\start uid val stop ->
+            LinkPrimitive
+                { start = start
+                , stop = stop
+                , uid = uid
+                , value = val
+                }
+        )
         |. spaces
+        |= getOffset
         |. symbol "<"
         |. spaces
         |. keyword "lien"
@@ -304,14 +341,26 @@ link =
         |= int
         |. spaces
         |. symbol ">"
-        |. chompUntil "<"
+        |= (chompUntil "<"
+                |> getChompedString
+           )
         |. keyword "</>"
+        |= getOffset
 
 
 heading : Parser Primitive
 heading =
-    succeed HeadingPrimitive
+    succeed
+        (\start uid val stop ->
+            HeadingPrimitive
+                { start = start
+                , stop = stop
+                , uid = uid
+                , value = val
+                }
+        )
         |. spaces
+        |= getOffset
         |. symbol "<"
         |. spaces
         |. token "titre-"
@@ -320,8 +369,38 @@ heading =
         |= int
         |. spaces
         |. symbol ">"
-        |. chompUntil "<"
+        |= (chompUntil "<"
+                |> getChompedString
+           )
         |. keyword "</>"
+        |= getOffset
+
+
+inlineStyle : Parser Primitive
+inlineStyle =
+    succeed
+        (\start uid val stop ->
+            InlineStylePrimitive
+                { start = start
+                , stop = stop
+                , uid = uid
+                , value = val
+                }
+        )
+        |. spaces
+        |= getOffset
+        |. symbol "<"
+        |. spaces
+        |. keyword "style"
+        |. spaces
+        |= int
+        |. spaces
+        |. symbol ">"
+        |= (chompUntil "<"
+                |> getChompedString
+           )
+        |. keyword "</>"
+        |= getOffset
 
 
 primitive : Parser Primitive
@@ -336,6 +415,7 @@ allPrimitivesButText : Parser Primitive
 allPrimitivesButText =
     oneOf
         [ backtrackable link
+        , backtrackable inlineStyle
         , heading
         ]
 
@@ -374,7 +454,7 @@ groupWordsIntoText prims =
                         _ ->
                             case buffer of
                                 [] ->
-                                    helper buffer acc xs_
+                                    helper buffer (x :: acc) xs_
 
                                 _ ->
                                     helper
@@ -387,3 +467,16 @@ groupWordsIntoText prims =
                                         xs_
     in
     helper [] [] prims
+
+
+getLinks : List Primitive -> List PrimitiveMeta
+getLinks =
+    List.filterMap
+        (\p ->
+            case p of
+                LinkPrimitive lm ->
+                    Just lm
+
+                _ ->
+                    Nothing
+        )
