@@ -35,25 +35,21 @@ type alias DocTextBlock =
     , parsedInput : Result (List DeadEnd) (List Element)
     , selected : Maybe Selection
     , cursorPos : Maybe Int
-    , nbrCols : Maybe Int
     , output : List TextBlockElement
     , setSelection : Bool
     , trackedData : Dict Int TrackedData
-    , selectedData : Maybe TrackedData
-    , nextLinkId : Int
+    , currentTrackedData : Maybe TrackedData
+    , nextUid : Int
     , config : Config Msg
     }
 
 
 type Msg
-    = NoOp
+    = TextInput String
+    | InsertTrackingTag TrackedDataKind
     | NewSelection Selection
-    | ClearSelection
-    | TextInput String
-    | Loaded String
     | SetSelection
-    | MakeInternalLink
-    | MakeExternalLink
+    | NoOp
 
 
 type alias Selection =
@@ -61,134 +57,6 @@ type alias Selection =
     , finish : Int
     , sel : String
     }
-
-
-
---type Element
---    = ParagraphElement (List Primitive)
---    | UListElement (List Primitive)
---    | HeadingElement PrimitiveMeta
---    | Singleton Primitive
---type Primitive
---    = InternalLinkPrimitive PrimitiveMeta
---    | ExternalLinkPrimitive PrimitiveMeta
---    | InlineStylePrimitive PrimitiveMeta
---    | TextPrimitive String
---    | WordPrimitive String
---type TrackedDataKind
---    = InternalLink
---    | ExternalLink
---    | Heading
---    | InlineStyled
---type alias TrackedData =
---    { meta : PrimitiveMeta
---    , attrs : List DocAttribute
---    , dataKind : TrackedDataKind
---    }
-
-
-type alias Config msg =
-    { width : Int
-    , height : Int
-    , mainInterfaceHeight : Int
-    , sizesDict :
-        Dict Int
-            { docWidth : Int
-            , docHeight : Int
-            }
-    , customElems :
-        Dict String (Element.Element msg)
-    , onLoadMsg : Int -> msg
-    , styleSheet : StyleSheet msg
-    , zipperHandlers : Maybe (ZipperHandlers msg)
-    , editMode : Bool
-    , containersBkgColors : Bool
-    }
-
-
-toTextBlocElement : DocTextBlock -> Element -> Maybe TextBlockElement
-toTextBlocElement model elem =
-    case elem of
-        ParagraphElement prims ->
-            Just <|
-                Paragraph []
-                    (List.filterMap (toTextBlockPrimitive model) prims)
-
-        UListElement prims ->
-            Just <|
-                UList []
-                    [ List.filterMap (toTextBlockPrimitive model) prims
-                    ]
-
-        HeadingElement _ { uid, value } ->
-            case
-                Dict.get uid model.trackedData
-                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
-            of
-                Just ( attrs, Heading level ) ->
-                    Just <| Document.Heading attrs ( level, value )
-
-                _ ->
-                    Nothing
-
-        Singleton prim ->
-            Maybe.map TBPrimitive (toTextBlockPrimitive model prim)
-
-
-toTextBlockPrimitive : DocTextBlock -> Primitive -> Maybe TextBlockPrimitive
-toTextBlockPrimitive model prim =
-    case prim of
-        ExternalLinkPrimitive { uid, value } ->
-            case
-                Dict.get uid model.trackedData
-                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
-            of
-                Just ( attrs, InternalLink url ) ->
-                    Just <|
-                        Document.Link
-                            attrs
-                            { targetBlank = True
-                            , url = url
-                            , label = value
-                            }
-
-                _ ->
-                    Nothing
-
-        InternalLinkPrimitive { uid, value } ->
-            case
-                Dict.get uid model.trackedData
-                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
-            of
-                Just ( attrs, InternalLink url ) ->
-                    Just <|
-                        Document.Link
-                            attrs
-                            { targetBlank = False
-                            , url = url
-                            , label = value
-                            }
-
-                _ ->
-                    Nothing
-
-        InlineStylePrimitive { uid, value } ->
-            case
-                Dict.get uid model.trackedData
-                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
-            of
-                Just ( attrs, InlineStyled ) ->
-                    Just <|
-                        Document.Text attrs value
-
-                _ ->
-                    Nothing
-
-        TextPrimitive value ->
-            Just <| Document.Text [] value
-
-        _ ->
-            Nothing
 
 
 main : Program () DocTextBlock Msg
@@ -210,12 +78,11 @@ init flags =
       , parsedInput = Ok []
       , selected = Nothing
       , cursorPos = Nothing
-      , nbrCols = Nothing
       , output = []
       , setSelection = False
       , trackedData = Dict.empty
-      , selectedData = Nothing
-      , nextLinkId = 0
+      , currentTrackedData = Nothing
+      , nextUid = 0
       , config =
             { width = 500
             , height = 800
@@ -247,8 +114,9 @@ update msg model =
                                 | rawInput = s
                                 , parsedInput = Ok res
                                 , trackedData = newTrackedData
-                                , selectedData =
+                                , currentTrackedData =
                                     getSelectedTrackedData model.cursorPos newTrackedData
+                                , nextUid = findNextAvailableUid newTrackedData
                             }
                     in
                     ( { newModel
@@ -260,6 +128,40 @@ update msg model =
 
                 Err _ ->
                     ( model, Cmd.none )
+
+        InsertTrackingTag tdKind ->
+            case insertTrackingTag model.rawInput model.selected model.nextUid tdKind of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newRawInput ->
+                    let
+                        newParsedInput =
+                            run textBlock newRawInput
+
+                        newTrackedData =
+                            Result.map getTrackedData newParsedInput
+                                |> Result.withDefault model.trackedData
+
+                        newModel =
+                            { model
+                                | rawInput = newRawInput
+                                , parsedInput = newParsedInput
+                                , trackedData = newTrackedData
+                                , nextUid = findNextAvailableUid newTrackedData
+                            }
+                    in
+                    ( { newModel
+                        | output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newModel)
+                                )
+                                newParsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    )
 
         NewSelection s ->
             ( { model
@@ -273,7 +175,7 @@ update msg model =
                         Just s.start
                     else
                         Nothing
-                , selectedData =
+                , currentTrackedData =
                     if s.start == s.finish then
                         getSelectedTrackedData (Just s.start) model.trackedData
                     else
@@ -282,69 +184,24 @@ update msg model =
             , Cmd.none
             )
 
-        ClearSelection ->
-            ( { model | selected = Nothing }
-            , Cmd.none
-            )
-
-        Loaded n ->
-            ( { model | nbrCols = String.toInt n }
-            , Cmd.none
-            )
-
         SetSelection ->
             ( { model | setSelection = True }
             , Cmd.none
             )
 
-        MakeInternalLink ->
-            case makeInternalLink model.rawInput model.selected model.nextLinkId of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just newRawInput ->
-                    let
-                        newParsedInput =
-                            run textBlock newRawInput
-
-                        newTrackedData =
-                            Result.map getTrackedData newParsedInput
-                                |> Result.withDefault model.trackedData
-                    in
-                    ( { model
-                        | rawInput = newRawInput
-                        , nextLinkId = model.nextLinkId + 1
-                        , parsedInput = newParsedInput
-                        , trackedData = newTrackedData
-                      }
-                    , Cmd.none
-                    )
-
-        MakeExternalLink ->
-            case makeExternalLink model.rawInput model.selected model.nextLinkId of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just newRawInput ->
-                    let
-                        newParsedInput =
-                            run textBlock newRawInput
-
-                        newTrackedData =
-                            Result.map getTrackedData newParsedInput
-                                |> Result.withDefault model.trackedData
-                    in
-                    ( { model
-                        | rawInput = newRawInput
-                        , nextLinkId = model.nextLinkId + 1
-                        , parsedInput = newParsedInput
-                        , trackedData = newTrackedData
-                      }
-                    , Cmd.none
-                    )
-
         NoOp ->
             ( model, Cmd.none )
+
+
+
+-------------------------------------------------------------------------------
+-------------------
+-- View funcions --
+-------------------
+
+
+iconSize =
+    18
 
 
 view model =
@@ -356,66 +213,53 @@ view model =
             [ interfaceView model
             , row
                 [ spacing 30 ]
-                [ customTextArea [ width fill ] model.cursorPos model.setSelection model.rawInput
+                [ column
+                    [ alignTop
+                    , spacing 20
+                    ]
+                    [ customTextArea
+                        [ width fill
+                        ]
+                        model.cursorPos
+                        model.setSelection
+                        model.rawInput
+                    , Element.paragraph [ width (maximum 500 fill) ]
+                        [ Element.text <| Debug.toString model.currentTrackedData ]
+                    , Element.paragraph [ width (maximum 500 fill) ]
+                        [ Element.text <| Debug.toString model.trackedData ]
+                    , Element.paragraph [ width (maximum 500 fill) ]
+                        [ Element.text <| Debug.toString model.selected ]
+                    , Element.paragraph [ width (maximum 500 fill) ]
+                        [ Element.text <| Debug.toString model.cursorPos ]
+                    , Element.paragraph [ width (maximum 500 fill) ]
+                        [ Element.text <| Debug.toString model.parsedInput ]
+                    ]
                 , textBlocPreview model
                 ]
-            , Element.paragraph [ width (maximum 500 fill) ]
-                [ Element.text <| Debug.toString model.selectedData ]
-            , Element.paragraph [ width (maximum 500 fill) ]
-                [ Element.text <| Debug.toString model.trackedData ]
-            , Element.paragraph [ width (maximum 500 fill) ]
-                [ Element.text <| Debug.toString model.selected ]
-            , Element.paragraph [ width (maximum 500 fill) ]
-                [ Element.text <| Debug.toString model.cursorPos ]
-            , Element.paragraph [ width (maximum 500 fill) ]
-                [ Element.text <| Debug.toString model.parsedInput ]
             ]
 
 
 interfaceView model =
     row [ spacing 10 ]
         [ Input.button buttonStyle
-            { onPress = Just MakeInternalLink
-            , label = html <| link2
+            { onPress = Just (InsertTrackingTag <| InternalLink "")
+            , label = html <| link2 iconSize
             }
         , Input.button
             buttonStyle
-            { onPress = Just MakeExternalLink
-            , label = html <| Icons.externalLink
+            { onPress = Just (InsertTrackingTag <| ExternalLink "")
+            , label = html <| Icons.externalLink iconSize
             }
         , Input.button buttonStyle
             { onPress = Nothing
-            , label = html <| bold
+            , label = html <| bold iconSize
             }
         , Input.button
             buttonStyle
             { onPress = Just SetSelection
-            , label = html <| list
+            , label = html <| list iconSize
             }
         ]
-
-
-textBlocPreview model =
-    column
-        [ width fill ]
-        (renderTextBlock
-            model.config
-            [ SpacingXY 15 15
-            , PaddingEach
-                { bottom = 20
-                , top = 20
-                , left = 20
-                , right = 20
-                }
-            , FontSize 16
-            ]
-            --[ padding 20
-            --, spacing 15
-            --, Font.family [ Font.typeface "Arial" ]
-            --, Font.size 16
-            --]
-            model.output
-        )
 
 
 customTextArea attrs cursorPos setSelection rawInput =
@@ -424,7 +268,6 @@ customTextArea attrs cursorPos setSelection rawInput =
             node "custom-textarea"
                 ([ HtmlEvents.onInput TextInput
                  , HtmlEvents.on "Selection" decodeSelection
-                 , HtmlEvents.on "Loaded" decodeLoaded
                  ]
                     ++ (if setSelection then
                             [ Attr.property "selection" select ]
@@ -445,33 +288,20 @@ customTextArea attrs cursorPos setSelection rawInput =
         )
 
 
-
---computeHeight
-
-
-decodeSelection =
-    Decode.at [ "target", "selection" ]
-        (Decode.map3 Selection
-            (Decode.field "start" Decode.int)
-            (Decode.field "finish" Decode.int)
-            (Decode.field "sel" Decode.string)
-            |> Decode.map NewSelection
+textBlocPreview model =
+    column
+        [ width fill
+        , spacing 20
+        , alignTop
+        ]
+        (renderTextBlock
+            model.config
+            [ FontSize 16 ]
+            model.output
+            ++ [ Element.paragraph [ width (maximum 500 fill) ]
+                    [ Element.text <| Debug.toString model.output ]
+               ]
         )
-
-
-decodeLoaded =
-    Decode.map Loaded <|
-        Decode.at [ "target", "cols" ] Decode.string
-
-
-buttonStyle =
-    [ Border.rounded 5
-    , Font.center
-    , centerY
-    , paddingXY 5 3
-    , mouseOver
-        [ Background.color (rgb 0.9 0.9 0.9) ]
-    ]
 
 
 
@@ -479,14 +309,6 @@ buttonStyle =
 ----------------------
 -- TextBlock Parser --
 ----------------------
-
-
-type alias LinkRef =
-    Int
-
-
-type alias HeadingRef =
-    Int
 
 
 type Element
@@ -568,17 +390,68 @@ uList =
         |> Parser.map UListElement
 
 
-reallyspaces : Parser ()
-reallyspaces =
-    chompWhile (\c -> c == ' ')
-
-
-break =
-    succeed ()
-        |. reallyspaces
-        |. keyword "\n"
+heading : Parser Element
+heading =
+    succeed
+        (\start level uid val stop ->
+            HeadingElement level
+                { start = start
+                , stop = stop
+                , uid = uid
+                , value = val
+                }
+        )
         |. spaces
-        |> backtrackable
+        |= getOffset
+        |. symbol "<"
+        |. spaces
+        |. token "titre-"
+        |= int
+        |. spaces
+        |= int
+        |. spaces
+        |. symbol ">"
+        |= (chompUntil "<"
+                |> getChompedString
+           )
+        |. keyword "</>"
+        |= getOffset
+        |. oneOf
+            [ end
+            , spaces
+            ]
+
+
+primitive : Parser Primitive
+primitive =
+    oneOf
+        [ backtrackable allPrimitivesButText
+        , word
+        ]
+
+
+allPrimitivesButText : Parser Primitive
+allPrimitivesButText =
+    oneOf
+        [ backtrackable internalLink
+        , backtrackable externalLink
+        , inlineStyle
+        ]
+
+
+
+-- NOTE: There is no text Parser, WordPrimitive are transformed into
+-- TextPrimitive by the groupWordsIntoText function.
+
+
+word : Parser Primitive
+word =
+    succeed identity
+        |. spaces
+        |= (chompWhile (\c -> not <| c == ' ' || c == '\t' || c == '\n')
+                |> getChompedString
+           )
+        |> Parser.map WordPrimitive
 
 
 internalLink : Parser Primitive
@@ -635,38 +508,6 @@ externalLink =
         |= getOffset
 
 
-heading : Parser Element
-heading =
-    succeed
-        (\start level uid val stop ->
-            HeadingElement level
-                { start = start
-                , stop = stop
-                , uid = uid
-                , value = val
-                }
-        )
-        |. spaces
-        |= getOffset
-        |. symbol "<"
-        |. spaces
-        |. token "titre-"
-        |= int
-        |. spaces
-        |= int
-        |. spaces
-        |. symbol ">"
-        |= (chompUntil "<"
-                |> getChompedString
-           )
-        |. keyword "</>"
-        |= getOffset
-        |. oneOf
-            [ end
-            , spaces
-            ]
-
-
 inlineStyle : Parser Primitive
 inlineStyle =
     succeed
@@ -694,95 +535,32 @@ inlineStyle =
         |= getOffset
 
 
-primitive : Parser Primitive
-primitive =
-    oneOf
-        [ backtrackable allPrimitivesButText
-        , word
-        ]
+
+-- misc
 
 
-allPrimitivesButText : Parser Primitive
-allPrimitivesButText =
-    oneOf
-        [ backtrackable internalLink
-        , backtrackable externalLink
-        , inlineStyle
-        ]
-
-
-word : Parser Primitive
-word =
-    succeed identity
+break : Parser ()
+break =
+    succeed ()
+        |. reallyspaces
+        |. keyword "\n"
         |. spaces
-        |= (chompWhile (\c -> not <| c == ' ' || c == '\t' || c == '\n')
-                |> getChompedString
-           )
-        |> Parser.map WordPrimitive
+        |> backtrackable
 
 
-groupWordsIntoText : List Primitive -> List Primitive
-groupWordsIntoText prims =
-    let
-        helper buffer acc xs =
-            case xs of
-                [] ->
-                    case buffer of
-                        [] ->
-                            List.reverse acc
-
-                        _ ->
-                            List.reverse buffer
-                                |> String.join " "
-                                |> TextPrimitive
-                                |> (\nw -> List.reverse (nw :: acc))
-
-                x :: xs_ ->
-                    case x of
-                        WordPrimitive w ->
-                            helper (w :: buffer) acc xs_
-
-                        _ ->
-                            case buffer of
-                                [] ->
-                                    helper buffer (x :: acc) xs_
-
-                                _ ->
-                                    helper
-                                        []
-                                        (List.reverse buffer
-                                            |> String.join " "
-                                            |> TextPrimitive
-                                            |> (\nw -> x :: nw :: acc)
-                                        )
-                                        xs_
-    in
-    helper [] [] prims
+reallyspaces : Parser ()
+reallyspaces =
+    chompWhile (\c -> c == ' ')
 
 
 
---getLinks : List Primitive -> List PrimitiveMeta
---getLinks =
---    List.filterMap
---        (\p ->
---            case p of
---                LinkPrimitive lm ->
---                    Just lm
---                _ ->
---                    Nothing
---        )
---type alias SortedTrackedData =
---    { links : List Data
---    , headings : List Data
---    , styled : List Data
---    }
-
-
-type TrackedDataKind
-    = InternalLink String
-    | ExternalLink String
-    | Heading Int
-    | InlineStyled
+-------------------------------------------------------------------------------
+---------------------------
+-- Tracked Data functions--
+---------------------------
+-- NOTE: This exists in order to allow DocAttributes to be affected to some
+-- primitives. This wat these DocAttributes are stored in the model and not
+-- in the input string in order to reduce visual clutter.
 
 
 type alias TrackedData =
@@ -790,6 +568,13 @@ type alias TrackedData =
     , attrs : List DocAttribute
     , dataKind : TrackedDataKind
     }
+
+
+type TrackedDataKind
+    = InternalLink String
+    | ExternalLink String
+    | Heading Int
+    | InlineStyled
 
 
 getTrackedData : List Element -> Dict Int TrackedData
@@ -869,15 +654,43 @@ getSelectedTrackedData mbCursorPos trackedDataDict =
                 |> List.head
 
 
-makeInternalLink rawInput selection nextLinkId =
-    makeTag rawInput selection nextLinkId "lien-interne"
+findNextAvailableUid : Dict Int TrackedData -> Int
+findNextAvailableUid trackedData =
+    Dict.keys trackedData
+        |> List.foldr max 0
+        |> (\n -> n + 1)
 
 
-makeExternalLink rawInput selection nextLinkId =
-    makeTag rawInput selection nextLinkId "lien-externe"
+
+-------------------------------------------------------------------------------
+-----------------------
+-- makeTag functions --
+-----------------------
+--NOTE: These function insert tracked tag into the input string
 
 
-makeTag rawInput selection nextUid tagname =
+insertTrackingTag : String -> Maybe Selection -> Int -> TrackedDataKind -> Maybe String
+insertTrackingTag rawInput selection nextUid tdKind =
+    case tdKind of
+        InternalLink _ ->
+            insertTagHelper rawInput selection nextUid "lien-interne"
+
+        ExternalLink _ ->
+            insertTagHelper rawInput selection nextUid "lien-externe"
+
+        Heading level ->
+            insertTagHelper
+                rawInput
+                selection
+                nextUid
+                ("titre-" ++ String.fromInt level)
+
+        InlineStyled ->
+            insertTagHelper rawInput selection nextUid "style"
+
+
+insertTagHelper : String -> Maybe Selection -> Int -> String -> Maybe String
+insertTagHelper rawInput selection nextUid tagname =
     case selection of
         Nothing ->
             Nothing
@@ -895,8 +708,181 @@ makeTag rawInput selection nextUid tagname =
                         ++ tagname
                         ++ " "
                         ++ String.fromInt nextUid
-                        ++ ">"
+                        ++ "> "
                         ++ sel
-                        ++ "</> "
+                        ++ " </> "
             in
             Just (firstHalf ++ newLink ++ secondHalf)
+
+
+
+-------------------------------------------------------------------------------
+---------------------------------
+-- toTextBlocElement functions --
+---------------------------------
+
+
+toTextBlocElement : DocTextBlock -> Element -> Maybe TextBlockElement
+toTextBlocElement model elem =
+    case elem of
+        ParagraphElement prims ->
+            Just <|
+                Paragraph []
+                    (List.filterMap (toTextBlockPrimitive model) prims)
+
+        UListElement prims ->
+            Just <|
+                UList []
+                    [ List.filterMap (toTextBlockPrimitive model) prims
+                    ]
+
+        HeadingElement _ { uid, value } ->
+            case
+                Dict.get uid model.trackedData
+                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
+            of
+                Just ( attrs, Heading level ) ->
+                    Just <| Document.Heading attrs ( level, value )
+
+                _ ->
+                    Nothing
+
+        Singleton prim ->
+            Maybe.map TBPrimitive (toTextBlockPrimitive model prim)
+
+
+toTextBlockPrimitive : DocTextBlock -> Primitive -> Maybe TextBlockPrimitive
+toTextBlockPrimitive model prim =
+    case prim of
+        ExternalLinkPrimitive { uid, value } ->
+            case
+                Dict.get uid model.trackedData
+                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
+            of
+                Just ( attrs, ExternalLink url ) ->
+                    Just <|
+                        Document.Link
+                            attrs
+                            { targetBlank = True
+                            , url = url
+                            , label = value
+                            }
+
+                _ ->
+                    Nothing
+
+        InternalLinkPrimitive { uid, value } ->
+            case
+                Dict.get uid model.trackedData
+                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
+            of
+                Just ( attrs, InternalLink url ) ->
+                    Just <|
+                        Document.Link
+                            attrs
+                            { targetBlank = False
+                            , url = url
+                            , label = value
+                            }
+
+                _ ->
+                    Nothing
+
+        InlineStylePrimitive { uid, value } ->
+            case
+                Dict.get uid model.trackedData
+                    |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
+            of
+                Just ( attrs, InlineStyled ) ->
+                    Just <|
+                        Document.Text attrs value
+
+                _ ->
+                    Nothing
+
+        TextPrimitive value ->
+            Just <| Document.Text [] value
+
+        _ ->
+            Nothing
+
+
+
+-------------------------------------------------------------------------------
+----------
+-- Misc --
+----------
+
+
+groupWordsIntoText : List Primitive -> List Primitive
+groupWordsIntoText prims =
+    -- NOTE: this functions concatenate all adjacent WordPrimitive primitives into
+    -- TextPrimitive.
+    let
+        helper buffer acc xs =
+            case xs of
+                [] ->
+                    case buffer of
+                        [] ->
+                            List.reverse acc
+
+                        _ ->
+                            List.reverse buffer
+                                |> String.join " "
+                                |> TextPrimitive
+                                |> (\nw -> List.reverse (nw :: acc))
+
+                x :: xs_ ->
+                    case x of
+                        WordPrimitive w ->
+                            helper (w :: buffer) acc xs_
+
+                        _ ->
+                            case buffer of
+                                [] ->
+                                    helper buffer (x :: acc) xs_
+
+                                _ ->
+                                    helper
+                                        []
+                                        (List.reverse buffer
+                                            |> String.join " "
+                                            |> TextPrimitive
+                                            |> (\nw -> x :: nw :: acc)
+                                        )
+                                        xs_
+    in
+    helper [] [] prims
+
+
+decodeSelection : Decode.Decoder Msg
+decodeSelection =
+    Decode.at [ "target", "selection" ]
+        (Decode.map3 Selection
+            (Decode.field "start" Decode.int)
+            (Decode.field "finish" Decode.int)
+            (Decode.field "sel" Decode.string)
+            |> Decode.map NewSelection
+        )
+
+
+buttonStyle =
+    [ Border.rounded 5
+    , Font.center
+    , centerY
+    , paddingXY 5 3
+    , mouseOver
+        [ Background.color (rgb 0.9 0.9 0.9) ]
+    ]
+
+
+
+--<titre-2 9> un joli titre </>
+--<titre-2 0> un joli titre </><titre-2 0> un joli titre </><titre-2 0> un joli titre </><titre-2 0> un joli titre </>
+--Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
+--Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
+--Enchâssé entre le volcan boisé du
+--Tartaret le promontoire du
+--château de Murol et le puy de  <lien-externe 0> Bessolles</> , le village vous ravira par ses sites remarquables et pittoresques.
+--Au pied du  <lien-interne 0> château</>,  découvrez le parc arboré du Prélong où se trouvent le
+--musée des Peintres de l’Ecole de Murols et le musée archéologique.

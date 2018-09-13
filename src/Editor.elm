@@ -603,6 +603,13 @@ update msg model =
             ( model, Cmd.none )
 
 
+
+-------------------------------------------------------------------------------
+-------------------
+-- View funcions --
+-------------------
+
+
 view : Model -> Browser.Document Msg
 view model =
     { title = "editor"
@@ -765,6 +772,10 @@ openPlugin model =
 ---------------
 
 
+iconSize =
+    18
+
+
 type alias MenuConfig =
     { clicked : Bool
     , currentFocus : String
@@ -839,7 +850,7 @@ mainInterface config =
             ]
             (List.map interfaceButton <|
                 [ { defButtonConfig
-                    | icons = [ plusSquare ]
+                    | icons = [ plusSquare iconSize ]
                     , labelText = "Ajouter"
                     , msg = Just AddNewInside
                     , isActive =
@@ -848,8 +859,8 @@ mainInterface config =
                   }
                 , { defButtonConfig
                     | icons =
-                        [ plusSquare
-                        , chevronsUp
+                        [ plusSquare iconSize
+                        , chevronsUp iconSize
                         ]
                     , labelText = "Ajouter au dessus"
                     , msg = Just AddNewLeft
@@ -859,8 +870,8 @@ mainInterface config =
                   }
                 , { defButtonConfig
                     | icons =
-                        [ plusSquare
-                        , chevronsDown
+                        [ plusSquare iconSize
+                        , chevronsDown iconSize
                         ]
                     , labelText = "Ajouter en dessous"
                     , msg = Just AddNewRight
@@ -869,7 +880,7 @@ mainInterface config =
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig
-                    | icons = [ edit ]
+                    | icons = [ edit iconSize ]
                     , labelText = "Modifier"
                     , msg = Just EditCell
                     , isActive =
@@ -878,7 +889,7 @@ mainInterface config =
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig
-                    | icons = [ xSquare ]
+                    | icons = [ xSquare iconSize ]
                     , labelText = "Supprimer"
                     , msg = Just DeleteSelected
                     , isActive =
@@ -886,7 +897,7 @@ mainInterface config =
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig
-                    | icons = [ chevronsUp ]
+                    | icons = [ chevronsUp iconSize ]
                     , labelText = "Monter"
                     , msg = Just SwapLeft
                     , isActive =
@@ -894,7 +905,7 @@ mainInterface config =
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig
-                    | icons = [ chevronsDown ]
+                    | icons = [ chevronsDown iconSize ]
                     , labelText = "Descendre"
                     , msg = Just SwapRight
                     , isActive =
@@ -902,13 +913,13 @@ mainInterface config =
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig
-                    | icons = [ refreshCw ]
+                    | icons = [ refreshCw iconSize ]
                     , labelText = "Rafraichir"
                     , msg = Just RefreshSizes
                     , isActive = True
                   }
                 , { defButtonConfig
-                    | icons = [ settings ]
+                    | icons = [ settings iconSize ]
                     , labelText = "Préférences"
                     , msg = Nothing
                     , isActive = False

@@ -15541,6 +15541,7 @@ var author$project$Editor$AddNewRight = {$: 16};
 var author$project$Editor$DeleteSelected = {$: 19};
 var author$project$Editor$SwapLeft = {$: 11};
 var author$project$Editor$SwapRight = {$: 12};
+var author$project$Editor$iconSize = 18;
 var author$project$Editor$Copy = {$: 20};
 var author$project$Editor$Cut = {$: 21};
 var author$project$Editor$MenuClick = {$: 24};
@@ -15917,216 +15918,222 @@ var author$project$Editor$mainMenu = function (config) {
 		_List_Nil,
 		A2(elm$core$List$map, topEntry, menuData));
 };
-var author$project$Icons$svgFeatherIcon = function (className) {
-	return elm$svg$Svg$svg(
+var author$project$Icons$chevronsDown = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'chevrons-down',
 		_List_fromArray(
 			[
-				elm$svg$Svg$Attributes$class('feather feather-' + className),
-				elm$svg$Svg$Attributes$fill('none'),
-				elm$svg$Svg$Attributes$height('24'),
-				elm$svg$Svg$Attributes$stroke('currentColor'),
-				elm$svg$Svg$Attributes$strokeLinecap('round'),
-				elm$svg$Svg$Attributes$strokeLinejoin('round'),
-				elm$svg$Svg$Attributes$strokeWidth('2'),
-				elm$svg$Svg$Attributes$viewBox('0 0 24 24'),
-				elm$svg$Svg$Attributes$width('24')
+				A2(
+				elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('7 13 12 18 17 13')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('7 6 12 11 17 6')
+					]),
+				_List_Nil)
 			]));
 };
-var author$project$Icons$chevronsDown = A2(
-	author$project$Icons$svgFeatherIcon,
-	'chevrons-down',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$polyline,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('7 13 12 18 17 13')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$polyline,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('7 6 12 11 17 6')
-				]),
-			_List_Nil)
-		]));
-var author$project$Icons$chevronsUp = A2(
-	author$project$Icons$svgFeatherIcon,
-	'chevrons-up',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$polyline,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('17 11 12 6 7 11')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$polyline,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('17 18 12 13 7 18')
-				]),
-			_List_Nil)
-		]));
+var author$project$Icons$chevronsUp = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'chevrons-up',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('17 11 12 6 7 11')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('17 18 12 13 7 18')
+					]),
+				_List_Nil)
+			]));
+};
 var elm$svg$Svg$polygon = elm$svg$Svg$trustedNode('polygon');
-var author$project$Icons$edit = A2(
-	author$project$Icons$svgFeatherIcon,
-	'edit',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$path,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$d('M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$polygon,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('18 2 22 6 12 16 8 16 8 12 18 2')
-				]),
-			_List_Nil)
-		]));
+var author$project$Icons$edit = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'edit',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$path,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$d('M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$polygon,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('18 2 22 6 12 16 8 16 8 12 18 2')
+					]),
+				_List_Nil)
+			]));
+};
 var elm$svg$Svg$line = elm$svg$Svg$trustedNode('line');
 var elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
 var elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
 var elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
 var elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
-var author$project$Icons$plusSquare = A2(
-	author$project$Icons$svgFeatherIcon,
-	'plus-square',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$rect,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x('3'),
-					elm$svg$Svg$Attributes$y('3'),
-					elm$svg$Svg$Attributes$width('18'),
-					elm$svg$Svg$Attributes$height('18'),
-					elm$svg$Svg$Attributes$rx('2'),
-					elm$svg$Svg$Attributes$ry('2')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('12'),
-					elm$svg$Svg$Attributes$y1('8'),
-					elm$svg$Svg$Attributes$x2('12'),
-					elm$svg$Svg$Attributes$y2('16')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('8'),
-					elm$svg$Svg$Attributes$y1('12'),
-					elm$svg$Svg$Attributes$x2('16'),
-					elm$svg$Svg$Attributes$y2('12')
-				]),
-			_List_Nil)
-		]));
-var author$project$Icons$refreshCw = A2(
-	author$project$Icons$svgFeatherIcon,
-	'refresh-cw',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$polyline,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('23 4 23 10 17 10')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$polyline,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('1 20 1 14 7 14')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$path,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$d('M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15')
-				]),
-			_List_Nil)
-		]));
+var author$project$Icons$plusSquare = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'plus-square',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$rect,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x('3'),
+						elm$svg$Svg$Attributes$y('3'),
+						elm$svg$Svg$Attributes$width('18'),
+						elm$svg$Svg$Attributes$height('18'),
+						elm$svg$Svg$Attributes$rx('2'),
+						elm$svg$Svg$Attributes$ry('2')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('12'),
+						elm$svg$Svg$Attributes$y1('8'),
+						elm$svg$Svg$Attributes$x2('12'),
+						elm$svg$Svg$Attributes$y2('16')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('8'),
+						elm$svg$Svg$Attributes$y1('12'),
+						elm$svg$Svg$Attributes$x2('16'),
+						elm$svg$Svg$Attributes$y2('12')
+					]),
+				_List_Nil)
+			]));
+};
+var author$project$Icons$refreshCw = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'refresh-cw',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('23 4 23 10 17 10')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('1 20 1 14 7 14')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$path,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$d('M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15')
+					]),
+				_List_Nil)
+			]));
+};
 var elm$svg$Svg$circle = elm$svg$Svg$trustedNode('circle');
 var elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
 var elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var author$project$Icons$settings = A2(
-	author$project$Icons$svgFeatherIcon,
-	'settings',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$circle,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$cx('12'),
-					elm$svg$Svg$Attributes$cy('12'),
-					elm$svg$Svg$Attributes$r('3')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$path,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$d('M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z')
-				]),
-			_List_Nil)
-		]));
-var author$project$Icons$xSquare = A2(
-	author$project$Icons$svgFeatherIcon,
-	'x-square',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$rect,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x('3'),
-					elm$svg$Svg$Attributes$y('3'),
-					elm$svg$Svg$Attributes$width('18'),
-					elm$svg$Svg$Attributes$height('18'),
-					elm$svg$Svg$Attributes$rx('2'),
-					elm$svg$Svg$Attributes$ry('2')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('9'),
-					elm$svg$Svg$Attributes$y1('9'),
-					elm$svg$Svg$Attributes$x2('15'),
-					elm$svg$Svg$Attributes$y2('15')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('15'),
-					elm$svg$Svg$Attributes$y1('9'),
-					elm$svg$Svg$Attributes$x2('9'),
-					elm$svg$Svg$Attributes$y2('15')
-				]),
-			_List_Nil)
-		]));
+var author$project$Icons$settings = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'settings',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$circle,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$cx('12'),
+						elm$svg$Svg$Attributes$cy('12'),
+						elm$svg$Svg$Attributes$r('3')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$path,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$d('M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z')
+					]),
+				_List_Nil)
+			]));
+};
+var author$project$Icons$xSquare = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'x-square',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$rect,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x('3'),
+						elm$svg$Svg$Attributes$y('3'),
+						elm$svg$Svg$Attributes$width('18'),
+						elm$svg$Svg$Attributes$height('18'),
+						elm$svg$Svg$Attributes$rx('2'),
+						elm$svg$Svg$Attributes$ry('2')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('9'),
+						elm$svg$Svg$Attributes$y1('9'),
+						elm$svg$Svg$Attributes$x2('15'),
+						elm$svg$Svg$Attributes$y2('15')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('15'),
+						elm$svg$Svg$Attributes$y1('9'),
+						elm$svg$Svg$Attributes$x2('9'),
+						elm$svg$Svg$Attributes$y2('15')
+					]),
+				_List_Nil)
+			]));
+};
 var mdgriffith$elm_ui$Internal$Flag$borderRound = mdgriffith$elm_ui$Internal$Flag$flag(17);
 var mdgriffith$elm_ui$Element$Border$rounded = function (radius) {
 	return A2(
@@ -16358,7 +16365,9 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$plusSquare]),
+									[
+										author$project$Icons$plusSquare(author$project$Editor$iconSize)
+									]),
 								g: (!config.k) && config.aM,
 								A: 'Ajouter',
 								h: elm$core$Maybe$Just(author$project$Editor$AddNewInside)
@@ -16367,7 +16376,10 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$plusSquare, author$project$Icons$chevronsUp]),
+									[
+										author$project$Icons$plusSquare(author$project$Editor$iconSize),
+										author$project$Icons$chevronsUp(author$project$Editor$iconSize)
+									]),
 								g: (!config.k) && (!config.J),
 								A: 'Ajouter au dessus',
 								h: elm$core$Maybe$Just(author$project$Editor$AddNewLeft)
@@ -16376,7 +16388,10 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$plusSquare, author$project$Icons$chevronsDown]),
+									[
+										author$project$Icons$plusSquare(author$project$Editor$iconSize),
+										author$project$Icons$chevronsDown(author$project$Editor$iconSize)
+									]),
 								g: (!config.k) && (!config.J),
 								A: 'Ajouter en dessous',
 								h: elm$core$Maybe$Just(author$project$Editor$AddNewRight)
@@ -16385,7 +16400,9 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$edit]),
+									[
+										author$project$Icons$edit(author$project$Editor$iconSize)
+									]),
 								g: (!config.k) && ((!config.aM) && (!config.J)),
 								A: 'Modifier',
 								h: elm$core$Maybe$Just(author$project$Editor$EditCell)
@@ -16394,7 +16411,9 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$xSquare]),
+									[
+										author$project$Icons$xSquare(author$project$Editor$iconSize)
+									]),
 								g: (!config.k) && (!config.J),
 								A: 'Supprimer',
 								h: elm$core$Maybe$Just(author$project$Editor$DeleteSelected)
@@ -16403,7 +16422,9 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$chevronsUp]),
+									[
+										author$project$Icons$chevronsUp(author$project$Editor$iconSize)
+									]),
 								g: (!config.k) && (!config.J),
 								A: 'Monter',
 								h: elm$core$Maybe$Just(author$project$Editor$SwapLeft)
@@ -16412,7 +16433,9 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$chevronsDown]),
+									[
+										author$project$Icons$chevronsDown(author$project$Editor$iconSize)
+									]),
 								g: (!config.k) && (!config.J),
 								A: 'Descendre',
 								h: elm$core$Maybe$Just(author$project$Editor$SwapRight)
@@ -16421,7 +16444,9 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$refreshCw]),
+									[
+										author$project$Icons$refreshCw(author$project$Editor$iconSize)
+									]),
 								g: true,
 								A: 'Rafraichir',
 								h: elm$core$Maybe$Just(author$project$Editor$RefreshSizes)
@@ -16430,7 +16455,9 @@ var author$project$Editor$mainInterface = function (config) {
 							defButtonConfig,
 							{
 								E: _List_fromArray(
-									[author$project$Icons$settings]),
+									[
+										author$project$Icons$settings(author$project$Editor$iconSize)
+									]),
 								g: false,
 								A: 'Préférences',
 								h: elm$core$Maybe$Nothing

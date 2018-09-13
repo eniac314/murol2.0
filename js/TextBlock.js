@@ -6070,14 +6070,13 @@ var author$project$TextBlockPlugin$init = function (flags) {
 				width: 500,
 				zipperHandlers: elm$core$Maybe$Nothing
 			},
+			currentTrackedData: elm$core$Maybe$Nothing,
 			cursorPos: elm$core$Maybe$Nothing,
-			nbrCols: elm$core$Maybe$Nothing,
-			nextLinkId: 0,
+			nextUid: 0,
 			output: _List_Nil,
 			parsedInput: elm$core$Result$Ok(_List_Nil),
 			rawInput: '',
 			selected: elm$core$Maybe$Nothing,
-			selectedData: elm$core$Maybe$Nothing,
 			setSelection: false,
 			trackedData: elm$core$Dict$empty
 		},
@@ -6087,6 +6086,16 @@ var elm$core$Platform$Sub$batch = _Platform_batch;
 var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$TextBlockPlugin$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
+};
+var author$project$TextBlockPlugin$findNextAvailableUid = function (trackedData) {
+	return function (n) {
+		return n + 1;
+	}(
+		A3(
+			elm$core$List$foldr,
+			elm$core$Basics$max,
+			0,
+			elm$core$Dict$keys(trackedData)));
 };
 var elm$core$Basics$ge = _Utils_ge;
 var elm$core$List$filter = F2(
@@ -6258,7 +6267,7 @@ var elm$core$String$left = F2(
 	function (n, string) {
 		return (n < 1) ? '' : A3(elm$core$String$slice, 0, n, string);
 	});
-var author$project$TextBlockPlugin$makeTag = F4(
+var author$project$TextBlockPlugin$insertTagHelper = F4(
 	function (rawInput, selection, nextUid, tagname) {
 		if (selection.$ === 'Nothing') {
 			return elm$core$Maybe$Nothing;
@@ -6267,7 +6276,7 @@ var author$project$TextBlockPlugin$makeTag = F4(
 			var finish = selection.a.finish;
 			var sel = selection.a.sel;
 			var secondHalf = A2(elm$core$String$dropLeft, finish, rawInput);
-			var newLink = ' <' + (tagname + (' ' + (elm$core$String$fromInt(nextUid) + ('>' + (sel + '</> ')))));
+			var newLink = ' <' + (tagname + (' ' + (elm$core$String$fromInt(nextUid) + ('> ' + (sel + ' </> ')))));
 			var firstHalf = A2(elm$core$String$left, start, rawInput);
 			return elm$core$Maybe$Just(
 				_Utils_ap(
@@ -6275,13 +6284,24 @@ var author$project$TextBlockPlugin$makeTag = F4(
 					_Utils_ap(newLink, secondHalf)));
 		}
 	});
-var author$project$TextBlockPlugin$makeExternalLink = F3(
-	function (rawInput, selection, nextLinkId) {
-		return A4(author$project$TextBlockPlugin$makeTag, rawInput, selection, nextLinkId, 'lien-externe');
-	});
-var author$project$TextBlockPlugin$makeInternalLink = F3(
-	function (rawInput, selection, nextLinkId) {
-		return A4(author$project$TextBlockPlugin$makeTag, rawInput, selection, nextLinkId, 'lien-interne');
+var author$project$TextBlockPlugin$insertTrackingTag = F4(
+	function (rawInput, selection, nextUid, tdKind) {
+		switch (tdKind.$) {
+			case 'InternalLink':
+				return A4(author$project$TextBlockPlugin$insertTagHelper, rawInput, selection, nextUid, 'lien-interne');
+			case 'ExternalLink':
+				return A4(author$project$TextBlockPlugin$insertTagHelper, rawInput, selection, nextUid, 'lien-externe');
+			case 'Heading':
+				var level = tdKind.a;
+				return A4(
+					author$project$TextBlockPlugin$insertTagHelper,
+					rawInput,
+					selection,
+					nextUid,
+					'titre-' + elm$core$String$fromInt(level));
+			default:
+				return A4(author$project$TextBlockPlugin$insertTagHelper, rawInput, selection, nextUid, 'style');
+		}
 	});
 var author$project$TextBlockPlugin$HeadingElement = F2(
 	function (a, b) {
@@ -7406,7 +7426,7 @@ var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 						return _Utils_Tuple2(td.attrs, td.dataKind);
 					},
 					A2(elm$core$Dict$get, uid, model.trackedData));
-				if ((_n1.$ === 'Just') && (_n1.a.b.$ === 'InternalLink')) {
+				if ((_n1.$ === 'Just') && (_n1.a.b.$ === 'ExternalLink')) {
 					var _n2 = _n1.a;
 					var attrs = _n2.a;
 					var url = _n2.b.a;
@@ -7540,7 +7560,6 @@ var elm$core$Result$withDefault = F2(
 			return def;
 		}
 	});
-var elm$core$String$toInt = _String_toInt;
 var elm$parser$Parser$DeadEnd = F3(
 	function (row, col, problem) {
 		return {col: col, problem: problem, row: row};
@@ -7612,9 +7631,10 @@ var author$project$TextBlockPlugin$update = F2(
 					var newModel = _Utils_update(
 						model,
 						{
+							currentTrackedData: A2(author$project$TextBlockPlugin$getSelectedTrackedData, model.cursorPos, newTrackedData),
+							nextUid: author$project$TextBlockPlugin$findNextAvailableUid(newTrackedData),
 							parsedInput: elm$core$Result$Ok(res),
 							rawInput: s,
-							selectedData: A2(author$project$TextBlockPlugin$getSelectedTrackedData, model.cursorPos, newTrackedData),
 							trackedData: newTrackedData
 						});
 					return _Utils_Tuple2(
@@ -7630,43 +7650,9 @@ var author$project$TextBlockPlugin$update = F2(
 				} else {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				}
-			case 'NewSelection':
-				var s = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							cursorPos: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Just(s.start) : elm$core$Maybe$Nothing,
-							selected: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(s),
-							selectedData: _Utils_eq(s.start, s.finish) ? A2(
-								author$project$TextBlockPlugin$getSelectedTrackedData,
-								elm$core$Maybe$Just(s.start),
-								model.trackedData) : elm$core$Maybe$Nothing
-						}),
-					elm$core$Platform$Cmd$none);
-			case 'ClearSelection':
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{selected: elm$core$Maybe$Nothing}),
-					elm$core$Platform$Cmd$none);
-			case 'Loaded':
-				var n = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							nbrCols: elm$core$String$toInt(n)
-						}),
-					elm$core$Platform$Cmd$none);
-			case 'SetSelection':
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{setSelection: true}),
-					elm$core$Platform$Cmd$none);
-			case 'MakeInternalLink':
-				var _n2 = A3(author$project$TextBlockPlugin$makeInternalLink, model.rawInput, model.selected, model.nextLinkId);
+			case 'InsertTrackingTag':
+				var tdKind = msg.a;
+				var _n2 = A4(author$project$TextBlockPlugin$insertTrackingTag, model.rawInput, model.selected, model.nextUid, tdKind);
 				if (_n2.$ === 'Nothing') {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
@@ -7676,29 +7662,49 @@ var author$project$TextBlockPlugin$update = F2(
 						elm$core$Result$withDefault,
 						model.trackedData,
 						A2(elm$core$Result$map, author$project$TextBlockPlugin$getTrackedData, newParsedInput));
+					var newModel = _Utils_update(
+						model,
+						{
+							nextUid: author$project$TextBlockPlugin$findNextAvailableUid(newTrackedData),
+							parsedInput: newParsedInput,
+							rawInput: newRawInput,
+							trackedData: newTrackedData
+						});
 					return _Utils_Tuple2(
 						_Utils_update(
-							model,
-							{nextLinkId: model.nextLinkId + 1, parsedInput: newParsedInput, rawInput: newRawInput, trackedData: newTrackedData}),
+							newModel,
+							{
+								output: A2(
+									elm$core$Result$withDefault,
+									model.output,
+									A2(
+										elm$core$Result$map,
+										elm$core$List$filterMap(
+											author$project$TextBlockPlugin$toTextBlocElement(newModel)),
+										newParsedInput))
+							}),
 						elm$core$Platform$Cmd$none);
 				}
-			case 'MakeExternalLink':
-				var _n3 = A3(author$project$TextBlockPlugin$makeExternalLink, model.rawInput, model.selected, model.nextLinkId);
-				if (_n3.$ === 'Nothing') {
-					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-				} else {
-					var newRawInput = _n3.a;
-					var newParsedInput = A2(elm$parser$Parser$run, author$project$TextBlockPlugin$textBlock, newRawInput);
-					var newTrackedData = A2(
-						elm$core$Result$withDefault,
-						model.trackedData,
-						A2(elm$core$Result$map, author$project$TextBlockPlugin$getTrackedData, newParsedInput));
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{nextLinkId: model.nextLinkId + 1, parsedInput: newParsedInput, rawInput: newRawInput, trackedData: newTrackedData}),
-						elm$core$Platform$Cmd$none);
-				}
+			case 'NewSelection':
+				var s = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							currentTrackedData: _Utils_eq(s.start, s.finish) ? A2(
+								author$project$TextBlockPlugin$getSelectedTrackedData,
+								elm$core$Maybe$Just(s.start),
+								model.trackedData) : elm$core$Maybe$Nothing,
+							cursorPos: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Just(s.start) : elm$core$Maybe$Nothing,
+							selected: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(s)
+						}),
+					elm$core$Platform$Cmd$none);
+			case 'SetSelection':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{setSelection: true}),
+					elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 		}
@@ -7706,24 +7712,6 @@ var author$project$TextBlockPlugin$update = F2(
 var author$project$TextBlockPlugin$TextInput = function (a) {
 	return {$: 'TextInput', a: a};
 };
-var author$project$TextBlockPlugin$Loaded = function (a) {
-	return {$: 'Loaded', a: a};
-};
-var elm$json$Json$Decode$field = _Json_decodeField;
-var elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
-	});
-var elm$json$Json$Decode$map = _Json_map1;
-var elm$json$Json$Decode$string = _Json_decodeString;
-var author$project$TextBlockPlugin$decodeLoaded = A2(
-	elm$json$Json$Decode$map,
-	author$project$TextBlockPlugin$Loaded,
-	A2(
-		elm$json$Json$Decode$at,
-		_List_fromArray(
-			['target', 'cols']),
-		elm$json$Json$Decode$string));
 var author$project$TextBlockPlugin$NewSelection = function (a) {
 	return {$: 'NewSelection', a: a};
 };
@@ -7731,8 +7719,15 @@ var author$project$TextBlockPlugin$Selection = F3(
 	function (start, finish, sel) {
 		return {finish: finish, sel: sel, start: start};
 	});
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
+	});
 var elm$json$Json$Decode$int = _Json_decodeInt;
+var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map3 = _Json_map3;
+var elm$json$Json$Decode$string = _Json_decodeString;
 var author$project$TextBlockPlugin$decodeSelection = A2(
 	elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -12439,8 +12434,7 @@ var author$project$TextBlockPlugin$customTextArea = F4(
 						_List_fromArray(
 							[
 								elm$html$Html$Events$onInput(author$project$TextBlockPlugin$TextInput),
-								A2(elm$html$Html$Events$on, 'Selection', author$project$TextBlockPlugin$decodeSelection),
-								A2(elm$html$Html$Events$on, 'Loaded', author$project$TextBlockPlugin$decodeLoaded)
+								A2(elm$html$Html$Events$on, 'Selection', author$project$TextBlockPlugin$decodeSelection)
 							]),
 						setSelection ? _List_fromArray(
 							[
@@ -12473,43 +12467,49 @@ var elm$svg$Svg$Attributes$strokeLinejoin = _VirtualDom_attribute('stroke-linejo
 var elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
 var elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var author$project$Icons$svgFeatherIcon = function (className) {
-	return elm$svg$Svg$svg(
-		_List_fromArray(
-			[
-				elm$svg$Svg$Attributes$class('feather feather-' + className),
-				elm$svg$Svg$Attributes$fill('none'),
-				elm$svg$Svg$Attributes$height('24'),
-				elm$svg$Svg$Attributes$stroke('currentColor'),
-				elm$svg$Svg$Attributes$strokeLinecap('round'),
-				elm$svg$Svg$Attributes$strokeLinejoin('round'),
-				elm$svg$Svg$Attributes$strokeWidth('2'),
-				elm$svg$Svg$Attributes$viewBox('0 0 24 24'),
-				elm$svg$Svg$Attributes$width('24')
-			]));
-};
+var author$project$Icons$customSvgFeatherIcon = F2(
+	function (size, className) {
+		return elm$svg$Svg$svg(
+			_List_fromArray(
+				[
+					elm$svg$Svg$Attributes$class('feather feather-' + className),
+					elm$svg$Svg$Attributes$fill('none'),
+					elm$svg$Svg$Attributes$height(
+					elm$core$String$fromInt(size)),
+					elm$svg$Svg$Attributes$stroke('currentColor'),
+					elm$svg$Svg$Attributes$strokeLinecap('round'),
+					elm$svg$Svg$Attributes$strokeLinejoin('round'),
+					elm$svg$Svg$Attributes$strokeWidth('2'),
+					elm$svg$Svg$Attributes$viewBox('0 0 24 24'),
+					elm$svg$Svg$Attributes$width(
+					elm$core$String$fromInt(size))
+				]));
+	});
 var elm$svg$Svg$path = elm$svg$Svg$trustedNode('path');
 var elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
-var author$project$Icons$bold = A2(
-	author$project$Icons$svgFeatherIcon,
-	'bold',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$path,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$d('M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$path,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$d('M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z')
-				]),
-			_List_Nil)
-		]));
+var author$project$Icons$bold = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'bold',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$path,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$d('M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$path,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$d('M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z')
+					]),
+				_List_Nil)
+			]));
+};
 var elm$svg$Svg$line = elm$svg$Svg$trustedNode('line');
 var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
 var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
@@ -12517,127 +12517,137 @@ var elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
 var elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
 var elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
 var elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
-var author$project$Icons$externalLink = A2(
-	author$project$Icons$svgFeatherIcon,
-	'external-link',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$path,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$d('M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$polyline,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$points('15 3 21 3 21 9')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('10'),
-					elm$svg$Svg$Attributes$y1('14'),
-					elm$svg$Svg$Attributes$x2('21'),
-					elm$svg$Svg$Attributes$y2('3')
-				]),
-			_List_Nil)
-		]));
-var author$project$Icons$link2 = A2(
-	author$project$Icons$svgFeatherIcon,
-	'link-2',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$path,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$d('M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('8'),
-					elm$svg$Svg$Attributes$y1('12'),
-					elm$svg$Svg$Attributes$x2('16'),
-					elm$svg$Svg$Attributes$y2('12')
-				]),
-			_List_Nil)
-		]));
-var author$project$Icons$list = A2(
-	author$project$Icons$svgFeatherIcon,
-	'list',
-	_List_fromArray(
-		[
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('8'),
-					elm$svg$Svg$Attributes$y1('6'),
-					elm$svg$Svg$Attributes$x2('21'),
-					elm$svg$Svg$Attributes$y2('6')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('8'),
-					elm$svg$Svg$Attributes$y1('12'),
-					elm$svg$Svg$Attributes$x2('21'),
-					elm$svg$Svg$Attributes$y2('12')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('8'),
-					elm$svg$Svg$Attributes$y1('18'),
-					elm$svg$Svg$Attributes$x2('21'),
-					elm$svg$Svg$Attributes$y2('18')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('3'),
-					elm$svg$Svg$Attributes$y1('6'),
-					elm$svg$Svg$Attributes$x2('3'),
-					elm$svg$Svg$Attributes$y2('6')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('3'),
-					elm$svg$Svg$Attributes$y1('12'),
-					elm$svg$Svg$Attributes$x2('3'),
-					elm$svg$Svg$Attributes$y2('12')
-				]),
-			_List_Nil),
-			A2(
-			elm$svg$Svg$line,
-			_List_fromArray(
-				[
-					elm$svg$Svg$Attributes$x1('3'),
-					elm$svg$Svg$Attributes$y1('18'),
-					elm$svg$Svg$Attributes$x2('3'),
-					elm$svg$Svg$Attributes$y2('18')
-				]),
-			_List_Nil)
-		]));
-var author$project$TextBlockPlugin$MakeExternalLink = {$: 'MakeExternalLink'};
-var author$project$TextBlockPlugin$MakeInternalLink = {$: 'MakeInternalLink'};
+var author$project$Icons$externalLink = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'external-link',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$path,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$d('M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$polyline,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$points('15 3 21 3 21 9')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('10'),
+						elm$svg$Svg$Attributes$y1('14'),
+						elm$svg$Svg$Attributes$x2('21'),
+						elm$svg$Svg$Attributes$y2('3')
+					]),
+				_List_Nil)
+			]));
+};
+var author$project$Icons$link2 = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'link-2',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$path,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$d('M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('8'),
+						elm$svg$Svg$Attributes$y1('12'),
+						elm$svg$Svg$Attributes$x2('16'),
+						elm$svg$Svg$Attributes$y2('12')
+					]),
+				_List_Nil)
+			]));
+};
+var author$project$Icons$list = function (size) {
+	return A3(
+		author$project$Icons$customSvgFeatherIcon,
+		size,
+		'list',
+		_List_fromArray(
+			[
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('8'),
+						elm$svg$Svg$Attributes$y1('6'),
+						elm$svg$Svg$Attributes$x2('21'),
+						elm$svg$Svg$Attributes$y2('6')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('8'),
+						elm$svg$Svg$Attributes$y1('12'),
+						elm$svg$Svg$Attributes$x2('21'),
+						elm$svg$Svg$Attributes$y2('12')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('8'),
+						elm$svg$Svg$Attributes$y1('18'),
+						elm$svg$Svg$Attributes$x2('21'),
+						elm$svg$Svg$Attributes$y2('18')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('3'),
+						elm$svg$Svg$Attributes$y1('6'),
+						elm$svg$Svg$Attributes$x2('3'),
+						elm$svg$Svg$Attributes$y2('6')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('3'),
+						elm$svg$Svg$Attributes$y1('12'),
+						elm$svg$Svg$Attributes$x2('3'),
+						elm$svg$Svg$Attributes$y2('12')
+					]),
+				_List_Nil),
+				A2(
+				elm$svg$Svg$line,
+				_List_fromArray(
+					[
+						elm$svg$Svg$Attributes$x1('3'),
+						elm$svg$Svg$Attributes$y1('18'),
+						elm$svg$Svg$Attributes$x2('3'),
+						elm$svg$Svg$Attributes$y2('18')
+					]),
+				_List_Nil)
+			]));
+};
+var author$project$TextBlockPlugin$InsertTrackingTag = function (a) {
+	return {$: 'InsertTrackingTag', a: a};
+};
 var author$project$TextBlockPlugin$SetSelection = {$: 'SetSelection'};
 var mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
 	return {$: 'AlignY', a: a};
@@ -12825,6 +12835,7 @@ var author$project$TextBlockPlugin$buttonStyle = _List_fromArray(
 				A3(mdgriffith$elm_ui$Element$rgb, 0.9, 0.9, 0.9))
 			]))
 	]);
+var author$project$TextBlockPlugin$iconSize = 18;
 var mdgriffith$elm_ui$Internal$Model$AsRow = {$: 'AsRow'};
 var mdgriffith$elm_ui$Internal$Model$asRow = mdgriffith$elm_ui$Internal$Model$AsRow;
 var mdgriffith$elm_ui$Internal$Model$htmlClass = function (cls) {
@@ -13014,28 +13025,36 @@ var author$project$TextBlockPlugin$interfaceView = function (model) {
 				mdgriffith$elm_ui$Element$Input$button,
 				author$project$TextBlockPlugin$buttonStyle,
 				{
-					label: mdgriffith$elm_ui$Element$html(author$project$Icons$link2),
-					onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$MakeInternalLink)
+					label: mdgriffith$elm_ui$Element$html(
+						author$project$Icons$link2(author$project$TextBlockPlugin$iconSize)),
+					onPress: elm$core$Maybe$Just(
+						author$project$TextBlockPlugin$InsertTrackingTag(
+							author$project$TextBlockPlugin$InternalLink('')))
 				}),
 				A2(
 				mdgriffith$elm_ui$Element$Input$button,
 				author$project$TextBlockPlugin$buttonStyle,
 				{
-					label: mdgriffith$elm_ui$Element$html(author$project$Icons$externalLink),
-					onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$MakeExternalLink)
+					label: mdgriffith$elm_ui$Element$html(
+						author$project$Icons$externalLink(author$project$TextBlockPlugin$iconSize)),
+					onPress: elm$core$Maybe$Just(
+						author$project$TextBlockPlugin$InsertTrackingTag(
+							author$project$TextBlockPlugin$ExternalLink('')))
 				}),
 				A2(
 				mdgriffith$elm_ui$Element$Input$button,
 				author$project$TextBlockPlugin$buttonStyle,
 				{
-					label: mdgriffith$elm_ui$Element$html(author$project$Icons$bold),
+					label: mdgriffith$elm_ui$Element$html(
+						author$project$Icons$bold(author$project$TextBlockPlugin$iconSize)),
 					onPress: elm$core$Maybe$Nothing
 				}),
 				A2(
 				mdgriffith$elm_ui$Element$Input$button,
 				author$project$TextBlockPlugin$buttonStyle,
 				{
-					label: mdgriffith$elm_ui$Element$html(author$project$Icons$list),
+					label: mdgriffith$elm_ui$Element$html(
+						author$project$Icons$list(author$project$TextBlockPlugin$iconSize)),
 					onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$SetSelection)
 				})
 			]));
@@ -13043,13 +13062,6 @@ var author$project$TextBlockPlugin$interfaceView = function (model) {
 var author$project$Document$FontSize = function (a) {
 	return {$: 'FontSize', a: a};
 };
-var author$project$Document$PaddingEach = function (a) {
-	return {$: 'PaddingEach', a: a};
-};
-var author$project$Document$SpacingXY = F2(
-	function (a, b) {
-		return {$: 'SpacingXY', a: a, b: b};
-	});
 var author$project$Document$toSeColor = function (_n0) {
 	var r = _n0.a;
 	var g = _n0.b;
@@ -13562,26 +13574,43 @@ var author$project$DocumentView$renderTextBlock = F3(
 			A2(author$project$DocumentView$renderTextBlockElement, config, attrs),
 			xs);
 	});
+var elm$core$Debug$toString = _Debug_toString;
+var mdgriffith$elm_ui$Internal$Model$Top = {$: 'Top'};
+var mdgriffith$elm_ui$Element$alignTop = mdgriffith$elm_ui$Internal$Model$AlignY(mdgriffith$elm_ui$Internal$Model$Top);
 var author$project$TextBlockPlugin$textBlocPreview = function (model) {
 	return A2(
 		mdgriffith$elm_ui$Element$column,
 		_List_fromArray(
 			[
-				mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+				mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+				mdgriffith$elm_ui$Element$spacing(20),
+				mdgriffith$elm_ui$Element$alignTop
 			]),
-		A3(
-			author$project$DocumentView$renderTextBlock,
-			model.config,
+		_Utils_ap(
+			A3(
+				author$project$DocumentView$renderTextBlock,
+				model.config,
+				_List_fromArray(
+					[
+						author$project$Document$FontSize(16)
+					]),
+				model.output),
 			_List_fromArray(
 				[
-					A2(author$project$Document$SpacingXY, 15, 15),
-					author$project$Document$PaddingEach(
-					{bottom: 20, left: 20, right: 20, top: 20}),
-					author$project$Document$FontSize(16)
-				]),
-			model.output));
+					A2(
+					mdgriffith$elm_ui$Element$paragraph,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$width(
+							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+						]),
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$text(
+							elm$core$Debug$toString(model.output))
+						]))
+				])));
 };
-var elm$core$Debug$toString = _Debug_toString;
 var mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
 	function (a, b) {
 		return {$: 'OnlyDynamic', a: a, b: b};
@@ -13809,76 +13838,86 @@ var author$project$TextBlockPlugin$view = function (model) {
 						]),
 					_List_fromArray(
 						[
-							A4(
-							author$project$TextBlockPlugin$customTextArea,
+							A2(
+							mdgriffith$elm_ui$Element$column,
 							_List_fromArray(
 								[
-									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+									mdgriffith$elm_ui$Element$alignTop,
+									mdgriffith$elm_ui$Element$spacing(20)
 								]),
-							model.cursorPos,
-							model.setSelection,
-							model.rawInput),
+							_List_fromArray(
+								[
+									A4(
+									author$project$TextBlockPlugin$customTextArea,
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+										]),
+									model.cursorPos,
+									model.setSelection,
+									model.rawInput),
+									A2(
+									mdgriffith$elm_ui$Element$paragraph,
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$width(
+											A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+										]),
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$text(
+											elm$core$Debug$toString(model.currentTrackedData))
+										])),
+									A2(
+									mdgriffith$elm_ui$Element$paragraph,
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$width(
+											A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+										]),
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$text(
+											elm$core$Debug$toString(model.trackedData))
+										])),
+									A2(
+									mdgriffith$elm_ui$Element$paragraph,
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$width(
+											A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+										]),
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$text(
+											elm$core$Debug$toString(model.selected))
+										])),
+									A2(
+									mdgriffith$elm_ui$Element$paragraph,
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$width(
+											A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+										]),
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$text(
+											elm$core$Debug$toString(model.cursorPos))
+										])),
+									A2(
+									mdgriffith$elm_ui$Element$paragraph,
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$width(
+											A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
+										]),
+									_List_fromArray(
+										[
+											mdgriffith$elm_ui$Element$text(
+											elm$core$Debug$toString(model.parsedInput))
+										]))
+								])),
 							author$project$TextBlockPlugin$textBlocPreview(model)
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$width(
-							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
-						]),
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$text(
-							elm$core$Debug$toString(model.selectedData))
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$width(
-							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
-						]),
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$text(
-							elm$core$Debug$toString(model.trackedData))
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$width(
-							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
-						]),
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$text(
-							elm$core$Debug$toString(model.selected))
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$width(
-							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
-						]),
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$text(
-							elm$core$Debug$toString(model.cursorPos))
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$width(
-							A2(mdgriffith$elm_ui$Element$maximum, 500, mdgriffith$elm_ui$Element$fill))
-						]),
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$text(
-							elm$core$Debug$toString(model.parsedInput))
 						]))
 				])));
 };
@@ -17657,6 +17696,7 @@ var elm$core$String$startsWith = _String_startsWith;
 var elm$url$Url$Http = {$: 'Http'};
 var elm$url$Url$Https = {$: 'Https'};
 var elm$core$String$indexes = _String_indexes;
+var elm$core$String$toInt = _String_toInt;
 var elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
 		return {fragment: fragment, host: host, path: path, port_: port_, protocol: protocol, query: query};
@@ -17767,4 +17807,4 @@ var elm$browser$Browser$element = _Browser_element;
 var author$project$TextBlockPlugin$main = elm$browser$Browser$element(
 	{init: author$project$TextBlockPlugin$init, subscriptions: author$project$TextBlockPlugin$subscriptions, update: author$project$TextBlockPlugin$update, view: author$project$TextBlockPlugin$view});
 _Platform_export({'TextBlockPlugin':{'init':author$project$TextBlockPlugin$main(
-	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"TextBlockPlugin.Msg","aliases":{"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"}},"unions":{"TextBlockPlugin.Msg":{"args":[],"tags":{"NoOp":[],"NewSelection":["TextBlockPlugin.Selection"],"ClearSelection":[],"TextInput":["String.String"],"Loaded":["String.String"],"SetSelection":[],"MakeInternalLink":[],"MakeExternalLink":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"TextBlockPlugin.Msg","aliases":{"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"}},"unions":{"TextBlockPlugin.Msg":{"args":[],"tags":{"TextInput":["String.String"],"InsertTrackingTag":["TextBlockPlugin.TrackedDataKind"],"NewSelection":["TextBlockPlugin.Selection"],"SetSelection":[],"NoOp":[]}},"TextBlockPlugin.TrackedDataKind":{"args":[],"tags":{"InternalLink":["String.String"],"ExternalLink":["String.String"],"Heading":["Basics.Int"],"InlineStyled":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));

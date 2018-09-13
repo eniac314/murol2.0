@@ -5,21 +5,6 @@ import Svg exposing (Svg, svg)
 import Svg.Attributes exposing (..)
 
 
-svgFeatherIcon : String -> List (Svg msg) -> Html msg
-svgFeatherIcon className =
-    svg
-        [ class <| "feather feather-" ++ className
-        , fill "none"
-        , height "24"
-        , stroke "currentColor"
-        , strokeLinecap "round"
-        , strokeLinejoin "round"
-        , strokeWidth "2"
-        , viewBox "0 0 24 24"
-        , width "24"
-        ]
-
-
 customSvgFeatherIcon : Int -> String -> List (Svg msg) -> Html msg
 customSvgFeatherIcon size className =
     svg
@@ -35,26 +20,45 @@ customSvgFeatherIcon size className =
         ]
 
 
-link2 : Html msg
-link2 =
-    svgFeatherIcon "link-2"
+
+--customSvgFeatherIcon size  : Int -> String -> List (Svg msg) -> Int -> Html msg
+--customSvgFeatherIcon size  size className size =
+--    svg
+--        [ class <| "feather feather-" ++ className
+--        , fill "none"
+--        , height (String.fromInt size)
+--        , stroke "currentColor"
+--        , strokeLinecap "round"
+--        , strokeLinejoin "round"
+--        , strokeWidth "2"
+--        , viewBox "0 0 24 24"
+--        , width (String.fromInt size)
+--        ]
+
+
+link2 : Int -> Html msg
+link2 size =
+    customSvgFeatherIcon size
+        "link-2"
         [ Svg.path [ d "M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3" ] []
         , Svg.line [ x1 "8", y1 "12", x2 "16", y2 "12" ] []
         ]
 
 
-externalLink : Html msg
-externalLink =
-    svgFeatherIcon "external-link"
+externalLink : Int -> Html msg
+externalLink size =
+    customSvgFeatherIcon size
+        "external-link"
         [ Svg.path [ d "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" ] []
         , Svg.polyline [ points "15 3 21 3 21 9" ] []
         , Svg.line [ x1 "10", y1 "14", x2 "21", y2 "3" ] []
         ]
 
 
-list : Html msg
-list =
-    svgFeatherIcon "list"
+list : Int -> Html msg
+list size =
+    customSvgFeatherIcon size
+        "list"
         [ Svg.line [ x1 "8", y1 "6", x2 "21", y2 "6" ] []
         , Svg.line [ x1 "8", y1 "12", x2 "21", y2 "12" ] []
         , Svg.line [ x1 "8", y1 "18", x2 "21", y2 "18" ] []
@@ -64,26 +68,29 @@ list =
         ]
 
 
-bold : Html msg
-bold =
-    svgFeatherIcon "bold"
+bold : Int -> Html msg
+bold size =
+    customSvgFeatherIcon size
+        "bold"
         [ Svg.path [ d "M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" ] []
         , Svg.path [ d "M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" ] []
         ]
 
 
-plusSquare : Html msg
-plusSquare =
-    svgFeatherIcon "plus-square"
+plusSquare : Int -> Html msg
+plusSquare size =
+    customSvgFeatherIcon size
+        "plus-square"
         [ Svg.rect [ Svg.Attributes.x "3", y "3", width "18", height "18", rx "2", ry "2" ] []
         , Svg.line [ x1 "12", y1 "8", x2 "12", y2 "16" ] []
         , Svg.line [ x1 "8", y1 "12", x2 "16", y2 "12" ] []
         ]
 
 
-minusSquare : Html msg
-minusSquare =
-    svgFeatherIcon "minus-square"
+minusSquare : Int -> Html msg
+minusSquare size =
+    customSvgFeatherIcon size
+        "minus-square"
         [ Svg.rect
             [ Svg.Attributes.x "3"
             , y "3"
@@ -97,9 +104,10 @@ minusSquare =
         ]
 
 
-xSquare : Html msg
-xSquare =
-    svgFeatherIcon "x-square"
+xSquare : Int -> Html msg
+xSquare size =
+    customSvgFeatherIcon size
+        "x-square"
         [ Svg.rect
             [ Svg.Attributes.x "3"
             , y "3"
@@ -114,9 +122,10 @@ xSquare =
         ]
 
 
-layout : Html msg
-layout =
-    svgFeatherIcon "layout"
+layout : Int -> Html msg
+layout size =
+    customSvgFeatherIcon size
+        "layout"
         [ Svg.rect
             [ Svg.Attributes.x "3"
             , y "3"
@@ -131,9 +140,10 @@ layout =
         ]
 
 
-menu : Html msg
-menu =
-    svgFeatherIcon "menu"
+menu : Int -> Html msg
+menu size =
+    customSvgFeatherIcon size
+        "menu"
         [ Svg.line
             [ x1 "3"
             , y1 "12"
@@ -146,9 +156,10 @@ menu =
         ]
 
 
-moreHorizontal : Html msg
-moreHorizontal =
-    svgFeatherIcon "more-horizontal"
+moreHorizontal : Int -> Html msg
+moreHorizontal size =
+    customSvgFeatherIcon size
+        "more-horizontal"
         [ Svg.circle
             [ cx "12"
             , cy "12"
@@ -160,9 +171,10 @@ moreHorizontal =
         ]
 
 
-moreVertical : Html msg
-moreVertical =
-    svgFeatherIcon "more-vertical"
+moreVertical : Int -> Html msg
+moreVertical size =
+    customSvgFeatherIcon size
+        "more-vertical"
         [ Svg.circle
             [ cx "12"
             , cy "12"
@@ -174,18 +186,20 @@ moreVertical =
         ]
 
 
-save : Html msg
-save =
-    svgFeatherIcon "save"
+save : Int -> Html msg
+save size =
+    customSvgFeatherIcon size
+        "save"
         [ Svg.path [ d "M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" ] []
         , Svg.polyline [ points "17 21 17 13 7 13 7 21" ] []
         , Svg.polyline [ points "7 3 7 8 15 8" ] []
         ]
 
 
-settings : Html msg
-settings =
-    svgFeatherIcon "settings"
+settings : Int -> Html msg
+settings size =
+    customSvgFeatherIcon size
+        "settings"
         [ Svg.circle
             [ cx "12"
             , cy "12"
@@ -196,9 +210,10 @@ settings =
         ]
 
 
-imageIcon : Html msg
-imageIcon =
-    svgFeatherIcon "image"
+imageIcon : Int -> Html msg
+imageIcon size =
+    customSvgFeatherIcon size
+        "image"
         [ Svg.rect
             [ Svg.Attributes.x "3"
             , y "3"
@@ -213,25 +228,28 @@ imageIcon =
         ]
 
 
-youtube : Html msg
-youtube =
-    svgFeatherIcon "youtube"
+youtube : Int -> Html msg
+youtube size =
+    customSvgFeatherIcon size
+        "youtube"
         [ Svg.path [ d "M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" ] []
         , Svg.polygon [ points "9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" ] []
         ]
 
 
-edit : Html msg
-edit =
-    svgFeatherIcon "edit"
+edit : Int -> Html msg
+edit size =
+    customSvgFeatherIcon size
+        "edit"
         [ Svg.path [ d "M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34" ] []
         , Svg.polygon [ points "18 2 22 6 12 16 8 16 8 12 18 2" ] []
         ]
 
 
-alignCenter : Html msg
-alignCenter =
-    svgFeatherIcon "align-center"
+alignCenter : Int -> Html msg
+alignCenter size =
+    customSvgFeatherIcon size
+        "align-center"
         [ Svg.line
             [ x1 "18"
             , y1 "10"
@@ -245,9 +263,10 @@ alignCenter =
         ]
 
 
-alignJustify : Html msg
-alignJustify =
-    svgFeatherIcon "align-justify"
+alignJustify : Int -> Html msg
+alignJustify size =
+    customSvgFeatherIcon size
+        "align-justify"
         [ Svg.line [ x1 "21", y1 "10", x2 "3", y2 "10" ] []
         , Svg.line [ x1 "21", y1 "6", x2 "3", y2 "6" ] []
         , Svg.line [ x1 "21", y1 "14", x2 "3", y2 "14" ] []
@@ -255,9 +274,10 @@ alignJustify =
         ]
 
 
-alignLeft : Html msg
-alignLeft =
-    svgFeatherIcon "align-left"
+alignLeft : Int -> Html msg
+alignLeft size =
+    customSvgFeatherIcon size
+        "align-left"
         [ Svg.line [ x1 "17", y1 "10", x2 "3", y2 "10" ] []
         , Svg.line [ x1 "21", y1 "6", x2 "3", y2 "6" ] []
         , Svg.line [ x1 "21", y1 "14", x2 "3", y2 "14" ] []
@@ -265,9 +285,10 @@ alignLeft =
         ]
 
 
-alignRight : Html msg
-alignRight =
-    svgFeatherIcon "align-right"
+alignRight : Int -> Html msg
+alignRight size =
+    customSvgFeatherIcon size
+        "align-right"
         [ Svg.line
             [ x1 "21"
             , y1 "10"
@@ -281,25 +302,28 @@ alignRight =
         ]
 
 
-chevronsUp : Html msg
-chevronsUp =
-    svgFeatherIcon "chevrons-up"
+chevronsUp : Int -> Html msg
+chevronsUp size =
+    customSvgFeatherIcon size
+        "chevrons-up"
         [ Svg.polyline [ points "17 11 12 6 7 11" ] []
         , Svg.polyline [ points "17 18 12 13 7 18" ] []
         ]
 
 
-chevronsDown : Html msg
-chevronsDown =
-    svgFeatherIcon "chevrons-down"
+chevronsDown : Int -> Html msg
+chevronsDown size =
+    customSvgFeatherIcon size
+        "chevrons-down"
         [ Svg.polyline [ points "7 13 12 18 17 13" ] []
         , Svg.polyline [ points "7 6 12 11 17 6" ] []
         ]
 
 
-refreshCw : Html msg
-refreshCw =
-    svgFeatherIcon "refresh-cw"
+refreshCw : Int -> Html msg
+refreshCw size =
+    customSvgFeatherIcon size
+        "refresh-cw"
         [ Svg.polyline [ points "23 4 23 10 17 10" ] []
         , Svg.polyline [ points "1 20 1 14 7 14" ] []
         , Svg.path [ d "M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" ] []
