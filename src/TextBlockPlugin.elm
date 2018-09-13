@@ -23,10 +23,11 @@ import Parser exposing (..)
 import StyleSheets exposing (StyleSheet, defaulStyleSheet)
 
 
-select =
+select : Int -> Int -> Encode.Value
+select start stop =
     Encode.object
-        [ ( "start", Encode.int 20 )
-        , ( "stop", Encode.int 40 )
+        [ ( "start", Encode.int start )
+        , ( "stop", Encode.int stop )
         ]
 
 
@@ -36,7 +37,7 @@ type alias DocTextBlock =
     , selected : Maybe Selection
     , cursorPos : Maybe Int
     , output : List TextBlockElement
-    , setSelection : Bool
+    , setSelection : Maybe Encode.Value
     , trackedData : Dict Int TrackedData
     , currentTrackedData : Maybe TrackedData
     , nextUid : Int
@@ -48,7 +49,6 @@ type Msg
     = TextInput String
     | InsertTrackingTag TrackedDataKind
     | NewSelection Selection
-    | SetSelection
     | NoOp
 
 
@@ -79,7 +79,7 @@ init flags =
       , selected = Nothing
       , cursorPos = Nothing
       , output = []
-      , setSelection = False
+      , setSelection = Nothing
       , trackedData = Dict.empty
       , currentTrackedData = Nothing
       , nextUid = 0
@@ -107,7 +107,7 @@ update msg model =
                 Ok res ->
                     let
                         newTrackedData =
-                            getTrackedData res
+                            updateTrackedData model.trackedData res
 
                         newModel =
                             { model
@@ -140,7 +140,7 @@ update msg model =
                             run textBlock newRawInput
 
                         newTrackedData =
-                            Result.map getTrackedData newParsedInput
+                            Result.map (updateTrackedData model.trackedData) newParsedInput
                                 |> Result.withDefault model.trackedData
 
                         newModel =
@@ -180,12 +180,14 @@ update msg model =
                         getSelectedTrackedData (Just s.start) model.trackedData
                     else
                         Nothing
+                , setSelection =
+                    if s.start == s.finish then
+                        Maybe.map
+                            (\td -> select td.meta.start td.meta.stop)
+                            (getSelectedTrackedData (Just s.start) model.trackedData)
+                    else
+                        Nothing
               }
-            , Cmd.none
-            )
-
-        SetSelection ->
-            ( { model | setSelection = True }
             , Cmd.none
             )
 
@@ -196,7 +198,7 @@ update msg model =
 
 -------------------------------------------------------------------------------
 -------------------
--- View funcions --
+-- View functions --
 -------------------
 
 
@@ -256,7 +258,7 @@ interfaceView model =
             }
         , Input.button
             buttonStyle
-            { onPress = Just SetSelection
+            { onPress = Nothing
             , label = html <| list iconSize
             }
         ]
@@ -269,10 +271,12 @@ customTextArea attrs cursorPos setSelection rawInput =
                 ([ HtmlEvents.onInput TextInput
                  , HtmlEvents.on "Selection" decodeSelection
                  ]
-                    ++ (if setSelection then
-                            [ Attr.property "selection" select ]
-                        else
-                            []
+                    ++ (case setSelection of
+                            Just selection ->
+                                [ Attr.property "selection" selection ]
+
+                            Nothing ->
+                                []
                        )
                 )
                 [ textarea
@@ -559,7 +563,7 @@ reallyspaces =
 -- Tracked Data functions--
 ---------------------------
 -- NOTE: This exists in order to allow DocAttributes to be affected to some
--- primitives. This wat these DocAttributes are stored in the model and not
+-- primitives. These DocAttributes are stored in the model and not
 -- in the input string in order to reduce visual clutter.
 
 
@@ -577,8 +581,8 @@ type TrackedDataKind
     | InlineStyled
 
 
-getTrackedData : List Element -> Dict Int TrackedData
-getTrackedData elems =
+updateTrackedData : Dict Int TrackedData -> List Element -> Dict Int TrackedData
+updateTrackedData currentTrackedData elems =
     let
         getTrackedPrim =
             \p ->
@@ -606,32 +610,73 @@ getTrackedData elems =
 
                     _ ->
                         Nothing
+
+        newTrackedDataList =
+            List.filterMap
+                (\e ->
+                    case e of
+                        HeadingElement level meta ->
+                            Just
+                                [ { meta = meta
+                                  , attrs = []
+                                  , dataKind = Heading level
+                                  }
+                                ]
+
+                        ParagraphElement xs ->
+                            Just <| List.filterMap getTrackedPrim xs
+
+                        UListElement xs ->
+                            Just <| List.filterMap getTrackedPrim xs
+
+                        Singleton p ->
+                            getTrackedPrim p
+                                |> Maybe.map (\td -> [ td ])
+                )
+                elems
+                |> List.concat
     in
-    List.filterMap
-        (\e ->
-            case e of
-                HeadingElement level meta ->
-                    Just
-                        [ { meta = meta
-                          , attrs = []
-                          , dataKind = Heading level
-                          }
-                        ]
-
-                ParagraphElement xs ->
-                    Just <| List.filterMap getTrackedPrim xs
-
-                UListElement xs ->
-                    Just <| List.filterMap getTrackedPrim xs
-
-                Singleton p ->
-                    getTrackedPrim p
-                        |> Maybe.map (\td -> [ td ])
-        )
-        elems
-        |> List.concat
+    newTrackedDataList
         |> List.map (\td -> ( td.meta.uid, td ))
-        |> Dict.fromList
+        |> (\tds ->
+                --NOTE: Keep existing attributes
+                List.foldr
+                    (\( uid, td ) acc ->
+                        Dict.update
+                            uid
+                            (\mbValue ->
+                                case mbValue of
+                                    Nothing ->
+                                        Just td
+
+                                    Just { meta, attrs, dataKind } ->
+                                        Just
+                                            { meta = td.meta
+                                            , attrs = attrs
+                                            , dataKind = dataKind
+                                            }
+                            )
+                            acc
+                    )
+                    currentTrackedData
+                    tds
+           )
+        |> (\d ->
+                -- NOTE: Remove obsolete tracked data
+                let
+                    newKeys =
+                        List.map (.meta >> .uid) newTrackedDataList
+                in
+                List.foldr
+                    (\k acc ->
+                        if not (List.member k newKeys) then
+                            Dict.remove k acc
+                        else
+                            acc
+                    )
+                    d
+                    (Dict.keys d)
+           )
 
 
 getSelectedTrackedData : Maybe Int -> Dict Int TrackedData -> Maybe TrackedData

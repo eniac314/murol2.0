@@ -2945,7 +2945,7 @@ function _VirtualDom_applyFacts(domNode, eventNode, facts)
 		key === 'a4'
 			? _VirtualDom_applyAttrsNS(domNode, value)
 			:
-		(key !== 'value' || key !== 'checked' || domNode[key] !== value) && (domNode[key] = value);
+		((key !== 'value' && key !== 'checked') || domNode[key] !== value) && (domNode[key] = value);
 	}
 }
 
@@ -2974,7 +2974,7 @@ function _VirtualDom_applyAttrs(domNode, attrs)
 	for (var key in attrs)
 	{
 		var value = attrs[key];
-		value
+		typeof value !== 'undefined'
 			? domNode.setAttribute(key, value)
 			: domNode.removeAttribute(key);
 	}
@@ -2993,7 +2993,7 @@ function _VirtualDom_applyAttrsNS(domNode, nsAttrs)
 		var namespace = pair.f;
 		var value = pair.o;
 
-		value
+		typeof value !== 'undefined'
 			? domNode.setAttributeNS(namespace, key, value)
 			: domNode.removeAttributeNS(namespace, key);
 	}
@@ -4017,6 +4017,7 @@ function _VirtualDom_dekey(keyedNode)
 		b: keyedNode.b
 	};
 }
+
 
 
 
@@ -6077,7 +6078,7 @@ var author$project$TextBlockPlugin$init = function (flags) {
 			parsedInput: elm$core$Result$Ok(_List_Nil),
 			rawInput: '',
 			selected: elm$core$Maybe$Nothing,
-			setSelection: false,
+			setSelection: elm$core$Maybe$Nothing,
 			trackedData: elm$core$Dict$empty
 		},
 		elm$core$Platform$Cmd$none);
@@ -6151,108 +6152,6 @@ var author$project$TextBlockPlugin$getSelectedTrackedData = F2(
 						elm$core$Dict$toList(trackedDataDict))));
 		}
 	});
-var author$project$TextBlockPlugin$ExternalLink = function (a) {
-	return {$: 'ExternalLink', a: a};
-};
-var author$project$TextBlockPlugin$Heading = function (a) {
-	return {$: 'Heading', a: a};
-};
-var author$project$TextBlockPlugin$InlineStyled = {$: 'InlineStyled'};
-var author$project$TextBlockPlugin$InternalLink = function (a) {
-	return {$: 'InternalLink', a: a};
-};
-var elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
-		}
-	});
-var elm$core$List$concat = function (lists) {
-	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
-};
-var elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return elm$core$Maybe$Nothing;
-		}
-	});
-var author$project$TextBlockPlugin$getTrackedData = function (elems) {
-	var getTrackedPrim = function (p) {
-		switch (p.$) {
-			case 'InternalLinkPrimitive':
-				var pm = p.a;
-				return elm$core$Maybe$Just(
-					{
-						attrs: _List_Nil,
-						dataKind: author$project$TextBlockPlugin$InternalLink(''),
-						meta: pm
-					});
-			case 'ExternalLinkPrimitive':
-				var pm = p.a;
-				return elm$core$Maybe$Just(
-					{
-						attrs: _List_Nil,
-						dataKind: author$project$TextBlockPlugin$ExternalLink(''),
-						meta: pm
-					});
-			case 'InlineStylePrimitive':
-				var pm = p.a;
-				return elm$core$Maybe$Just(
-					{attrs: _List_Nil, dataKind: author$project$TextBlockPlugin$InlineStyled, meta: pm});
-			default:
-				return elm$core$Maybe$Nothing;
-		}
-	};
-	return elm$core$Dict$fromList(
-		A2(
-			elm$core$List$map,
-			function (td) {
-				return _Utils_Tuple2(td.meta.uid, td);
-			},
-			elm$core$List$concat(
-				A2(
-					elm$core$List$filterMap,
-					function (e) {
-						switch (e.$) {
-							case 'HeadingElement':
-								var level = e.a;
-								var meta = e.b;
-								return elm$core$Maybe$Just(
-									_List_fromArray(
-										[
-											{
-											attrs: _List_Nil,
-											dataKind: author$project$TextBlockPlugin$Heading(level),
-											meta: meta
-										}
-										]));
-							case 'ParagraphElement':
-								var xs = e.a;
-								return elm$core$Maybe$Just(
-									A2(elm$core$List$filterMap, getTrackedPrim, xs));
-							case 'UListElement':
-								var xs = e.a;
-								return elm$core$Maybe$Just(
-									A2(elm$core$List$filterMap, getTrackedPrim, xs));
-							default:
-								var p = e.a;
-								return A2(
-									elm$core$Maybe$map,
-									function (td) {
-										return _List_fromArray(
-											[td]);
-									},
-									getTrackedPrim(p));
-						}
-					},
-					elems))));
-};
 var elm$core$String$length = _String_length;
 var elm$core$String$slice = _String_slice;
 var elm$core$String$dropLeft = F2(
@@ -6302,6 +6201,33 @@ var author$project$TextBlockPlugin$insertTrackingTag = F4(
 			default:
 				return A4(author$project$TextBlockPlugin$insertTagHelper, rawInput, selection, nextUid, 'style');
 		}
+	});
+var elm$json$Json$Encode$int = _Json_wrap;
+var elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n0, obj) {
+					var k = _n0.a;
+					var v = _n0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var author$project$TextBlockPlugin$select = F2(
+	function (start, stop) {
+		return elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'start',
+					elm$json$Json$Encode$int(start)),
+					_Utils_Tuple2(
+					'stop',
+					elm$json$Json$Encode$int(stop))
+				]));
 	});
 var author$project$TextBlockPlugin$HeadingElement = F2(
 	function (a, b) {
@@ -7414,6 +7340,16 @@ var elm$core$Dict$get = F2(
 			}
 		}
 	});
+var elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
 var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 	function (model, prim) {
 		switch (prim.$) {
@@ -7540,6 +7476,554 @@ var author$project$TextBlockPlugin$toTextBlocElement = F2(
 					A2(author$project$TextBlockPlugin$toTextBlockPrimitive, model, prim));
 		}
 	});
+var author$project$TextBlockPlugin$ExternalLink = function (a) {
+	return {$: 'ExternalLink', a: a};
+};
+var author$project$TextBlockPlugin$Heading = function (a) {
+	return {$: 'Heading', a: a};
+};
+var author$project$TextBlockPlugin$InlineStyled = {$: 'InlineStyled'};
+var author$project$TextBlockPlugin$InternalLink = function (a) {
+	return {$: 'InternalLink', a: a};
+};
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var elm$core$Dict$getMin = function (dict) {
+	getMin:
+	while (true) {
+		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+			var left = dict.d;
+			var $temp$dict = left;
+			dict = $temp$dict;
+			continue getMin;
+		} else {
+			return dict;
+		}
+	}
+};
+var elm$core$Dict$moveRedLeft = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var lLeft = _n1.d;
+			var lRight = _n1.e;
+			var _n2 = dict.e;
+			var rClr = _n2.a;
+			var rK = _n2.b;
+			var rV = _n2.c;
+			var rLeft = _n2.d;
+			var _n3 = rLeft.a;
+			var rlK = rLeft.b;
+			var rlV = rLeft.c;
+			var rlL = rLeft.d;
+			var rlR = rLeft.e;
+			var rRight = _n2.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				elm$core$Dict$Red,
+				rlK,
+				rlV,
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					rlL),
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rlR, rRight));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n4 = dict.d;
+			var lClr = _n4.a;
+			var lK = _n4.b;
+			var lV = _n4.c;
+			var lLeft = _n4.d;
+			var lRight = _n4.e;
+			var _n5 = dict.e;
+			var rClr = _n5.a;
+			var rK = _n5.b;
+			var rV = _n5.c;
+			var rLeft = _n5.d;
+			var rRight = _n5.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var elm$core$Dict$moveRedRight = function (dict) {
+	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
+		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var _n2 = _n1.d;
+			var _n3 = _n2.a;
+			var llK = _n2.b;
+			var llV = _n2.c;
+			var llLeft = _n2.d;
+			var llRight = _n2.e;
+			var lRight = _n1.e;
+			var _n4 = dict.e;
+			var rClr = _n4.a;
+			var rK = _n4.b;
+			var rV = _n4.c;
+			var rLeft = _n4.d;
+			var rRight = _n4.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				elm$core$Dict$Red,
+				lK,
+				lV,
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					lRight,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight)));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n5 = dict.d;
+			var lClr = _n5.a;
+			var lK = _n5.b;
+			var lV = _n5.c;
+			var lLeft = _n5.d;
+			var lRight = _n5.e;
+			var _n6 = dict.e;
+			var rClr = _n6.a;
+			var rK = _n6.b;
+			var rV = _n6.c;
+			var rLeft = _n6.d;
+			var rRight = _n6.e;
+			if (clr.$ === 'Black') {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					elm$core$Dict$Black,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var elm$core$Dict$removeHelpPrepEQGT = F7(
+	function (targetKey, dict, color, key, value, left, right) {
+		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+			var _n1 = left.a;
+			var lK = left.b;
+			var lV = left.c;
+			var lLeft = left.d;
+			var lRight = left.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				lK,
+				lV,
+				lLeft,
+				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, lRight, right));
+		} else {
+			_n2$2:
+			while (true) {
+				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
+					if (right.d.$ === 'RBNode_elm_builtin') {
+						if (right.d.a.$ === 'Black') {
+							var _n3 = right.a;
+							var _n4 = right.d;
+							var _n5 = _n4.a;
+							return elm$core$Dict$moveRedRight(dict);
+						} else {
+							break _n2$2;
+						}
+					} else {
+						var _n6 = right.a;
+						var _n7 = right.d;
+						return elm$core$Dict$moveRedRight(dict);
+					}
+				} else {
+					break _n2$2;
+				}
+			}
+			return dict;
+		}
+	});
+var elm$core$Dict$removeMin = function (dict) {
+	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
+		var color = dict.a;
+		var key = dict.b;
+		var value = dict.c;
+		var left = dict.d;
+		var lColor = left.a;
+		var lLeft = left.d;
+		var right = dict.e;
+		if (lColor.$ === 'Black') {
+			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+				var _n3 = lLeft.a;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					color,
+					key,
+					value,
+					elm$core$Dict$removeMin(left),
+					right);
+			} else {
+				var _n4 = elm$core$Dict$moveRedLeft(dict);
+				if (_n4.$ === 'RBNode_elm_builtin') {
+					var nColor = _n4.a;
+					var nKey = _n4.b;
+					var nValue = _n4.c;
+					var nLeft = _n4.d;
+					var nRight = _n4.e;
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						elm$core$Dict$removeMin(nLeft),
+						nRight);
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			}
+		} else {
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				value,
+				elm$core$Dict$removeMin(left),
+				right);
+		}
+	} else {
+		return elm$core$Dict$RBEmpty_elm_builtin;
+	}
+};
+var elm$core$Dict$removeHelp = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_cmp(targetKey, key) < 0) {
+				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
+					var _n4 = left.a;
+					var lLeft = left.d;
+					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
+						var _n6 = lLeft.a;
+						return A5(
+							elm$core$Dict$RBNode_elm_builtin,
+							color,
+							key,
+							value,
+							A2(elm$core$Dict$removeHelp, targetKey, left),
+							right);
+					} else {
+						var _n7 = elm$core$Dict$moveRedLeft(dict);
+						if (_n7.$ === 'RBNode_elm_builtin') {
+							var nColor = _n7.a;
+							var nKey = _n7.b;
+							var nValue = _n7.c;
+							var nLeft = _n7.d;
+							var nRight = _n7.e;
+							return A5(
+								elm$core$Dict$balance,
+								nColor,
+								nKey,
+								nValue,
+								A2(elm$core$Dict$removeHelp, targetKey, nLeft),
+								nRight);
+						} else {
+							return elm$core$Dict$RBEmpty_elm_builtin;
+						}
+					}
+				} else {
+					return A5(
+						elm$core$Dict$RBNode_elm_builtin,
+						color,
+						key,
+						value,
+						A2(elm$core$Dict$removeHelp, targetKey, left),
+						right);
+				}
+			} else {
+				return A2(
+					elm$core$Dict$removeHelpEQGT,
+					targetKey,
+					A7(elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
+			}
+		}
+	});
+var elm$core$Dict$removeHelpEQGT = F2(
+	function (targetKey, dict) {
+		if (dict.$ === 'RBNode_elm_builtin') {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_eq(targetKey, key)) {
+				var _n1 = elm$core$Dict$getMin(right);
+				if (_n1.$ === 'RBNode_elm_builtin') {
+					var minKey = _n1.b;
+					var minValue = _n1.c;
+					return A5(
+						elm$core$Dict$balance,
+						color,
+						minKey,
+						minValue,
+						left,
+						elm$core$Dict$removeMin(right));
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			} else {
+				return A5(
+					elm$core$Dict$balance,
+					color,
+					key,
+					value,
+					left,
+					A2(elm$core$Dict$removeHelp, targetKey, right));
+			}
+		} else {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		}
+	});
+var elm$core$Dict$remove = F2(
+	function (key, dict) {
+		var _n0 = A2(elm$core$Dict$removeHelp, key, dict);
+		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
+			var _n1 = _n0.a;
+			var k = _n0.b;
+			var v = _n0.c;
+			var l = _n0.d;
+			var r = _n0.e;
+			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _n0;
+			return x;
+		}
+	});
+var elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _n0 = alter(
+			A2(elm$core$Dict$get, targetKey, dictionary));
+		if (_n0.$ === 'Just') {
+			var value = _n0.a;
+			return A3(elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2(elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
+		}
+	});
+var elm$core$List$concat = function (lists) {
+	return A3(elm$core$List$foldr, elm$core$List$append, _List_Nil, lists);
+};
+var elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var author$project$TextBlockPlugin$updateTrackedData = F2(
+	function (currentTrackedData, elems) {
+		var getTrackedPrim = function (p) {
+			switch (p.$) {
+				case 'InternalLinkPrimitive':
+					var pm = p.a;
+					return elm$core$Maybe$Just(
+						{
+							attrs: _List_Nil,
+							dataKind: author$project$TextBlockPlugin$InternalLink(''),
+							meta: pm
+						});
+				case 'ExternalLinkPrimitive':
+					var pm = p.a;
+					return elm$core$Maybe$Just(
+						{
+							attrs: _List_Nil,
+							dataKind: author$project$TextBlockPlugin$ExternalLink(''),
+							meta: pm
+						});
+				case 'InlineStylePrimitive':
+					var pm = p.a;
+					return elm$core$Maybe$Just(
+						{attrs: _List_Nil, dataKind: author$project$TextBlockPlugin$InlineStyled, meta: pm});
+				default:
+					return elm$core$Maybe$Nothing;
+			}
+		};
+		var newTrackedDataList = elm$core$List$concat(
+			A2(
+				elm$core$List$filterMap,
+				function (e) {
+					switch (e.$) {
+						case 'HeadingElement':
+							var level = e.a;
+							var meta = e.b;
+							return elm$core$Maybe$Just(
+								_List_fromArray(
+									[
+										{
+										attrs: _List_Nil,
+										dataKind: author$project$TextBlockPlugin$Heading(level),
+										meta: meta
+									}
+									]));
+						case 'ParagraphElement':
+							var xs = e.a;
+							return elm$core$Maybe$Just(
+								A2(elm$core$List$filterMap, getTrackedPrim, xs));
+						case 'UListElement':
+							var xs = e.a;
+							return elm$core$Maybe$Just(
+								A2(elm$core$List$filterMap, getTrackedPrim, xs));
+						default:
+							var p = e.a;
+							return A2(
+								elm$core$Maybe$map,
+								function (td) {
+									return _List_fromArray(
+										[td]);
+								},
+								getTrackedPrim(p));
+					}
+				},
+				elems));
+		return function (d) {
+			var newKeys = A2(
+				elm$core$List$map,
+				A2(
+					elm$core$Basics$composeR,
+					function ($) {
+						return $.meta;
+					},
+					function ($) {
+						return $.uid;
+					}),
+				newTrackedDataList);
+			return A3(
+				elm$core$List$foldr,
+				F2(
+					function (k, acc) {
+						return (!A2(elm$core$List$member, k, newKeys)) ? A2(elm$core$Dict$remove, k, acc) : acc;
+					}),
+				d,
+				elm$core$Dict$keys(d));
+		}(
+			function (tds) {
+				return A3(
+					elm$core$List$foldr,
+					F2(
+						function (_n0, acc) {
+							var uid = _n0.a;
+							var td = _n0.b;
+							return A3(
+								elm$core$Dict$update,
+								uid,
+								function (mbValue) {
+									if (mbValue.$ === 'Nothing') {
+										return elm$core$Maybe$Just(td);
+									} else {
+										var meta = mbValue.a.meta;
+										var attrs = mbValue.a.attrs;
+										var dataKind = mbValue.a.dataKind;
+										return elm$core$Maybe$Just(
+											{attrs: attrs, dataKind: dataKind, meta: td.meta});
+									}
+								},
+								acc);
+						}),
+					currentTrackedData,
+					tds);
+			}(
+				A2(
+					elm$core$List$map,
+					function (td) {
+						return _Utils_Tuple2(td.meta.uid, td);
+					},
+					newTrackedDataList)));
+	});
 var elm$core$Result$map = F2(
 	function (func, ra) {
 		if (ra.$ === 'Ok') {
@@ -7627,7 +8111,7 @@ var author$project$TextBlockPlugin$update = F2(
 				var _n1 = A2(elm$parser$Parser$run, author$project$TextBlockPlugin$textBlock, s);
 				if (_n1.$ === 'Ok') {
 					var res = _n1.a;
-					var newTrackedData = author$project$TextBlockPlugin$getTrackedData(res);
+					var newTrackedData = A2(author$project$TextBlockPlugin$updateTrackedData, model.trackedData, res);
 					var newModel = _Utils_update(
 						model,
 						{
@@ -7661,7 +8145,10 @@ var author$project$TextBlockPlugin$update = F2(
 					var newTrackedData = A2(
 						elm$core$Result$withDefault,
 						model.trackedData,
-						A2(elm$core$Result$map, author$project$TextBlockPlugin$getTrackedData, newParsedInput));
+						A2(
+							elm$core$Result$map,
+							author$project$TextBlockPlugin$updateTrackedData(model.trackedData),
+							newParsedInput));
 					var newModel = _Utils_update(
 						model,
 						{
@@ -7696,14 +8183,17 @@ var author$project$TextBlockPlugin$update = F2(
 								elm$core$Maybe$Just(s.start),
 								model.trackedData) : elm$core$Maybe$Nothing,
 							cursorPos: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Just(s.start) : elm$core$Maybe$Nothing,
-							selected: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(s)
+							selected: _Utils_eq(s.start, s.finish) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(s),
+							setSelection: _Utils_eq(s.start, s.finish) ? A2(
+								elm$core$Maybe$map,
+								function (td) {
+									return A2(author$project$TextBlockPlugin$select, td.meta.start, td.meta.stop);
+								},
+								A2(
+									author$project$TextBlockPlugin$getSelectedTrackedData,
+									elm$core$Maybe$Just(s.start),
+									model.trackedData)) : elm$core$Maybe$Nothing
 						}),
-					elm$core$Platform$Cmd$none);
-			case 'SetSelection':
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{setSelection: true}),
 					elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
@@ -7741,30 +8231,6 @@ var author$project$TextBlockPlugin$decodeSelection = A2(
 			A2(elm$json$Json$Decode$field, 'start', elm$json$Json$Decode$int),
 			A2(elm$json$Json$Decode$field, 'finish', elm$json$Json$Decode$int),
 			A2(elm$json$Json$Decode$field, 'sel', elm$json$Json$Decode$string))));
-var elm$json$Json$Encode$int = _Json_wrap;
-var elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			elm$core$List$foldl,
-			F2(
-				function (_n0, obj) {
-					var k = _n0.a;
-					var v = _n0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(_Utils_Tuple0),
-			pairs));
-};
-var author$project$TextBlockPlugin$select = elm$json$Json$Encode$object(
-	_List_fromArray(
-		[
-			_Utils_Tuple2(
-			'start',
-			elm$json$Json$Encode$int(20)),
-			_Utils_Tuple2(
-			'stop',
-			elm$json$Json$Encode$int(40))
-		]));
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
 var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
@@ -12436,10 +12902,17 @@ var author$project$TextBlockPlugin$customTextArea = F4(
 								elm$html$Html$Events$onInput(author$project$TextBlockPlugin$TextInput),
 								A2(elm$html$Html$Events$on, 'Selection', author$project$TextBlockPlugin$decodeSelection)
 							]),
-						setSelection ? _List_fromArray(
-							[
-								A2(elm$html$Html$Attributes$property, 'selection', author$project$TextBlockPlugin$select)
-							]) : _List_Nil),
+						function () {
+							if (setSelection.$ === 'Just') {
+								var selection = setSelection.a;
+								return _List_fromArray(
+									[
+										A2(elm$html$Html$Attributes$property, 'selection', selection)
+									]);
+							} else {
+								return _List_Nil;
+							}
+						}()),
 					_List_fromArray(
 						[
 							A2(
@@ -12648,7 +13121,6 @@ var author$project$Icons$list = function (size) {
 var author$project$TextBlockPlugin$InsertTrackingTag = function (a) {
 	return {$: 'InsertTrackingTag', a: a};
 };
-var author$project$TextBlockPlugin$SetSelection = {$: 'SetSelection'};
 var mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
 	return {$: 'AlignY', a: a};
 };
@@ -12884,27 +13356,6 @@ var elm$html$Html$Events$onClick = function (msg) {
 		elm$json$Json$Decode$succeed(msg));
 };
 var mdgriffith$elm_ui$Element$Events$onClick = A2(elm$core$Basics$composeL, mdgriffith$elm_ui$Internal$Model$Attr, elm$html$Html$Events$onClick);
-var elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
 var mdgriffith$elm_ui$Element$Input$hasFocusStyle = function (attr) {
 	if (((attr.$ === 'StyleClass') && (attr.b.$ === 'PseudoSelector')) && (attr.b.a.$ === 'Focus')) {
 		var _n1 = attr.b;
@@ -13055,7 +13506,7 @@ var author$project$TextBlockPlugin$interfaceView = function (model) {
 				{
 					label: mdgriffith$elm_ui$Element$html(
 						author$project$Icons$list(author$project$TextBlockPlugin$iconSize)),
-					onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$SetSelection)
+					onPress: elm$core$Maybe$Nothing
 				})
 			]));
 };
@@ -16180,379 +16631,6 @@ var elm$browser$Debugger$Expando$updateIndex = F3(
 				A3(elm$browser$Debugger$Expando$updateIndex, n - 1, func, xs));
 		}
 	});
-var elm$core$Dict$getMin = function (dict) {
-	getMin:
-	while (true) {
-		if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
-			var left = dict.d;
-			var $temp$dict = left;
-			dict = $temp$dict;
-			continue getMin;
-		} else {
-			return dict;
-		}
-	}
-};
-var elm$core$Dict$moveRedLeft = function (dict) {
-	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
-		if ((dict.e.d.$ === 'RBNode_elm_builtin') && (dict.e.d.a.$ === 'Red')) {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n1 = dict.d;
-			var lClr = _n1.a;
-			var lK = _n1.b;
-			var lV = _n1.c;
-			var lLeft = _n1.d;
-			var lRight = _n1.e;
-			var _n2 = dict.e;
-			var rClr = _n2.a;
-			var rK = _n2.b;
-			var rV = _n2.c;
-			var rLeft = _n2.d;
-			var _n3 = rLeft.a;
-			var rlK = rLeft.b;
-			var rlV = rLeft.c;
-			var rlL = rLeft.d;
-			var rlR = rLeft.e;
-			var rRight = _n2.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				elm$core$Dict$Red,
-				rlK,
-				rlV,
-				A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Black,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					rlL),
-				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, rK, rV, rlR, rRight));
-		} else {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n4 = dict.d;
-			var lClr = _n4.a;
-			var lK = _n4.b;
-			var lV = _n4.c;
-			var lLeft = _n4.d;
-			var lRight = _n4.e;
-			var _n5 = dict.e;
-			var rClr = _n5.a;
-			var rK = _n5.b;
-			var rV = _n5.c;
-			var rLeft = _n5.d;
-			var rRight = _n5.e;
-			if (clr.$ === 'Black') {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Black,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Black,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			}
-		}
-	} else {
-		return dict;
-	}
-};
-var elm$core$Dict$moveRedRight = function (dict) {
-	if (((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) && (dict.e.$ === 'RBNode_elm_builtin')) {
-		if ((dict.d.d.$ === 'RBNode_elm_builtin') && (dict.d.d.a.$ === 'Red')) {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n1 = dict.d;
-			var lClr = _n1.a;
-			var lK = _n1.b;
-			var lV = _n1.c;
-			var _n2 = _n1.d;
-			var _n3 = _n2.a;
-			var llK = _n2.b;
-			var llV = _n2.c;
-			var llLeft = _n2.d;
-			var llRight = _n2.e;
-			var lRight = _n1.e;
-			var _n4 = dict.e;
-			var rClr = _n4.a;
-			var rK = _n4.b;
-			var rV = _n4.c;
-			var rLeft = _n4.d;
-			var rRight = _n4.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				elm$core$Dict$Red,
-				lK,
-				lV,
-				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, llK, llV, llLeft, llRight),
-				A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Black,
-					k,
-					v,
-					lRight,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight)));
-		} else {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n5 = dict.d;
-			var lClr = _n5.a;
-			var lK = _n5.b;
-			var lV = _n5.c;
-			var lLeft = _n5.d;
-			var lRight = _n5.e;
-			var _n6 = dict.e;
-			var rClr = _n6.a;
-			var rK = _n6.b;
-			var rV = _n6.c;
-			var rLeft = _n6.d;
-			var rRight = _n6.e;
-			if (clr.$ === 'Black') {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Black,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					elm$core$Dict$Black,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, rK, rV, rLeft, rRight));
-			}
-		}
-	} else {
-		return dict;
-	}
-};
-var elm$core$Dict$removeHelpPrepEQGT = F7(
-	function (targetKey, dict, color, key, value, left, right) {
-		if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-			var _n1 = left.a;
-			var lK = left.b;
-			var lV = left.c;
-			var lLeft = left.d;
-			var lRight = left.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				color,
-				lK,
-				lV,
-				lLeft,
-				A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Red, key, value, lRight, right));
-		} else {
-			_n2$2:
-			while (true) {
-				if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Black')) {
-					if (right.d.$ === 'RBNode_elm_builtin') {
-						if (right.d.a.$ === 'Black') {
-							var _n3 = right.a;
-							var _n4 = right.d;
-							var _n5 = _n4.a;
-							return elm$core$Dict$moveRedRight(dict);
-						} else {
-							break _n2$2;
-						}
-					} else {
-						var _n6 = right.a;
-						var _n7 = right.d;
-						return elm$core$Dict$moveRedRight(dict);
-					}
-				} else {
-					break _n2$2;
-				}
-			}
-			return dict;
-		}
-	});
-var elm$core$Dict$removeMin = function (dict) {
-	if ((dict.$ === 'RBNode_elm_builtin') && (dict.d.$ === 'RBNode_elm_builtin')) {
-		var color = dict.a;
-		var key = dict.b;
-		var value = dict.c;
-		var left = dict.d;
-		var lColor = left.a;
-		var lLeft = left.d;
-		var right = dict.e;
-		if (lColor.$ === 'Black') {
-			if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
-				var _n3 = lLeft.a;
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					color,
-					key,
-					value,
-					elm$core$Dict$removeMin(left),
-					right);
-			} else {
-				var _n4 = elm$core$Dict$moveRedLeft(dict);
-				if (_n4.$ === 'RBNode_elm_builtin') {
-					var nColor = _n4.a;
-					var nKey = _n4.b;
-					var nValue = _n4.c;
-					var nLeft = _n4.d;
-					var nRight = _n4.e;
-					return A5(
-						elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						elm$core$Dict$removeMin(nLeft),
-						nRight);
-				} else {
-					return elm$core$Dict$RBEmpty_elm_builtin;
-				}
-			}
-		} else {
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				color,
-				key,
-				value,
-				elm$core$Dict$removeMin(left),
-				right);
-		}
-	} else {
-		return elm$core$Dict$RBEmpty_elm_builtin;
-	}
-};
-var elm$core$Dict$removeHelp = F2(
-	function (targetKey, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return elm$core$Dict$RBEmpty_elm_builtin;
-		} else {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			if (_Utils_cmp(targetKey, key) < 0) {
-				if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Black')) {
-					var _n4 = left.a;
-					var lLeft = left.d;
-					if ((lLeft.$ === 'RBNode_elm_builtin') && (lLeft.a.$ === 'Red')) {
-						var _n6 = lLeft.a;
-						return A5(
-							elm$core$Dict$RBNode_elm_builtin,
-							color,
-							key,
-							value,
-							A2(elm$core$Dict$removeHelp, targetKey, left),
-							right);
-					} else {
-						var _n7 = elm$core$Dict$moveRedLeft(dict);
-						if (_n7.$ === 'RBNode_elm_builtin') {
-							var nColor = _n7.a;
-							var nKey = _n7.b;
-							var nValue = _n7.c;
-							var nLeft = _n7.d;
-							var nRight = _n7.e;
-							return A5(
-								elm$core$Dict$balance,
-								nColor,
-								nKey,
-								nValue,
-								A2(elm$core$Dict$removeHelp, targetKey, nLeft),
-								nRight);
-						} else {
-							return elm$core$Dict$RBEmpty_elm_builtin;
-						}
-					}
-				} else {
-					return A5(
-						elm$core$Dict$RBNode_elm_builtin,
-						color,
-						key,
-						value,
-						A2(elm$core$Dict$removeHelp, targetKey, left),
-						right);
-				}
-			} else {
-				return A2(
-					elm$core$Dict$removeHelpEQGT,
-					targetKey,
-					A7(elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
-			}
-		}
-	});
-var elm$core$Dict$removeHelpEQGT = F2(
-	function (targetKey, dict) {
-		if (dict.$ === 'RBNode_elm_builtin') {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			if (_Utils_eq(targetKey, key)) {
-				var _n1 = elm$core$Dict$getMin(right);
-				if (_n1.$ === 'RBNode_elm_builtin') {
-					var minKey = _n1.b;
-					var minValue = _n1.c;
-					return A5(
-						elm$core$Dict$balance,
-						color,
-						minKey,
-						minValue,
-						left,
-						elm$core$Dict$removeMin(right));
-				} else {
-					return elm$core$Dict$RBEmpty_elm_builtin;
-				}
-			} else {
-				return A5(
-					elm$core$Dict$balance,
-					color,
-					key,
-					value,
-					left,
-					A2(elm$core$Dict$removeHelp, targetKey, right));
-			}
-		} else {
-			return elm$core$Dict$RBEmpty_elm_builtin;
-		}
-	});
-var elm$core$Dict$remove = F2(
-	function (key, dict) {
-		var _n0 = A2(elm$core$Dict$removeHelp, key, dict);
-		if ((_n0.$ === 'RBNode_elm_builtin') && (_n0.a.$ === 'Red')) {
-			var _n1 = _n0.a;
-			var k = _n0.b;
-			var v = _n0.c;
-			var l = _n0.d;
-			var r = _n0.e;
-			return A5(elm$core$Dict$RBNode_elm_builtin, elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _n0;
-			return x;
-		}
-	});
-var elm$core$Dict$update = F3(
-	function (targetKey, alter, dictionary) {
-		var _n0 = alter(
-			A2(elm$core$Dict$get, targetKey, dictionary));
-		if (_n0.$ === 'Just') {
-			var value = _n0.a;
-			return A3(elm$core$Dict$insert, targetKey, value, dictionary);
-		} else {
-			return A2(elm$core$Dict$remove, targetKey, dictionary);
-		}
-	});
 var elm$browser$Debugger$Expando$update = F2(
 	function (msg, value) {
 		switch (value.$) {
@@ -17807,4 +17885,4 @@ var elm$browser$Browser$element = _Browser_element;
 var author$project$TextBlockPlugin$main = elm$browser$Browser$element(
 	{init: author$project$TextBlockPlugin$init, subscriptions: author$project$TextBlockPlugin$subscriptions, update: author$project$TextBlockPlugin$update, view: author$project$TextBlockPlugin$view});
 _Platform_export({'TextBlockPlugin':{'init':author$project$TextBlockPlugin$main(
-	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"TextBlockPlugin.Msg","aliases":{"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"}},"unions":{"TextBlockPlugin.Msg":{"args":[],"tags":{"TextInput":["String.String"],"InsertTrackingTag":["TextBlockPlugin.TrackedDataKind"],"NewSelection":["TextBlockPlugin.Selection"],"SetSelection":[],"NoOp":[]}},"TextBlockPlugin.TrackedDataKind":{"args":[],"tags":{"InternalLink":["String.String"],"ExternalLink":["String.String"],"Heading":["Basics.Int"],"InlineStyled":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"TextBlockPlugin.Msg","aliases":{"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"}},"unions":{"TextBlockPlugin.Msg":{"args":[],"tags":{"TextInput":["String.String"],"InsertTrackingTag":["TextBlockPlugin.TrackedDataKind"],"NewSelection":["TextBlockPlugin.Selection"],"NoOp":[]}},"TextBlockPlugin.TrackedDataKind":{"args":[],"tags":{"InternalLink":["String.String"],"ExternalLink":["String.String"],"Heading":["Basics.Int"],"InlineStyled":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));

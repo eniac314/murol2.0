@@ -32,18 +32,16 @@
         }
 
         set selection(offset){
-        	this._textarea = this.querySelector('textarea');
-        	this._textarea.focus();
-        	this._textarea.setSelectionRange(offset.start,offset.stop);
+        	if(offset !== null) {
+	        	this._textarea = this.querySelector('textarea');
+	        	this._textarea.focus();
+	        	this._textarea.setSelectionRange(offset.start,offset.stop);
+	        }
         }
 
 	    connectedCallback() {
 	    	this._textarea = this.querySelector('textarea');
             
-            this._cols = this._textarea.getAttribute("cols");
-
-            this.dispatchEvent(new CustomEvent('Loaded'));
-
 	    	this._textarea.addEventListener('click', (event) => {
             
             var start = this._textarea.selectionStart;
