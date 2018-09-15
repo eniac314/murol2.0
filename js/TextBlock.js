@@ -4976,6 +4976,12 @@ function _Browser_load(url)
 		}
 	}));
 }
+var author$project$Document$Font = function (a) {
+	return {$: 'Font', a: a};
+};
+var author$project$Document$FontSize = function (a) {
+	return {$: 'FontSize', a: a};
+};
 var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Dict$Black = {$: 'Black'};
@@ -5710,7 +5716,7 @@ var author$project$StyleSheets$defaulStyleSheet = {
 	textStyle: _List_Nil
 };
 var author$project$TextBlockPlugin$NoOp = {$: 'NoOp'};
-var author$project$TextBlockPlugin$sample = '\nLe bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.\n\nLe bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.\n\nEnchâssé entre le volcan boisé du\nTartaret le promontoire du\nchâteau de Murol et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.\n\nAu pied du château, découvrez le parc arboré du Prélong où se trouvent le\nmusée des Peintres de l’Ecole de Murols et le musée archéologique.\n    ';
+var author$project$TextBlockPlugin$sample = '\nMurol\n\nLe bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.\n\nLe bourg de Murol est implanté dans un écrin de verdure à 850 mètres d\'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.\n\nEnchâssé entre le volcan boisé du\nTartaret le promontoire du\nchâteau de Murol et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.\n\nLe chateau\n\nAu pied du château, découvrez le parc arboré du Prélong où se trouvent le\nmusée des Peintres de l’Ecole de Murols et le musée archéologique.\n    ';
 var elm$core$Basics$True = {$: 'True'};
 var elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
@@ -6058,6 +6064,7 @@ var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var author$project$TextBlockPlugin$init = function (flags) {
 	return _Utils_Tuple2(
 		{
+			colorPickerOpen: false,
 			config: {
 				containersBkgColors: false,
 				customElems: elm$core$Dict$empty,
@@ -6074,18 +6081,25 @@ var author$project$TextBlockPlugin$init = function (flags) {
 			},
 			currentTrackedData: elm$core$Maybe$Nothing,
 			cursorPos: elm$core$Maybe$Nothing,
-			headingLevel: 1,
+			headingLevel: elm$core$Maybe$Nothing,
 			internalUrlSelectorOpen: false,
 			nextUid: 0,
 			output: _List_Nil,
 			parsedInput: elm$core$Result$Ok(_List_Nil),
 			rawInput: author$project$TextBlockPlugin$sample,
 			selected: elm$core$Maybe$Nothing,
+			selectedColor: elm$core$Maybe$Nothing,
 			selectedFile: elm$core$Maybe$Nothing,
 			selectedFolder: elm$core$Maybe$Nothing,
+			selectedFont: elm$core$Maybe$Nothing,
 			selectedInternalPage: elm$core$Maybe$Nothing,
 			setSelection: elm$core$Maybe$Nothing,
-			trackedData: elm$core$Dict$empty
+			trackedData: elm$core$Dict$empty,
+			wholeTextBlocAttr: _List_fromArray(
+				[
+					author$project$Document$FontSize(16),
+					author$project$Document$Font('Arial')
+				])
 		},
 		elm$core$Platform$Cmd$none);
 };
@@ -6233,6 +6247,9 @@ var andrewMacmurray$elm_delay$Delay$after = F3(
 var author$project$TextBlockPlugin$ExternalLink = function (a) {
 	return {$: 'ExternalLink', a: a};
 };
+var author$project$TextBlockPlugin$Heading = function (a) {
+	return {$: 'Heading', a: a};
+};
 var author$project$TextBlockPlugin$InternalLink = F2(
 	function (a, b) {
 		return {$: 'InternalLink', a: a, b: b};
@@ -6361,21 +6378,14 @@ var author$project$TextBlockPlugin$insertTrackingTag = F4(
 			case 'ExternalLink':
 				return A4(author$project$TextBlockPlugin$insertTagHelper, rawInput, selection, nextUid, 'lien-externe');
 			case 'Heading':
-				var level = tdKind.a;
-				return A4(
-					author$project$TextBlockPlugin$insertTagHelper,
-					rawInput,
-					selection,
-					nextUid,
-					'titre-' + elm$core$String$fromInt(level));
+				return A4(author$project$TextBlockPlugin$insertTagHelper, rawInput, selection, nextUid, 'titre');
 			default:
 				return A4(author$project$TextBlockPlugin$insertTagHelper, rawInput, selection, nextUid, 'style');
 		}
 	});
-var author$project$TextBlockPlugin$HeadingElement = F2(
-	function (a, b) {
-		return {$: 'HeadingElement', a: a, b: b};
-	});
+var author$project$TextBlockPlugin$HeadingElement = function (a) {
+	return {$: 'HeadingElement', a: a};
+};
 var elm$parser$Parser$Expecting = function (a) {
 	return {$: 'Expecting', a: a};
 };
@@ -6889,18 +6899,16 @@ var author$project$TextBlockPlugin$heading = A2(
 			A2(
 				elm$parser$Parser$keeper,
 				A2(
-					elm$parser$Parser$keeper,
-					A2(
-						elm$parser$Parser$ignorer,
-						elm$parser$Parser$succeed(
-							F5(
-								function (start, level, uid, val, stop) {
-									return A2(
-										author$project$TextBlockPlugin$HeadingElement,
-										level,
-										{start: start, stop: stop, uid: uid, value: val});
-								})),
-						elm$parser$Parser$spaces),
+					elm$parser$Parser$ignorer,
+					elm$parser$Parser$succeed(
+						F4(
+							function (start, uid, val, stop) {
+								return author$project$TextBlockPlugin$HeadingElement(
+									{start: start, stop: stop, uid: uid, value: val});
+							})),
+					elm$parser$Parser$spaces),
+				A2(
+					elm$parser$Parser$ignorer,
 					A2(
 						elm$parser$Parser$ignorer,
 						A2(
@@ -6910,8 +6918,8 @@ var author$project$TextBlockPlugin$heading = A2(
 								elm$parser$Parser$getOffset,
 								elm$parser$Parser$symbol('<')),
 							elm$parser$Parser$spaces),
-						elm$parser$Parser$token('titre-'))),
-				A2(elm$parser$Parser$ignorer, elm$parser$Parser$int, elm$parser$Parser$spaces)),
+						elm$parser$Parser$token('titre')),
+					elm$parser$Parser$spaces)),
 			A2(
 				elm$parser$Parser$ignorer,
 				A2(elm$parser$Parser$ignorer, elm$parser$Parser$int, elm$parser$Parser$spaces),
@@ -7489,7 +7497,7 @@ var elm$core$Maybe$map = F2(
 		}
 	});
 var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
-	function (model, prim) {
+	function (trackedData, prim) {
 		switch (prim.$) {
 			case 'ExternalLinkPrimitive':
 				var uid = prim.a.uid;
@@ -7499,7 +7507,7 @@ var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 					function (td) {
 						return _Utils_Tuple2(td.attrs, td.dataKind);
 					},
-					A2(elm$core$Dict$get, uid, model.trackedData));
+					A2(elm$core$Dict$get, uid, trackedData));
 				if ((_n1.$ === 'Just') && (_n1.a.b.$ === 'ExternalLink')) {
 					var _n2 = _n1.a;
 					var attrs = _n2.a;
@@ -7507,7 +7515,7 @@ var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 					return elm$core$Maybe$Just(
 						A2(
 							author$project$Document$Link,
-							attrs,
+							elm$core$Set$toList(attrs),
 							{label: value, targetBlank: true, url: url}));
 				} else {
 					return elm$core$Maybe$Nothing;
@@ -7520,7 +7528,7 @@ var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 					function (td) {
 						return _Utils_Tuple2(td.attrs, td.dataKind);
 					},
-					A2(elm$core$Dict$get, uid, model.trackedData));
+					A2(elm$core$Dict$get, uid, trackedData));
 				if ((_n3.$ === 'Just') && (_n3.a.b.$ === 'InternalLink')) {
 					var _n4 = _n3.a;
 					var attrs = _n4.a;
@@ -7530,7 +7538,7 @@ var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 					return elm$core$Maybe$Just(
 						A2(
 							author$project$Document$Link,
-							attrs,
+							elm$core$Set$toList(attrs),
 							{label: value, targetBlank: isFile, url: url}));
 				} else {
 					return elm$core$Maybe$Nothing;
@@ -7543,13 +7551,16 @@ var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 					function (td) {
 						return _Utils_Tuple2(td.attrs, td.dataKind);
 					},
-					A2(elm$core$Dict$get, uid, model.trackedData));
+					A2(elm$core$Dict$get, uid, trackedData));
 				if ((_n6.$ === 'Just') && (_n6.a.b.$ === 'InlineStyled')) {
 					var _n7 = _n6.a;
 					var attrs = _n7.a;
 					var _n8 = _n7.b;
 					return elm$core$Maybe$Just(
-						A2(author$project$Document$Text, attrs, value));
+						A2(
+							author$project$Document$Text,
+							elm$core$Set$toList(attrs),
+							value));
 				} else {
 					return elm$core$Maybe$Nothing;
 				}
@@ -7562,7 +7573,7 @@ var author$project$TextBlockPlugin$toTextBlockPrimitive = F2(
 		}
 	});
 var author$project$TextBlockPlugin$toTextBlocElement = F2(
-	function (model, elem) {
+	function (trackedData, elem) {
 		switch (elem.$) {
 			case 'ParagraphElement':
 				var prims = elem.a;
@@ -7572,7 +7583,7 @@ var author$project$TextBlockPlugin$toTextBlocElement = F2(
 						_List_Nil,
 						A2(
 							elm$core$List$filterMap,
-							author$project$TextBlockPlugin$toTextBlockPrimitive(model),
+							author$project$TextBlockPlugin$toTextBlockPrimitive(trackedData),
 							prims)));
 			case 'UListElement':
 				var prims = elem.a;
@@ -7584,18 +7595,18 @@ var author$project$TextBlockPlugin$toTextBlocElement = F2(
 							[
 								A2(
 								elm$core$List$filterMap,
-								author$project$TextBlockPlugin$toTextBlockPrimitive(model),
+								author$project$TextBlockPlugin$toTextBlockPrimitive(trackedData),
 								prims)
 							])));
 			case 'HeadingElement':
-				var uid = elem.b.uid;
-				var value = elem.b.value;
+				var uid = elem.a.uid;
+				var value = elem.a.value;
 				var _n1 = A2(
 					elm$core$Maybe$map,
 					function (td) {
 						return _Utils_Tuple2(td.attrs, td.dataKind);
 					},
-					A2(elm$core$Dict$get, uid, model.trackedData));
+					A2(elm$core$Dict$get, uid, trackedData));
 				if ((_n1.$ === 'Just') && (_n1.a.b.$ === 'Heading')) {
 					var _n2 = _n1.a;
 					var attrs = _n2.a;
@@ -7603,7 +7614,7 @@ var author$project$TextBlockPlugin$toTextBlocElement = F2(
 					return elm$core$Maybe$Just(
 						A2(
 							author$project$Document$Heading,
-							attrs,
+							elm$core$Set$toList(attrs),
 							_Utils_Tuple2(level, value)));
 				} else {
 					return elm$core$Maybe$Nothing;
@@ -7613,12 +7624,9 @@ var author$project$TextBlockPlugin$toTextBlocElement = F2(
 				return A2(
 					elm$core$Maybe$map,
 					author$project$Document$TBPrimitive,
-					A2(author$project$TextBlockPlugin$toTextBlockPrimitive, model, prim));
+					A2(author$project$TextBlockPlugin$toTextBlockPrimitive, trackedData, prim));
 		}
 	});
-var author$project$TextBlockPlugin$Heading = function (a) {
-	return {$: 'Heading', a: a};
-};
 var author$project$TextBlockPlugin$InlineStyled = {$: 'InlineStyled'};
 var elm$core$Basics$composeR = F3(
 	function (f, g, x) {
@@ -8039,6 +8047,10 @@ var elm$core$List$member = F2(
 			},
 			xs);
 	});
+var elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var elm$core$Set$empty = elm$core$Set$Set_elm_builtin(elm$core$Dict$empty);
 var author$project$TextBlockPlugin$updateTrackedData = F2(
 	function (currentTrackedData, elems) {
 		var getTrackedPrim = function (p) {
@@ -8047,7 +8059,7 @@ var author$project$TextBlockPlugin$updateTrackedData = F2(
 					var pm = p.a;
 					return elm$core$Maybe$Just(
 						{
-							attrs: _List_Nil,
+							attrs: elm$core$Set$empty,
 							dataKind: A2(author$project$TextBlockPlugin$InternalLink, false, ''),
 							meta: pm
 						});
@@ -8055,14 +8067,14 @@ var author$project$TextBlockPlugin$updateTrackedData = F2(
 					var pm = p.a;
 					return elm$core$Maybe$Just(
 						{
-							attrs: _List_Nil,
+							attrs: elm$core$Set$empty,
 							dataKind: author$project$TextBlockPlugin$ExternalLink(''),
 							meta: pm
 						});
 				case 'InlineStylePrimitive':
 					var pm = p.a;
 					return elm$core$Maybe$Just(
-						{attrs: _List_Nil, dataKind: author$project$TextBlockPlugin$InlineStyled, meta: pm});
+						{attrs: elm$core$Set$empty, dataKind: author$project$TextBlockPlugin$InlineStyled, meta: pm});
 				default:
 					return elm$core$Maybe$Nothing;
 			}
@@ -8073,14 +8085,13 @@ var author$project$TextBlockPlugin$updateTrackedData = F2(
 				function (e) {
 					switch (e.$) {
 						case 'HeadingElement':
-							var level = e.a;
-							var meta = e.b;
+							var meta = e.a;
 							return elm$core$Maybe$Just(
 								_List_fromArray(
 									[
 										{
-										attrs: _List_Nil,
-										dataKind: author$project$TextBlockPlugin$Heading(level),
+										attrs: elm$core$Set$empty,
+										dataKind: author$project$TextBlockPlugin$Heading(1),
 										meta: meta
 									}
 									]));
@@ -8247,23 +8258,19 @@ var author$project$TextBlockPlugin$update = F2(
 				if (_n1.$ === 'Ok') {
 					var res = _n1.a;
 					var newTrackedData = A2(author$project$TextBlockPlugin$updateTrackedData, model.trackedData, res);
-					var newModel = _Utils_update(
-						model,
-						{
-							currentTrackedData: A2(author$project$TextBlockPlugin$getSelectedTrackedData, model.cursorPos, newTrackedData),
-							nextUid: author$project$TextBlockPlugin$findNextAvailableUid(newTrackedData),
-							parsedInput: elm$core$Result$Ok(res),
-							rawInput: s,
-							trackedData: newTrackedData
-						});
 					return _Utils_Tuple2(
 						_Utils_update(
-							newModel,
+							model,
 							{
+								currentTrackedData: A2(author$project$TextBlockPlugin$getSelectedTrackedData, model.cursorPos, newTrackedData),
+								nextUid: author$project$TextBlockPlugin$findNextAvailableUid(newTrackedData),
 								output: A2(
 									elm$core$List$filterMap,
-									author$project$TextBlockPlugin$toTextBlocElement(newModel),
-									res)
+									author$project$TextBlockPlugin$toTextBlocElement(newTrackedData),
+									res),
+								parsedInput: elm$core$Result$Ok(res),
+								rawInput: s,
+								trackedData: newTrackedData
 							}),
 						elm$core$Platform$Cmd$none);
 				} else {
@@ -8284,35 +8291,31 @@ var author$project$TextBlockPlugin$update = F2(
 							elm$core$Result$map,
 							author$project$TextBlockPlugin$updateTrackedData(model.trackedData),
 							newParsedInput));
-					var newModel = _Utils_update(
-						model,
-						{
-							currentTrackedData: A2(
-								author$project$TextBlockPlugin$getSelectedTrackedData,
-								A2(
-									elm$core$Maybe$map,
-									function (s) {
-										return s.start + 1;
-									},
-									model.selected),
-								newTrackedData),
-							nextUid: author$project$TextBlockPlugin$findNextAvailableUid(newTrackedData),
-							parsedInput: newParsedInput,
-							rawInput: newRawInput,
-							trackedData: newTrackedData
-						});
 					return _Utils_Tuple2(
 						_Utils_update(
-							newModel,
+							model,
 							{
+								currentTrackedData: A2(
+									author$project$TextBlockPlugin$getSelectedTrackedData,
+									A2(
+										elm$core$Maybe$map,
+										function (s) {
+											return s.start + 1;
+										},
+										model.selected),
+									newTrackedData),
+								nextUid: author$project$TextBlockPlugin$findNextAvailableUid(newTrackedData),
 								output: A2(
 									elm$core$Result$withDefault,
 									model.output,
 									A2(
 										elm$core$Result$map,
 										elm$core$List$filterMap(
-											author$project$TextBlockPlugin$toTextBlocElement(newModel)),
-										newParsedInput))
+											author$project$TextBlockPlugin$toTextBlocElement(newTrackedData)),
+										newParsedInput)),
+								parsedInput: newParsedInput,
+								rawInput: newRawInput,
+								trackedData: newTrackedData
 							}),
 						elm$core$Platform$Cmd$batch(
 							_List_fromArray(
@@ -8356,27 +8359,68 @@ var author$project$TextBlockPlugin$update = F2(
 								model.currentTrackedData)
 						}),
 					elm$core$Platform$Cmd$none);
-			case 'SetHeadingLevel':
+			case 'SetTextBlocFont':
+				var font = msg.a;
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			case 'SetTextBlocAlignment':
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			case 'SelectHeadingLevel':
 				var strLevel = msg.a;
-				var _n3 = elm$core$String$toInt(strLevel);
-				if (_n3.$ === 'Just') {
-					var level = _n3.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{headingLevel: level}),
-						elm$core$Platform$Cmd$none);
-				} else {
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							headingLevel: elm$core$String$toInt(strLevel)
+						}),
+					elm$core$Platform$Cmd$none);
+			case 'ConfirmHeadingLevel':
+				var uid = msg.a;
+				var _n3 = model.headingLevel;
+				if (_n3.$ === 'Nothing') {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				} else {
+					var level = _n3.a;
+					var _n4 = A2(elm$core$Dict$get, uid, model.trackedData);
+					if (_n4.$ === 'Nothing') {
+						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+					} else {
+						var td = _n4.a;
+						var attrs = td.attrs;
+						var meta = td.meta;
+						var dataKind = td.dataKind;
+						var newTrackedData = _Utils_update(
+							td,
+							{
+								dataKind: author$project$TextBlockPlugin$Heading(level)
+							});
+						var newTrackedDataDict = A3(elm$core$Dict$insert, uid, newTrackedData, model.trackedData);
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									currentTrackedData: elm$core$Maybe$Just(newTrackedData),
+									headingLevel: elm$core$Maybe$Nothing,
+									output: A2(
+										elm$core$Result$withDefault,
+										model.output,
+										A2(
+											elm$core$Result$map,
+											elm$core$List$filterMap(
+												author$project$TextBlockPlugin$toTextBlocElement(newTrackedDataDict)),
+											model.parsedInput)),
+									trackedData: newTrackedDataDict
+								}),
+							elm$core$Platform$Cmd$none);
+					}
 				}
 			case 'SetUrl':
 				var uid = msg.a;
 				var url = msg.b;
-				var _n4 = A2(elm$core$Dict$get, uid, model.trackedData);
-				if (_n4.$ === 'Nothing') {
+				var _n5 = A2(elm$core$Dict$get, uid, model.trackedData);
+				if (_n5.$ === 'Nothing') {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
-					var td = _n4.a;
+					var td = _n5.a;
 					var attrs = td.attrs;
 					var meta = td.meta;
 					var dataKind = td.dataKind;
@@ -8391,6 +8435,14 @@ var author$project$TextBlockPlugin$update = F2(
 							model,
 							{
 								currentTrackedData: elm$core$Maybe$Just(newTrackedData),
+								output: A2(
+									elm$core$Result$withDefault,
+									model.output,
+									A2(
+										elm$core$Result$map,
+										elm$core$List$filterMap(
+											author$project$TextBlockPlugin$toTextBlocElement(newTrackedDataDict)),
+										model.parsedInput)),
 								trackedData: newTrackedDataDict
 							}),
 						elm$core$Platform$Cmd$none);
@@ -8398,11 +8450,11 @@ var author$project$TextBlockPlugin$update = F2(
 			case 'SetInternalLinkKind':
 				var uid = msg.a;
 				var isDoc = msg.b;
-				var _n5 = A2(elm$core$Dict$get, uid, model.trackedData);
-				if (_n5.$ === 'Nothing') {
+				var _n6 = A2(elm$core$Dict$get, uid, model.trackedData);
+				if (_n6.$ === 'Nothing') {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
-					var td = _n5.a;
+					var td = _n6.a;
 					var attrs = td.attrs;
 					var meta = td.meta;
 					var dataKind = td.dataKind;
@@ -8449,16 +8501,16 @@ var author$project$TextBlockPlugin$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 'ConfirmInternalPageUrl':
 				var uid = msg.a;
-				var _n7 = model.selectedInternalPage;
-				if (_n7.$ === 'Nothing') {
+				var _n8 = model.selectedInternalPage;
+				if (_n8.$ === 'Nothing') {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
-					var url = _n7.a;
-					var _n8 = A2(elm$core$Dict$get, uid, model.trackedData);
-					if (_n8.$ === 'Nothing') {
+					var url = _n8.a;
+					var _n9 = A2(elm$core$Dict$get, uid, model.trackedData);
+					if (_n9.$ === 'Nothing') {
 						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 					} else {
-						var td = _n8.a;
+						var td = _n9.a;
 						var attrs = td.attrs;
 						var meta = td.meta;
 						var dataKind = td.dataKind;
@@ -8474,6 +8526,14 @@ var author$project$TextBlockPlugin$update = F2(
 								{
 									currentTrackedData: elm$core$Maybe$Just(newTrackedData),
 									internalUrlSelectorOpen: false,
+									output: A2(
+										elm$core$Result$withDefault,
+										model.output,
+										A2(
+											elm$core$Result$map,
+											elm$core$List$filterMap(
+												author$project$TextBlockPlugin$toTextBlocElement(newTrackedDataDict)),
+											model.parsedInput)),
 									selectedInternalPage: elm$core$Maybe$Nothing,
 									trackedData: newTrackedDataDict
 								}),
@@ -8500,16 +8560,16 @@ var author$project$TextBlockPlugin$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 'ConfirmFileUrl':
 				var uid = msg.a;
-				var _n9 = model.selectedFile;
-				if (_n9.$ === 'Nothing') {
+				var _n10 = model.selectedFile;
+				if (_n10.$ === 'Nothing') {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
-					var url = _n9.a;
-					var _n10 = A2(elm$core$Dict$get, uid, model.trackedData);
-					if (_n10.$ === 'Nothing') {
+					var url = _n10.a;
+					var _n11 = A2(elm$core$Dict$get, uid, model.trackedData);
+					if (_n11.$ === 'Nothing') {
 						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 					} else {
-						var td = _n10.a;
+						var td = _n11.a;
 						var attrs = td.attrs;
 						var meta = td.meta;
 						var dataKind = td.dataKind;
@@ -8525,12 +8585,61 @@ var author$project$TextBlockPlugin$update = F2(
 								{
 									currentTrackedData: elm$core$Maybe$Just(newTrackedData),
 									internalUrlSelectorOpen: false,
-									selectedInternalPage: elm$core$Maybe$Nothing,
+									output: A2(
+										elm$core$Result$withDefault,
+										model.output,
+										A2(
+											elm$core$Result$map,
+											elm$core$List$filterMap(
+												author$project$TextBlockPlugin$toTextBlocElement(newTrackedDataDict)),
+											model.parsedInput)),
+									selectedFile: elm$core$Maybe$Nothing,
 									trackedData: newTrackedDataDict
 								}),
 							elm$core$Platform$Cmd$none);
 					}
 				}
+			case 'SetColor':
+				var uid = msg.a;
+				var color = msg.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							colorPickerOpen: false,
+							selectedColor: elm$core$Maybe$Just(color)
+						}),
+					elm$core$Platform$Cmd$none);
+			case 'SetInlineFont':
+				var uid = msg.a;
+				var font = msg.b;
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			case 'SetInlineColor':
+				var uid = msg.a;
+				var color = msg.b;
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			case 'SetInlineBackgroundColor':
+				var uid = msg.a;
+				var color = msg.b;
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			case 'SetBold':
+				var uid = msg.a;
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			case 'SetItalic':
+				var uid = msg.a;
+				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			case 'ColorPickerClick':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{colorPickerOpen: !model.colorPickerOpen}),
+					elm$core$Platform$Cmd$none);
+			case 'ColorPickerClickOff':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{colorPickerOpen: false}),
+					elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 		}
@@ -8741,10 +8850,6 @@ var mdgriffith$elm_ui$Internal$Flag$present = F2(
 	});
 var mdgriffith$elm_ui$Internal$Flag$widthBetween = mdgriffith$elm_ui$Internal$Flag$flag(44);
 var mdgriffith$elm_ui$Internal$Flag$widthFill = mdgriffith$elm_ui$Internal$Flag$flag(39);
-var elm$core$Set$Set_elm_builtin = function (a) {
-	return {$: 'Set_elm_builtin', a: a};
-};
-var elm$core$Set$empty = elm$core$Set$Set_elm_builtin(elm$core$Dict$empty);
 var elm$core$Set$insert = F2(
 	function (key, _n0) {
 		var dict = _n0.a;
@@ -14418,86 +14523,24 @@ var author$project$TextBlockPlugin$externalLinkView = F2(
 					})
 				]));
 	});
-var author$project$TextBlockPlugin$SetHeadingLevel = function (a) {
-	return {$: 'SetHeadingLevel', a: a};
+var author$project$TextBlockPlugin$ConfirmHeadingLevel = function (a) {
+	return {$: 'ConfirmHeadingLevel', a: a};
 };
+var author$project$TextBlockPlugin$SelectHeadingLevel = function (a) {
+	return {$: 'SelectHeadingLevel', a: a};
+};
+var author$project$TextBlockPlugin$iconSize = 18;
 var elm$html$Html$option = _VirtualDom_node('option');
 var elm$html$Html$select = _VirtualDom_node('select');
-var author$project$TextBlockPlugin$headingView = F2(
-	function (level, _n0) {
-		var meta = _n0.meta;
-		var attrs = _n0.attrs;
-		var dataKind = _n0.dataKind;
-		return A2(
-			mdgriffith$elm_ui$Element$row,
-			_List_Nil,
-			_List_fromArray(
-				[
-					A2(
-					mdgriffith$elm_ui$Element$el,
-					_List_Nil,
-					mdgriffith$elm_ui$Element$html(
-						A2(
-							elm$html$Html$select,
-							_List_fromArray(
-								[
-									elm$html$Html$Events$onInput(author$project$TextBlockPlugin$SetHeadingLevel)
-								]),
-							_List_fromArray(
-								[
-									A2(
-									elm$html$Html$option,
-									_List_fromArray(
-										[
-											elm$html$Html$Attributes$value('1')
-										]),
-									_List_fromArray(
-										[
-											elm$html$Html$text('Niveau 1')
-										])),
-									A2(
-									elm$html$Html$option,
-									_List_fromArray(
-										[
-											elm$html$Html$Attributes$value('2')
-										]),
-									_List_fromArray(
-										[
-											elm$html$Html$text('Niveau 2')
-										])),
-									A2(
-									elm$html$Html$option,
-									_List_fromArray(
-										[
-											elm$html$Html$Attributes$value('3')
-										]),
-									_List_fromArray(
-										[
-											elm$html$Html$text('Niveau 3')
-										]))
-								]))))
-				]));
-	});
-var author$project$TextBlockPlugin$iconSize = 18;
-var author$project$TextBlockPlugin$inlineStyleView = function (_n0) {
-	var meta = _n0.meta;
-	var attrs = _n0.attrs;
-	var dataKind = _n0.dataKind;
-	return A2(mdgriffith$elm_ui$Element$row, _List_Nil, _List_Nil);
-};
-var author$project$TextBlockPlugin$InternalUrlSelectorClick = {$: 'InternalUrlSelectorClick'};
-var author$project$TextBlockPlugin$SetInternalLinkKind = F2(
-	function (a, b) {
-		return {$: 'SetInternalLinkKind', a: a, b: b};
-	});
-var author$project$TextBlockPlugin$ConfirmFileUrl = function (a) {
-	return {$: 'ConfirmFileUrl', a: a};
-};
-var author$project$TextBlockPlugin$SelectFile = function (a) {
-	return {$: 'SelectFile', a: a};
-};
-var author$project$TextBlockPlugin$SelectFolder = function (a) {
-	return {$: 'SelectFolder', a: a};
+var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
+var mdgriffith$elm_ui$Internal$Model$Top = {$: 'Top'};
+var mdgriffith$elm_ui$Element$alignTop = mdgriffith$elm_ui$Internal$Model$AlignY(mdgriffith$elm_ui$Internal$Model$Top);
+var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
+var elm$html$Html$Attributes$tabindex = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'tabIndex',
+		elm$core$String$fromInt(n));
 };
 var mdgriffith$elm_ui$Element$pointer = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$cursor, mdgriffith$elm_ui$Internal$Style$classes.cursorPointer);
 var elm$html$Html$Events$onClick = function (msg) {
@@ -14507,77 +14550,6 @@ var elm$html$Html$Events$onClick = function (msg) {
 		elm$json$Json$Decode$succeed(msg));
 };
 var mdgriffith$elm_ui$Element$Events$onClick = A2(elm$core$Basics$composeL, mdgriffith$elm_ui$Internal$Model$Attr, elm$html$Html$Events$onClick);
-var author$project$TextBlockPlugin$entryView = F3(
-	function (mbSel, msg, e) {
-		return A2(
-			mdgriffith$elm_ui$Element$el,
-			_List_fromArray(
-				[
-					mdgriffith$elm_ui$Element$Events$onClick(
-					msg(e)),
-					mdgriffith$elm_ui$Element$pointer,
-					mdgriffith$elm_ui$Element$mouseOver(
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$Font$color(
-							A3(mdgriffith$elm_ui$Element$rgb, 1, 1, 1)),
-							mdgriffith$elm_ui$Element$Background$color(
-							A3(mdgriffith$elm_ui$Element$rgb, 0.7, 0.7, 0.7))
-						])),
-					function () {
-					if (mbSel.$ === 'Just') {
-						var sel = mbSel.a;
-						return _Utils_eq(sel, e) ? mdgriffith$elm_ui$Element$Background$color(
-							A3(mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8)) : mdgriffith$elm_ui$Element$Background$color(
-							A3(mdgriffith$elm_ui$Element$rgb, 1, 1, 1));
-					} else {
-						return mdgriffith$elm_ui$Element$Background$color(
-							A3(mdgriffith$elm_ui$Element$rgb, 1, 1, 1));
-					}
-				}(),
-					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-					A2(mdgriffith$elm_ui$Element$paddingXY, 15, 5)
-				]),
-			mdgriffith$elm_ui$Element$text(e));
-	});
-var elm$core$Maybe$andThen = F2(
-	function (callback, maybeValue) {
-		if (maybeValue.$ === 'Just') {
-			var value = maybeValue.a;
-			return callback(value);
-		} else {
-			return elm$core$Maybe$Nothing;
-		}
-	});
-var mdgriffith$elm_ui$Internal$Model$Top = {$: 'Top'};
-var mdgriffith$elm_ui$Element$alignTop = mdgriffith$elm_ui$Internal$Model$AlignY(mdgriffith$elm_ui$Internal$Model$Top);
-var mdgriffith$elm_ui$Element$clipX = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$overflow, mdgriffith$elm_ui$Internal$Style$classes.clipX);
-var mdgriffith$elm_ui$Element$column = F2(
-	function (attrs, children) {
-		return A4(
-			mdgriffith$elm_ui$Internal$Model$element,
-			mdgriffith$elm_ui$Internal$Model$asColumn,
-			mdgriffith$elm_ui$Internal$Model$div,
-			A2(
-				elm$core$List$cons,
-				mdgriffith$elm_ui$Internal$Model$htmlClass(mdgriffith$elm_ui$Internal$Style$classes.contentTop + (' ' + mdgriffith$elm_ui$Internal$Style$classes.contentLeft)),
-				A2(
-					elm$core$List$cons,
-					mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$shrink),
-					A2(
-						elm$core$List$cons,
-						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$shrink),
-						attrs))),
-			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
-	});
-var mdgriffith$elm_ui$Element$scrollbarY = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$overflow, mdgriffith$elm_ui$Internal$Style$classes.scrollbarsY);
-var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
-var elm$html$Html$Attributes$tabindex = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'tabIndex',
-		elm$core$String$fromInt(n));
-};
 var mdgriffith$elm_ui$Element$Input$enter = 'Enter';
 var elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
 	return {$: 'MayPreventDefault', a: a};
@@ -14673,6 +14645,859 @@ var mdgriffith$elm_ui$Element$Input$button = F2(
 				_List_fromArray(
 					[label])));
 	});
+var author$project$TextBlockPlugin$headingView = F2(
+	function (level, _n0) {
+		var meta = _n0.meta;
+		var attrs = _n0.attrs;
+		var dataKind = _n0.dataKind;
+		return A2(
+			mdgriffith$elm_ui$Element$row,
+			_List_fromArray(
+				[
+					mdgriffith$elm_ui$Element$spacing(15)
+				]),
+			_List_fromArray(
+				[
+					A2(
+					mdgriffith$elm_ui$Element$el,
+					_List_Nil,
+					mdgriffith$elm_ui$Element$html(
+						A2(
+							elm$html$Html$select,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onInput(author$project$TextBlockPlugin$SelectHeadingLevel)
+								]),
+							_List_fromArray(
+								[
+									A2(
+									elm$html$Html$option,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$value('1'),
+											elm$html$Html$Attributes$selected(
+											_Utils_eq(
+												dataKind,
+												author$project$TextBlockPlugin$Heading(1)))
+										]),
+									_List_fromArray(
+										[
+											elm$html$Html$text('Niveau 1')
+										])),
+									A2(
+									elm$html$Html$option,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$value('2'),
+											elm$html$Html$Attributes$selected(
+											_Utils_eq(
+												dataKind,
+												author$project$TextBlockPlugin$Heading(2)))
+										]),
+									_List_fromArray(
+										[
+											elm$html$Html$text('Niveau 2')
+										])),
+									A2(
+									elm$html$Html$option,
+									_List_fromArray(
+										[
+											elm$html$Html$Attributes$value('3'),
+											elm$html$Html$Attributes$selected(
+											_Utils_eq(
+												dataKind,
+												author$project$TextBlockPlugin$Heading(3)))
+										]),
+									_List_fromArray(
+										[
+											elm$html$Html$text('Niveau 3')
+										]))
+								])))),
+					A2(
+					mdgriffith$elm_ui$Element$Input$button,
+					_Utils_ap(
+						author$project$TextBlockPlugin$buttonStyle(
+							!_Utils_eq(level, elm$core$Maybe$Nothing)),
+						_List_fromArray(
+							[mdgriffith$elm_ui$Element$alignTop])),
+					{
+						label: A2(
+							mdgriffith$elm_ui$Element$row,
+							_List_fromArray(
+								[
+									mdgriffith$elm_ui$Element$spacing(5)
+								]),
+							_List_fromArray(
+								[
+									A2(
+									mdgriffith$elm_ui$Element$el,
+									_List_Nil,
+									mdgriffith$elm_ui$Element$html(
+										author$project$Icons$externalLink(author$project$TextBlockPlugin$iconSize))),
+									A2(
+									mdgriffith$elm_ui$Element$el,
+									_List_Nil,
+									mdgriffith$elm_ui$Element$text('Valider'))
+								])),
+						onPress: elm$core$Maybe$Just(
+							author$project$TextBlockPlugin$ConfirmHeadingLevel(meta.uid))
+					})
+				]));
+	});
+var author$project$TextBlockPlugin$SetColor = F2(
+	function (a, b) {
+		return {$: 'SetColor', a: a, b: b};
+	});
+var author$project$TextBlockPlugin$ColorPickerClick = {$: 'ColorPickerClick'};
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2(elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return elm$core$List$reverse(
+			A3(elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _n0 = _Utils_Tuple2(n, list);
+			_n0$1:
+			while (true) {
+				_n0$5:
+				while (true) {
+					if (!_n0.b.b) {
+						return list;
+					} else {
+						if (_n0.b.b.b) {
+							switch (_n0.a) {
+								case 1:
+									break _n0$1;
+								case 2:
+									var _n2 = _n0.b;
+									var x = _n2.a;
+									var _n3 = _n2.b;
+									var y = _n3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_n0.b.b.b.b) {
+										var _n4 = _n0.b;
+										var x = _n4.a;
+										var _n5 = _n4.b;
+										var y = _n5.a;
+										var _n6 = _n5.b;
+										var z = _n6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _n0$5;
+									}
+								default:
+									if (_n0.b.b.b.b && _n0.b.b.b.b.b) {
+										var _n7 = _n0.b;
+										var x = _n7.a;
+										var _n8 = _n7.b;
+										var y = _n8.a;
+										var _n9 = _n8.b;
+										var z = _n9.a;
+										var _n10 = _n9.b;
+										var w = _n10.a;
+										var tl = _n10.b;
+										return (ctr > 1000) ? A2(
+											elm$core$List$cons,
+											x,
+											A2(
+												elm$core$List$cons,
+												y,
+												A2(
+													elm$core$List$cons,
+													z,
+													A2(
+														elm$core$List$cons,
+														w,
+														A2(elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											elm$core$List$cons,
+											x,
+											A2(
+												elm$core$List$cons,
+												y,
+												A2(
+													elm$core$List$cons,
+													z,
+													A2(
+														elm$core$List$cons,
+														w,
+														A3(elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _n0$5;
+									}
+							}
+						} else {
+							if (_n0.a === 1) {
+								break _n0$1;
+							} else {
+								break _n0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _n1 = _n0.b;
+			var x = _n1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var elm$core$List$take = F2(
+	function (n, list) {
+		return A3(elm$core$List$takeFast, 0, n, list);
+	});
+var author$project$TextBlockPlugin$chunks = F2(
+	function (n, xs) {
+		var helper = F2(
+			function (acc, ys) {
+				helper:
+				while (true) {
+					if (!ys.b) {
+						return elm$core$List$reverse(acc);
+					} else {
+						var $temp$acc = A2(
+							elm$core$List$cons,
+							A2(elm$core$List$take, n, ys),
+							acc),
+							$temp$ys = A2(elm$core$List$drop, n, ys);
+						acc = $temp$acc;
+						ys = $temp$ys;
+						continue helper;
+					}
+				}
+			});
+		return A2(helper, _List_Nil, xs);
+	});
+var elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(xs);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm$core$Result$mapError = F2(
+	function (f, result) {
+		if (result.$ === 'Ok') {
+			var v = result.a;
+			return elm$core$Result$Ok(v);
+		} else {
+			var e = result.a;
+			return elm$core$Result$Err(
+				f(e));
+		}
+	});
+var elm$core$String$foldr = _String_foldr;
+var elm$core$String$toList = function (string) {
+	return A3(elm$core$String$foldr, elm$core$List$cons, _List_Nil, string);
+};
+var elm$core$Basics$pow = _Basics_pow;
+var elm$core$String$cons = _String_cons;
+var elm$core$String$fromChar = function (_char) {
+	return A2(elm$core$String$cons, _char, '');
+};
+var rtfeldman$elm_hex$Hex$fromStringHelp = F3(
+	function (position, chars, accumulated) {
+		fromStringHelp:
+		while (true) {
+			if (!chars.b) {
+				return elm$core$Result$Ok(accumulated);
+			} else {
+				var _char = chars.a;
+				var rest = chars.b;
+				switch (_char.valueOf()) {
+					case '0':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated;
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '1':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + A2(elm$core$Basics$pow, 16, position);
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '2':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (2 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '3':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (3 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '4':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (4 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '5':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (5 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '6':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (6 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '7':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (7 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '8':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (8 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case '9':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (9 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'a':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (10 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'b':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (11 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'c':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (12 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'd':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (13 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'e':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (14 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					case 'f':
+						var $temp$position = position - 1,
+							$temp$chars = rest,
+							$temp$accumulated = accumulated + (15 * A2(elm$core$Basics$pow, 16, position));
+						position = $temp$position;
+						chars = $temp$chars;
+						accumulated = $temp$accumulated;
+						continue fromStringHelp;
+					default:
+						var nonHex = _char;
+						return elm$core$Result$Err(
+							elm$core$String$fromChar(nonHex) + ' is not a valid hexadecimal character.');
+				}
+			}
+		}
+	});
+var rtfeldman$elm_hex$Hex$fromString = function (str) {
+	if (elm$core$String$isEmpty(str)) {
+		return elm$core$Result$Err('Empty strings are not valid hexadecimal strings.');
+	} else {
+		var result = function () {
+			if (A2(elm$core$String$startsWith, '-', str)) {
+				var list = A2(
+					elm$core$Maybe$withDefault,
+					_List_Nil,
+					elm$core$List$tail(
+						elm$core$String$toList(str)));
+				return A2(
+					elm$core$Result$map,
+					elm$core$Basics$negate,
+					A3(
+						rtfeldman$elm_hex$Hex$fromStringHelp,
+						elm$core$List$length(list) - 1,
+						list,
+						0));
+			} else {
+				return A3(
+					rtfeldman$elm_hex$Hex$fromStringHelp,
+					elm$core$String$length(str) - 1,
+					elm$core$String$toList(str),
+					0);
+			}
+		}();
+		var formatError = function (err) {
+			return A2(
+				elm$core$String$join,
+				' ',
+				_List_fromArray(
+					['\"' + (str + '\"'), 'is not a valid hexadecimal string because', err]));
+		};
+		return A2(elm$core$Result$mapError, formatError, result);
+	}
+};
+var author$project$TextBlockPlugin$hexToColor = function (hexColor) {
+	var hexColor_ = elm$core$String$toLower(hexColor);
+	var red = A2(
+		elm$core$Result$withDefault,
+		0,
+		rtfeldman$elm_hex$Hex$fromString(
+			A2(elm$core$String$left, 2, hexColor_)));
+	var green = A2(
+		elm$core$Result$withDefault,
+		0,
+		rtfeldman$elm_hex$Hex$fromString(
+			A2(
+				elm$core$String$left,
+				2,
+				A2(elm$core$String$dropLeft, 2, hexColor_))));
+	var blue = A2(
+		elm$core$Result$withDefault,
+		0,
+		rtfeldman$elm_hex$Hex$fromString(
+			A2(
+				elm$core$String$left,
+				2,
+				A2(elm$core$String$dropLeft, 4, hexColor_))));
+	return A3(mdgriffith$elm_ui$Element$rgb, red / 255, green / 255, blue / 255);
+};
+var author$project$TextBlockPlugin$webColors = _List_fromArray(
+	[
+		_Utils_Tuple2('maroon', '800000'),
+		_Utils_Tuple2('dark red', '8B0000'),
+		_Utils_Tuple2('brown', 'A52A2A'),
+		_Utils_Tuple2('firebrick', 'B22222'),
+		_Utils_Tuple2('crimson', 'DC143C'),
+		_Utils_Tuple2('red', 'FF0000'),
+		_Utils_Tuple2('tomato', 'FF6347'),
+		_Utils_Tuple2('coral', 'FF7F50'),
+		_Utils_Tuple2('indian red', 'CD5C5C'),
+		_Utils_Tuple2('light coral', 'F08080'),
+		_Utils_Tuple2('dark salmon', 'E9967A'),
+		_Utils_Tuple2('salmon', 'FA8072'),
+		_Utils_Tuple2('light salmon', 'FFA07A'),
+		_Utils_Tuple2('orange red', 'FF4500'),
+		_Utils_Tuple2('dark orange', 'FF8C00'),
+		_Utils_Tuple2('orange', 'FFA500'),
+		_Utils_Tuple2('gold', 'FFD700'),
+		_Utils_Tuple2('dark golden rod', 'B8860B'),
+		_Utils_Tuple2('golden rod', 'DAA520'),
+		_Utils_Tuple2('pale golden rod', 'EEE8AA'),
+		_Utils_Tuple2('dark khaki', 'BDB76B'),
+		_Utils_Tuple2('khaki', 'F0E68C'),
+		_Utils_Tuple2('olive', '808000'),
+		_Utils_Tuple2('yellow', 'FFFF00'),
+		_Utils_Tuple2('yellow green', '9ACD32'),
+		_Utils_Tuple2('dark olive green', '556B2F'),
+		_Utils_Tuple2('olive drab', '6B8E23'),
+		_Utils_Tuple2('lawn green', '7CFC00'),
+		_Utils_Tuple2('chart reuse', '7FFF00'),
+		_Utils_Tuple2('green yellow', 'ADFF2F'),
+		_Utils_Tuple2('dark green', '006400'),
+		_Utils_Tuple2('green', '008000'),
+		_Utils_Tuple2('forest green', '228B22'),
+		_Utils_Tuple2('lime', '00FF00'),
+		_Utils_Tuple2('lime green', '32CD32'),
+		_Utils_Tuple2('light green', '90EE90'),
+		_Utils_Tuple2('pale green', '98FB98'),
+		_Utils_Tuple2('dark sea green', '8FBC8F'),
+		_Utils_Tuple2('medium spring green', '00FA9A'),
+		_Utils_Tuple2('spring green', '00FF7F'),
+		_Utils_Tuple2('sea green', '2E8B57'),
+		_Utils_Tuple2('medium aqua marine', '66CDAA'),
+		_Utils_Tuple2('medium sea green', '3CB371'),
+		_Utils_Tuple2('light sea green', '20B2AA'),
+		_Utils_Tuple2('dark slate gray', '2F4F4F'),
+		_Utils_Tuple2('teal', '008080'),
+		_Utils_Tuple2('dark cyan', '008B8B'),
+		_Utils_Tuple2('aqua', '00FFFF'),
+		_Utils_Tuple2('cyan', '00FFFF'),
+		_Utils_Tuple2('light cyan', 'E0FFFF'),
+		_Utils_Tuple2('dark turquoise', '00CED1'),
+		_Utils_Tuple2('turquoise', '40E0D0'),
+		_Utils_Tuple2('medium turquoise', '48D1CC'),
+		_Utils_Tuple2('pale turquoise', 'AFEEEE'),
+		_Utils_Tuple2('aqua marine', '7FFFD4'),
+		_Utils_Tuple2('powder blue', 'B0E0E6'),
+		_Utils_Tuple2('cadet blue', '5F9EA0'),
+		_Utils_Tuple2('steel blue', '4682B4'),
+		_Utils_Tuple2('corn flower blue', '6495ED'),
+		_Utils_Tuple2('deep sky blue', '00BFFF'),
+		_Utils_Tuple2('dodger blue', '1E90FF'),
+		_Utils_Tuple2('light blue', 'ADD8E6'),
+		_Utils_Tuple2('sky blue', '87CEEB'),
+		_Utils_Tuple2('light sky blue', '87CEFA'),
+		_Utils_Tuple2('midnight blue', '191970'),
+		_Utils_Tuple2('navy', '000080'),
+		_Utils_Tuple2('dark blue', '00008B'),
+		_Utils_Tuple2('medium blue', '0000CD'),
+		_Utils_Tuple2('blue', '0000FF'),
+		_Utils_Tuple2('royal blue', '4169E1'),
+		_Utils_Tuple2('blue violet', '8A2BE2'),
+		_Utils_Tuple2('indigo', '4B0082'),
+		_Utils_Tuple2('dark slate blue', '483D8B'),
+		_Utils_Tuple2('slate blue', '6A5ACD'),
+		_Utils_Tuple2('medium slate blue', '7B68EE'),
+		_Utils_Tuple2('medium purple', '9370DB'),
+		_Utils_Tuple2('dark magenta', '8B008B'),
+		_Utils_Tuple2('dark violet', '9400D3'),
+		_Utils_Tuple2('dark orchid', '9932CC'),
+		_Utils_Tuple2('medium orchid', 'BA55D3'),
+		_Utils_Tuple2('purple', '800080'),
+		_Utils_Tuple2('thistle', 'D8BFD8'),
+		_Utils_Tuple2('plum', 'DDA0DD'),
+		_Utils_Tuple2('violet', 'EE82EE'),
+		_Utils_Tuple2('magenta / fuchsia', 'FF00FF'),
+		_Utils_Tuple2('orchid', 'DA70D6'),
+		_Utils_Tuple2('medium violet red', 'C71585'),
+		_Utils_Tuple2('pale violet red', 'DB7093'),
+		_Utils_Tuple2('deep pink', 'FF1493'),
+		_Utils_Tuple2('hot pink', 'FF69B4'),
+		_Utils_Tuple2('light pink', 'FFB6C1'),
+		_Utils_Tuple2('pink', 'FFC0CB'),
+		_Utils_Tuple2('antique white', 'FAEBD7'),
+		_Utils_Tuple2('beige', 'F5F5DC'),
+		_Utils_Tuple2('bisque', 'FFE4C4'),
+		_Utils_Tuple2('blanched almond', 'FFEBCD'),
+		_Utils_Tuple2('wheat', 'F5DEB3'),
+		_Utils_Tuple2('corn silk', 'FFF8DC'),
+		_Utils_Tuple2('lemon chiffon', 'FFFACD'),
+		_Utils_Tuple2('light golden rod yellow', 'FAFAD2'),
+		_Utils_Tuple2('light yellow', 'FFFFE0'),
+		_Utils_Tuple2('saddle brown', '8B4513'),
+		_Utils_Tuple2('sienna', 'A0522D'),
+		_Utils_Tuple2('chocolate', 'D2691E'),
+		_Utils_Tuple2('peru', 'CD853F'),
+		_Utils_Tuple2('sandy brown', 'F4A460'),
+		_Utils_Tuple2('burly wood', 'DEB887'),
+		_Utils_Tuple2('tan', 'D2B48C'),
+		_Utils_Tuple2('rosy brown', 'BC8F8F'),
+		_Utils_Tuple2('moccasin', 'FFE4B5'),
+		_Utils_Tuple2('navajo white', 'FFDEAD'),
+		_Utils_Tuple2('peach puff', 'FFDAB9'),
+		_Utils_Tuple2('misty rose', 'FFE4E1'),
+		_Utils_Tuple2('lavender blush', 'FFF0F5'),
+		_Utils_Tuple2('linen', 'FAF0E6'),
+		_Utils_Tuple2('old lace', 'FDF5E6'),
+		_Utils_Tuple2('papaya whip', 'FFEFD5'),
+		_Utils_Tuple2('sea shell', 'FFF5EE'),
+		_Utils_Tuple2('mint cream', 'F5FFFA'),
+		_Utils_Tuple2('slate gray', '708090'),
+		_Utils_Tuple2('light slate gray', '778899'),
+		_Utils_Tuple2('light steel blue', 'B0C4DE'),
+		_Utils_Tuple2('lavender', 'E6E6FA'),
+		_Utils_Tuple2('floral white', 'FFFAF0'),
+		_Utils_Tuple2('alice blue', 'F0F8FF'),
+		_Utils_Tuple2('ghost white', 'F8F8FF'),
+		_Utils_Tuple2('honeydew', 'F0FFF0'),
+		_Utils_Tuple2('ivory', 'FFFFF0'),
+		_Utils_Tuple2('azure', 'F0FFFF'),
+		_Utils_Tuple2('snow', 'FFFAFA'),
+		_Utils_Tuple2('black', '000000'),
+		_Utils_Tuple2('dim gray / dim grey', '696969'),
+		_Utils_Tuple2('gray / grey', '808080'),
+		_Utils_Tuple2('dark gray / dark grey', 'A9A9A9'),
+		_Utils_Tuple2('silver', 'C0C0C0'),
+		_Utils_Tuple2('light gray / light grey', 'D3D3D3'),
+		_Utils_Tuple2('gainsboro', 'DCDCDC'),
+		_Utils_Tuple2('white smoke', 'F5F5F5'),
+		_Utils_Tuple2('white', 'FFFFFF')
+	]);
+var mdgriffith$elm_ui$Internal$Model$Below = {$: 'Below'};
+var mdgriffith$elm_ui$Element$below = function (element) {
+	return A2(mdgriffith$elm_ui$Internal$Model$Nearby, mdgriffith$elm_ui$Internal$Model$Below, element);
+};
+var mdgriffith$elm_ui$Element$column = F2(
+	function (attrs, children) {
+		return A4(
+			mdgriffith$elm_ui$Internal$Model$element,
+			mdgriffith$elm_ui$Internal$Model$asColumn,
+			mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$elm_ui$Internal$Model$htmlClass(mdgriffith$elm_ui$Internal$Style$classes.contentTop + (' ' + mdgriffith$elm_ui$Internal$Style$classes.contentLeft)),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$shrink),
+					A2(
+						elm$core$List$cons,
+						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$shrink),
+						attrs))),
+			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
+	});
+var mdgriffith$elm_ui$Element$none = mdgriffith$elm_ui$Internal$Model$Empty;
+var author$project$TextBlockPlugin$colorPicker = F4(
+	function (colorPickerOpen, currentColor, msg, uid) {
+		var colorPanView = F2(
+			function (mbMsg, color) {
+				return A2(
+					mdgriffith$elm_ui$Element$el,
+					_Utils_ap(
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$width(
+								mdgriffith$elm_ui$Element$px(14)),
+								mdgriffith$elm_ui$Element$height(
+								mdgriffith$elm_ui$Element$px(14)),
+								mdgriffith$elm_ui$Element$Background$color(
+								author$project$TextBlockPlugin$hexToColor(color)),
+								mdgriffith$elm_ui$Element$Border$width(1),
+								mdgriffith$elm_ui$Element$Border$color(
+								A3(mdgriffith$elm_ui$Element$rgb, 0, 0, 0)),
+								mdgriffith$elm_ui$Element$pointer,
+								mdgriffith$elm_ui$Element$mouseOver(
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$Border$color(
+										A3(mdgriffith$elm_ui$Element$rgb, 0.9, 0.9, 0.9))
+									]))
+							]),
+						function () {
+							if (mbMsg.$ === 'Just') {
+								var msg_ = mbMsg.a;
+								return _List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$Events$onClick(
+										A2(msg_, uid, color))
+									]);
+							} else {
+								return _List_Nil;
+							}
+						}()),
+					mdgriffith$elm_ui$Element$none);
+			});
+		var colors = A2(
+			elm$core$List$map,
+			function (r) {
+				return A2(
+					mdgriffith$elm_ui$Element$row,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$spacing(3)
+						]),
+					A2(
+						elm$core$List$map,
+						function (_n0) {
+							var n = _n0.a;
+							var c = _n0.b;
+							return A2(
+								colorPanView,
+								elm$core$Maybe$Just(msg),
+								c);
+						},
+						r));
+			},
+			A2(author$project$TextBlockPlugin$chunks, 12, author$project$TextBlockPlugin$webColors));
+		return A2(
+			mdgriffith$elm_ui$Element$el,
+			_List_fromArray(
+				[
+					mdgriffith$elm_ui$Element$below(
+					A2(
+						mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$Background$color(
+								A3(mdgriffith$elm_ui$Element$rgb, 0.95, 0.95, 0.95))
+							]),
+						colorPickerOpen ? A2(
+							mdgriffith$elm_ui$Element$column,
+							_List_fromArray(
+								[
+									mdgriffith$elm_ui$Element$spacing(3),
+									mdgriffith$elm_ui$Element$padding(10)
+								]),
+							colors) : mdgriffith$elm_ui$Element$none))
+				]),
+			A2(
+				mdgriffith$elm_ui$Element$Input$button,
+				author$project$TextBlockPlugin$buttonStyle(true),
+				{
+					label: A2(
+						mdgriffith$elm_ui$Element$row,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$spacing(5)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								mdgriffith$elm_ui$Element$el,
+								_List_Nil,
+								mdgriffith$elm_ui$Element$text('Couleur')),
+								A2(
+								colorPanView,
+								elm$core$Maybe$Nothing,
+								A2(elm$core$Maybe$withDefault, 'FFFFFF', currentColor))
+							])),
+					onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$ColorPickerClick)
+				}));
+	});
+var author$project$TextBlockPlugin$inlineStyleView = F2(
+	function (model, _n0) {
+		var meta = _n0.meta;
+		var attrs = _n0.attrs;
+		var dataKind = _n0.dataKind;
+		return A2(
+			mdgriffith$elm_ui$Element$row,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A4(author$project$TextBlockPlugin$colorPicker, model.colorPickerOpen, model.selectedColor, author$project$TextBlockPlugin$SetColor, 0)
+				]));
+	});
+var author$project$TextBlockPlugin$InternalUrlSelectorClick = {$: 'InternalUrlSelectorClick'};
+var author$project$TextBlockPlugin$SetInternalLinkKind = F2(
+	function (a, b) {
+		return {$: 'SetInternalLinkKind', a: a, b: b};
+	});
+var author$project$TextBlockPlugin$ConfirmFileUrl = function (a) {
+	return {$: 'ConfirmFileUrl', a: a};
+};
+var author$project$TextBlockPlugin$SelectFile = function (a) {
+	return {$: 'SelectFile', a: a};
+};
+var author$project$TextBlockPlugin$SelectFolder = function (a) {
+	return {$: 'SelectFolder', a: a};
+};
+var author$project$TextBlockPlugin$entryView = F3(
+	function (mbSel, msg, e) {
+		return A2(
+			mdgriffith$elm_ui$Element$el,
+			_List_fromArray(
+				[
+					mdgriffith$elm_ui$Element$Events$onClick(
+					msg(e)),
+					mdgriffith$elm_ui$Element$pointer,
+					mdgriffith$elm_ui$Element$mouseOver(
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$Font$color(
+							A3(mdgriffith$elm_ui$Element$rgb, 1, 1, 1)),
+							mdgriffith$elm_ui$Element$Background$color(
+							A3(mdgriffith$elm_ui$Element$rgb, 0.7, 0.7, 0.7))
+						])),
+					function () {
+					if (mbSel.$ === 'Just') {
+						var sel = mbSel.a;
+						return _Utils_eq(sel, e) ? mdgriffith$elm_ui$Element$Background$color(
+							A3(mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8)) : mdgriffith$elm_ui$Element$Background$color(
+							A3(mdgriffith$elm_ui$Element$rgb, 1, 1, 1));
+					} else {
+						return mdgriffith$elm_ui$Element$Background$color(
+							A3(mdgriffith$elm_ui$Element$rgb, 1, 1, 1));
+					}
+				}(),
+					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+					A2(mdgriffith$elm_ui$Element$paddingXY, 15, 5)
+				]),
+			mdgriffith$elm_ui$Element$text(e));
+	});
+var elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var mdgriffith$elm_ui$Element$clipX = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$overflow, mdgriffith$elm_ui$Internal$Style$classes.clipX);
+var mdgriffith$elm_ui$Element$scrollbarY = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$overflow, mdgriffith$elm_ui$Internal$Style$classes.scrollbarsY);
 var author$project$TextBlockPlugin$chooseDocView = F4(
 	function (uid, mbFolder, mbFile, fileList) {
 		return A2(
@@ -14828,11 +15653,6 @@ var author$project$TextBlockPlugin$chooseInternalPageView = F3(
 					})
 				]));
 	});
-var mdgriffith$elm_ui$Internal$Model$Below = {$: 'Below'};
-var mdgriffith$elm_ui$Element$below = function (element) {
-	return A2(mdgriffith$elm_ui$Internal$Model$Nearby, mdgriffith$elm_ui$Internal$Model$Below, element);
-};
-var mdgriffith$elm_ui$Element$none = mdgriffith$elm_ui$Internal$Model$Empty;
 var mdgriffith$elm_ui$Element$Input$Option = F2(
 	function (a, b) {
 		return {$: 'Option', a: a, b: b};
@@ -15410,137 +16230,119 @@ var author$project$TextBlockPlugin$interfaceView = function (model) {
 				mdgriffith$elm_ui$Element$row,
 				_List_fromArray(
 					[
-						mdgriffith$elm_ui$Element$spacing(30),
+						mdgriffith$elm_ui$Element$spacing(15),
 						mdgriffith$elm_ui$Element$Font$size(16),
 						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
 					]),
 				_List_fromArray(
 					[
 						A2(
-						mdgriffith$elm_ui$Element$row,
-						_List_fromArray(
-							[
-								mdgriffith$elm_ui$Element$spacing(10)
-							]),
-						_List_fromArray(
-							[
-								A2(
-								mdgriffith$elm_ui$Element$Input$button,
-								author$project$TextBlockPlugin$buttonStyle(
-									!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
-								{
-									label: A2(
-										mdgriffith$elm_ui$Element$row,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$spacing(5)
-											]),
-										_List_fromArray(
-											[
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$html(
-													author$project$Icons$type_(author$project$TextBlockPlugin$iconSize))),
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$text('Titre'))
-											])),
-									onPress: elm$core$Maybe$Just(
-										author$project$TextBlockPlugin$InsertTrackingTag(
-											author$project$TextBlockPlugin$Heading(model.headingLevel)))
-								})
-							])),
+						mdgriffith$elm_ui$Element$Input$button,
+						author$project$TextBlockPlugin$buttonStyle(
+							!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
+						{
+							label: A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(5)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$html(
+											author$project$Icons$type_(author$project$TextBlockPlugin$iconSize))),
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$text('Titre'))
+									])),
+							onPress: elm$core$Maybe$Just(
+								author$project$TextBlockPlugin$InsertTrackingTag(
+									author$project$TextBlockPlugin$Heading(1)))
+						}),
 						A2(
-						mdgriffith$elm_ui$Element$row,
-						_List_fromArray(
-							[
-								mdgriffith$elm_ui$Element$spacing(15)
-							]),
-						_List_fromArray(
-							[
-								A2(
-								mdgriffith$elm_ui$Element$Input$button,
-								author$project$TextBlockPlugin$buttonStyle(
-									!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
-								{
-									label: A2(
-										mdgriffith$elm_ui$Element$row,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$spacing(5)
-											]),
-										_List_fromArray(
-											[
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$html(
-													author$project$Icons$link2(author$project$TextBlockPlugin$iconSize))),
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$text('Lien interne'))
-											])),
-									onPress: elm$core$Maybe$Just(
-										author$project$TextBlockPlugin$InsertTrackingTag(
-											A2(author$project$TextBlockPlugin$InternalLink, false, '')))
-								}),
-								A2(
-								mdgriffith$elm_ui$Element$Input$button,
-								author$project$TextBlockPlugin$buttonStyle(
-									!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
-								{
-									label: A2(
-										mdgriffith$elm_ui$Element$row,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$spacing(5)
-											]),
-										_List_fromArray(
-											[
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$html(
-													author$project$Icons$externalLink(author$project$TextBlockPlugin$iconSize))),
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$text('lien externe'))
-											])),
-									onPress: elm$core$Maybe$Just(
-										author$project$TextBlockPlugin$InsertTrackingTag(
-											author$project$TextBlockPlugin$ExternalLink('')))
-								}),
-								A2(
-								mdgriffith$elm_ui$Element$Input$button,
-								author$project$TextBlockPlugin$buttonStyle(
-									!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
-								{
-									label: A2(
-										mdgriffith$elm_ui$Element$row,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$spacing(5)
-											]),
-										_List_fromArray(
-											[
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$html(
-													author$project$Icons$tag(author$project$TextBlockPlugin$iconSize))),
-												A2(
-												mdgriffith$elm_ui$Element$el,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$text('Tag'))
-											])),
-									onPress: elm$core$Maybe$Just(
-										author$project$TextBlockPlugin$InsertTrackingTag(author$project$TextBlockPlugin$InlineStyled))
-								})
-							]))
+						mdgriffith$elm_ui$Element$Input$button,
+						author$project$TextBlockPlugin$buttonStyle(
+							!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
+						{
+							label: A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(5)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$html(
+											author$project$Icons$link2(author$project$TextBlockPlugin$iconSize))),
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$text('Lien interne'))
+									])),
+							onPress: elm$core$Maybe$Just(
+								author$project$TextBlockPlugin$InsertTrackingTag(
+									A2(author$project$TextBlockPlugin$InternalLink, false, '')))
+						}),
+						A2(
+						mdgriffith$elm_ui$Element$Input$button,
+						author$project$TextBlockPlugin$buttonStyle(
+							!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
+						{
+							label: A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(5)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$html(
+											author$project$Icons$externalLink(author$project$TextBlockPlugin$iconSize))),
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$text('lien externe'))
+									])),
+							onPress: elm$core$Maybe$Just(
+								author$project$TextBlockPlugin$InsertTrackingTag(
+									author$project$TextBlockPlugin$ExternalLink('')))
+						}),
+						A2(
+						mdgriffith$elm_ui$Element$Input$button,
+						author$project$TextBlockPlugin$buttonStyle(
+							!_Utils_eq(model.selected, elm$core$Maybe$Nothing)),
+						{
+							label: A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(5)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$html(
+											author$project$Icons$tag(author$project$TextBlockPlugin$iconSize))),
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$text('Tag'))
+									])),
+							onPress: elm$core$Maybe$Just(
+								author$project$TextBlockPlugin$InsertTrackingTag(author$project$TextBlockPlugin$InlineStyled))
+						})
 					])),
 				A2(
 				mdgriffith$elm_ui$Element$row,
@@ -15563,7 +16365,7 @@ var author$project$TextBlockPlugin$interfaceView = function (model) {
 							switch (dataKind.$) {
 								case 'Heading':
 									var level = dataKind.a;
-									return A2(author$project$TextBlockPlugin$headingView, level, td);
+									return A2(author$project$TextBlockPlugin$headingView, model.headingLevel, td);
 								case 'InternalLink':
 									var isDoc = dataKind.a;
 									var url = dataKind.b;
@@ -15573,15 +16375,12 @@ var author$project$TextBlockPlugin$interfaceView = function (model) {
 									var url = dataKind.a;
 									return A2(author$project$TextBlockPlugin$externalLinkView, url, td);
 								default:
-									return author$project$TextBlockPlugin$inlineStyleView(td);
+									return A2(author$project$TextBlockPlugin$inlineStyleView, model, td);
 							}
 						}
 					}()
 					]))
 			]));
-};
-var author$project$Document$FontSize = function (a) {
-	return {$: 'FontSize', a: a};
 };
 var author$project$Document$toSeColor = function (_n0) {
 	var r = _n0.a;
@@ -15711,6 +16510,16 @@ var author$project$DocumentView$renderAttrs = F2(
 						[
 							mdgriffith$elm_ui$Element$Font$color(
 							author$project$Document$toSeColor(color))
+						]);
+				case 'Font':
+					var s = attr.a;
+					return _List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$Font$family(
+							_List_fromArray(
+								[
+									mdgriffith$elm_ui$Element$Font$typeface(s)
+								]))
 						]);
 				case 'FontAlignRight':
 					return _List_fromArray(
@@ -16024,14 +16833,7 @@ var author$project$TextBlockPlugin$textBlocPreview = function (model) {
 				mdgriffith$elm_ui$Element$spacing(20),
 				mdgriffith$elm_ui$Element$alignTop
 			]),
-		A3(
-			author$project$DocumentView$renderTextBlock,
-			model.config,
-			_List_fromArray(
-				[
-					author$project$Document$FontSize(16)
-				]),
-			model.output));
+		A3(author$project$DocumentView$renderTextBlock, model.config, model.wholeTextBlocAttr, model.output));
 };
 var mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
 	function (a, b) {
@@ -19720,4 +20522,4 @@ var elm$browser$Browser$element = _Browser_element;
 var author$project$TextBlockPlugin$main = elm$browser$Browser$element(
 	{init: author$project$TextBlockPlugin$init, subscriptions: author$project$TextBlockPlugin$subscriptions, update: author$project$TextBlockPlugin$update, view: author$project$TextBlockPlugin$view});
 _Platform_export({'TextBlockPlugin':{'init':author$project$TextBlockPlugin$main(
-	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"TextBlockPlugin.Msg","aliases":{"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"}},"unions":{"TextBlockPlugin.Msg":{"args":[],"tags":{"TextInput":["String.String"],"InsertTrackingTag":["TextBlockPlugin.TrackedDataKind"],"NewSelection":["TextBlockPlugin.Selection"],"SetSelection":[],"SetHeadingLevel":["String.String"],"SetUrl":["Basics.Int","String.String"],"SetInternalLinkKind":["Basics.Int","Basics.Bool"],"InternalUrlSelectorClick":[],"InternalUrlSelectorClickOff":[],"SelectInternalPage":["String.String"],"ConfirmInternalPageUrl":["Basics.Int"],"SelectFolder":["String.String"],"SelectFile":["String.String"],"ConfirmFileUrl":["Basics.Int"],"NoOp":[]}},"TextBlockPlugin.TrackedDataKind":{"args":[],"tags":{"InternalLink":["Basics.Bool","String.String"],"ExternalLink":["String.String"],"Heading":["Basics.Int"],"InlineStyled":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"TextBlockPlugin.Msg","aliases":{"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"}},"unions":{"TextBlockPlugin.Msg":{"args":[],"tags":{"TextInput":["String.String"],"InsertTrackingTag":["TextBlockPlugin.TrackedDataKind"],"NewSelection":["TextBlockPlugin.Selection"],"SetSelection":[],"SetTextBlocFont":["String.String"],"SetTextBlocAlignment":[],"SelectHeadingLevel":["String.String"],"ConfirmHeadingLevel":["Basics.Int"],"SetUrl":["Basics.Int","String.String"],"SetInternalLinkKind":["Basics.Int","Basics.Bool"],"InternalUrlSelectorClick":[],"InternalUrlSelectorClickOff":[],"SelectInternalPage":["String.String"],"ConfirmInternalPageUrl":["Basics.Int"],"SelectFolder":["String.String"],"SelectFile":["String.String"],"ConfirmFileUrl":["Basics.Int"],"SetColor":["Basics.Int","String.String"],"SetInlineFont":["Basics.Int","String.String"],"SetInlineColor":["Basics.Int","String.String"],"SetInlineBackgroundColor":["Basics.Int","String.String"],"SetBold":["Basics.Int"],"SetItalic":["Basics.Int"],"ColorPickerClick":[],"ColorPickerClickOff":[],"NoOp":[]}},"TextBlockPlugin.TrackedDataKind":{"args":[],"tags":{"InternalLink":["Basics.Bool","String.String"],"ExternalLink":["String.String"],"Heading":["Basics.Int"],"InlineStyled":[]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));

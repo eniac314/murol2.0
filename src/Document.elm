@@ -149,6 +149,7 @@ type DocAttribute
     | Height Int
     | Border
     | FontColor DocColor
+    | Font String
     | FontSize Int
     | FontAlignLeft
     | FontAlignRight

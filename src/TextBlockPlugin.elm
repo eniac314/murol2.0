@@ -16,6 +16,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy as Lazy
 import Element.Region as Region
+import Hex exposing (fromString)
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
@@ -23,6 +24,7 @@ import Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Parser exposing (..)
+import Set exposing (..)
 import StyleSheets exposing (StyleSheet, defaulStyleSheet)
 
 
@@ -36,11 +38,15 @@ type alias DocTextBlock =
     , trackedData : Dict Int TrackedData
     , currentTrackedData : Maybe TrackedData
     , nextUid : Int
-    , headingLevel : Int
+    , wholeTextBlocAttr : List DocAttribute
+    , headingLevel : Maybe Int
     , internalUrlSelectorOpen : Bool
     , selectedInternalPage : Maybe String
     , selectedFolder : Maybe String
     , selectedFile : Maybe String
+    , selectedFont : Maybe String
+    , selectedColor : Maybe String
+    , colorPickerOpen : Bool
     , config : Config Msg
     }
 
@@ -54,9 +60,15 @@ type Msg
     | NewSelection Selection
     | SetSelection
       -----------------------
+      -- TextBloc messages --
+      -----------------------
+    | SetTextBlocFont String
+    | SetTextBlocAlignment
+      -----------------------
       -- Headings messages --
       -----------------------
-    | SetHeadingLevel String
+    | SelectHeadingLevel String
+    | ConfirmHeadingLevel Int
       -----------------------------
       -- External Links messages --
       -----------------------------
@@ -72,9 +84,20 @@ type Msg
     | SelectFolder String
     | SelectFile String
     | ConfirmFileUrl Int
+      ---------------------------
+      -- Inline Style messages --
+      ---------------------------
+    | SetColor Int String
+    | SetInlineFont Int String
+    | SetInlineColor Int String
+    | SetInlineBackgroundColor Int String
+    | SetBold Int
+    | SetItalic Int
       ----------
       -- Misc --
       ----------
+    | ColorPickerClick
+    | ColorPickerClickOff
     | NoOp
 
 
@@ -109,11 +132,18 @@ init flags =
       , trackedData = Dict.empty
       , currentTrackedData = Nothing
       , nextUid = 0
-      , headingLevel = 1
+      , wholeTextBlocAttr =
+            [ FontSize 16
+            , Font "Arial"
+            ]
+      , headingLevel = Nothing
       , internalUrlSelectorOpen = False
       , selectedInternalPage = Nothing
       , selectedFolder = Nothing
       , selectedFile = Nothing
+      , selectedFont = Nothing
+      , selectedColor = Nothing
+      , colorPickerOpen = False
       , config =
             { width = 500
             , height = 800
@@ -142,20 +172,15 @@ update msg model =
                     let
                         newTrackedData =
                             updateTrackedData model.trackedData res
-
-                        newModel =
-                            { model
-                                | rawInput = s
-                                , parsedInput = Ok res
-                                , trackedData = newTrackedData
-                                , currentTrackedData =
-                                    getSelectedTrackedData model.cursorPos newTrackedData
-                                , nextUid = findNextAvailableUid newTrackedData
-                            }
                     in
-                    ( { newModel
-                        | output =
-                            List.filterMap (toTextBlocElement newModel) res
+                    ( { model
+                        | rawInput = s
+                        , parsedInput = Ok res
+                        , trackedData = newTrackedData
+                        , currentTrackedData =
+                            getSelectedTrackedData model.cursorPos newTrackedData
+                        , nextUid = findNextAvailableUid newTrackedData
+                        , output = List.filterMap (toTextBlocElement newTrackedData) res
                       }
                     , Cmd.none
                     )
@@ -176,22 +201,18 @@ update msg model =
                         newTrackedData =
                             Result.map (updateTrackedData model.trackedData) newParsedInput
                                 |> Result.withDefault model.trackedData
-
-                        newModel =
-                            { model
-                                | rawInput = newRawInput
-                                , parsedInput = newParsedInput
-                                , trackedData = newTrackedData
-                                , nextUid = findNextAvailableUid newTrackedData
-                                , currentTrackedData =
-                                    getSelectedTrackedData (Maybe.map (\s -> s.start + 1) model.selected) newTrackedData
-                            }
                     in
-                    ( { newModel
-                        | output =
+                    ( { model
+                        | rawInput = newRawInput
+                        , parsedInput = newParsedInput
+                        , trackedData = newTrackedData
+                        , nextUid = findNextAvailableUid newTrackedData
+                        , currentTrackedData =
+                            getSelectedTrackedData (Maybe.map (\s -> s.start + 1) model.selected) newTrackedData
+                        , output =
                             Result.map
                                 (List.filterMap
-                                    (toTextBlocElement newModel)
+                                    (toTextBlocElement newTrackedData)
                                 )
                                 newParsedInput
                                 |> Result.withDefault model.output
@@ -239,15 +260,55 @@ update msg model =
             )
 
         -----------------------
+        -- TextBloc messages --
+        -----------------------
+        SetTextBlocFont font ->
+            ( model, Cmd.none )
+
+        SetTextBlocAlignment ->
+            ( model, Cmd.none )
+
+        -----------------------
         -- Headings messages --
         -----------------------
-        SetHeadingLevel strLevel ->
-            case String.toInt strLevel of
-                Just level ->
-                    ( { model | headingLevel = level }, Cmd.none )
+        SelectHeadingLevel strLevel ->
+            ( { model | headingLevel = String.toInt strLevel }, Cmd.none )
 
+        ConfirmHeadingLevel uid ->
+            case model.headingLevel of
                 Nothing ->
                     ( model, Cmd.none )
+
+                Just level ->
+                    case Dict.get uid model.trackedData of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just ({ attrs, meta, dataKind } as td) ->
+                            let
+                                newTrackedData =
+                                    { td | dataKind = Heading level }
+
+                                newTrackedDataDict =
+                                    Dict.insert
+                                        uid
+                                        newTrackedData
+                                        model.trackedData
+                            in
+                            ( { model
+                                | trackedData = newTrackedDataDict
+                                , currentTrackedData = Just newTrackedData
+                                , headingLevel = Nothing
+                                , output =
+                                    Result.map
+                                        (List.filterMap
+                                            (toTextBlocElement newTrackedDataDict)
+                                        )
+                                        model.parsedInput
+                                        |> Result.withDefault model.output
+                              }
+                            , Cmd.none
+                            )
 
         -----------------------------
         -- External Links messages --
@@ -271,6 +332,13 @@ update msg model =
                     ( { model
                         | trackedData = newTrackedDataDict
                         , currentTrackedData = Just newTrackedData
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
                       }
                     , Cmd.none
                     )
@@ -351,6 +419,13 @@ update msg model =
                                 , currentTrackedData = Just newTrackedData
                                 , internalUrlSelectorOpen = False
                                 , selectedInternalPage = Nothing
+                                , output =
+                                    Result.map
+                                        (List.filterMap
+                                            (toTextBlocElement newTrackedDataDict)
+                                        )
+                                        model.parsedInput
+                                        |> Result.withDefault model.output
                               }
                             , Cmd.none
                             )
@@ -386,10 +461,56 @@ update msg model =
                                 | trackedData = newTrackedDataDict
                                 , currentTrackedData = Just newTrackedData
                                 , internalUrlSelectorOpen = False
-                                , selectedInternalPage = Nothing
+                                , selectedFile = Nothing
+                                , output =
+                                    Result.map
+                                        (List.filterMap
+                                            (toTextBlocElement newTrackedDataDict)
+                                        )
+                                        model.parsedInput
+                                        |> Result.withDefault model.output
                               }
                             , Cmd.none
                             )
+
+        ---------------------------
+        -- Inline Style messages --
+        ---------------------------
+        SetColor uid color ->
+            ( { model
+                | selectedColor = Just color
+                , colorPickerOpen = False
+              }
+            , Cmd.none
+            )
+
+        SetInlineFont uid font ->
+            ( model, Cmd.none )
+
+        SetInlineColor uid color ->
+            ( model, Cmd.none )
+
+        SetInlineBackgroundColor uid color ->
+            ( model, Cmd.none )
+
+        SetBold uid ->
+            ( model, Cmd.none )
+
+        SetItalic uid ->
+            ( model, Cmd.none )
+
+        ----------
+        -- Misc --
+        ----------
+        ColorPickerClick ->
+            ( { model | colorPickerOpen = not model.colorPickerOpen }
+            , Cmd.none
+            )
+
+        ColorPickerClickOff ->
+            ( { model | colorPickerOpen = False }
+            , Cmd.none
+            )
 
         NoOp ->
             ( model, Cmd.none )
@@ -439,6 +560,8 @@ view model =
                     --, Element.paragraph [ width (maximum 500 fill) ]
                     --    [ Element.text <| Debug.toString model.trackedData ]
                     --, Element.paragraph [ width (maximum 500 fill) ]
+                    --    [ Element.text <| Debug.toString model.headingLevel ]
+                    --, Element.paragraph [ width (maximum 500 fill) ]
                     --    [ Element.text <| Debug.toString model.selected ]
                     --, Element.paragraph [ width (maximum 500 fill) ]
                     --    [ Element.text <| Debug.toString model.cursorPos ]
@@ -455,54 +578,49 @@ interfaceView model =
         [ spacing 15
         ]
         [ row
-            [ spacing 30
+            [ spacing 15
             , Font.size 16
 
             --, Background.color (rgba 0.3 1 0.5 0.5)
             , width fill
             ]
-            [ row [ spacing 10 ]
-                [ Input.button
-                    (buttonStyle (not <| model.selected == Nothing))
-                    { onPress =
-                        Just (InsertTrackingTag <| Heading model.headingLevel)
-                    , label =
-                        row [ spacing 5 ]
-                            [ el [] (html <| type_ iconSize)
-                            , el [] (text "Titre")
-                            ]
-                    }
-                ]
-            , row
-                [ spacing 15 ]
-                [ Input.button
-                    (buttonStyle (not <| model.selected == Nothing))
-                    { onPress = Just (InsertTrackingTag <| InternalLink False "")
-                    , label =
-                        row [ spacing 5 ]
-                            [ el [] (html <| link2 iconSize)
-                            , el [] (text "Lien interne")
-                            ]
-                    }
-                , Input.button
-                    (buttonStyle (not <| model.selected == Nothing))
-                    { onPress = Just (InsertTrackingTag <| ExternalLink "")
-                    , label =
-                        row [ spacing 5 ]
-                            [ el [] (html <| Icons.externalLink iconSize)
-                            , el [] (text "lien externe")
-                            ]
-                    }
-                , Input.button
-                    (buttonStyle (not <| model.selected == Nothing))
-                    { onPress = Just (InsertTrackingTag <| InlineStyled)
-                    , label =
-                        row [ spacing 5 ]
-                            [ el [] (html <| tag iconSize)
-                            , el [] (text "Tag")
-                            ]
-                    }
-                ]
+            [ Input.button
+                (buttonStyle (not <| model.selected == Nothing))
+                { onPress =
+                    Just (InsertTrackingTag <| Heading 1)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| type_ iconSize)
+                        , el [] (text "Titre")
+                        ]
+                }
+            , Input.button
+                (buttonStyle (not <| model.selected == Nothing))
+                { onPress = Just (InsertTrackingTag <| InternalLink False "")
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| link2 iconSize)
+                        , el [] (text "Lien interne")
+                        ]
+                }
+            , Input.button
+                (buttonStyle (not <| model.selected == Nothing))
+                { onPress = Just (InsertTrackingTag <| ExternalLink "")
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| Icons.externalLink iconSize)
+                        , el [] (text "lien externe")
+                        ]
+                }
+            , Input.button
+                (buttonStyle (not <| model.selected == Nothing))
+                { onPress = Just (InsertTrackingTag <| InlineStyled)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| tag iconSize)
+                        , el [] (text "Tag")
+                        ]
+                }
             ]
         , row
             [ width fill
@@ -517,7 +635,7 @@ interfaceView model =
                 Just ({ meta, attrs, dataKind } as td) ->
                     case dataKind of
                         Heading level ->
-                            headingView level td
+                            headingView model.headingLevel td
 
                         InternalLink isDoc url ->
                             internalLinkView
@@ -536,7 +654,7 @@ interfaceView model =
                             externalLinkView url td
 
                         InlineStyled ->
-                            inlineStyleView td
+                            inlineStyleView model td
             ]
         ]
 
@@ -551,19 +669,41 @@ textBlockStyleView model =
 
 
 headingView level { meta, attrs, dataKind } =
-    row []
+    row [ spacing 15 ]
         [ el []
             (html <|
                 Html.select
-                    [ HtmlEvents.onInput SetHeadingLevel
+                    [ HtmlEvents.onInput SelectHeadingLevel
 
-                    --, HtmlAttr.disabled (model.selected == Nothing)
+                    --, HtmlAttr.disabled (lev == Nothing)
+                    --, HtmlAttr.value (Maybe.map String.fromInt level |> Maybe.withDefault "")
                     ]
-                    [ Html.option [ HtmlAttr.value "1" ] [ Html.text "Niveau 1" ]
-                    , Html.option [ HtmlAttr.value "2" ] [ Html.text "Niveau 2" ]
-                    , Html.option [ HtmlAttr.value "3" ] [ Html.text "Niveau 3" ]
+                    [ Html.option
+                        [ HtmlAttr.value "1"
+                        , HtmlAttr.selected (dataKind == Heading 1)
+                        ]
+                        [ Html.text "Niveau 1" ]
+                    , Html.option
+                        [ HtmlAttr.value "2"
+                        , HtmlAttr.selected (dataKind == Heading 2)
+                        ]
+                        [ Html.text "Niveau 2" ]
+                    , Html.option
+                        [ HtmlAttr.value "3"
+                        , HtmlAttr.selected (dataKind == Heading 3)
+                        ]
+                        [ Html.text "Niveau 3" ]
                     ]
             )
+        , Input.button
+            (buttonStyle (not (level == Nothing)) ++ [ alignTop ])
+            { onPress = Just (ConfirmHeadingLevel meta.uid)
+            , label =
+                row [ spacing 5 ]
+                    [ el [] (html <| Icons.externalLink iconSize)
+                    , el [] (text "Valider")
+                    ]
+            }
         ]
 
 
@@ -724,8 +864,9 @@ externalLinkView url { meta, attrs, dataKind } =
         ]
 
 
-inlineStyleView { meta, attrs, dataKind } =
-    row [] []
+inlineStyleView model { meta, attrs, dataKind } =
+    row []
+        [ colorPicker model.colorPickerOpen model.selectedColor SetColor 0 ]
 
 
 customTextArea attrs cursorPos setSelection rawInput =
@@ -764,11 +905,76 @@ textBlocPreview model =
         ]
         (renderTextBlock
             model.config
-            [ FontSize 16 ]
+            model.wholeTextBlocAttr
             model.output
          --++ [ Element.paragraph [ width (maximum 500 fill) ]
          --        [ Element.text <| Debug.toString model.output ]
          --   ]
+        )
+
+
+colorPicker colorPickerOpen currentColor msg uid =
+    let
+        colorPanView mbMsg color =
+            el
+                ([ width (px 14)
+                 , height (px 14)
+                 , Background.color (hexToColor color)
+                 , Border.width 1
+                 , Border.color (rgb 0 0 0)
+                 , pointer
+                 , mouseOver
+                    [ Border.color (rgb 0.9 0.9 0.9) ]
+                 ]
+                    ++ (case mbMsg of
+                            Just msg_ ->
+                                [ Events.onClick (msg_ uid color) ]
+
+                            Nothing ->
+                                []
+                       )
+                )
+                Element.none
+
+        colors =
+            chunks 12 webColors
+                |> List.map
+                    (\r ->
+                        row [ spacing 3 ]
+                            (List.map
+                                (\( n, c ) ->
+                                    colorPanView (Just msg) c
+                                )
+                                r
+                            )
+                    )
+    in
+    el
+        [ below <|
+            el
+                [ --htmlAttribute <|
+                  --    HtmlEvents.stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                  Background.color (rgb 0.95 0.95 0.95)
+                ]
+                (if colorPickerOpen then
+                    column
+                        [ spacing 3
+                        , padding 10
+                        ]
+                        colors
+                 else
+                    Element.none
+                )
+        ]
+        (Input.button
+            (buttonStyle True)
+            { onPress = Just ColorPickerClick
+            , label =
+                row [ spacing 5 ]
+                    [ el [] (text "Couleur")
+                    , colorPanView Nothing (Maybe.withDefault "FFFFFF" currentColor)
+                    ]
+            }
         )
 
 
@@ -782,7 +988,7 @@ textBlocPreview model =
 type Element
     = ParagraphElement (List Primitive)
     | UListElement (List Primitive)
-    | HeadingElement Int PrimitiveMeta
+    | HeadingElement PrimitiveMeta
     | Singleton Primitive
 
 
@@ -861,8 +1067,8 @@ uList =
 heading : Parser Element
 heading =
     succeed
-        (\start level uid val stop ->
-            HeadingElement level
+        (\start uid val stop ->
+            HeadingElement
                 { start = start
                 , stop = stop
                 , uid = uid
@@ -873,8 +1079,7 @@ heading =
         |= getOffset
         |. symbol "<"
         |. spaces
-        |. token "titre-"
-        |= int
+        |. token "titre"
         |. spaces
         |= int
         |. spaces
@@ -1033,7 +1238,7 @@ reallyspaces =
 
 type alias TrackedData =
     { meta : PrimitiveMeta
-    , attrs : List DocAttribute
+    , attrs : Set DocAttribute
     , dataKind : TrackedDataKind
     }
 
@@ -1054,21 +1259,21 @@ updateTrackedData currentTrackedData elems =
                     InternalLinkPrimitive pm ->
                         Just
                             { meta = pm
-                            , attrs = []
+                            , attrs = Set.empty
                             , dataKind = InternalLink False ""
                             }
 
                     ExternalLinkPrimitive pm ->
                         Just
                             { meta = pm
-                            , attrs = []
+                            , attrs = Set.empty
                             , dataKind = ExternalLink ""
                             }
 
                     InlineStylePrimitive pm ->
                         Just
                             { meta = pm
-                            , attrs = []
+                            , attrs = Set.empty
                             , dataKind = InlineStyled
                             }
 
@@ -1079,11 +1284,11 @@ updateTrackedData currentTrackedData elems =
             List.filterMap
                 (\e ->
                     case e of
-                        HeadingElement level meta ->
+                        HeadingElement meta ->
                             Just
                                 [ { meta = meta
-                                  , attrs = []
-                                  , dataKind = Heading level
+                                  , attrs = Set.empty
+                                  , dataKind = Heading 1
                                   }
                                 ]
 
@@ -1187,12 +1392,12 @@ insertTrackingTag rawInput selection nextUid tdKind =
         ExternalLink _ ->
             insertTagHelper rawInput selection nextUid "lien-externe"
 
-        Heading level ->
+        Heading _ ->
             insertTagHelper
                 rawInput
                 selection
                 nextUid
-                ("titre-" ++ String.fromInt level)
+                "titre"
 
         InlineStyled ->
             insertTagHelper rawInput selection nextUid "style"
@@ -1243,47 +1448,47 @@ insertTagHelper rawInput selection nextUid tagname =
 ---------------------------------
 
 
-toTextBlocElement : DocTextBlock -> Element -> Maybe TextBlockElement
-toTextBlocElement model elem =
+toTextBlocElement : Dict Int TrackedData -> Element -> Maybe TextBlockElement
+toTextBlocElement trackedData elem =
     case elem of
         ParagraphElement prims ->
             Just <|
                 Paragraph []
-                    (List.filterMap (toTextBlockPrimitive model) prims)
+                    (List.filterMap (toTextBlockPrimitive trackedData) prims)
 
         UListElement prims ->
             Just <|
                 UList []
-                    [ List.filterMap (toTextBlockPrimitive model) prims
+                    [ List.filterMap (toTextBlockPrimitive trackedData) prims
                     ]
 
-        HeadingElement _ { uid, value } ->
+        HeadingElement { uid, value } ->
             case
-                Dict.get uid model.trackedData
+                Dict.get uid trackedData
                     |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
             of
                 Just ( attrs, Heading level ) ->
-                    Just <| Document.Heading attrs ( level, value )
+                    Just <| Document.Heading (Set.toList attrs) ( level, value )
 
                 _ ->
                     Nothing
 
         Singleton prim ->
-            Maybe.map TBPrimitive (toTextBlockPrimitive model prim)
+            Maybe.map TBPrimitive (toTextBlockPrimitive trackedData prim)
 
 
-toTextBlockPrimitive : DocTextBlock -> Primitive -> Maybe TextBlockPrimitive
-toTextBlockPrimitive model prim =
+toTextBlockPrimitive : Dict Int TrackedData -> Primitive -> Maybe TextBlockPrimitive
+toTextBlockPrimitive trackedData prim =
     case prim of
         ExternalLinkPrimitive { uid, value } ->
             case
-                Dict.get uid model.trackedData
+                Dict.get uid trackedData
                     |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
             of
                 Just ( attrs, ExternalLink url ) ->
                     Just <|
                         Document.Link
-                            attrs
+                            (Set.toList attrs)
                             { targetBlank = True
                             , url = url
                             , label = value
@@ -1294,13 +1499,13 @@ toTextBlockPrimitive model prim =
 
         InternalLinkPrimitive { uid, value } ->
             case
-                Dict.get uid model.trackedData
+                Dict.get uid trackedData
                     |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
             of
                 Just ( attrs, InternalLink isFile url ) ->
                     Just <|
                         Document.Link
-                            attrs
+                            (Set.toList attrs)
                             { targetBlank = isFile
                             , url = url
                             , label = value
@@ -1311,12 +1516,12 @@ toTextBlockPrimitive model prim =
 
         InlineStylePrimitive { uid, value } ->
             case
-                Dict.get uid model.trackedData
+                Dict.get uid trackedData
                     |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
             of
                 Just ( attrs, InlineStyled ) ->
                     Just <|
-                        Document.Text attrs value
+                        Document.Text (Set.toList attrs) value
 
                 _ ->
                     Nothing
@@ -1437,6 +1642,67 @@ entryView mbSel msg e =
         (text e)
 
 
+hexToColor : String -> Color
+hexToColor hexColor =
+    let
+        hexColor_ =
+            String.toLower hexColor
+
+        red =
+            String.left 2 hexColor_
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+
+        green =
+            String.dropLeft 2 hexColor_
+                |> String.left 2
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+
+        blue =
+            String.dropLeft 4 hexColor_
+                |> String.left 2
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+    in
+    rgb (red / 255) (green / 255) (blue / 255)
+
+
+chunks n xs =
+    let
+        helper acc ys =
+            case ys of
+                [] ->
+                    List.reverse acc
+
+                _ ->
+                    helper (List.take n ys :: acc) (List.drop n ys)
+    in
+    helper [] xs
+
+
+fonts =
+    [ "Arial"
+    , "Helvetica"
+    , "Times New Roman"
+    , "Times"
+    , "Courier New"
+    , "Courier"
+    , "Verdana"
+    , "Georgia"
+    , "Palatino"
+    , "Garamond"
+    , "Bookman"
+    , "Comic Sans MS"
+    , "Trebuchet MS"
+    , "Arial Black"
+    , "Impact"
+    ]
+
+
 dummyInternalPageList =
     [ "Agriculture"
     , "AnimationEstivale"
@@ -1529,6 +1795,8 @@ dummyFileList =
 
 sample =
     """
+Murol
+
 Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
 
 Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
@@ -1536,6 +1804,8 @@ Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altit
 Enchâssé entre le volcan boisé du
 Tartaret le promontoire du
 château de Murol et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.
+
+Le chateau
 
 Au pied du château, découvrez le parc arboré du Prélong où se trouvent le
 musée des Peintres de l’Ecole de Murols et le musée archéologique.
@@ -1552,3 +1822,146 @@ musée des Peintres de l’Ecole de Murols et le musée archéologique.
 --château de Murol et le puy de  <lien-externe 0> Bessolles</> , le village vous ravira par ses sites remarquables et pittoresques.
 --Au pied du  <lien-interne 0> château</>,  découvrez le parc arboré du Prélong où se trouvent le
 --musée des Peintres de l’Ecole de Murols et le musée archéologique.
+
+
+webColors =
+    [ ( "maroon", "800000" )
+    , ( "dark red", "8B0000" )
+    , ( "brown", "A52A2A" )
+    , ( "firebrick", "B22222" )
+    , ( "crimson", "DC143C" )
+    , ( "red", "FF0000" )
+    , ( "tomato", "FF6347" )
+    , ( "coral", "FF7F50" )
+    , ( "indian red", "CD5C5C" )
+    , ( "light coral", "F08080" )
+    , ( "dark salmon", "E9967A" )
+    , ( "salmon", "FA8072" )
+    , ( "light salmon", "FFA07A" )
+    , ( "orange red", "FF4500" )
+    , ( "dark orange", "FF8C00" )
+    , ( "orange", "FFA500" )
+    , ( "gold", "FFD700" )
+    , ( "dark golden rod", "B8860B" )
+    , ( "golden rod", "DAA520" )
+    , ( "pale golden rod", "EEE8AA" )
+    , ( "dark khaki", "BDB76B" )
+    , ( "khaki", "F0E68C" )
+    , ( "olive", "808000" )
+    , ( "yellow", "FFFF00" )
+    , ( "yellow green", "9ACD32" )
+    , ( "dark olive green", "556B2F" )
+    , ( "olive drab", "6B8E23" )
+    , ( "lawn green", "7CFC00" )
+    , ( "chart reuse", "7FFF00" )
+    , ( "green yellow", "ADFF2F" )
+    , ( "dark green", "006400" )
+    , ( "green", "008000" )
+    , ( "forest green", "228B22" )
+    , ( "lime", "00FF00" )
+    , ( "lime green", "32CD32" )
+    , ( "light green", "90EE90" )
+    , ( "pale green", "98FB98" )
+    , ( "dark sea green", "8FBC8F" )
+    , ( "medium spring green", "00FA9A" )
+    , ( "spring green", "00FF7F" )
+    , ( "sea green", "2E8B57" )
+    , ( "medium aqua marine", "66CDAA" )
+    , ( "medium sea green", "3CB371" )
+    , ( "light sea green", "20B2AA" )
+    , ( "dark slate gray", "2F4F4F" )
+    , ( "teal", "008080" )
+    , ( "dark cyan", "008B8B" )
+    , ( "aqua", "00FFFF" )
+    , ( "cyan", "00FFFF" )
+    , ( "light cyan", "E0FFFF" )
+    , ( "dark turquoise", "00CED1" )
+    , ( "turquoise", "40E0D0" )
+    , ( "medium turquoise", "48D1CC" )
+    , ( "pale turquoise", "AFEEEE" )
+    , ( "aqua marine", "7FFFD4" )
+    , ( "powder blue", "B0E0E6" )
+    , ( "cadet blue", "5F9EA0" )
+    , ( "steel blue", "4682B4" )
+    , ( "corn flower blue", "6495ED" )
+    , ( "deep sky blue", "00BFFF" )
+    , ( "dodger blue", "1E90FF" )
+    , ( "light blue", "ADD8E6" )
+    , ( "sky blue", "87CEEB" )
+    , ( "light sky blue", "87CEFA" )
+    , ( "midnight blue", "191970" )
+    , ( "navy", "000080" )
+    , ( "dark blue", "00008B" )
+    , ( "medium blue", "0000CD" )
+    , ( "blue", "0000FF" )
+    , ( "royal blue", "4169E1" )
+    , ( "blue violet", "8A2BE2" )
+    , ( "indigo", "4B0082" )
+    , ( "dark slate blue", "483D8B" )
+    , ( "slate blue", "6A5ACD" )
+    , ( "medium slate blue", "7B68EE" )
+    , ( "medium purple", "9370DB" )
+    , ( "dark magenta", "8B008B" )
+    , ( "dark violet", "9400D3" )
+    , ( "dark orchid", "9932CC" )
+    , ( "medium orchid", "BA55D3" )
+    , ( "purple", "800080" )
+    , ( "thistle", "D8BFD8" )
+    , ( "plum", "DDA0DD" )
+    , ( "violet", "EE82EE" )
+    , ( "magenta / fuchsia", "FF00FF" )
+    , ( "orchid", "DA70D6" )
+    , ( "medium violet red", "C71585" )
+    , ( "pale violet red", "DB7093" )
+    , ( "deep pink", "FF1493" )
+    , ( "hot pink", "FF69B4" )
+    , ( "light pink", "FFB6C1" )
+    , ( "pink", "FFC0CB" )
+    , ( "antique white", "FAEBD7" )
+    , ( "beige", "F5F5DC" )
+    , ( "bisque", "FFE4C4" )
+    , ( "blanched almond", "FFEBCD" )
+    , ( "wheat", "F5DEB3" )
+    , ( "corn silk", "FFF8DC" )
+    , ( "lemon chiffon", "FFFACD" )
+    , ( "light golden rod yellow", "FAFAD2" )
+    , ( "light yellow", "FFFFE0" )
+    , ( "saddle brown", "8B4513" )
+    , ( "sienna", "A0522D" )
+    , ( "chocolate", "D2691E" )
+    , ( "peru", "CD853F" )
+    , ( "sandy brown", "F4A460" )
+    , ( "burly wood", "DEB887" )
+    , ( "tan", "D2B48C" )
+    , ( "rosy brown", "BC8F8F" )
+    , ( "moccasin", "FFE4B5" )
+    , ( "navajo white", "FFDEAD" )
+    , ( "peach puff", "FFDAB9" )
+    , ( "misty rose", "FFE4E1" )
+    , ( "lavender blush", "FFF0F5" )
+    , ( "linen", "FAF0E6" )
+    , ( "old lace", "FDF5E6" )
+    , ( "papaya whip", "FFEFD5" )
+    , ( "sea shell", "FFF5EE" )
+    , ( "mint cream", "F5FFFA" )
+    , ( "slate gray", "708090" )
+    , ( "light slate gray", "778899" )
+    , ( "light steel blue", "B0C4DE" )
+    , ( "lavender", "E6E6FA" )
+    , ( "floral white", "FFFAF0" )
+    , ( "alice blue", "F0F8FF" )
+    , ( "ghost white", "F8F8FF" )
+    , ( "honeydew", "F0FFF0" )
+    , ( "ivory", "FFFFF0" )
+    , ( "azure", "F0FFFF" )
+    , ( "snow", "FFFAFA" )
+    , ( "black", "000000" )
+    , ( "dim gray / dim grey", "696969" )
+    , ( "gray / grey", "808080" )
+    , ( "dark gray / dark grey", "A9A9A9" )
+    , ( "silver", "C0C0C0" )
+    , ( "light gray / light grey", "D3D3D3" )
+    , ( "gainsboro", "DCDCDC" )
+    , ( "white smoke", "F5F5F5" )
+    , ( "white", "FFFFFF" )
+    ]

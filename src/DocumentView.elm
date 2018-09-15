@@ -424,6 +424,9 @@ renderAttrs config attrs =
                 FontColor color ->
                     [ Font.color (toSeColor color) ]
 
+                Font s ->
+                    [ Font.family [ Font.typeface s ] ]
+
                 FontAlignRight ->
                     [ Font.alignRight ]
 
