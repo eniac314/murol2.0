@@ -1,3 +1,7 @@
+- recompute output when setting url?
+
+- setSelection when making a new tag
+
 - fix add sizetracked ids happening only at init time
 	|-> recompute when adding/editing? new image
 
@@ -7,7 +11,6 @@
 
 - refaire keyboard subs 
 
-- faire un parser String <-> TextBloc
 
 
 - 2 possibiltés pour les custom leaves:
