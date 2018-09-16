@@ -136,7 +136,7 @@ renderLi config tbAttrs li =
          ]
             ++ renderAttrs config tbAttrs
         )
-        ([ el [] (text "=>") ] ++ List.map (renderTextBlockPrimitive config tbAttrs) li)
+        ([ el [] (text "•") ] ++ List.map (renderTextBlockPrimitive config tbAttrs) li)
 
 
 renderColumn config id attrs children =

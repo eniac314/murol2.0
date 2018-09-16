@@ -77,6 +77,17 @@ bold size =
         ]
 
 
+italic : Int -> Html msg
+italic size =
+    customSvgFeatherIcon size
+        "italic"
+        [ Svg.line [ x1 "19", y1 "4", x2 "10", y2 "4" ]
+            []
+        , Svg.line [ x1 "14", y1 "20", x2 "5", y2 "20" ] []
+        , Svg.line [ x1 "15", y1 "4", x2 "9", y2 "20" ] []
+        ]
+
+
 plusSquare : Int -> Html msg
 plusSquare size =
     customSvgFeatherIcon size

@@ -44,9 +44,7 @@ type alias DocTextBlock =
     , selectedInternalPage : Maybe String
     , selectedFolder : Maybe String
     , selectedFile : Maybe String
-    , selectedFont : Maybe String
-    , selectedColor : Maybe String
-    , colorPickerOpen : Bool
+    , colorPickerOpen : Maybe String
     , config : Config Msg
     }
 
@@ -64,6 +62,8 @@ type Msg
       -----------------------
     | SetTextBlocFont String
     | SetTextBlocAlignment
+    | SetTextBlocBold
+    | SetTextBlocItalic
       -----------------------
       -- Headings messages --
       -----------------------
@@ -87,16 +87,15 @@ type Msg
       ---------------------------
       -- Inline Style messages --
       ---------------------------
-    | SetColor Int String
+    | SetTextColor Int String
+    | SetBackgroundColor Int String
     | SetInlineFont Int String
-    | SetInlineColor Int String
-    | SetInlineBackgroundColor Int String
-    | SetBold Int
-    | SetItalic Int
+    | SetInlineBold Int
+    | SetInlineItalic Int
       ----------
       -- Misc --
       ----------
-    | ColorPickerClick
+    | ColorPickerClick String
     | ColorPickerClickOff
     | NoOp
 
@@ -141,9 +140,7 @@ init flags =
       , selectedInternalPage = Nothing
       , selectedFolder = Nothing
       , selectedFile = Nothing
-      , selectedFont = Nothing
-      , selectedColor = Nothing
-      , colorPickerOpen = False
+      , colorPickerOpen = Nothing
       , config =
             { width = 500
             , height = 800
@@ -263,10 +260,36 @@ update msg model =
         -- TextBloc messages --
         -----------------------
         SetTextBlocFont font ->
-            ( model, Cmd.none )
+            ( { model
+                | wholeTextBlocAttr =
+                    updateAttrs isFontAttr Font font model.wholeTextBlocAttr
+              }
+            , Cmd.none
+            )
 
         SetTextBlocAlignment ->
-            ( model, Cmd.none )
+            ( { model
+                | wholeTextBlocAttr =
+                    updateAttrs (\a -> a == Justify) (\_ -> Justify) () model.wholeTextBlocAttr
+              }
+            , Cmd.none
+            )
+
+        SetTextBlocBold ->
+            ( { model
+                | wholeTextBlocAttr =
+                    updateAttrs (\a -> a == Bold) (\_ -> Bold) () model.wholeTextBlocAttr
+              }
+            , Cmd.none
+            )
+
+        SetTextBlocItalic ->
+            ( { model
+                | wholeTextBlocAttr =
+                    updateAttrs (\a -> a == Italic) (\_ -> Italic) () model.wholeTextBlocAttr
+              }
+            , Cmd.none
+            )
 
         -----------------------
         -- Headings messages --
@@ -476,39 +499,191 @@ update msg model =
         ---------------------------
         -- Inline Style messages --
         ---------------------------
-        SetColor uid color ->
-            ( { model
-                | selectedColor = Just color
-                , colorPickerOpen = False
-              }
-            , Cmd.none
-            )
+        SetTextColor uid color ->
+            case Dict.get uid model.trackedData of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just ({ attrs, meta, dataKind } as td) ->
+                    let
+                        newAttrs =
+                            updateAttrs isFontColorAttr FontColor (hexColorToDocColor color) attrs
+
+                        newTrackedData =
+                            { td | attrs = newAttrs }
+
+                        newTrackedDataDict =
+                            Dict.insert
+                                uid
+                                newTrackedData
+                                model.trackedData
+                    in
+                    ( { model
+                        | trackedData = newTrackedDataDict
+                        , currentTrackedData = Just newTrackedData
+                        , colorPickerOpen = Nothing
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    )
+
+        SetBackgroundColor uid color ->
+            case Dict.get uid model.trackedData of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just ({ attrs, meta, dataKind } as td) ->
+                    let
+                        newAttrs =
+                            updateAttrs isBackgroundColorAttr BackgroundColor (hexColorToDocColor color) attrs
+
+                        newTrackedData =
+                            { td | attrs = newAttrs }
+
+                        newTrackedDataDict =
+                            Dict.insert
+                                uid
+                                newTrackedData
+                                model.trackedData
+                    in
+                    ( { model
+                        | trackedData = newTrackedDataDict
+                        , currentTrackedData = Just newTrackedData
+                        , colorPickerOpen = Nothing
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    )
 
         SetInlineFont uid font ->
-            ( model, Cmd.none )
+            case Dict.get uid model.trackedData of
+                Nothing ->
+                    ( model, Cmd.none )
 
-        SetInlineColor uid color ->
-            ( model, Cmd.none )
+                Just ({ attrs, meta, dataKind } as td) ->
+                    let
+                        newAttrs =
+                            updateAttrs isFontAttr Font font attrs
 
-        SetInlineBackgroundColor uid color ->
-            ( model, Cmd.none )
+                        newTrackedData =
+                            { td | attrs = newAttrs }
 
-        SetBold uid ->
-            ( model, Cmd.none )
+                        newTrackedDataDict =
+                            Dict.insert
+                                uid
+                                newTrackedData
+                                model.trackedData
+                    in
+                    ( { model
+                        | trackedData = newTrackedDataDict
+                        , currentTrackedData = Just newTrackedData
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    )
 
-        SetItalic uid ->
-            ( model, Cmd.none )
+        SetInlineBold uid ->
+            case Dict.get uid model.trackedData of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just ({ attrs, meta, dataKind } as td) ->
+                    let
+                        newAttrs =
+                            updateAttrs (\a -> a == Bold) (\_ -> Bold) () attrs
+
+                        newTrackedData =
+                            { td | attrs = newAttrs }
+
+                        newTrackedDataDict =
+                            Dict.insert
+                                uid
+                                newTrackedData
+                                model.trackedData
+                    in
+                    ( { model
+                        | trackedData = newTrackedDataDict
+                        , currentTrackedData = Just newTrackedData
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    )
+
+        SetInlineItalic uid ->
+            case Dict.get uid model.trackedData of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just ({ attrs, meta, dataKind } as td) ->
+                    let
+                        newAttrs =
+                            updateAttrs (\a -> a == Italic) (\_ -> Italic) () attrs
+
+                        newTrackedData =
+                            { td | attrs = newAttrs }
+
+                        newTrackedDataDict =
+                            Dict.insert
+                                uid
+                                newTrackedData
+                                model.trackedData
+                    in
+                    ( { model
+                        | trackedData = newTrackedDataDict
+                        , currentTrackedData = Just newTrackedData
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    )
 
         ----------
         -- Misc --
         ----------
-        ColorPickerClick ->
-            ( { model | colorPickerOpen = not model.colorPickerOpen }
+        ColorPickerClick name ->
+            ( { model
+                | colorPickerOpen =
+                    case model.colorPickerOpen of
+                        Just _ ->
+                            Nothing
+
+                        Nothing ->
+                            Just name
+              }
             , Cmd.none
             )
 
         ColorPickerClickOff ->
-            ( { model | colorPickerOpen = False }
+            ( { model | colorPickerOpen = Nothing }
             , Cmd.none
             )
 
@@ -535,6 +710,8 @@ view model =
              ]
                 ++ (if model.internalUrlSelectorOpen then
                         [ Events.onClick InternalUrlSelectorClickOff ]
+                    else if not (model.colorPickerOpen == Nothing) then
+                        [ Events.onClick ColorPickerClickOff ]
                     else
                         []
                    )
@@ -626,6 +803,7 @@ interfaceView model =
             [ width fill
 
             --, Background.color (rgba 1 0 0.5 0.5)
+            , height (px 30)
             , Font.size 16
             ]
             [ case model.currentTrackedData of
@@ -664,8 +842,68 @@ interfaceView model =
 
 
 textBlockStyleView model =
-    row [ paddingXY 15 5 ]
-        [ el [ transparent True ] (text "this is a test") ]
+    let
+        fontOptionView selectedFont f =
+            Html.option
+                [ HtmlAttr.value f
+                , HtmlAttr.selected (selectedFont == (Just <| Font f))
+                ]
+                [ Html.text f ]
+    in
+    row
+        [ spacing 15
+
+        --, Background.color (rgba 1 0 0.5 0.5)
+        ]
+        [ el
+            []
+            (html <|
+                Html.select
+                    [ HtmlEvents.onInput SetTextBlocFont
+                    ]
+                    (List.map
+                        (fontOptionView
+                            (List.filter isFontAttr model.wholeTextBlocAttr
+                                |> List.head
+                            )
+                        )
+                        fonts
+                    )
+            )
+        , Input.button
+            (toogleButtonStyle
+                (List.member Justify model.wholeTextBlocAttr)
+                (model.selected == Nothing)
+            )
+            { onPress = Just SetTextBlocAlignment
+            , label =
+                row [ spacing 5 ]
+                    [ el [] (html <| alignJustify iconSize)
+                    ]
+            }
+        , Input.button
+            (toogleButtonStyle
+                (List.member Bold model.wholeTextBlocAttr)
+                (model.selected == Nothing)
+            )
+            { onPress = Just SetTextBlocBold
+            , label =
+                row [ spacing 5 ]
+                    [ el [] (html <| bold iconSize)
+                    ]
+            }
+        , Input.button
+            (toogleButtonStyle
+                (List.member Italic model.wholeTextBlocAttr)
+                (model.selected == Nothing)
+            )
+            { onPress = Just SetTextBlocItalic
+            , label =
+                row [ spacing 5 ]
+                    [ el [] (html <| italic iconSize)
+                    ]
+            }
+        ]
 
 
 headingView level { meta, attrs, dataKind } =
@@ -800,7 +1038,11 @@ chooseDocView uid mbFolder mbFile fileList =
             )
         , Input.button
             (buttonStyle (not (mbFile == Nothing)) ++ [ alignTop ])
-            { onPress = Just (ConfirmFileUrl uid)
+            { onPress =
+                if not (mbFile == Nothing) then
+                    Just (ConfirmFileUrl uid)
+                else
+                    Nothing
             , label =
                 row [ spacing 5 ]
                     [ el [] (html <| Icons.externalLink iconSize)
@@ -825,7 +1067,11 @@ chooseInternalPageView uid mbSelected pagesList =
             (List.map (entryView mbSelected SelectInternalPage) pagesList)
         , Input.button
             (buttonStyle (not (mbSelected == Nothing)) ++ [ alignTop ])
-            { onPress = Just (ConfirmInternalPageUrl uid)
+            { onPress =
+                if not (mbSelected == Nothing) then
+                    Just (ConfirmInternalPageUrl uid)
+                else
+                    Nothing
             , label =
                 row [ spacing 5 ]
                     [ el [] (html <| Icons.externalLink iconSize)
@@ -864,9 +1110,70 @@ externalLinkView url { meta, attrs, dataKind } =
         ]
 
 
-inlineStyleView model { meta, attrs, dataKind } =
-    row []
-        [ colorPicker model.colorPickerOpen model.selectedColor SetColor 0 ]
+inlineStyleView model ({ meta, attrs, dataKind } as td) =
+    let
+        fontOptionView selectedFont f =
+            Html.option
+                [ HtmlAttr.value f
+                , HtmlAttr.selected (selectedFont == (Just <| Font f))
+                ]
+                [ Html.text f ]
+    in
+    row [ spacing 15 ]
+        [ Input.button
+            (toogleButtonStyle
+                (List.member Bold attrs)
+                True
+            )
+            { onPress = Just (SetInlineBold meta.uid)
+            , label =
+                row [ spacing 5 ]
+                    [ el [] (html <| bold iconSize)
+                    ]
+            }
+        , Input.button
+            (toogleButtonStyle
+                (List.member Italic attrs)
+                True
+            )
+            { onPress = Just (SetInlineItalic meta.uid)
+            , label =
+                row [ spacing 5 ]
+                    [ el [] (html <| italic iconSize)
+                    ]
+            }
+        , el
+            []
+            (html <|
+                Html.select
+                    [ HtmlEvents.onInput (SetInlineFont meta.uid)
+                    ]
+                    (List.map
+                        (fontOptionView
+                            (List.filter isFontAttr attrs
+                                |> List.head
+                            )
+                        )
+                        fonts
+                    )
+            )
+        , colorPicker
+            model.colorPickerOpen
+            (List.filter isFontColorAttr attrs
+                |> List.head
+            )
+            "Couleur du texte"
+            SetTextColor
+            meta.uid
+        , colorPicker
+            model.colorPickerOpen
+            (List.filter isBackgroundColorAttr attrs
+                |> List.head
+            )
+            "Couleur du fond"
+            SetBackgroundColor
+            meta.uid
+        ]
 
 
 customTextArea attrs cursorPos setSelection rawInput =
@@ -913,8 +1220,19 @@ textBlocPreview model =
         )
 
 
-colorPicker colorPickerOpen currentColor msg uid =
+colorPicker colorPickerOpen currentColor label msg uid =
     let
+        currentColor_ =
+            case currentColor of
+                Just (FontColor (DocColor r g b)) ->
+                    rgb r g b
+
+                Just (BackgroundColor (DocColor r g b)) ->
+                    rgb r g b
+
+                _ ->
+                    rgb 1 1 1
+
         colorPanView mbMsg color =
             el
                 ([ width (px 14)
@@ -956,23 +1274,35 @@ colorPicker colorPickerOpen currentColor msg uid =
                   --    HtmlEvents.stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
                   Background.color (rgb 0.95 0.95 0.95)
                 ]
-                (if colorPickerOpen then
-                    column
-                        [ spacing 3
-                        , padding 10
-                        ]
-                        colors
-                 else
-                    Element.none
+                (case colorPickerOpen of
+                    Just l ->
+                        if l == label then
+                            column
+                                [ spacing 3
+                                , padding 10
+                                ]
+                                colors
+                        else
+                            Element.none
+
+                    Nothing ->
+                        Element.none
                 )
         ]
         (Input.button
             (buttonStyle True)
-            { onPress = Just ColorPickerClick
+            { onPress = Just (ColorPickerClick label)
             , label =
-                row [ spacing 5 ]
-                    [ el [] (text "Couleur")
-                    , colorPanView Nothing (Maybe.withDefault "FFFFFF" currentColor)
+                row [ spacing 10 ]
+                    [ el [] (text label)
+                    , el
+                        [ width (px 14)
+                        , height (px 14)
+                        , Background.color currentColor_
+                        , Border.width 1
+                        , Border.color (rgb 0 0 0)
+                        ]
+                        Element.none
                     ]
             }
         )
@@ -1238,7 +1568,7 @@ reallyspaces =
 
 type alias TrackedData =
     { meta : PrimitiveMeta
-    , attrs : Set DocAttribute
+    , attrs : List DocAttribute
     , dataKind : TrackedDataKind
     }
 
@@ -1259,21 +1589,21 @@ updateTrackedData currentTrackedData elems =
                     InternalLinkPrimitive pm ->
                         Just
                             { meta = pm
-                            , attrs = Set.empty
+                            , attrs = []
                             , dataKind = InternalLink False ""
                             }
 
                     ExternalLinkPrimitive pm ->
                         Just
                             { meta = pm
-                            , attrs = Set.empty
+                            , attrs = []
                             , dataKind = ExternalLink ""
                             }
 
                     InlineStylePrimitive pm ->
                         Just
                             { meta = pm
-                            , attrs = Set.empty
+                            , attrs = []
                             , dataKind = InlineStyled
                             }
 
@@ -1287,7 +1617,7 @@ updateTrackedData currentTrackedData elems =
                         HeadingElement meta ->
                             Just
                                 [ { meta = meta
-                                  , attrs = Set.empty
+                                  , attrs = []
                                   , dataKind = Heading 1
                                   }
                                 ]
@@ -1468,7 +1798,7 @@ toTextBlocElement trackedData elem =
                     |> Maybe.map (\td -> ( td.attrs, td.dataKind ))
             of
                 Just ( attrs, Heading level ) ->
-                    Just <| Document.Heading (Set.toList attrs) ( level, value )
+                    Just <| Document.Heading attrs ( level, value )
 
                 _ ->
                     Nothing
@@ -1488,7 +1818,7 @@ toTextBlockPrimitive trackedData prim =
                 Just ( attrs, ExternalLink url ) ->
                     Just <|
                         Document.Link
-                            (Set.toList attrs)
+                            attrs
                             { targetBlank = True
                             , url = url
                             , label = value
@@ -1505,7 +1835,7 @@ toTextBlockPrimitive trackedData prim =
                 Just ( attrs, InternalLink isFile url ) ->
                     Just <|
                         Document.Link
-                            (Set.toList attrs)
+                            attrs
                             { targetBlank = isFile
                             , url = url
                             , label = value
@@ -1521,7 +1851,7 @@ toTextBlockPrimitive trackedData prim =
             of
                 Just ( attrs, InlineStyled ) ->
                     Just <|
-                        Document.Text (Set.toList attrs) value
+                        Document.Text attrs value
 
                 _ ->
                     Nothing
@@ -1600,20 +1930,58 @@ decodeSelection =
         )
 
 
+toogleButtonStyle isPressed isActive =
+    [ Border.rounded 5
+    , Font.center
+    , centerY
+    , padding 5
+    , focused [ Border.glow (rgb 1 1 1) 0 ]
+    ]
+        ++ (if isActive then
+                [ Background.color (rgb 0.9 0.9 0.9)
+                , Border.width 1
+                , Border.color (rgb 0.9 0.9 0.9)
+                , mouseOver
+                    [ Font.color (rgb 0.3 0.3 0.3)
+                    ]
+                ]
+                    ++ (if isPressed then
+                            []
+                        else
+                            [ Background.color (rgb 1 1 1)
+                            , Border.width 1
+                            , Border.color (rgb 0.9 0.9 0.9)
+                            ]
+                       )
+            else
+                [ Background.color (rgb 0.95 0.95 0.95)
+                , Font.color (rgb 0.7 0.7 0.7)
+                , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                , Border.width 1
+                , Border.color (rgb 0.95 0.95 0.95)
+                ]
+           )
+
+
 buttonStyle isActive =
     [ Border.rounded 5
     , Font.center
     , centerY
     , padding 5
+    , focused [ Border.glow (rgb 1 1 1) 0 ]
     ]
         ++ (if isActive then
                 [ Background.color (rgb 0.9 0.9 0.9)
                 , mouseOver [ Font.color (rgb 255 255 255) ]
+                , Border.width 1
+                , Border.color (rgb 0.9 0.9 0.9)
                 ]
             else
                 [ Background.color (rgb 0.95 0.95 0.95)
                 , Font.color (rgb 0.7 0.7 0.7)
                 , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                , Border.width 1
+                , Border.color (rgb 0.95 0.95 0.95)
                 ]
            )
 
@@ -1671,6 +2039,35 @@ hexToColor hexColor =
     rgb (red / 255) (green / 255) (blue / 255)
 
 
+hexColorToDocColor : String -> DocColor
+hexColorToDocColor hexColor =
+    let
+        hexColor_ =
+            String.toLower hexColor
+
+        red =
+            String.left 2 hexColor_
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+
+        green =
+            String.dropLeft 2 hexColor_
+                |> String.left 2
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+
+        blue =
+            String.dropLeft 4 hexColor_
+                |> String.left 2
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+    in
+    DocColor (red / 255) (green / 255) (blue / 255)
+
+
 chunks n xs =
     let
         helper acc ys =
@@ -1682,6 +2079,51 @@ chunks n xs =
                     helper (List.take n ys :: acc) (List.drop n ys)
     in
     helper [] xs
+
+
+updateAttrs p c val attrs =
+    let
+        helper acc xs =
+            case xs of
+                [] ->
+                    List.reverse (c val :: acc)
+
+                x :: xs_ ->
+                    if c val == x then
+                        List.reverse acc ++ xs_
+                    else if p x then
+                        List.reverse (c val :: acc) ++ xs_
+                    else
+                        helper (x :: acc) xs_
+    in
+    helper [] attrs
+
+
+isFontAttr a =
+    case a of
+        Font _ ->
+            True
+
+        _ ->
+            False
+
+
+isFontColorAttr a =
+    case a of
+        FontColor _ ->
+            True
+
+        _ ->
+            False
+
+
+isBackgroundColorAttr a =
+    case a of
+        BackgroundColor _ ->
+            True
+
+        _ ->
+            False
 
 
 fonts =
@@ -1700,6 +2142,39 @@ fonts =
     , "Trebuchet MS"
     , "Arial Black"
     , "Impact"
+    ]
+
+
+fontSizes =
+    [ "6"
+    , "7"
+    , "8"
+    , "9"
+    , "10"
+    , "11"
+    , "12"
+    , "13"
+    , "14"
+    , "15"
+    , "16"
+    , "18"
+    , "20"
+    , "22"
+    , "24"
+    , "26"
+    , "28"
+    , "32"
+    , "36"
+    , "40"
+    , "44"
+    , "48"
+    , "54"
+    , "60"
+    , "66"
+    , "72"
+    , "80"
+    , "88"
+    , "96"
     ]
 
 
