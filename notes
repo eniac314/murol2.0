@@ -1,4 +1,6 @@
-- recompute output when setting url?
+- fix Ul
+
+- remove attrs from TextBlocElements
 
 - setSelection when making a new tag
 

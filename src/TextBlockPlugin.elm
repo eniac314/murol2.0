@@ -1,4 +1,4 @@
-module TextBlockPlugin exposing (..)
+module TextBlockPlugin exposing (DocTextBlock, Msg, init, update, view)
 
 --exposing (Html, node, option, select, text, textarea)
 
@@ -14,6 +14,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
 import Hex exposing (fromString)
@@ -24,6 +25,7 @@ import Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Parser exposing (..)
+import Random as Random
 import Set exposing (..)
 import StyleSheets exposing (StyleSheet, defaulStyleSheet)
 
@@ -45,7 +47,9 @@ type alias DocTextBlock =
     , selectedFolder : Maybe String
     , selectedFile : Maybe String
     , colorPickerOpen : Maybe String
-    , config : Config Msg
+    , randomInt : Int
+
+    --, config : Config Msg
     }
 
 
@@ -61,6 +65,7 @@ type Msg
       -- TextBloc messages --
       -----------------------
     | SetTextBlocFont String
+    | SetTextBlocFontSize String
     | SetTextBlocAlignment
     | SetTextBlocBold
     | SetTextBlocItalic
@@ -90,6 +95,7 @@ type Msg
     | SetTextColor Int String
     | SetBackgroundColor Int String
     | SetInlineFont Int String
+    | SetInlineFontSize Int String
     | SetInlineBold Int
     | SetInlineItalic Int
       ----------
@@ -97,6 +103,9 @@ type Msg
       ----------
     | ColorPickerClick String
     | ColorPickerClickOff
+    | SaveAndQuit
+    | Quit
+    | NewRandom Int
     | NoOp
 
 
@@ -107,57 +116,131 @@ type alias Selection =
     }
 
 
-main : Program () DocTextBlock Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        }
+
+--main : Program () DocTextBlock Msg
+--main =
+--    Browser.element
+--        { init =
+--            init
+--                [ FontSize 16
+--                , Font "Arial"
+--                ]
+--                []
+--        , update =
+--            \model msg ->
+--                let
+--                    ( newModel, cmd, maybeOutput ) =
+--                        update model msg
+--                in
+--                ( newModel, cmd )
+--        , view = view
+--        , subscriptions = subscriptions
+--        }
 
 
 subscriptions model =
     Sub.none
 
 
-init flags =
-    ( { rawInput = sample
-      , parsedInput = Ok []
-      , selected = Nothing
-      , cursorPos = Nothing
-      , output = []
-      , setSelection = Nothing
-      , trackedData = Dict.empty
-      , currentTrackedData = Nothing
-      , nextUid = 0
-      , wholeTextBlocAttr =
-            [ FontSize 16
-            , Font "Arial"
-            ]
-      , headingLevel = Nothing
-      , internalUrlSelectorOpen = False
-      , selectedInternalPage = Nothing
-      , selectedFolder = Nothing
-      , selectedFile = Nothing
-      , colorPickerOpen = Nothing
-      , config =
-            { width = 500
-            , height = 800
-            , styleSheet = defaulStyleSheet
-            , containersBkgColors = False
-            , customElems = Dict.empty
-            , editMode = False
-            , mainInterfaceHeight = 0
-            , onLoadMsg = \_ -> NoOp
-            , sizesDict = Dict.empty
-            , zipperHandlers = Nothing
-            }
-      }
-    , Cmd.none
-    )
+
+--init attrs input flags =
 
 
+init attrs mbInput =
+    let
+        { resultString, trackedData, nextUid } =
+            fromTextBloc
+                (Maybe.withDefault
+                    []
+                    mbInput
+                )
+    in
+    case run textBlock resultString of
+        Ok res ->
+            let
+                newTrackedData =
+                    updateTrackedData (Dict.fromList trackedData) res
+            in
+            ( { rawInput = resultString
+              , parsedInput = Ok []
+              , selected = Nothing
+              , cursorPos = Nothing
+              , output =
+                    List.filterMap (toTextBlocElement newTrackedData) res
+              , setSelection = Nothing
+              , trackedData = newTrackedData
+              , currentTrackedData = Nothing
+              , nextUid = nextUid
+              , wholeTextBlocAttr =
+                    case List.filter isFontSizeAttr attrs of
+                        [] ->
+                            FontSize 16 :: attrs
+
+                        _ ->
+                            attrs
+              , headingLevel = Nothing
+              , internalUrlSelectorOpen = False
+              , selectedInternalPage = Nothing
+              , selectedFolder = Nothing
+              , selectedFile = Nothing
+              , colorPickerOpen = Nothing
+
+              --, config =
+              --      { width = 500
+              --      , height = 800
+              --      , styleSheet = defaulStyleSheet
+              --      , containersBkgColors = False
+              --      , customElems = Dict.empty
+              --      , editMode = False
+              --      , mainInterfaceHeight = 0
+              --      , onLoadMsg = \_ -> NoOp
+              --      , sizesDict = Dict.empty
+              --      , zipperHandlers = Nothing
+              --      }
+              , randomInt = 0
+              }
+            , Cmd.none
+            )
+
+        Err _ ->
+            ( { rawInput = resultString
+              , parsedInput = Ok []
+              , selected = Nothing
+              , cursorPos = Nothing
+              , output = []
+              , setSelection = Nothing
+              , trackedData = Dict.empty
+              , currentTrackedData = Nothing
+              , nextUid = 0
+              , wholeTextBlocAttr =
+                    attrs
+              , headingLevel = Nothing
+              , internalUrlSelectorOpen = False
+              , selectedInternalPage = Nothing
+              , selectedFolder = Nothing
+              , selectedFile = Nothing
+              , colorPickerOpen = Nothing
+
+              --, config =
+              --      { width = 500
+              --      , height = 800
+              --      , styleSheet = defaulStyleSheet
+              --      , containersBkgColors = False
+              --      , customElems = Dict.empty
+              --      , editMode = False
+              --      , mainInterfaceHeight = 0
+              --      , onLoadMsg = \_ -> NoOp
+              --      , sizesDict = Dict.empty
+              --      , zipperHandlers = Nothing
+              , randomInt = 0
+
+              --      }
+              }
+            , Cmd.none
+            )
+
+
+update : Msg -> DocTextBlock -> ( DocTextBlock, Cmd Msg, Maybe (PluginResult ( List TextBlockElement, List DocAttribute )) )
 update msg model =
     case msg of
         ---------------------------
@@ -179,16 +262,18 @@ update msg model =
                         , nextUid = findNextAvailableUid newTrackedData
                         , output = List.filterMap (toTextBlocElement newTrackedData) res
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
                     )
 
                 Err _ ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
         InsertTrackingTag tdKind ->
             case insertTrackingTag model.rawInput model.selected model.nextUid tdKind of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just newRawInput ->
                     let
@@ -215,7 +300,10 @@ update msg model =
                                 |> Result.withDefault model.output
                       }
                     , Cmd.batch
-                        [ after 5 Millisecond SetSelection ]
+                        [ after 5 Millisecond SetSelection
+                        , Random.generate NewRandom (Random.int 0 10000)
+                        ]
+                    , Nothing
                     )
 
         NewSelection s ->
@@ -243,7 +331,9 @@ update msg model =
                     else
                         Nothing
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         SetSelection ->
@@ -253,7 +343,9 @@ update msg model =
                         (\td -> encodeSelection td.meta.start td.meta.stop)
                         model.currentTrackedData
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         -----------------------
@@ -264,15 +356,34 @@ update msg model =
                 | wholeTextBlocAttr =
                     updateAttrs isFontAttr Font font model.wholeTextBlocAttr
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
+
+        SetTextBlocFontSize fontSize ->
+            case String.toInt fontSize of
+                Nothing ->
+                    ( model, Cmd.none, Nothing )
+
+                Just fSize ->
+                    ( { model
+                        | wholeTextBlocAttr =
+                            updateAttrs isFontSizeAttr FontSize fSize model.wholeTextBlocAttr
+                      }
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
+                    )
 
         SetTextBlocAlignment ->
             ( { model
                 | wholeTextBlocAttr =
                     updateAttrs (\a -> a == Justify) (\_ -> Justify) () model.wholeTextBlocAttr
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         SetTextBlocBold ->
@@ -280,7 +391,9 @@ update msg model =
                 | wholeTextBlocAttr =
                     updateAttrs (\a -> a == Bold) (\_ -> Bold) () model.wholeTextBlocAttr
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         SetTextBlocItalic ->
@@ -288,24 +401,30 @@ update msg model =
                 | wholeTextBlocAttr =
                     updateAttrs (\a -> a == Italic) (\_ -> Italic) () model.wholeTextBlocAttr
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         -----------------------
         -- Headings messages --
         -----------------------
         SelectHeadingLevel strLevel ->
-            ( { model | headingLevel = String.toInt strLevel }, Cmd.none )
+            ( { model | headingLevel = String.toInt strLevel }
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
+            )
 
         ConfirmHeadingLevel uid ->
             case model.headingLevel of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just level ->
                     case Dict.get uid model.trackedData of
                         Nothing ->
-                            ( model, Cmd.none )
+                            ( model, Cmd.none, Nothing )
 
                         Just ({ attrs, meta, dataKind } as td) ->
                             let
@@ -330,7 +449,9 @@ update msg model =
                                         model.parsedInput
                                         |> Result.withDefault model.output
                               }
-                            , Cmd.none
+                            , Cmd.batch
+                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Nothing
                             )
 
         -----------------------------
@@ -339,7 +460,7 @@ update msg model =
         SetUrl uid url ->
             case Dict.get uid model.trackedData of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ({ attrs, meta, dataKind } as td) ->
                     let
@@ -363,7 +484,9 @@ update msg model =
                                 model.parsedInput
                                 |> Result.withDefault model.output
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
                     )
 
         -----------------------------
@@ -372,7 +495,7 @@ update msg model =
         SetInternalLinkKind uid isDoc ->
             case Dict.get uid model.trackedData of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ({ attrs, meta, dataKind } as td) ->
                     case dataKind of
@@ -391,40 +514,48 @@ update msg model =
                                 | trackedData = newTrackedDataDict
                                 , currentTrackedData = Just newTrackedData
                               }
-                            , Cmd.none
+                            , Cmd.batch
+                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Nothing
                             )
 
                         _ ->
-                            ( model, Cmd.none )
+                            ( model, Cmd.none, Nothing )
 
         InternalUrlSelectorClick ->
             ( { model
                 | internalUrlSelectorOpen = not model.internalUrlSelectorOpen
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         InternalUrlSelectorClickOff ->
             ( { model
                 | internalUrlSelectorOpen = False
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         SelectInternalPage p ->
             ( { model | selectedInternalPage = Just p }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         ConfirmInternalPageUrl uid ->
             case model.selectedInternalPage of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just url ->
                     case Dict.get uid model.trackedData of
                         Nothing ->
-                            ( model, Cmd.none )
+                            ( model, Cmd.none, Nothing )
 
                         Just ({ attrs, meta, dataKind } as td) ->
                             let
@@ -450,24 +581,34 @@ update msg model =
                                         model.parsedInput
                                         |> Result.withDefault model.output
                               }
-                            , Cmd.none
+                            , Cmd.batch
+                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Nothing
                             )
 
         SelectFolder f ->
-            ( { model | selectedFolder = Just f }, Cmd.none )
+            ( { model | selectedFolder = Just f }
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
+            )
 
         SelectFile f ->
-            ( { model | selectedFile = Just f }, Cmd.none )
+            ( { model | selectedFile = Just f }
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
+            )
 
         ConfirmFileUrl uid ->
             case model.selectedFile of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just url ->
                     case Dict.get uid model.trackedData of
                         Nothing ->
-                            ( model, Cmd.none )
+                            ( model, Cmd.none, Nothing )
 
                         Just ({ attrs, meta, dataKind } as td) ->
                             let
@@ -493,7 +634,9 @@ update msg model =
                                         model.parsedInput
                                         |> Result.withDefault model.output
                               }
-                            , Cmd.none
+                            , Cmd.batch
+                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Nothing
                             )
 
         ---------------------------
@@ -502,7 +645,7 @@ update msg model =
         SetTextColor uid color ->
             case Dict.get uid model.trackedData of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ({ attrs, meta, dataKind } as td) ->
                     let
@@ -530,13 +673,15 @@ update msg model =
                                 model.parsedInput
                                 |> Result.withDefault model.output
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
                     )
 
         SetBackgroundColor uid color ->
             case Dict.get uid model.trackedData of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ({ attrs, meta, dataKind } as td) ->
                     let
@@ -564,13 +709,15 @@ update msg model =
                                 model.parsedInput
                                 |> Result.withDefault model.output
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
                     )
 
         SetInlineFont uid font ->
             case Dict.get uid model.trackedData of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ({ attrs, meta, dataKind } as td) ->
                     let
@@ -597,13 +744,55 @@ update msg model =
                                 model.parsedInput
                                 |> Result.withDefault model.output
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
                     )
+
+        SetInlineFontSize uid fontSize ->
+            case String.toInt fontSize of
+                Nothing ->
+                    ( model, Cmd.none, Nothing )
+
+                Just fSize ->
+                    case Dict.get uid model.trackedData of
+                        Nothing ->
+                            ( model, Cmd.none, Nothing )
+
+                        Just ({ attrs, meta, dataKind } as td) ->
+                            let
+                                newAttrs =
+                                    updateAttrs isFontSizeAttr FontSize fSize attrs
+
+                                newTrackedData =
+                                    { td | attrs = newAttrs }
+
+                                newTrackedDataDict =
+                                    Dict.insert
+                                        uid
+                                        newTrackedData
+                                        model.trackedData
+                            in
+                            ( { model
+                                | trackedData = newTrackedDataDict
+                                , currentTrackedData = Just newTrackedData
+                                , output =
+                                    Result.map
+                                        (List.filterMap
+                                            (toTextBlocElement newTrackedDataDict)
+                                        )
+                                        model.parsedInput
+                                        |> Result.withDefault model.output
+                              }
+                            , Cmd.batch
+                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Nothing
+                            )
 
         SetInlineBold uid ->
             case Dict.get uid model.trackedData of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ({ attrs, meta, dataKind } as td) ->
                     let
@@ -630,13 +819,15 @@ update msg model =
                                 model.parsedInput
                                 |> Result.withDefault model.output
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
                     )
 
         SetInlineItalic uid ->
             case Dict.get uid model.trackedData of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ({ attrs, meta, dataKind } as td) ->
                     let
@@ -663,7 +854,9 @@ update msg model =
                                 model.parsedInput
                                 |> Result.withDefault model.output
                       }
-                    , Cmd.none
+                    , Cmd.batch
+                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                    , Nothing
                     )
 
         ----------
@@ -679,16 +872,39 @@ update msg model =
                         Nothing ->
                             Just name
               }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
         ColorPickerClickOff ->
             ( { model | colorPickerOpen = Nothing }
-            , Cmd.none
+            , Cmd.batch
+                [ Random.generate NewRandom (Random.int 0 10000) ]
+            , Nothing
             )
 
+        SaveAndQuit ->
+            ( model
+            , Cmd.none
+            , Just <|
+                PluginData
+                    ( model.output
+                    , model.wholeTextBlocAttr
+                    )
+            )
+
+        Quit ->
+            ( model
+            , Cmd.none
+            , Just PluginQuit
+            )
+
+        NewRandom n ->
+            ( { model | randomInt = n }, Cmd.none, Nothing )
+
         NoOp ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Nothing )
 
 
 
@@ -702,52 +918,60 @@ iconSize =
     18
 
 
-view model =
-    Element.layout [] <|
-        column
-            ([ padding 15
-             , spacing 15
-             ]
-                ++ (if model.internalUrlSelectorOpen then
-                        [ Events.onClick InternalUrlSelectorClickOff ]
-                    else if not (model.colorPickerOpen == Nothing) then
-                        [ Events.onClick ColorPickerClickOff ]
-                    else
-                        []
-                   )
-            )
-            [ interfaceView model
-            , row
-                [ spacing 30 ]
-                [ column
-                    [ alignTop
-                    , spacing 20
-                    ]
-                    [ customTextArea
-                        [ width fill
-                        ]
-                        model.cursorPos
-                        model.setSelection
-                        model.rawInput
-
-                    --, Element.paragraph [ width (maximum 500 fill) ]
-                    --    [ Element.text <| Debug.toString model.setSelection ]
-                    --, Element.paragraph [ width (maximum 500 fill) ]
-                    --    [ Element.text <| Debug.toString model.currentTrackedData ]
-                    --, Element.paragraph [ width (maximum 500 fill) ]
-                    --    [ Element.text <| Debug.toString model.trackedData ]
-                    --, Element.paragraph [ width (maximum 500 fill) ]
-                    --    [ Element.text <| Debug.toString model.headingLevel ]
-                    --, Element.paragraph [ width (maximum 500 fill) ]
-                    --    [ Element.text <| Debug.toString model.selected ]
-                    --, Element.paragraph [ width (maximum 500 fill) ]
-                    --    [ Element.text <| Debug.toString model.cursorPos ]
-                    --, Element.paragraph [ width (maximum 500 fill) ]
-                    --    [ Element.text <| Debug.toString model.parsedInput ]
-                    ]
-                , textBlocPreview model
+view model config =
+    --Element.layout [] <|
+    column
+        ([ padding 15
+         , spacing 15
+         ]
+            ++ (if model.internalUrlSelectorOpen then
+                    [ Events.onClick InternalUrlSelectorClickOff ]
+                else if not (model.colorPickerOpen == Nothing) then
+                    [ Events.onClick ColorPickerClickOff ]
+                else
+                    []
+               )
+        )
+        [ interfaceView model
+        , row
+            [ spacing 30 ]
+            [ column
+                [ alignTop
+                , spacing 20
                 ]
+                [ customTextArea
+                    [ width fill
+                    ]
+                    model.cursorPos
+                    model.setSelection
+                    model.rawInput
+                ]
+            , textBlocPreview model config
             ]
+        , row
+            [ spacing 15
+            , Font.size 16
+            ]
+            [ Input.button (buttonStyle True)
+                { onPress = Just Quit
+                , label = text "Quitter"
+                }
+            , Input.button (buttonStyle True)
+                { onPress = Just SaveAndQuit
+                , label = text "Valider et Quitter"
+                }
+            ]
+        , Element.paragraph [] [ text <| String.fromInt model.randomInt ]
+        , Element.paragraph []
+            [ text <|
+                case model.colorPickerOpen of
+                    Nothing ->
+                        "Nothing"
+
+                    Just s ->
+                        s
+            ]
+        ]
 
 
 interfaceView model =
@@ -799,14 +1023,12 @@ interfaceView model =
                         ]
                 }
             ]
-        , row
+        , Keyed.row
             [ width fill
-
-            --, Background.color (rgba 1 0 0.5 0.5)
             , height (px 30)
             , Font.size 16
             ]
-            [ case model.currentTrackedData of
+            ([ case model.currentTrackedData of
                 Nothing ->
                     textBlockStyleView model
 
@@ -833,12 +1055,21 @@ interfaceView model =
 
                         InlineStyled ->
                             inlineStyleView model td
-            ]
+             ]
+                |> List.foldr
+                    (\e ( n, acc ) ->
+                        ( n + 1
+                        , ( String.fromInt n, e ) :: acc
+                        )
+                    )
+                    ( model.randomInt, [] )
+                |> Tuple.second
+            )
         ]
 
 
 
--- TODO: removo model?
+-- TODO: remove model?
 
 
 textBlockStyleView model =
@@ -849,6 +1080,19 @@ textBlockStyleView model =
                 , HtmlAttr.selected (selectedFont == (Just <| Font f))
                 ]
                 [ Html.text f ]
+
+        fontSizeOptionView selectedSize fs =
+            let
+                selected =
+                    String.toInt fs
+                        |> Maybe.map (\fs_ -> selectedSize == (Just <| FontSize fs_))
+                        |> Maybe.withDefault False
+            in
+            Html.option
+                [ HtmlAttr.value fs
+                , HtmlAttr.selected selected
+                ]
+                [ Html.text fs ]
     in
     row
         [ spacing 15
@@ -868,6 +1112,21 @@ textBlockStyleView model =
                             )
                         )
                         fonts
+                    )
+            )
+        , el
+            []
+            (html <|
+                Html.select
+                    [ HtmlEvents.onInput SetTextBlocFontSize
+                    ]
+                    (List.map
+                        (fontSizeOptionView
+                            (List.filter isFontSizeAttr model.wholeTextBlocAttr
+                                |> List.head
+                            )
+                        )
+                        fontSizes
                     )
             )
         , Input.button
@@ -1118,9 +1377,22 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                 , HtmlAttr.selected (selectedFont == (Just <| Font f))
                 ]
                 [ Html.text f ]
+
+        fontSizeOptionView selectedSize fs =
+            let
+                selected =
+                    String.toInt fs
+                        |> Maybe.map (\fs_ -> selectedSize == (Just <| FontSize fs_))
+                        |> Maybe.withDefault False
+            in
+            Html.option
+                [ HtmlAttr.value fs
+                , HtmlAttr.selected selected
+                ]
+                [ Html.text fs ]
     in
-    row [ spacing 15 ]
-        [ Input.button
+    Keyed.row [ spacing 15 ]
+        ([ Input.button
             (toogleButtonStyle
                 (List.member Bold attrs)
                 True
@@ -1131,7 +1403,7 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                     [ el [] (html <| bold iconSize)
                     ]
             }
-        , Input.button
+         , Input.button
             (toogleButtonStyle
                 (List.member Italic attrs)
                 True
@@ -1142,7 +1414,7 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                     [ el [] (html <| italic iconSize)
                     ]
             }
-        , el
+         , el
             []
             (html <|
                 Html.select
@@ -1157,15 +1429,34 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                         fonts
                     )
             )
-        , colorPicker
-            model.colorPickerOpen
-            (List.filter isFontColorAttr attrs
-                |> List.head
+         , el
+            []
+            (html <|
+                Html.select
+                    [ HtmlEvents.onInput (SetInlineFontSize meta.uid)
+                    ]
+                    (List.map
+                        (fontSizeOptionView
+                            (List.filter isFontSizeAttr attrs
+                                |> List.head
+                            )
+                        )
+                        fontSizes
+                    )
             )
-            "Couleur du texte"
-            SetTextColor
-            meta.uid
-        , colorPicker
+         , Keyed.el
+            []
+            ( String.fromInt model.randomInt
+            , colorPicker
+                model.colorPickerOpen
+                (List.filter isFontColorAttr attrs
+                    |> List.head
+                )
+                "Couleur du texte"
+                SetTextColor
+                meta.uid
+            )
+         , colorPicker
             model.colorPickerOpen
             (List.filter isBackgroundColorAttr attrs
                 |> List.head
@@ -1173,7 +1464,16 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
             "Couleur du fond"
             SetBackgroundColor
             meta.uid
-        ]
+         ]
+            |> List.foldr
+                (\e ( n, acc ) ->
+                    ( n + 1
+                    , ( String.fromInt n, e ) :: acc
+                    )
+                )
+                ( model.randomInt, [] )
+            |> Tuple.second
+        )
 
 
 customTextArea attrs cursorPos setSelection rawInput =
@@ -1204,20 +1504,18 @@ customTextArea attrs cursorPos setSelection rawInput =
         )
 
 
-textBlocPreview model =
-    column
-        [ width fill
-        , spacing 20
-        , alignTop
-        ]
-        (renderTextBlock
-            model.config
-            model.wholeTextBlocAttr
-            model.output
-         --++ [ Element.paragraph [ width (maximum 500 fill) ]
-         --        [ Element.text <| Debug.toString model.output ]
-         --   ]
-        )
+textBlocPreview model config =
+    Element.map (\_ -> NoOp) <|
+        column
+            [ width (minimum 500 fill)
+            , spacing 20
+            , alignTop
+            ]
+            (renderTextBlock
+                config
+                model.wholeTextBlocAttr
+                model.output
+            )
 
 
 colorPicker colorPickerOpen currentColor label msg uid =
@@ -1256,6 +1554,7 @@ colorPicker colorPickerOpen currentColor label msg uid =
 
         colors =
             chunks 12 webColors
+                --(List.sortBy (\( n, c ) -> c) webColors)
                 |> List.map
                     (\r ->
                         row [ spacing 3 ]
@@ -1865,6 +2164,204 @@ toTextBlockPrimitive trackedData prim =
 
 
 -------------------------------------------------------------------------------
+-----------------------------------
+-- FromTextBloc functions --
+-----------------------------------
+
+
+type alias ProcessedInput =
+    { resultString : String
+    , trackedData : List ( Int, TrackedData )
+    , nextUid : Int
+    }
+
+
+defmeta uid value =
+    { start = 0
+    , stop = 0
+    , uid = uid
+    , value = value
+    }
+
+
+fromTextBloc : List TextBlockElement -> ProcessedInput
+fromTextBloc tbes =
+    let
+        fixSymbols s =
+            String.replace " </> ." "</> ." s
+                |> String.replace " </> ," "</> ,"
+    in
+    List.foldr
+        (\tbe { resultString, trackedData, nextUid } ->
+            let
+                newProcessedInput =
+                    fromTextBlocElement nextUid tbe
+            in
+            { resultString =
+                newProcessedInput.resultString ++ " " ++ resultString
+            , trackedData =
+                newProcessedInput.trackedData ++ trackedData
+            , nextUid = nextUid + newProcessedInput.nextUid
+            }
+        )
+        { resultString = ""
+        , trackedData = []
+        , nextUid = 0
+        }
+        tbes
+        |> (\res -> { res | resultString = fixSymbols res.resultString })
+
+
+fromTextBlocElement : Int -> TextBlockElement -> ProcessedInput
+fromTextBlocElement nextUid_ tbe =
+    case tbe of
+        Paragraph _ tbps ->
+            List.foldr
+                (\tbp { resultString, trackedData, nextUid } ->
+                    let
+                        newProcessedInput =
+                            fromTextBlocPrimitive nextUid tbp
+                    in
+                    { resultString =
+                        newProcessedInput.resultString ++ " " ++ resultString
+                    , trackedData =
+                        newProcessedInput.trackedData ++ trackedData
+                    , nextUid = nextUid + 1
+                    }
+                )
+                { resultString = ""
+                , trackedData = []
+                , nextUid = nextUid_
+                }
+                tbps
+                |> (\res ->
+                        { res | resultString = res.resultString ++ "\n\n" }
+                   )
+
+        UList _ tbps ->
+            let
+                processLi li nextUid__ =
+                    List.foldr
+                        (\tbp { resultString, trackedData, nextUid } ->
+                            let
+                                newProcessedInput =
+                                    fromTextBlocPrimitive nextUid tbp
+                            in
+                            { resultString =
+                                newProcessedInput.resultString ++ " " ++ resultString
+                            , trackedData =
+                                newProcessedInput.trackedData ++ trackedData
+                            , nextUid = nextUid + 1
+                            }
+                        )
+                        { resultString = ""
+                        , trackedData = []
+                        , nextUid = nextUid__
+                        }
+                        li
+                        |> (\res ->
+                                { res | resultString = "* " ++ res.resultString ++ "\n" }
+                           )
+            in
+            List.foldr
+                (\li { resultString, trackedData, nextUid } ->
+                    let
+                        newProcessedInput =
+                            processLi li nextUid
+                    in
+                    { resultString =
+                        newProcessedInput.resultString ++ resultString
+                    , trackedData =
+                        newProcessedInput.trackedData ++ trackedData
+                    , nextUid = nextUid + newProcessedInput.nextUid
+                    }
+                )
+                { resultString = ""
+                , trackedData = []
+                , nextUid = nextUid_
+                }
+                tbps
+
+        Document.Heading _ ( level, value ) ->
+            { resultString =
+                "< titre "
+                    ++ String.fromInt nextUid_
+                    ++ " > "
+                    ++ value
+                    ++ " </>\n"
+            , trackedData =
+                [ ( nextUid_
+                  , { meta = defmeta nextUid_ value
+                    , attrs = []
+                    , dataKind = Heading level
+                    }
+                  )
+                ]
+            , nextUid = nextUid_ + 1
+            }
+
+        TBPrimitive prim ->
+            fromTextBlocPrimitive nextUid_ prim
+
+
+fromTextBlocPrimitive : Int -> TextBlockPrimitive -> ProcessedInput
+fromTextBlocPrimitive nextUid tbp =
+    case tbp of
+        Text [] s ->
+            { resultString = s
+            , trackedData = []
+            , nextUid = nextUid
+            }
+
+        Text attrs s ->
+            { resultString =
+                "< style "
+                    ++ String.fromInt nextUid
+                    ++ " > "
+                    ++ s
+                    ++ " </>"
+            , trackedData =
+                [ ( nextUid
+                  , { meta = defmeta nextUid s
+                    , attrs = attrs
+                    , dataKind = InlineStyled
+                    }
+                  )
+                ]
+            , nextUid = nextUid + 1
+            }
+
+        Link attrs { targetBlank, url, label } ->
+            { resultString =
+                (if targetBlank then
+                    "< lien-externe "
+                 else
+                    "< lien-interne "
+                )
+                    ++ String.fromInt nextUid
+                    ++ " > "
+                    ++ label
+                    ++ " </>"
+            , trackedData =
+                [ ( nextUid
+                  , { meta = defmeta nextUid label
+                    , attrs = attrs
+                    , dataKind =
+                        if targetBlank then
+                            ExternalLink url
+                        else
+                            InternalLink
+                                (String.startsWith "/baseDocumentaire" url)
+                                url
+                    }
+                  )
+                ]
+            , nextUid = nextUid + 1
+            }
+
+
+
+-------------------------------------------------------------------------------
 ----------
 -- Misc --
 ----------
@@ -2126,6 +2623,15 @@ isBackgroundColorAttr a =
             False
 
 
+isFontSizeAttr a =
+    case a of
+        FontSize _ ->
+            True
+
+        _ ->
+            False
+
+
 fonts =
     [ "Arial"
     , "Helvetica"
@@ -2339,7 +2845,7 @@ webColors =
     , ( "pale green", "98FB98" )
     , ( "dark sea green", "8FBC8F" )
     , ( "medium spring green", "00FA9A" )
-    , ( "spring green", "00FF7F" )
+    , ( "spring green", "0F0FF7F" )
     , ( "sea green", "2E8B57" )
     , ( "medium aqua marine", "66CDAA" )
     , ( "medium sea green", "3CB371" )

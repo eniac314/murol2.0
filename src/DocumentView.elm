@@ -72,9 +72,10 @@ renderTextBlockElement config tbAttrs tbe =
                 (List.map (renderTextBlockPrimitive config tbAttrs) xs)
 
         UList attrs xs ->
-            column
+            paragraph
                 (renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
+                    ++ [ spacing 10 ]
                 )
                 (List.map (renderLi config tbAttrs) xs)
 
@@ -126,8 +127,7 @@ renderTextBlockPrimitive config tbAttrs p =
 
 renderLi config tbAttrs li =
     row
-        ([ spacing 10
-         , paddingEach
+        ([ paddingEach
             { top = 0
             , left = 20
             , right = 0
@@ -136,7 +136,7 @@ renderLi config tbAttrs li =
          ]
             ++ renderAttrs config tbAttrs
         )
-        ([ el [] (text "•") ] ++ List.map (renderTextBlockPrimitive config tbAttrs) li)
+        ([ el [] (text "•  ") ] ++ List.map (renderTextBlockPrimitive config tbAttrs) li)
 
 
 renderColumn config id attrs children =

@@ -45,7 +45,6 @@ type Msg
     | InitializeTable
     | DataInput ( Int, Int ) String
     | CellFocused (Maybe ( Int, Int ))
-      --| CellFocusOff
     | RemoveSelectedRow
     | RemoveSelectedCol
     | AddNew Direction

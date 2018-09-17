@@ -26,6 +26,7 @@ import SampleDocs exposing (..)
 import StyleSheets exposing (..)
 import TablePlugin exposing (..)
 import Task exposing (perform)
+import TextBlockPlugin exposing (..)
 
 
 main : Program () Model Msg
@@ -59,6 +60,7 @@ type alias Model =
     , previewMode : PreviewMode
     , currentPlugin : Maybe EditorPlugin
     , tablePlugin : TablePlugin.DocTable
+    , textBlockPlugin : TextBlockPlugin.DocTextBlock
     }
 
 
@@ -120,6 +122,7 @@ type Msg
       -- Plugins messages routing--
       -----------------------------
     | TablePluginMsg TablePlugin.Msg
+    | TextBlockPluginMsg TextBlockPlugin.Msg
       ---------
       -- Misc--
       ---------
@@ -135,6 +138,9 @@ init doc flags =
     let
         ( doc_, idsToTrack ) =
             setSizeTrackedDocUids doc
+
+        ( newTextBlockPlugin, textBlockPluginCmds ) =
+            TextBlockPlugin.init [] Nothing
 
         handlers =
             { containerClickHandler = SelectDoc
@@ -172,11 +178,13 @@ init doc flags =
       , previewMode = PreviewBigScreen
       , currentPlugin = Nothing
       , tablePlugin = TablePlugin.init Nothing
+      , textBlockPlugin = newTextBlockPlugin
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
         , Task.attempt MainInterfaceViewport
             (Dom.getViewportOf "mainInterface")
+        , textBlockPluginCmds
         ]
     )
 
@@ -596,6 +604,63 @@ update msg model =
                         _ ->
                             ( model, Cmd.none )
 
+        TextBlockPluginMsg textBlockMsg ->
+            let
+                ( newTextBlockPlugin, textBlockPluginCmds, mbPluginData ) =
+                    TextBlockPlugin.update textBlockMsg model.textBlockPlugin
+            in
+            case mbPluginData of
+                Nothing ->
+                    ( { model | textBlockPlugin = newTextBlockPlugin }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        ]
+                    )
+
+                Just PluginQuit ->
+                    ( { model
+                        | textBlockPlugin = newTextBlockPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        ]
+                    )
+
+                Just (PluginData ( tbElems, attrs )) ->
+                    case extractDoc model.document of
+                        Cell ({ cellContent } as lv) ->
+                            case cellContent of
+                                TextBlock _ ->
+                                    let
+                                        newDoc =
+                                            updateCurrent
+                                                (Cell
+                                                    { lv
+                                                        | cellContent = TextBlock tbElems
+                                                        , attrs = attrs
+                                                    }
+                                                )
+                                                model.document
+                                    in
+                                    ( { model
+                                        | document = newDoc
+                                        , currentPlugin = Nothing
+                                      }
+                                    , Cmd.batch
+                                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                                        ]
+                                    )
+
+                                _ ->
+                                    ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
         ---------
         -- Misc--
         ---------
@@ -722,7 +787,8 @@ pluginView model plugin =
             el [] (text "Nothing  here yet!")
 
         TextBlockPlugin ->
-            el [] (text "Nothing  here yet!")
+            TextBlockPlugin.view model.textBlockPlugin model.config
+                |> Element.map TextBlockPluginMsg
 
         NewDocPlugin ->
             NewDocPlugin.view
@@ -750,6 +816,19 @@ openPlugin model =
                         , tablePlugin = TablePlugin.init (Just tm)
                       }
                     , Cmd.none
+                    )
+
+                TextBlock tbElems ->
+                    let
+                        ( newTextBlockPlugin, textBlockPluginCmds ) =
+                            TextBlockPlugin.init attrs (Just tbElems)
+                    in
+                    ( { model
+                        | currentPlugin = Just TextBlockPlugin
+                        , textBlockPlugin = newTextBlockPlugin
+                      }
+                    , Cmd.batch
+                        [ textBlockPluginCmds ]
                     )
 
                 EmptyCell ->
