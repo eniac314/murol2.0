@@ -125,7 +125,42 @@ type alias Selection =
 --                [ FontSize 16
 --                , Font "Arial"
 --                ]
---                []
+--                (Just <|
+--                    [ Paragraph []
+--                        [ Text [] "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
+--                        ]
+--                    , Paragraph []
+--                        [ Text [] "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
+--                        ]
+--                    , Paragraph []
+--                        [ Text [] "Enchâssé entre le volcan boisé du "
+--                        , Link []
+--                            { label = "Tartaret"
+--                            , targetBlank = False
+--                            , url = ""
+--                            }
+--                        , Text [] " le promontoire du "
+--                        , Link []
+--                            { label = "château de Murol"
+--                            , targetBlank = False
+--                            , url = ""
+--                            }
+--                        , Text [] " et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques."
+--                        ]
+--                    , Paragraph []
+--                        [ Text [] "Au pied du château, découvrez le parc arboré du Prélong où se trouvent le "
+--                        , Link []
+--                            { label = "musée des Peintres de l’Ecole de Murols"
+--                            , targetBlank = True
+--                            , url = "http://www.musee-murol.fr/fr"
+--                            }
+--                        , Text [] " et le musée archéologique."
+--                        ]
+--                    , Paragraph []
+--                        [ Text [] "Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. "
+--                        ]
+--                    ]
+--                )
 --        , update =
 --            \model msg ->
 --                let
@@ -143,7 +178,7 @@ subscriptions model =
 
 
 
---init attrs input flags =
+--init attrs mbInput flags =
 
 
 init attrs mbInput =
@@ -232,9 +267,8 @@ init attrs mbInput =
               --      , onLoadMsg = \_ -> NoOp
               --      , sizesDict = Dict.empty
               --      , zipperHandlers = Nothing
-              , randomInt = 0
-
               --      }
+              , randomInt = 0
               }
             , Cmd.none
             )
@@ -263,7 +297,7 @@ update msg model =
                         , output = List.filterMap (toTextBlocElement newTrackedData) res
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -332,7 +366,7 @@ update msg model =
                         Nothing
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -344,7 +378,7 @@ update msg model =
                         model.currentTrackedData
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -357,7 +391,7 @@ update msg model =
                     updateAttrs isFontAttr Font font model.wholeTextBlocAttr
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -372,7 +406,7 @@ update msg model =
                             updateAttrs isFontSizeAttr FontSize fSize model.wholeTextBlocAttr
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -382,7 +416,7 @@ update msg model =
                     updateAttrs (\a -> a == Justify) (\_ -> Justify) () model.wholeTextBlocAttr
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -392,7 +426,7 @@ update msg model =
                     updateAttrs (\a -> a == Bold) (\_ -> Bold) () model.wholeTextBlocAttr
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -402,7 +436,7 @@ update msg model =
                     updateAttrs (\a -> a == Italic) (\_ -> Italic) () model.wholeTextBlocAttr
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -412,7 +446,7 @@ update msg model =
         SelectHeadingLevel strLevel ->
             ( { model | headingLevel = String.toInt strLevel }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -449,8 +483,7 @@ update msg model =
                                         model.parsedInput
                                         |> Result.withDefault model.output
                               }
-                            , Cmd.batch
-                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Cmd.none
                             , Nothing
                             )
 
@@ -485,7 +518,7 @@ update msg model =
                                 |> Result.withDefault model.output
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -514,8 +547,7 @@ update msg model =
                                 | trackedData = newTrackedDataDict
                                 , currentTrackedData = Just newTrackedData
                               }
-                            , Cmd.batch
-                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Cmd.none
                             , Nothing
                             )
 
@@ -527,7 +559,7 @@ update msg model =
                 | internalUrlSelectorOpen = not model.internalUrlSelectorOpen
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -536,14 +568,14 @@ update msg model =
                 | internalUrlSelectorOpen = False
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
         SelectInternalPage p ->
             ( { model | selectedInternalPage = Just p }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -581,22 +613,21 @@ update msg model =
                                         model.parsedInput
                                         |> Result.withDefault model.output
                               }
-                            , Cmd.batch
-                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Cmd.none
                             , Nothing
                             )
 
         SelectFolder f ->
             ( { model | selectedFolder = Just f }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
         SelectFile f ->
             ( { model | selectedFile = Just f }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -634,8 +665,7 @@ update msg model =
                                         model.parsedInput
                                         |> Result.withDefault model.output
                               }
-                            , Cmd.batch
-                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Cmd.none
                             , Nothing
                             )
 
@@ -674,7 +704,7 @@ update msg model =
                                 |> Result.withDefault model.output
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -710,7 +740,7 @@ update msg model =
                                 |> Result.withDefault model.output
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -745,7 +775,7 @@ update msg model =
                                 |> Result.withDefault model.output
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -784,8 +814,7 @@ update msg model =
                                         model.parsedInput
                                         |> Result.withDefault model.output
                               }
-                            , Cmd.batch
-                                [ Random.generate NewRandom (Random.int 0 10000) ]
+                            , Cmd.none
                             , Nothing
                             )
 
@@ -820,7 +849,7 @@ update msg model =
                                 |> Result.withDefault model.output
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -855,7 +884,7 @@ update msg model =
                                 |> Result.withDefault model.output
                       }
                     , Cmd.batch
-                        [ Random.generate NewRandom (Random.int 0 10000) ]
+                        []
                     , Nothing
                     )
 
@@ -873,14 +902,14 @@ update msg model =
                             Just name
               }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
         ColorPickerClickOff ->
             ( { model | colorPickerOpen = Nothing }
             , Cmd.batch
-                [ Random.generate NewRandom (Random.int 0 10000) ]
+                []
             , Nothing
             )
 
@@ -916,6 +945,10 @@ update msg model =
 
 iconSize =
     18
+
+
+
+--view model =
 
 
 view model config =
@@ -1023,12 +1056,12 @@ interfaceView model =
                         ]
                 }
             ]
-        , Keyed.row
+        , row
             [ width fill
             , height (px 30)
             , Font.size 16
             ]
-            ([ case model.currentTrackedData of
+            [ case model.currentTrackedData of
                 Nothing ->
                     textBlockStyleView model
 
@@ -1055,16 +1088,17 @@ interfaceView model =
 
                         InlineStyled ->
                             inlineStyleView model td
-             ]
-                |> List.foldr
-                    (\e ( n, acc ) ->
-                        ( n + 1
-                        , ( String.fromInt n, e ) :: acc
-                        )
-                    )
-                    ( model.randomInt, [] )
-                |> Tuple.second
-            )
+            ]
+
+        --    |> List.foldr
+        --        (\e ( n, acc ) ->
+        --            ( n + 1
+        --            , ( String.fromInt n, e ) :: acc
+        --            )
+        --        )
+        --        ( model.randomInt, [] )
+        --    |> Tuple.second
+        --)
         ]
 
 
@@ -1391,8 +1425,8 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                 ]
                 [ Html.text fs ]
     in
-    Keyed.row [ spacing 15 ]
-        ([ Input.button
+    row [ spacing 15 ]
+        [ Input.button
             (toogleButtonStyle
                 (List.member Bold attrs)
                 True
@@ -1403,7 +1437,7 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                     [ el [] (html <| bold iconSize)
                     ]
             }
-         , Input.button
+        , Input.button
             (toogleButtonStyle
                 (List.member Italic attrs)
                 True
@@ -1414,7 +1448,7 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                     [ el [] (html <| italic iconSize)
                     ]
             }
-         , el
+        , el
             []
             (html <|
                 Html.select
@@ -1429,7 +1463,7 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                         fonts
                     )
             )
-         , el
+        , el
             []
             (html <|
                 Html.select
@@ -1444,19 +1478,15 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                         fontSizes
                     )
             )
-         , Keyed.el
-            []
-            ( String.fromInt model.randomInt
-            , colorPicker
-                model.colorPickerOpen
-                (List.filter isFontColorAttr attrs
-                    |> List.head
-                )
-                "Couleur du texte"
-                SetTextColor
-                meta.uid
+        , colorPicker
+            model.colorPickerOpen
+            (List.filter isFontColorAttr attrs
+                |> List.head
             )
-         , colorPicker
+            "Couleur du texte"
+            SetTextColor
+            meta.uid
+        , colorPicker
             model.colorPickerOpen
             (List.filter isBackgroundColorAttr attrs
                 |> List.head
@@ -1464,16 +1494,7 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
             "Couleur du fond"
             SetBackgroundColor
             meta.uid
-         ]
-            |> List.foldr
-                (\e ( n, acc ) ->
-                    ( n + 1
-                    , ( String.fromInt n, e ) :: acc
-                    )
-                )
-                ( model.randomInt, [] )
-            |> Tuple.second
-        )
+        ]
 
 
 customTextArea attrs cursorPos setSelection rawInput =
