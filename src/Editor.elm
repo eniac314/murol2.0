@@ -17,6 +17,7 @@ import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
+import Html exposing (map)
 import Html.Attributes as HtmlAttr
 import Html.Events.Extra.Wheel as Wheel
 import Icons exposing (..)
@@ -567,7 +568,7 @@ update msg model =
                 Nothing ->
                     ( { model | tablePlugin = newTablePlugin }
                     , Cmd.batch
-                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                        []
                     )
 
                 Just PluginQuit ->
@@ -613,8 +614,7 @@ update msg model =
                 Nothing ->
                     ( { model | textBlockPlugin = newTextBlockPlugin }
                     , Cmd.batch
-                        [ scrollTo <| getHtmlId (extractDoc model.document)
-                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        [ Cmd.map TextBlockPluginMsg textBlockPluginCmds
                         ]
                     )
 
@@ -730,6 +730,18 @@ view model =
                         Just plugin ->
                             pluginView model plugin
                     ]
+
+                --mainMenu
+                --  { clicked = model.menuClicked
+                --  , currentFocus = model.menuFocused
+                --  , isInPlugin = model.currentPlugin /= Nothing
+                --  , clipboardEmpty = model.clipboard == Nothing
+                --  , undoCacheEmpty = model.undoCache == []
+                --  , selectionIsRoot = zipUp model.document == Nothing
+                --  , selectionIsContainer = isContainer (extractDoc model.document)
+                --  , previewMode = model.previewMode
+                --  , containersBkgColors = model.config.containersBkgColors
+                --  }
                 ]
             )
         ]

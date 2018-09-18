@@ -106,6 +106,7 @@ type Msg
     | SaveAndQuit
     | Quit
     | NewRandom Int
+    | GenerateRandomInt
     | NoOp
 
 
@@ -335,7 +336,8 @@ update msg model =
                       }
                     , Cmd.batch
                         [ after 5 Millisecond SetSelection
-                        , Random.generate NewRandom (Random.int 0 10000)
+
+                        --, Random.generate NewRandom (Random.int 0 10000)
                         ]
                     , Nothing
                     )
@@ -932,6 +934,9 @@ update msg model =
         NewRandom n ->
             ( { model | randomInt = n }, Cmd.none, Nothing )
 
+        GenerateRandomInt ->
+            ( model, Random.generate NewRandom (Random.int 0 10000), Nothing )
+
         NoOp ->
             ( model, Cmd.none, Nothing )
 
@@ -953,13 +958,25 @@ iconSize =
 
 view model config =
     --Element.layout [] <|
+    --Keyed.el
+    --    (if model.internalUrlSelectorOpen then
+    --        [ Events.onClick InternalUrlSelectorClickOff ]
+    --     else if not (model.colorPickerOpen == Nothing) then
+    --        [ Events.onClick ColorPickerClickOff ]
+    --     else
+    --        []
+    --    )
+    --    ( String.fromInt model.randomInt
     column
         ([ padding 15
          , spacing 15
          ]
             ++ (if model.internalUrlSelectorOpen then
                     [ Events.onClick InternalUrlSelectorClickOff ]
-                else if not (model.colorPickerOpen == Nothing) then
+                else
+                    []
+               )
+            ++ (if not (model.colorPickerOpen == Nothing) then
                     [ Events.onClick ColorPickerClickOff ]
                 else
                     []
@@ -993,16 +1010,11 @@ view model config =
                 { onPress = Just SaveAndQuit
                 , label = text "Valider et Quitter"
                 }
-            ]
-        , Element.paragraph [] [ text <| String.fromInt model.randomInt ]
-        , Element.paragraph []
-            [ text <|
-                case model.colorPickerOpen of
-                    Nothing ->
-                        "Nothing"
 
-                    Just s ->
-                        s
+            --, Input.button (buttonStyle True)
+            --    { onPress = Just GenerateRandomInt
+            --    , label = text "Run random"
+            --    }
             ]
         ]
 
@@ -1197,6 +1209,18 @@ textBlockStyleView model =
                     ]
             }
         ]
+
+
+
+--    |> List.foldr
+--        (\e ( n, acc ) ->
+--            ( n + 1
+--            , ( String.fromInt n, e ) :: acc
+--            )
+--        )
+--        ( model.randomInt, [] )
+--    |> Tuple.second
+--)
 
 
 headingView level { meta, attrs, dataKind } =
@@ -1593,6 +1617,8 @@ colorPicker colorPickerOpen currentColor label msg uid =
                 [ --htmlAttribute <|
                   --    HtmlEvents.stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
                   Background.color (rgb 0.95 0.95 0.95)
+
+                --, Events.onLose
                 ]
                 (case colorPickerOpen of
                     Just l ->
