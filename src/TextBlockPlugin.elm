@@ -7,6 +7,7 @@ import Delay exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
 import DocumentEditorHelpers exposing (..)
+import DocumentSerializer exposing (..)
 import DocumentView exposing (renderTextBlock)
 import Element exposing (..)
 import Element.Background as Background
@@ -25,7 +26,6 @@ import Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Parser exposing (..)
-import Random as Random
 import Set exposing (..)
 import StyleSheets exposing (StyleSheet, defaulStyleSheet)
 
@@ -47,7 +47,6 @@ type alias DocTextBlock =
     , selectedFolder : Maybe String
     , selectedFile : Maybe String
     , colorPickerOpen : Maybe String
-    , randomInt : Int
 
     --, config : Config Msg
     }
@@ -105,8 +104,6 @@ type Msg
     | ColorPickerClickOff
     | SaveAndQuit
     | Quit
-    | NewRandom Int
-    | GenerateRandomInt
     | NoOp
 
 
@@ -198,7 +195,7 @@ init attrs mbInput =
                     updateTrackedData (Dict.fromList trackedData) res
             in
             ( { rawInput = resultString
-              , parsedInput = Ok []
+              , parsedInput = Ok res
               , selected = Nothing
               , cursorPos = Nothing
               , output =
@@ -233,7 +230,6 @@ init attrs mbInput =
               --      , sizesDict = Dict.empty
               --      , zipperHandlers = Nothing
               --      }
-              , randomInt = 0
               }
             , Cmd.none
             )
@@ -269,7 +265,6 @@ init attrs mbInput =
               --      , sizesDict = Dict.empty
               --      , zipperHandlers = Nothing
               --      }
-              , randomInt = 0
               }
             , Cmd.none
             )
@@ -931,12 +926,6 @@ update msg model =
             , Just PluginQuit
             )
 
-        NewRandom n ->
-            ( { model | randomInt = n }, Cmd.none, Nothing )
-
-        GenerateRandomInt ->
-            ( model, Random.generate NewRandom (Random.int 0 10000), Nothing )
-
         NoOp ->
             ( model, Cmd.none, Nothing )
 
@@ -957,19 +946,12 @@ iconSize =
 
 
 view model config =
-    --Element.layout [] <|
-    --Keyed.el
-    --    (if model.internalUrlSelectorOpen then
-    --        [ Events.onClick InternalUrlSelectorClickOff ]
-    --     else if not (model.colorPickerOpen == Nothing) then
-    --        [ Events.onClick ColorPickerClickOff ]
-    --     else
-    --        []
-    --    )
-    --    ( String.fromInt model.randomInt
     column
         ([ padding 15
          , spacing 15
+         , scrollbarY
+         , height (minimum (config.height - config.mainInterfaceHeight) fill)
+         , width fill
          ]
             ++ (if model.internalUrlSelectorOpen then
                     [ Events.onClick InternalUrlSelectorClickOff ]
@@ -983,7 +965,11 @@ view model config =
                )
         )
         [ interfaceView model
-        , row
+        , (if config.width < 1600 then
+            column
+           else
+            row
+          )
             [ spacing 30 ]
             [ column
                 [ alignTop
@@ -995,31 +981,34 @@ view model config =
                     model.cursorPos
                     model.setSelection
                     model.rawInput
+                , row
+                    [ spacing 15
+                    , Font.size 16
+                    ]
+                    [ Input.button (buttonStyle True)
+                        { onPress = Just Quit
+                        , label = text "Quitter"
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress = Just SaveAndQuit
+                        , label = text "Valider et Quitter"
+                        }
+                    ]
                 ]
             , textBlocPreview model config
             ]
-        , row
-            [ spacing 15
-            , Font.size 16
-            ]
-            [ Input.button (buttonStyle True)
-                { onPress = Just Quit
-                , label = text "Quitter"
-                }
-            , Input.button (buttonStyle True)
-                { onPress = Just SaveAndQuit
-                , label = text "Valider et Quitter"
-                }
 
-            --, Input.button (buttonStyle True)
-            --    { onPress = Just GenerateRandomInt
-            --    , label = text "Run random"
-            --    }
-            ]
+        --, Element.paragraph [] [ text <| Debug.toString model ]
         ]
 
 
 interfaceView model =
+    let
+        isActive =
+            (not <| model.selected == Nothing)
+                && (not <| selectionContainsTrackedData model.selected model.trackedData)
+                && (not <| selectionInTrackedData model.selected model.trackedData)
+    in
     column
         [ spacing 15
         ]
@@ -1031,9 +1020,12 @@ interfaceView model =
             , width fill
             ]
             [ Input.button
-                (buttonStyle (not <| model.selected == Nothing))
+                (buttonStyle isActive)
                 { onPress =
-                    Just (InsertTrackingTag <| Heading 1)
+                    if isActive then
+                        Just (InsertTrackingTag <| Heading 1)
+                    else
+                        Nothing
                 , label =
                     row [ spacing 5 ]
                         [ el [] (html <| type_ iconSize)
@@ -1041,8 +1033,12 @@ interfaceView model =
                         ]
                 }
             , Input.button
-                (buttonStyle (not <| model.selected == Nothing))
-                { onPress = Just (InsertTrackingTag <| InternalLink False "")
+                (buttonStyle isActive)
+                { onPress =
+                    if isActive then
+                        Just (InsertTrackingTag <| InternalLink False "")
+                    else
+                        Nothing
                 , label =
                     row [ spacing 5 ]
                         [ el [] (html <| link2 iconSize)
@@ -1050,8 +1046,12 @@ interfaceView model =
                         ]
                 }
             , Input.button
-                (buttonStyle (not <| model.selected == Nothing))
-                { onPress = Just (InsertTrackingTag <| ExternalLink "")
+                (buttonStyle isActive)
+                { onPress =
+                    if isActive then
+                        Just (InsertTrackingTag <| ExternalLink "")
+                    else
+                        Nothing
                 , label =
                     row [ spacing 5 ]
                         [ el [] (html <| Icons.externalLink iconSize)
@@ -1059,8 +1059,12 @@ interfaceView model =
                         ]
                 }
             , Input.button
-                (buttonStyle (not <| model.selected == Nothing))
-                { onPress = Just (InsertTrackingTag <| InlineStyled)
+                (buttonStyle isActive)
+                { onPress =
+                    if isActive then
+                        Just (InsertTrackingTag <| InlineStyled)
+                    else
+                        Nothing
                 , label =
                     row [ spacing 5 ]
                         [ el [] (html <| tag iconSize)
@@ -1101,16 +1105,6 @@ interfaceView model =
                         InlineStyled ->
                             inlineStyleView model td
             ]
-
-        --    |> List.foldr
-        --        (\e ( n, acc ) ->
-        --            ( n + 1
-        --            , ( String.fromInt n, e ) :: acc
-        --            )
-        --        )
-        --        ( model.randomInt, [] )
-        --    |> Tuple.second
-        --)
         ]
 
 
@@ -1209,18 +1203,6 @@ textBlockStyleView model =
                     ]
             }
         ]
-
-
-
---    |> List.foldr
---        (\e ( n, acc ) ->
---            ( n + 1
---            , ( String.fromInt n, e ) :: acc
---            )
---        )
---        ( model.randomInt, [] )
---    |> Tuple.second
---)
 
 
 headingView level { meta, attrs, dataKind } =
@@ -1542,6 +1524,7 @@ customTextArea attrs cursorPos setSelection rawInput =
                     , HtmlAttr.cols 60
                     , HtmlAttr.style "height" "500px"
                     , HtmlAttr.style "spellcheck" "false"
+                    , HtmlAttr.style "background-color" "Beige"
                     , HtmlAttr.value rawInput
                     ]
                     []
@@ -1552,9 +1535,18 @@ customTextArea attrs cursorPos setSelection rawInput =
 textBlocPreview model config =
     Element.map (\_ -> NoOp) <|
         column
-            [ width (minimum 500 fill)
+            [ width (minimum 500 (maximum 700 fill))
+            , height (maximum 500 fill)
+            , scrollbarY
             , spacing 20
             , alignTop
+            , Border.shadow
+                { offset = ( 4, 4 )
+                , size = 5
+                , blur = 10
+                , color = rgba 0 0 0 0.16
+                }
+            , padding 15
             ]
             (renderTextBlock
                 config
@@ -1912,6 +1904,44 @@ reallyspaces =
 -- in the input string in order to reduce visual clutter.
 
 
+selectionContainsTrackedData : Maybe Selection -> Dict Int TrackedData -> Bool
+selectionContainsTrackedData mbSelection trackedData =
+    case mbSelection of
+        Nothing ->
+            True
+
+        Just { start, finish } ->
+            let
+                selectionContainsTd { meta } =
+                    meta.start >= start && meta.stop <= finish
+            in
+            Dict.foldr
+                (\k v acc ->
+                    selectionContainsTd v || acc
+                )
+                False
+                trackedData
+
+
+selectionInTrackedData : Maybe Selection -> Dict Int TrackedData -> Bool
+selectionInTrackedData mbSelection trackedData =
+    case mbSelection of
+        Nothing ->
+            True
+
+        Just { start, finish } ->
+            let
+                selectionContainsTd { meta } =
+                    meta.start <= start && meta.stop >= finish
+            in
+            Dict.foldr
+                (\k v acc ->
+                    selectionContainsTd v || acc
+                )
+                False
+                trackedData
+
+
 type alias TrackedData =
     { meta : PrimitiveMeta
     , attrs : List DocAttribute
@@ -2248,7 +2278,7 @@ fromTextBloc tbes =
                 newProcessedInput.resultString ++ " " ++ resultString
             , trackedData =
                 newProcessedInput.trackedData ++ trackedData
-            , nextUid = nextUid + newProcessedInput.nextUid
+            , nextUid = nextUid + List.length newProcessedInput.trackedData
             }
         )
         { resultString = ""
@@ -2273,7 +2303,7 @@ fromTextBlocElement nextUid_ tbe =
                         newProcessedInput.resultString ++ " " ++ resultString
                     , trackedData =
                         newProcessedInput.trackedData ++ trackedData
-                    , nextUid = nextUid + 1
+                    , nextUid = nextUid + List.length newProcessedInput.trackedData
                     }
                 )
                 { resultString = ""
@@ -2819,37 +2849,6 @@ dummyFileList =
           , []
           )
         ]
-
-
-sample =
-    """
-Murol
-
-Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
-
-Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
-
-Enchâssé entre le volcan boisé du
-Tartaret le promontoire du
-château de Murol et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques.
-
-Le chateau
-
-Au pied du château, découvrez le parc arboré du Prélong où se trouvent le
-musée des Peintres de l’Ecole de Murols et le musée archéologique.
-    """
-
-
-
---<titre-2 9> un joli titre </>
---<titre-2 0> un joli titre </><titre-2 0> un joli titre </><titre-2 0> un joli titre </><titre-2 0> un joli titre </>
---Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
---Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy.
---Enchâssé entre le volcan boisé du
---Tartaret le promontoire du
---château de Murol et le puy de  <lien-externe 0> Bessolles</> , le village vous ravira par ses sites remarquables et pittoresques.
---Au pied du  <lien-interne 0> château</>,  découvrez le parc arboré du Prélong où se trouvent le
---musée des Peintres de l’Ecole de Murols et le musée archéologique.
 
 
 webColors =

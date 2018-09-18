@@ -5,49 +5,170 @@ import Json.Encode exposing (..)
 import Set exposing (toList)
 
 
---encodeDocument : Document msg -> Value
---encodeDocument doc =
---    Debug.todo ""
-
-
-encodeCellContent : CellContent -> Value
-encodeCellContent lv =
-    case lv of
-        Image im ->
+encodeDocument : Document -> Value
+encodeDocument doc =
+    case doc of
+        Container cv docs ->
             object
-                [ ( "Image", encodeImageMeta im ) ]
-
-        Link lm ->
-            object
-                [ ( "Link", encodeLinkMeta lm ) ]
-
-        Text s ->
-            object
-                [ ( "Text", string s ) ]
-
-        Heading ( level, s ) ->
-            object
-                [ ( "Heading"
+                [ ( "Container"
                   , object
-                        [ ( "level", int level )
-                        , ( "content", string s )
+                        [ ( "ContainerValue"
+                          , encodeContainerValue cv
+                          )
+                        , ( "children", list encodeDocument docs )
                         ]
                   )
                 ]
+
+        Cell cv ->
+            object
+                [ ( "Cell", encodeCellValue cv ) ]
+
+
+encodeContainerValue : ContainerValue -> Value
+encodeContainerValue { containerLabel, id, attrs } =
+    object
+        [ ( "containerLabel", encodeContainerLabel containerLabel )
+        , ( "id", encodeId id )
+        , ( "attrs", list encodeDocAttribute attrs )
+        ]
+
+
+encodeContainerLabel : ContainerLabel -> Value
+encodeContainerLabel cLabel =
+    case cLabel of
+        DocColumn ->
+            string "DocColumn"
+
+        DocRow ->
+            string "DocRow"
+
+        TextColumn ->
+            string "TextColumn"
+
+        ResponsiveBloc ->
+            string "ResponsiveBloc"
+
+
+encodeCellValue : CellValue -> Value
+encodeCellValue { cellContent, id, attrs } =
+    object
+        [ ( "cellContent", encodeCellContent cellContent )
+        , ( "id", encodeId id )
+        , ( "attrs", list encodeDocAttribute attrs )
+        ]
+
+
+encodeCellContent : CellContent -> Value
+encodeCellContent cellContent =
+    case cellContent of
+        Image im ->
+            object
+                [ ( "Image", encodeImageMeta im ) ]
 
         Table tm ->
             object []
 
         CustomElement s ->
-            object [ ( "customElement", string s ) ]
+            object [ ( "CustomElement", string s ) ]
+
+        TextBlock tbElems ->
+            object [ ( "TextBlock", list encodeTextBlockElement tbElems ) ]
+
+        EmptyCell ->
+            string "EmptyCell"
+
+
+encodeTextBlockElement : TextBlockElement -> Value
+encodeTextBlockElement tbElem =
+    case tbElem of
+        Paragraph attrs prims ->
+            object
+                [ ( "Paragraph"
+                  , object
+                        [ ( "attrs"
+                          , list encodeDocAttribute attrs
+                          )
+                        , ( "prims"
+                          , list encodeTextBlockPrimitive prims
+                          )
+                        ]
+                  )
+                ]
+
+        UList attrs liList ->
+            object
+                [ ( "UList"
+                  , object
+                        [ ( "attrs"
+                          , list encodeDocAttribute attrs
+                          )
+                        , ( "liList"
+                          , List.map (list encodeTextBlockPrimitive) liList
+                                |> list (\li -> object [ ( "li", li ) ])
+                          )
+                        ]
+                  )
+                ]
+
+        Heading attrs ( level, s ) ->
+            object
+                [ ( "Heading"
+                  , object
+                        [ ( "attrs", list encodeDocAttribute attrs )
+                        , ( "level", int level )
+                        , ( "content", string s )
+                        ]
+                  )
+                ]
+
+        TBPrimitive prim ->
+            object
+                [ ( "TBPrimitive", encodeTextBlockPrimitive prim ) ]
+
+
+encodeTextBlockPrimitive : TextBlockPrimitive -> Value
+encodeTextBlockPrimitive tbPrim =
+    case tbPrim of
+        Text attrs s ->
+            object
+                [ ( "Text"
+                  , object
+                        [ ( "attrs"
+                          , list encodeDocAttribute attrs
+                          )
+                        , ( "value"
+                          , string s
+                          )
+                        ]
+                  )
+                ]
+
+        Link attrs lm ->
+            object
+                [ ( "Link"
+                  , object
+                        [ ( "attrs"
+                          , list encodeDocAttribute attrs
+                          )
+                        , ( "linkMeta"
+                          , encodeLinkMeta lm
+                          )
+                        ]
+                  )
+                ]
 
 
 encodeId : Id -> Value
-encodeId { uid, styleId, classes } =
+encodeId { uid, docStyleId, htmlId, classes } =
     object
         [ ( "uid", int uid )
-        , ( "styleId"
-          , Maybe.map string styleId
+        , ( "docStyleId"
+          , Maybe.map string docStyleId
+                |> Maybe.withDefault null
+          )
+        , ( "htmlId"
+          , Maybe.map string htmlId
                 |> Maybe.withDefault null
           )
         , ( "classes"
@@ -110,7 +231,7 @@ encodeDocColor (DocColor r g b) =
         ]
 
 
-encodeDocAttribute : DocAttribute msg -> Value
+encodeDocAttribute : DocAttribute -> Value
 encodeDocAttribute docAttr =
     case docAttr of
         PaddingEach { bottom, left, right, top } ->
@@ -159,6 +280,10 @@ encodeDocAttribute docAttr =
         Border ->
             string "Border"
 
+        Font s ->
+            object
+                [ ( "Font", string s ) ]
+
         FontColor color ->
             object
                 [ ( "FontColor", encodeDocColor color ) ]
@@ -185,5 +310,5 @@ encodeDocAttribute docAttr =
         Italic ->
             string "Italic"
 
-        StyleElementAttr seAttr ->
-            object [ ( "StyleElementAttr", string "todo" ) ]
+        ZipperAttr _ _ ->
+            object [ ( "ZipperAttr", string "" ) ]

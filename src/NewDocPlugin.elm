@@ -83,7 +83,10 @@ view config =
             , row
                 [ spacing 15 ]
                 [ Input.button buttonStyle
-                    { onPress = Nothing
+                    { onPress =
+                        Just <|
+                            config.createNewCell
+                                (newTextBlock config.nextUid)
                     , label =
                         row [ spacing 10 ]
                             [ text "Créer bloc de texte"

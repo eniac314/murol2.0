@@ -148,8 +148,8 @@ type DocAttribute
     | Width Int
     | Height Int
     | Border
-    | FontColor DocColor
     | Font String
+    | FontColor DocColor
     | FontSize Int
     | FontAlignLeft
     | FontAlignRight

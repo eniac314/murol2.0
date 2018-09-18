@@ -106,6 +106,12 @@ newTable nextUid =
         )
 
 
+newTextBlock nextUid =
+    newCell
+        nextUid
+        (TextBlock [])
+
+
 
 --------------------
 -- new Containers --
