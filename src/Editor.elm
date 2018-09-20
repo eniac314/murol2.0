@@ -1,11 +1,11 @@
-module Editor exposing (..)
+port module Editor exposing (..)
 
 --import Doc
 
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
-import Dict exposing (fromList)
+import Dict exposing (..)
 import Document exposing (..)
 import DocumentDecoder exposing (..)
 import DocumentEditorHelpers exposing (..)
@@ -25,7 +25,10 @@ import Html.Attributes as HtmlAttr
 import Html.Events.Extra.Wheel as Wheel
 import Icons exposing (..)
 import Json.Decode as Decode
+import Json.Encode exposing (Value)
 import NewDocPlugin exposing (..)
+import PortFunnel exposing (FunnelSpec, GenericMessage, ModuleDesc, StateAccessors)
+import PortFunnel.LocalStorage as LocalStorage
 import SampleDocs exposing (..)
 import StyleSheets exposing (..)
 import TablePlugin exposing (..)
@@ -52,6 +55,90 @@ subscriptions model =
         ]
 
 
+port cmdPort : Value -> Cmd msg
+
+
+port subPort : (Value -> msg) -> Sub msg
+
+
+type alias FunnelState =
+    -- FunnelState packages the states of all the modules using portFunnel
+    { storage : LocalStorage.State }
+
+
+type
+    Funnel
+    -- a Funnel is a module using port-funnel, only one constructor here
+    -- StorageFunnel (FunnelSpec FunnelState LocalStorage.State LocalStorage.Message LocalStorage.Response Model Msg)
+    = StorageFunnel (AppFunnel LocalStorage.State LocalStorage.Message LocalStorage.Response)
+
+
+type alias AppFunnel substate message response =
+    -- exists only to shorten Funnel type definition
+    -- could be used to add other constructors to the Funnel type
+    FunnelSpec FunnelState substate message response Model Msg
+
+
+funnels : Dict String Funnel
+funnels =
+    -- Each entry corresponds to one funnel for one port-funnel using module
+    -- only one entry here
+    Dict.fromList
+        [ ( LocalStorage.moduleName
+          , StorageFunnel <|
+                FunnelSpec
+                    --
+                    -- StateAccessors FunnelState LocalStorage.State
+                    storageAccessors
+                    --
+                    -- ModuleDesc message substate response
+                    LocalStorage.moduleDesc
+                    --
+                    -- (GenericMessage -> Cmd msg) -> response -> Cmd msg
+                    -- always return Cmd.none
+                    LocalStorage.commander
+                    --
+                    -- response -> state -> model -> ( model, Cmd msg )
+                    storageHandler
+          )
+        ]
+
+
+storageAccessors : StateAccessors FunnelState LocalStorage.State
+storageAccessors =
+    --type alias StateAccessors state substate =
+    --    { get : state -> substate
+    --    , set : substate -> state -> state
+    --    }
+    -- substate -> LocalStorage.State
+    -- state -> FunnelState
+    --Package up an application's functions for accessing one funnel module's state.
+    StateAccessors .storage (\substate state -> { state | storage = substate })
+
+
+storageHandler : LocalStorage.Response -> FunnelState -> Model -> ( Model, Cmd Msg )
+storageHandler response state mdl =
+    let
+        model =
+            { mdl | funnelState = state }
+    in
+    case response of
+        -- A `Response` is used to return values for `Get` and `ListKeys`.
+        LocalStorage.GetResponse { key, value } ->
+            ( { model
+                | localStorageKey = key
+                , localStorageValue = value
+              }
+            , Cmd.none
+            )
+
+        LocalStorage.ListKeysResponse { keys } ->
+            ( { model | localStorageKeys = keys }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
 type alias Model =
     { config : Config Msg
     , document : DocZipper
@@ -62,6 +149,10 @@ type alias Model =
     , menuClicked : Bool
     , menuFocused : String
     , previewMode : PreviewMode
+    , funnelState : FunnelState
+    , localStorageKey : String
+    , localStorageValue : Maybe Value
+    , localStorageKeys : List String
     , currentPlugin : Maybe EditorPlugin
     , tablePlugin : TablePlugin.DocTable
     , textBlockPlugin : TextBlockPlugin.DocTextBlock
@@ -127,6 +218,17 @@ type Msg
       -----------------------------
     | TablePluginMsg TablePlugin.Msg
     | TextBlockPluginMsg TextBlockPlugin.Msg
+      -------------------
+      -- Local Storage --
+      -------------------
+    | SetLocalStorageKey String
+    | SetLocalStorageValue Json.Encode.Value
+    | GetFromLocalStorage
+    | PutInLocalStorage
+    | RemoveFromLocalStorage
+    | ListLocalStorageKeys
+    | ClearLocalStorage
+    | Process Json.Encode.Value
       ---------
       -- Misc--
       ---------
@@ -180,6 +282,10 @@ init doc flags =
       , menuClicked = False
       , menuFocused = ""
       , previewMode = PreviewBigScreen
+      , funnelState = { storage = LocalStorage.initialState "Editor" }
+      , localStorageKey = ""
+      , localStorageValue = Nothing
+      , localStorageKeys = []
       , currentPlugin = Nothing
       , tablePlugin = TablePlugin.init Nothing
       , textBlockPlugin = newTextBlockPlugin
@@ -660,6 +766,96 @@ update msg model =
 
                                 _ ->
                                     ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+        -------------------
+        -- Local Storage --
+        -------------------
+        --LocalStorage.send (getCmdPort model)
+        --    message
+        --    model.funnelState.storage
+        SetLocalStorageKey key ->
+            ( { model | localStorageKey = key }, Cmd.none )
+
+        SetLocalStorageValue val ->
+            ( { model | localStorageValue = Just val }, Cmd.none )
+
+        GetFromLocalStorage ->
+            ( model
+            , LocalStorage.send
+                cmdPort
+                (LocalStorage.get model.localStorageKey)
+                model.funnelState.storage
+            )
+
+        PutInLocalStorage ->
+            ( model
+            , LocalStorage.send
+                cmdPort
+                (LocalStorage.put
+                    model.localStorageKey
+                    model.localStorageValue
+                )
+                model.funnelState.storage
+            )
+
+        RemoveFromLocalStorage ->
+            ( model
+            , LocalStorage.send
+                cmdPort
+                (LocalStorage.put
+                    model.localStorageKey
+                    Nothing
+                )
+                model.funnelState.storage
+            )
+
+        ListLocalStorageKeys ->
+            ( model
+            , LocalStorage.send
+                cmdPort
+                (LocalStorage.listKeys "")
+                model.funnelState.storage
+            )
+
+        ClearLocalStorage ->
+            ( model
+            , LocalStorage.send
+                cmdPort
+                (LocalStorage.clear "")
+                model.funnelState.storage
+            )
+
+        Process val ->
+            -- processes all messages incoming from subPort,
+            -- for all modules using portFunnel
+            case PortFunnel.decodeGenericMessage val of
+                Err _ ->
+                    ( model, Cmd.none )
+
+                Ok genericMessage ->
+                    let
+                        moduleName =
+                            genericMessage.moduleName
+                    in
+                    case Dict.get moduleName funnels of
+                        Just funnel ->
+                            case funnel of
+                                StorageFunnel storFunnel ->
+                                    case
+                                        PortFunnel.appProcess cmdPort
+                                            genericMessage
+                                            storFunnel
+                                            model.funnelState
+                                            model
+                                    of
+                                        Err _ ->
+                                            ( model, Cmd.none )
+
+                                        Ok res ->
+                                            res
 
                         _ ->
                             ( model, Cmd.none )

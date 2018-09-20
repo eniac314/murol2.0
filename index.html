@@ -8,7 +8,8 @@
   
   <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-bundle.js" type="text/javascript"></script>
   <script type="text/javascript" src="js/Editor.js"></script>
-  
+  <script type='text/javascript' src='js/PortFunnel.js'></script>
+
 
 </head>
 
@@ -19,6 +20,12 @@
 
   <script type="text/javascript">
     var app = Elm.Editor.init();
+
+    // PortFunnel.subscribe will load js/PortFunnel/<module>.js,
+    // for each module in this list.
+    var modules = ['LocalStorage'];
+
+    PortFunnel.subscribe(app, {modules: modules});
 
     customElements.define('custom-textarea', class extends HTMLElement {
     

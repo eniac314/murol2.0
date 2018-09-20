@@ -8,6 +8,8 @@
         "direct": {
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
             "andrewMacmurray/elm-delay": "3.0.0",
+            "billstclair/elm-localstorage": "6.0.1",
+            "billstclair/elm-port-funnel": "1.0.3",
             "elm/browser": "1.0.0",
             "elm/core": "1.0.0",
             "elm/html": "1.0.0",
@@ -22,8 +24,11 @@
             "rtfeldman/elm-hex": "1.0.0"
         },
         "indirect": {
+            "Janiczek/cmd-extra": "1.0.0",
             "elm/url": "1.0.0",
-            "elm/virtual-dom": "1.0.2"
+            "elm/virtual-dom": "1.0.2",
+            "elm-community/dict-extra": "2.3.1",
+            "elm-community/list-extra": "8.0.0"
         }
     },
     "test-dependencies": {
