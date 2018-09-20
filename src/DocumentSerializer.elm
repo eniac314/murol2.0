@@ -1,5 +1,6 @@
 module DocumentSerializer exposing (..)
 
+import Array exposing (toList)
 import Document exposing (..)
 import Json.Encode exposing (..)
 import Set exposing (toList)
@@ -30,7 +31,7 @@ encodeContainerValue { containerLabel, id, attrs } =
     object
         [ ( "containerLabel", encodeContainerLabel containerLabel )
         , ( "id", encodeId id )
-        , ( "attrs", list encodeDocAttribute attrs )
+        , ( "attrs", encodeDocAttributes attrs )
         ]
 
 
@@ -55,7 +56,7 @@ encodeCellValue { cellContent, id, attrs } =
     object
         [ ( "cellContent", encodeCellContent cellContent )
         , ( "id", encodeId id )
-        , ( "attrs", list encodeDocAttribute attrs )
+        , ( "attrs", encodeDocAttributes attrs )
         ]
 
 
@@ -67,7 +68,8 @@ encodeCellContent cellContent =
                 [ ( "Image", encodeImageMeta im ) ]
 
         Table tm ->
-            object []
+            object
+                [ ( "Table", encodeTableMeta tm ) ]
 
         CustomElement s ->
             object [ ( "CustomElement", string s ) ]
@@ -87,7 +89,7 @@ encodeTextBlockElement tbElem =
                 [ ( "Paragraph"
                   , object
                         [ ( "attrs"
-                          , list encodeDocAttribute attrs
+                          , encodeDocAttributes attrs
                           )
                         , ( "prims"
                           , list encodeTextBlockPrimitive prims
@@ -101,7 +103,7 @@ encodeTextBlockElement tbElem =
                 [ ( "UList"
                   , object
                         [ ( "attrs"
-                          , list encodeDocAttribute attrs
+                          , encodeDocAttributes attrs
                           )
                         , ( "liList"
                           , List.map (list encodeTextBlockPrimitive) liList
@@ -115,9 +117,9 @@ encodeTextBlockElement tbElem =
             object
                 [ ( "Heading"
                   , object
-                        [ ( "attrs", list encodeDocAttribute attrs )
+                        [ ( "attrs", encodeDocAttributes attrs )
                         , ( "level", int level )
-                        , ( "content", string s )
+                        , ( "value", string s )
                         ]
                   )
                 ]
@@ -135,7 +137,7 @@ encodeTextBlockPrimitive tbPrim =
                 [ ( "Text"
                   , object
                         [ ( "attrs"
-                          , list encodeDocAttribute attrs
+                          , encodeDocAttributes attrs
                           )
                         , ( "value"
                           , string s
@@ -149,7 +151,7 @@ encodeTextBlockPrimitive tbPrim =
                 [ ( "Link"
                   , object
                         [ ( "attrs"
-                          , list encodeDocAttribute attrs
+                          , encodeDocAttributes attrs
                           )
                         , ( "linkMeta"
                           , encodeLinkMeta lm
@@ -183,6 +185,20 @@ encodeLinkMeta { targetBlank, url, label } =
         [ ( "targetBlank", bool targetBlank )
         , ( "url", string url )
         , ( "label", string label )
+        ]
+
+
+encodeTableMeta : TableMeta -> Value
+encodeTableMeta { style, nbrRows, nbrCols, data } =
+    object
+        [ ( "style", string style )
+        , ( "nbrRows", int nbrRows )
+        , ( "nbrCols", int nbrCols )
+        , ( "data"
+          , List.map Array.toList data
+                |> List.map (list string)
+                |> list identity
+          )
         ]
 
 
@@ -231,84 +247,108 @@ encodeDocColor (DocColor r g b) =
         ]
 
 
-encodeDocAttribute : DocAttribute -> Value
+encodeDocAttributes : List DocAttribute -> Value
+encodeDocAttributes attrs =
+    List.filterMap encodeDocAttribute attrs
+        |> list identity
+
+
+encodeDocAttribute : DocAttribute -> Maybe Value
 encodeDocAttribute docAttr =
     case docAttr of
         PaddingEach { bottom, left, right, top } ->
-            object
-                [ ( "PaddingEach"
-                  , object
-                        [ ( "bottom", int bottom )
-                        , ( "left", int left )
-                        , ( "right", int right )
-                        , ( "top", int top )
-                        ]
-                  )
-                ]
+            Just <|
+                object
+                    [ ( "PaddingEach"
+                      , object
+                            [ ( "bottom", int bottom )
+                            , ( "left", int left )
+                            , ( "right", int right )
+                            , ( "top", int top )
+                            ]
+                      )
+                    ]
 
         SpacingXY x y ->
-            object
-                [ ( "SpacingXY"
-                  , object
-                        [ ( "X", int x )
-                        , ( "Y", int y )
-                        ]
-                  )
-                ]
+            Just <|
+                object
+                    [ ( "SpacingXY"
+                      , object
+                            [ ( "X", int x )
+                            , ( "Y", int y )
+                            ]
+                      )
+                    ]
 
         AlignRight ->
-            string "AlignRight"
+            Just <|
+                string "AlignRight"
 
         AlignLeft ->
-            string "AlignLeft"
+            Just <|
+                string "AlignLeft"
 
         Pointer ->
-            string "Pointer"
+            Just <|
+                string "Pointer"
 
         BackgroundColor color ->
-            object
-                [ ( "BackgroundColor", encodeDocColor color ) ]
+            Just <|
+                object
+                    [ ( "BackgroundColor", encodeDocColor color ) ]
 
         Width w ->
-            object
-                [ ( "Width", int w ) ]
+            Just <|
+                object
+                    [ ( "Width", int w ) ]
 
         Height h ->
-            object
-                [ ( "Height", int h ) ]
+            Just <|
+                object
+                    [ ( "Height", int h ) ]
 
         Border ->
-            string "Border"
+            Just <|
+                string "Border"
 
         Font s ->
-            object
-                [ ( "Font", string s ) ]
+            Just <|
+                object
+                    [ ( "Font", string s ) ]
 
         FontColor color ->
-            object
-                [ ( "FontColor", encodeDocColor color ) ]
+            Just <|
+                object
+                    [ ( "FontColor", encodeDocColor color ) ]
 
         FontSize s ->
-            object
-                [ ( "FontSize", int s ) ]
+            Just <|
+                object
+                    [ ( "FontSize", int s ) ]
 
         FontAlignLeft ->
-            string "FontAlignLeft"
+            Just <|
+                string "FontAlignLeft"
 
         FontAlignRight ->
-            string "FontAlignRight"
+            Just <|
+                string "FontAlignRight"
 
         Center ->
-            string "Center"
+            Just <|
+                string "Center"
 
         Justify ->
-            string "Justify"
+            Just <|
+                string "Justify"
 
         Bold ->
-            string "Bold"
+            Just <|
+                string "Bold"
 
         Italic ->
-            string "Italic"
+            Just <|
+                string "Italic"
 
         ZipperAttr _ _ ->
-            object [ ( "ZipperAttr", string "" ) ]
+            Nothing

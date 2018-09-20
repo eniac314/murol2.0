@@ -7,6 +7,7 @@ import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
 import Dict exposing (fromList)
 import Document exposing (..)
+import DocumentDecoder exposing (..)
 import DocumentEditorHelpers exposing (..)
 import DocumentResponsive exposing (..)
 import DocumentStructView exposing (..)
