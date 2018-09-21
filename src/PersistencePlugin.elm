@@ -11,26 +11,12 @@ import Element.Region as Region
 import Element.Keyed as Keyed
 import Html exposing (Html)
 import Html.Attributes as HtmlAttr
-import Json.Print exposing (..)
 import Json.Encode exposing (null)
 import Json.Decode exposing (decodeString, value)
 import DocumentSerializer exposing (..)
 
 
 view config =
-    --let
-    --    jsonString =
-    --        (prettyValue { indent = 4, columns = 80 }
-    --            (Maybe.withDefault null (config.localStorageValue))
-    --            |> (\res ->
-    --                    case res of
-    --                        Ok prettyJson ->
-    --                            prettyJson
-    --                        Err error ->
-    --                            "Erreur: " ++ error
-    --               )
-    --        )
-    --in
     column
         [ spacing 15
         , padding 15
@@ -76,15 +62,6 @@ view config =
                 [ Input.button buttonStyle
                     { onPress =
                         Just
-                            config.listLocalStorageKeys
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Charger la liste"
-                            ]
-                    }
-                , Input.button buttonStyle
-                    { onPress =
-                        Just
                             config.removeFromLocalStorage
                     , label =
                         row [ spacing 10 ]
@@ -125,29 +102,7 @@ view config =
             ]
         , row [ spacing 15 ]
             [ el [] (text "Prévisualisation Json: ")
-              --, Input.button buttonStyle
-              --    { onPress =
-              --        Just
-              --            config.decodeJsonBuffer
-              --    , label =
-              --        row [ spacing 10 ]
-              --            [ text "Décoder json"
-              --            ]
-              --    }
             ]
-          --, el []
-          --    (text
-          --        (prettyValue { indent = 4, columns = 80 }
-          --            (Maybe.withDefault null (config.localStorageValue))
-          --            |> (\res ->
-          --                    case res of
-          --                        Ok prettyJson ->
-          --                            prettyJson
-          --                        Err error ->
-          --                            "Erreur: " ++ error
-          --               )
-          --        )
-          --    )
         , column
             [ spacing 15 ]
             [ Keyed.el []
@@ -168,12 +123,6 @@ view config =
                     , spellcheck = False
                     }
                 )
-              --(text
-              --    (prettyValue { indent = 4, columns = 80 }
-              --        (Maybe.withDefault null (config.localStorageValue))
-              --        |> Result.withDefault ""
-              --    )
-              --)
             , row
                 [ spacing 15 ]
                 [ Input.text

@@ -35,7 +35,6 @@ import TablePlugin exposing (..)
 import Task exposing (perform)
 import TextBlockPlugin exposing (..)
 import PersistencePlugin exposing (..)
-import Json.Print exposing (prettyValue)
 import Yajson exposing (..)
 import Yajson.Stringify exposing (..)
 
@@ -233,11 +232,9 @@ type Msg
     | SetLocalStorageKey String
     | SetLocalStorageValue Json.Encode.Value
     | SetJsonBuffer String
-    | DecodeJsonBuffer
     | GetFromLocalStorage
     | PutInLocalStorage
     | RemoveFromLocalStorage
-    | ListLocalStorageKeys
     | ClearLocalStorage
     | Process Json.Encode.Value
       ---------
@@ -283,6 +280,9 @@ init doc flags =
             , editMode = True
             , containersBkgColors = False
             }
+
+        funnelState =
+            { storage = LocalStorage.initialState "Editor" }
     in
         ( { config = config
           , document = initZip doc_
@@ -293,7 +293,7 @@ init doc flags =
           , menuClicked = False
           , menuFocused = ""
           , previewMode = PreviewBigScreen
-          , funnelState = { storage = LocalStorage.initialState "Editor" }
+          , funnelState = funnelState
           , localStorageKey = ""
           , localStorageValue = Nothing
           , localStorageKeys = []
@@ -307,6 +307,10 @@ init doc flags =
             , Task.attempt MainInterfaceViewport
                 (Dom.getViewportOf "mainInterface")
             , textBlockPluginCmds
+            , LocalStorage.send
+                cmdPort
+                (LocalStorage.listKeys "")
+                funnelState.storage
             ]
         )
 
@@ -822,16 +826,6 @@ update msg model =
                                         "error"
                            )
                     )
-                    --(prettyValue { indent = 4, columns = 80 }
-                    --    (Maybe.withDefault null (Just val))
-                    --    |> (\res ->
-                    --            case res of
-                    --                Ok prettyJson ->
-                    --                    prettyJson
-                    --                Err error ->
-                    --                    "Erreur: " ++ error
-                    --       )
-                    --)
               }
             , Cmd.none
             )
@@ -866,19 +860,6 @@ update msg model =
                 , Cmd.none
                 )
 
-        DecodeJsonBuffer ->
-            ( { model
-                | localStorageValue =
-                    case Decode.decodeString Decode.value model.jsonBuffer of
-                        Ok value ->
-                            Just value
-
-                        Err _ ->
-                            Nothing
-              }
-            , Cmd.none
-            )
-
         GetFromLocalStorage ->
             ( model
             , LocalStorage.send
@@ -906,14 +887,6 @@ update msg model =
                     model.localStorageKey
                     Nothing
                 )
-                model.funnelState.storage
-            )
-
-        ListLocalStorageKeys ->
-            ( model
-            , LocalStorage.send
-                cmdPort
-                (LocalStorage.listKeys "")
                 model.funnelState.storage
             )
 
@@ -951,8 +924,29 @@ update msg model =
                                             Err _ ->
                                                 ( model, Cmd.none )
 
-                                            Ok res ->
-                                                res
+                                            Ok ( mdl, cmd ) ->
+                                                let
+                                                    newBuffer =
+                                                        (Yajson.fromValue (Maybe.withDefault null mdl.localStorageValue)
+                                                            |> (\res ->
+                                                                    case res of
+                                                                        Ok json ->
+                                                                            pretty json
+
+                                                                        Err error ->
+                                                                            "error"
+                                                               )
+                                                        )
+                                                in
+                                                    ( { mdl | jsonBuffer = newBuffer }
+                                                    , Cmd.batch
+                                                        [ cmd
+                                                        , LocalStorage.send
+                                                            cmdPort
+                                                            (LocalStorage.listKeys "")
+                                                            mdl.funnelState.storage
+                                                        ]
+                                                    )
 
                             _ ->
                                 ( model, Cmd.none )
@@ -1113,11 +1107,9 @@ pluginView model plugin =
                 , setLocalStorageValue = SetLocalStorageValue
                 , setLocalStorageKey = SetLocalStorageKey
                 , setJsonBuffer = SetJsonBuffer
-                , decodeJsonBuffer = DecodeJsonBuffer
                 , getFromLocalStorage = GetFromLocalStorage
                 , putInLocalStorage = PutInLocalStorage
                 , loadDocument = LoadDocument
-                , listLocalStorageKeys = ListLocalStorageKeys
                 , removeFromLocalStorage = RemoveFromLocalStorage
                 , clearLocalStorage = ClearLocalStorage
                 , setEditorPlugin = SetEditorPlugin
