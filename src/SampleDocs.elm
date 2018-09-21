@@ -8,6 +8,15 @@ import Html.Attributes as Attr
 import Set exposing (..)
 
 
+emptyDoc =
+    Container
+        { attrs = []
+        , id = { classes = Set.fromList [], htmlId = Just "mainContainer", docStyleId = Just "root", uid = 0 }
+        , containerLabel = DocColumn
+        }
+        []
+
+
 sampleDoc1 : Document
 sampleDoc1 =
     Container
