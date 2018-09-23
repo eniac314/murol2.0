@@ -4991,6 +4991,10 @@ var mdgriffith$elm_ui$Internal$Model$Fill = function (a) {
 	return {$: 2, a: a};
 };
 var mdgriffith$elm_ui$Element$fill = mdgriffith$elm_ui$Internal$Model$Fill(1);
+var mdgriffith$elm_ui$Internal$Model$Height = function (a) {
+	return {$: 8, a: a};
+};
+var mdgriffith$elm_ui$Element$height = mdgriffith$elm_ui$Internal$Model$Height;
 var mdgriffith$elm_ui$Internal$Model$Max = F2(
 	function (a, b) {
 		return {$: 4, a: a, b: b};
@@ -5334,7 +5338,8 @@ var author$project$StyleSheets$defaulStyleSheet = {
 								])),
 							mdgriffith$elm_ui$Element$Font$size(16),
 							mdgriffith$elm_ui$Element$width(
-							A2(mdgriffith$elm_ui$Element$maximum, 900, mdgriffith$elm_ui$Element$fill))
+							A2(mdgriffith$elm_ui$Element$maximum, 900, mdgriffith$elm_ui$Element$fill)),
+							mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$fill)
 						]))
 				]))
 	},
@@ -13514,10 +13519,6 @@ var author$project$DocumentStructView$containerLabelToString = function (nl) {
 			return 'Bloc réactif';
 	}
 };
-var mdgriffith$elm_ui$Internal$Model$Height = function (a) {
-	return {$: 8, a: a};
-};
-var mdgriffith$elm_ui$Element$height = mdgriffith$elm_ui$Internal$Model$Height;
 var mdgriffith$elm_ui$Internal$Model$Content = {$: 1};
 var mdgriffith$elm_ui$Element$shrink = mdgriffith$elm_ui$Internal$Model$Content;
 var mdgriffith$elm_ui$Internal$Model$Unkeyed = function (a) {
@@ -26157,7 +26158,8 @@ var author$project$Editor$view = function (model) {
 									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 									mdgriffith$elm_ui$Element$clip,
 									mdgriffith$elm_ui$Element$htmlAttribute(
-									A2(elm$html$Html$Attributes$style, 'flex-shrink', '1'))
+									A2(elm$html$Html$Attributes$style, 'flex-shrink', '1')),
+									mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$fill)
 								]),
 							_List_fromArray(
 								[
@@ -26195,7 +26197,20 @@ var author$project$SampleDocs$emptyDoc = A2(
 			aR: 0
 		}
 	},
-	_List_Nil);
+	_List_fromArray(
+		[
+			author$project$Document$Cell(
+			{
+				u: _List_Nil,
+				ak: author$project$Document$EmptyCell,
+				c: {
+					aa: elm$core$Set$fromList(_List_Nil),
+					ab: elm$core$Maybe$Nothing,
+					ad: elm$core$Maybe$Nothing,
+					aR: 1
+				}
+			})
+		]));
 var elm$browser$Browser$document = _Browser_document;
 var author$project$Editor$main = elm$browser$Browser$document(
 	{

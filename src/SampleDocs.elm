@@ -14,7 +14,17 @@ emptyDoc =
         , id = { classes = Set.fromList [], htmlId = Just "mainContainer", docStyleId = Just "root", uid = 0 }
         , containerLabel = DocColumn
         }
-        []
+        [ Cell
+            { cellContent = EmptyCell
+            , attrs = []
+            , id =
+                { classes = Set.fromList []
+                , htmlId = Nothing
+                , docStyleId = Nothing
+                , uid = 1
+                }
+            }
+        ]
 
 
 sampleDoc1 : Document

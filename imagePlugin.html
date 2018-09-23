@@ -1,0 +1,99 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-bundle.js" type="text/javascript"></script>
+  <script type="text/javascript" src="js/ImagePlugin.js"></script>
+
+  <title>Main</title>
+
+
+</head>
+
+<body>
+  <div id="elm"></div>
+  <script type="text/javascript">
+  
+  // var MAX_HEIGHT = 100;
+
+  var app = Elm.ImagePlugin.init({
+  node: document.getElementById('elm'),
+  });
+  
+  function resize(src, max_height, filename, caller){
+  
+    var image = new Image();
+    image.onload = function(){
+      var canvas = document.createElement('canvas');
+      if(image.height > max_height) {
+        image.width *= max_height / image.height;
+        image.height = max_height;
+      }
+      var ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+      data = canvas.toDataURL("image/png");  
+      
+      var fileData = {
+            contents: data,
+            filename: filename
+          };
+
+      
+      caller._fileData = fileData;
+
+      caller.dispatchEvent(new CustomEvent('fileRead'));
+    };
+    
+    image.src = src;
+    }
+
+  customElements.define('file-reader', class extends HTMLElement {
+      
+    get fileData(){
+      return this._fileData || "???";
+    }
+
+    connectedCallback() {
+    
+      this._input = this.querySelector('input');
+      
+      this._input.addEventListener('change', (event) => {
+      
+        var file = this._input.files[0];
+        var reader = new FileReader();
+        
+        
+
+        reader.onload = ((event) => {
+          var base64encoded = event.target.result;
+          
+          resize(base64encoded, 200, file.name, this);
+          
+          // var fileData = {
+          //   contents: base64encoded,
+          //   filename: file.name
+          // };
+
+          // console.log(fileData);
+          // this._fileData = fileData;
+
+          // this.dispatchEvent(new CustomEvent('fileRead'));
+        });
+
+        reader.readAsDataURL(file);
+ 
+      });
+    }
+  })
+
+  
+
+    
+
+    
+  </script>
+</body>
+</html>

@@ -974,6 +974,7 @@ view model =
             (column
                 ([ width fill
                  , height (maximum model.config.height fill)
+                   --, Background.color (rgba 1 0.5 0.3 0.4)
                  ]
                     --++ (if model.currentPlugin == Nothing && model.controlDown then
                     --        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
@@ -1005,6 +1006,7 @@ view model =
                     , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
                       --NOTE: works too
                       --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
+                    , height fill
                     ]
                     [ documentStructView
                         model.config

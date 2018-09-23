@@ -89,6 +89,7 @@ defaulStyleSheet =
                     , Font.family [ Font.typeface "Arial" ]
                     , Font.size 16
                     , width (maximum 900 fill)
+                    , height fill
                     ]
                   )
                 ]
@@ -100,8 +101,7 @@ defaulStyleSheet =
                       --, htmlAttribute
                       --    (Attr.style "height" "auto")
                       centerX
-
-                    --, width (maximum size.imgWidth fill)
+                      --, width (maximum size.imgWidth fill)
                     ]
                   )
                 , ( "rowImg"
@@ -116,9 +116,8 @@ defaulStyleSheet =
                         , blur = 10
                         , color = rgba 0 0 0 0.16
                         }
-
-                    --, Background.color
-                    --    (rgba 0 1 0 0.5)
+                      --, Background.color
+                      --    (rgba 0 1 0 0.5)
                     ]
                   )
                 , ( "sameHeightImgsRow"
@@ -214,8 +213,7 @@ tableStyles =
         , ( "bleu-blanc"
           , { tableStyle =
                 [ Border.width 1
-
-                --, width shrink
+                  --, width shrink
                 ]
             , cellStyle =
                 \ri ->
@@ -239,16 +237,15 @@ tableStyles =
                 ]
             }
           )
-
-        --, ( ""
-        --  , { tableStyle =
-        --        []
-        --    , cellStyle =
-        --        (\ri ->
-        --            [])
-        --    , containerStyle =
-        --       []
-        --    }
-        --  )
-        --
+          --, ( ""
+          --  , { tableStyle =
+          --        []
+          --    , cellStyle =
+          --        (\ri ->
+          --            [])
+          --    , containerStyle =
+          --       []
+          --    }
+          --  )
+          --
         ]
