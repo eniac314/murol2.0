@@ -14,12 +14,11 @@
   <div id="elm"></div>
   <script type="text/javascript">
   
-  // var MAX_HEIGHT = 100;
-
   var app = Elm.ImagePlugin.init({
   node: document.getElementById('elm'),
   });
   
+
   function resize(src, max_height, filename, caller){
   
     var image = new Image();
@@ -35,25 +34,34 @@
       canvas.height = image.height;
       ctx.drawImage(image, 0, 0, image.width, image.height);
       data = canvas.toDataURL("image/png");  
-      
-      var fileData = {
-            contents: data,
-            filename: filename
-          };
 
-      
+      var fileData = {
+              contents: data,
+              filename: filename,
+              width: image.width,
+              height: image.height
+            };
+            
       caller._fileData = fileData;
 
-      caller.dispatchEvent(new CustomEvent('fileRead'));
+      caller.dispatchEvent(new CustomEvent('imageRead'));
     };
     
     image.src = src;
     }
 
   customElements.define('file-reader', class extends HTMLElement {
-      
+
     get fileData(){
       return this._fileData || "???";
+    }
+
+    set desiredSize(maxHeight){
+      
+      if (maxHeight != null && this._original != null) {
+        // console.log(maxHeight);
+        resize(this._original.contents, maxHeight, this._original.filename, this);
+      }
     }
 
     connectedCallback() {
@@ -68,19 +76,29 @@
         
 
         reader.onload = ((event) => {
+          
           var base64encoded = event.target.result;
           
-          resize(base64encoded, 200, file.name, this);
+          var image = new Image();
+
+          image.onload = () => {
+
+            var fileData = {
+              contents: base64encoded,
+              filename: file.name,
+              width: image.width,
+              height: image.height
+            };
+            
+            this._fileData = fileData;
+            this._original = fileData;
+
+            this.dispatchEvent(new CustomEvent('fileRead'));
+          }
+
+          image.src = base64encoded;
+
           
-          // var fileData = {
-          //   contents: base64encoded,
-          //   filename: file.name
-          // };
-
-          // console.log(fileData);
-          // this._fileData = fileData;
-
-          // this.dispatchEvent(new CustomEvent('fileRead'));
         });
 
         reader.readAsDataURL(file);
