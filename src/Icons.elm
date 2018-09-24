@@ -386,3 +386,21 @@ tag size =
             []
         , Svg.line [ x1 "7", y1 "7", x2 "7", y2 "7" ] []
         ]
+
+
+rotateCcw : Int -> Html msg
+rotateCcw size =
+    customSvgFeatherIcon size
+        "rotate-ccw"
+        [ Svg.polyline [ points "1 4 1 10 7 10" ] []
+        , Svg.path [ d "M3.51 15a9 9 0 1 0 2.13-9.36L1 10" ] []
+        ]
+
+
+rotateCw : Int -> Html msg
+rotateCw size =
+    customSvgFeatherIcon size
+        "rotate-cw"
+        [ Svg.polyline [ points "23 4 23 10 17 10" ] []
+        , Svg.path [ d "M20.49 15a9 9 0 1 1-2.12-9.36L23 10" ] []
+        ]

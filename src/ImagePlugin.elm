@@ -16,6 +16,7 @@ import Html.Events as HtmlEvents
 import Http exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Icons exposing (rotateCw, rotateCcw)
 
 
 type alias Model =
@@ -24,8 +25,11 @@ type alias Model =
     , mbOriImageHeight : Maybe Int
     , desiredWidth : Maybe Int
     , desiredHeight : Maybe Int
+    , desiredFilename : Maybe String
+    , desiredRotationAngle : Int
     , sliderValue : Float
     , needToResize : Bool
+    , canResize : Bool
     , mbImage : Maybe Image
     , mode : Mode
     }
@@ -89,8 +93,11 @@ init flags =
       , mbOriImageHeight = Nothing
       , desiredWidth = Nothing
       , desiredHeight = Nothing
+      , desiredFilename = Nothing
+      , desiredRotationAngle = 0
       , sliderValue = 100
       , needToResize = False
+      , canResize = False
       , mbImage = Nothing
       , mode = FileReader
       }
@@ -140,6 +147,7 @@ update msg model =
                     | mbImage = Just newImage
                     , mode = Edit
                     , needToResize = False
+                    , canResize = False
                   }
                 , Cmd.none
                 )
@@ -151,10 +159,20 @@ update msg model =
             ( model, Cmd.none )
 
         RotateRight ->
-            ( model, Cmd.none )
+            ( { model
+                | desiredRotationAngle =
+                    modBy 360 (90 + model.desiredRotationAngle)
+              }
+            , Cmd.none
+            )
 
         RotateLeft ->
-            ( model, Cmd.none )
+            ( { model
+                | desiredRotationAngle =
+                    modBy 360 (model.desiredRotationAngle - 90)
+              }
+            , Cmd.none
+            )
 
         Resize n ->
             case ( model.mbOriImageWidth, model.mbOriImageHeight ) of
@@ -175,6 +193,7 @@ update msg model =
                                 Just <| round desiredWidth
                             , desiredHeight =
                                 Just <| round desiredHeight
+                            , canResize = True
                           }
                         , Cmd.none
                         )
@@ -186,7 +205,9 @@ update msg model =
             ( { model | needToResize = True }, Cmd.none )
 
         SetFilename filename ->
-            ( model, Cmd.none )
+            ( { model | desiredFilename = Just filename }
+            , Cmd.none
+            )
 
         ChangeMode mode ->
             ( model, Cmd.none )
@@ -219,7 +240,7 @@ view model =
 
                 Edit ->
                     editView model
-            , fileReader
+            , imageController
                 ([ HtmlAttr.style "id" model.id
                  , HtmlEvents.on "fileRead" (decodeImageData FileRead)
                  , HtmlEvents.on "imageRead" (decodeImageData ImageRead)
@@ -227,13 +248,10 @@ view model =
                     HtmlAttr.hidden True
                    else
                     noHtmlAttr
+                 , HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
                  ]
                     ++ (if model.needToResize then
-                            [ --model.desiredWidth
-                              --    |> Maybe.map (\w -> Encode.int w)
-                              --    |> Maybe.map (\val -> HtmlAttr.property "desiredWidth" val)
-                              --    |> Maybe.withDefault noHtmlAttr
-                              model.desiredHeight
+                            [ model.desiredHeight
                                 |> Maybe.map (\h -> Encode.int h)
                                 |> Maybe.map (\val -> HtmlAttr.property "desiredSize" val)
                                 |> Maybe.withDefault noHtmlAttr
@@ -255,10 +273,10 @@ fileReaderView model =
         ]
 
 
-fileReader attributes =
+imageController attributes =
     el []
         (html <|
-            Html.node "file-reader"
+            Html.node "image-controller"
                 attributes
                 [ Html.input
                     [ HtmlAttr.type_ "file"
@@ -276,30 +294,41 @@ editView model =
                 [ row
                     [ spacing 15 ]
                     [ row
-                        [ spacing 10 ]
-                        [ text "Nom de fichier: "
-                        , text f.filename
+                        [ spacing 10
+                        , width (px 500)
                         ]
-                    , row
-                        [ spacing 10 ]
-                        [ text "Dimensions originales:"
-                        , text <|
-                            String.fromInt oriW
-                                ++ "x"
-                                ++ String.fromInt oriH
+                        [ Input.text textInputStyle
+                            { onChange =
+                                SetFilename
+                            , text =
+                                Maybe.withDefault f.filename model.desiredFilename
+                            , placeholder = Nothing
+                            , label =
+                                Input.labelLeft [ centerY ]
+                                    (el [ width (px 110) ] (text "Nom de fichier: "))
+                            }
                         ]
+                    , Input.button (buttonStyle True)
+                        { onPress = Just RotateLeft
+                        , label = el [] (html <| rotateCcw iconSize)
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress = Just RotateRight
+                        , label = el [] (html <| rotateCw iconSize)
+                        }
+                      -- text "Nom de fichier: "
+                      --, text f.filename
                     ]
                 , row
                     [ spacing 15 ]
-                    [ Input.button (buttonStyle True)
-                        { onPress = Just SetResize
-                        , label = text "Redimensionner"
-                        }
-                    , row
-                        [ spacing 10 ]
-                        [ Input.slider
+                    [ row
+                        [ spacing 10
+                        , width (px 500)
+                        ]
+                        [ el [ width (px 110) ] (text "Dimensions: ")
+                        , Input.slider
                             [ Element.height (Element.px 30)
-                            , Element.width (px 225)
+                            , Element.width (px 250)
                               -- Here is where we're creating/styling the "track"
                             , Element.behindContent
                                 (Element.el
@@ -321,18 +350,25 @@ editView model =
                             , thumb =
                                 Input.defaultThumb
                             }
-                        , text <|
-                            (model.desiredWidth
-                                |> Maybe.map String.fromInt
-                                |> Maybe.withDefault (String.fromInt oriW)
+                        , el [ width (px 100) ]
+                            (text <|
+                                (model.desiredWidth
+                                    |> Maybe.map String.fromInt
+                                    |> Maybe.withDefault (String.fromInt oriW)
+                                )
+                                    ++ "x"
+                                    ++ (model.desiredHeight
+                                            |> Maybe.map String.fromInt
+                                            |> Maybe.withDefault (String.fromInt oriH)
+                                       )
                             )
-                                ++ "x"
-                                ++ (model.desiredHeight
-                                        |> Maybe.map String.fromInt
-                                        |> Maybe.withDefault (String.fromInt oriH)
-                                   )
                         ]
+                    , Input.button (buttonStyle model.canResize)
+                        { onPress = Just SetResize
+                        , label = text "Redimensionner"
+                        }
                     ]
+                , text ("Aperçu: ")
                 , el
                     [ width (maximum 650 fill)
                     , height (maximum 550 fill)
@@ -394,6 +430,14 @@ buttonStyle isActive =
            )
 
 
+textInputStyle =
+    [ width (px 250)
+    , paddingXY 5 5
+    , spacing 15
+    , focused [ Border.glow (rgb 1 1 1) 0 ]
+    ]
+
+
 property name value =
     htmlAttribute <| HtmlAttr.property name value
 
@@ -404,3 +448,7 @@ noAttr =
 
 noHtmlAttr =
     HtmlAttr.class ""
+
+
+iconSize =
+    18

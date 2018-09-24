@@ -18,51 +18,25 @@
   node: document.getElementById('elm'),
   });
   
-
-  function resize(src, max_height, filename, caller){
-  
-    var image = new Image();
-    image.onload = function(){
-      var canvas = document.createElement('canvas');
-      if(image.height > max_height) {
-        image.width *= max_height / image.height;
-        image.height = max_height;
-      }
-      var ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      canvas.width = image.width;
-      canvas.height = image.height;
-      ctx.drawImage(image, 0, 0, image.width, image.height);
-      data = canvas.toDataURL("image/png");  
-
-      var fileData = {
-              contents: data,
-              filename: filename,
-              width: image.width,
-              height: image.height
-            };
-            
-      caller._fileData = fileData;
-
-      caller.dispatchEvent(new CustomEvent('imageRead'));
-    };
-    
-    image.src = src;
-    }
-
-  customElements.define('file-reader', class extends HTMLElement {
+  customElements.define('image-controller', class extends HTMLElement {
 
     get fileData(){
       return this._fileData || "???";
     }
 
     set desiredSize(maxHeight){
-      
       if (maxHeight != null && this._original != null) {
-        // console.log(maxHeight);
         resize(this._original.contents, maxHeight, this._original.filename, this);
       }
     }
+    
+    set rotationAngle(rAngle){
+      console.log("test");
+      if (rAngle != null && this._original != null){
+        rotateImage(this._original.contents, rAngle, this._original.filename, this);
+      }
+    }
+    
 
     connectedCallback() {
     
@@ -94,7 +68,7 @@
             this._original = fileData;
 
             this.dispatchEvent(new CustomEvent('fileRead'));
-          }
+          };
 
           image.src = base64encoded;
 
@@ -105,7 +79,88 @@
  
       });
     }
-  })
+  });
+
+  function resize(src, max_height, filename, caller){
+  
+    var image = new Image();
+    image.onload = function(){
+      var canvas = document.createElement('canvas');
+      if(image.height > max_height) {
+        image.width *= max_height / image.height;
+        image.height = max_height;
+      }
+      var ctx = canvas.getContext("2d");
+      
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+      var data = canvas.toDataURL("image/png");  
+
+      var fileData = {
+              contents: data,
+              filename: filename,
+              width: image.width,
+              height: image.height
+            };
+            
+      caller._fileData = fileData;
+
+      caller.dispatchEvent(new CustomEvent('imageRead'));
+    };
+    
+    image.src = src;
+    }
+
+  function rotateImage(src, rAngle, filename, caller){
+    var image = new Image();
+    
+    image.onload = function(){
+      var canvas = document.createElement('canvas');
+      
+      var ctx = canvas.getContext("2d");
+      
+      if(rAngle == 90 || rAngle == 270) {
+        canvas.width = image.height;
+        canvas.height = image.width;
+      } else {
+        canvas.width = image.width;
+        canvas.height = image.height;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+
+      if(rAngle == 90 || rAngle == 270) {
+        ctx.translate(image.height/2,image.width/2);
+      } else {
+        ctx.translate(image.width/2,image.height/2);
+      }
+      ctx.rotate(rAngle*Math.PI/180);
+      ctx.drawImage(image,-image.width/2,-image.height/2);
+
+
+      var data = canvas.toDataURL("image/png");  
+
+      var fileData = {
+              contents: data,
+              filename: filename,
+              width: canvas.width,
+              height: canvas.height
+            };
+            
+      caller._fileData = fileData;
+
+      caller.dispatchEvent(new CustomEvent('imageRead'));
+    };
+  
+  image.src = src;
+  } 
+  
+
+
 
   
 
