@@ -65,7 +65,8 @@
               contents: base64encoded,
               filename: file.name,
               width: image.width,
-              height: image.height
+              height: image.height,
+              filesize: fileSize(base64encoded)
             };
             
             this._fileData = fileData;
@@ -86,6 +87,14 @@
       });
     }
   });
+
+  function fileSize(src){
+    var stringLength = src.length - 'data:image/jpeg;base64,'.length;
+
+    var sizeInBytes = 4 * Math.ceil((stringLength / 3))*0.5624896334383812;
+    var sizeInKb=sizeInBytes/1024;
+    return Math.round(sizeInKb);
+  }
 
   function resize(src, max_height, filename, caller){
   
@@ -110,13 +119,14 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(image, 0, 0, image.width, image.height);
-      var data = canvas.toDataURL("image/png");  
+      var data = canvas.toDataURL("image/jpeg");  
 
       var fileData = {
               contents: data,
               filename: filename,
               width: image.width,
-              height: image.height
+              height: image.height,
+              filesize: fileSize(data)
             };
             
       caller._fileData = fileData;
@@ -157,13 +167,14 @@
       ctx.drawImage(image,-image.width/2,-image.height/2);
 
 
-      var data = canvas.toDataURL("image/png");  
+      var data = canvas.toDataURL("image/jpeg");  
 
       var fileData = {
               contents: data,
               filename: filename,
               width: canvas.width,
-              height: canvas.height
+              height: canvas.height,
+              filesize: fileSize(data)
             };
             
       caller._fileData = fileData;

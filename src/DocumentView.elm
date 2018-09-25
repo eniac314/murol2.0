@@ -209,7 +209,7 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
 
         src_ =
             case src of
-                Inline s ->
+                Inline f s ->
                     s
 
                 UrlSrc s ->

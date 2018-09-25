@@ -67,7 +67,7 @@ type TextBlockPrimitive
 
 type ImageSrc
     = UrlSrc String
-    | Inline String
+    | Inline String String
 
 
 type alias ImgSize =

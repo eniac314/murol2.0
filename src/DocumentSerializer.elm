@@ -229,9 +229,15 @@ encodeImgSource imgSrc =
             object
                 [ ( "UrlSrc", string s ) ]
 
-        Inline s ->
+        Inline filename contents ->
             object
-                [ ( "Inline", string s ) ]
+                [ ( "Inline"
+                  , object
+                        [ ( "filename", string filename )
+                        , ( "contents", string contents )
+                        ]
+                  )
+                ]
 
 
 encodeDocColor : DocColor -> Value

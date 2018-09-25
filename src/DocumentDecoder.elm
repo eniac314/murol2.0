@@ -188,7 +188,8 @@ decodeImgSource =
         [ succeed UrlSrc
             |> required "UrlSrc" string
         , succeed Inline
-            |> required "Inline" string
+            |> requiredAt [ "Inline", "filename" ] string
+            |> requiredAt [ "Inline", "contents" ] string
         ]
 
 

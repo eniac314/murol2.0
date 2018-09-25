@@ -1,6 +1,7 @@
 module ImagePlugin exposing (..)
 
 import Browser exposing (element)
+import Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -14,7 +15,7 @@ import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
 import Http exposing (..)
-import Icons exposing (rotateCcw, rotateCw)
+import Icons exposing (alignCenter, alignLeft, alignRight, rotateCcw, rotateCw)
 import Json.Decode as Decode
 import Json.Encode as Encode
 
@@ -23,6 +24,8 @@ type alias Model =
     { id : String
     , mbOriImageWidth : Maybe Int
     , mbOriImageHeight : Maybe Int
+    , mbOriFileSize : Maybe Int
+    , mbCaption : Maybe String
     , desiredWidth : Maybe Int
     , desiredHeight : Maybe Int
     , desiredFilename : Maybe String
@@ -31,48 +34,73 @@ type alias Model =
     , needToResize : Bool
     , needToRotate : Bool
     , canResize : Bool
-    , mbImage : Maybe Image
+    , mbImageFromFile : Maybe ImageFromFile
     , mode : Mode
     }
 
 
-type alias Image =
+type alias ImageFromFile =
     { contents : String
     , filename : String
     , width : Int
     , height : Int
+    , filesize : Int
     }
 
 
 type Mode
+    = ImageAttributeEditor
+    | ImagePicker
+    | ImageController ImageControllerMode
+
+
+type ImageControllerMode
     = FileReader
-    | Edit
+    | Editor
+
+
+type Alignement
+    = ARight
+    | ACenter
+    | ALeft
 
 
 type Msg
-    = UploadImage
-    | FileRead Image
-    | ImageRead Image
+    = ---------------------------
+      -- Image Attribute Editor--
+      ---------------------------
+      SetAlignment Alignement
+    | SetCaption String
+      ---------------------
+      -- ImageController --
+      ---------------------
+      --| UploadImage
+    | FileRead ImageFromFile
+    | ImageRead ImageFromFile
     | UploadResult (Result Error ())
     | RotateRight
     | RotateLeft
     | Resize Float
     | SetResize
     | SetFilename String
+    | ResetImageController
+      ----------
+      -- Misc --
+      ----------
     | ChangeMode Mode
     | SaveAndQuit
     | Quit
-    | Reset
     | NoOp
 
 
 decodeImageData msg =
     Decode.at [ "target", "fileData" ]
-        (Decode.map4 Image
+        (Decode.map5 ImageFromFile
             (Decode.field "contents" Decode.string)
             (Decode.field "filename" Decode.string)
             (Decode.field "width" Decode.int)
             (Decode.field "height" Decode.int)
+            (Decode.field "filesize" Decode.int)
             |> Decode.map msg
         )
 
@@ -80,28 +108,42 @@ decodeImageData msg =
 main : Program () Model Msg
 main =
     Browser.element
-        { init = init
+        { init = init Nothing
         , update = update
-        , view = view
+        , view = view { picListing = [] }
         , subscriptions = subscriptions
         }
 
 
-init : () -> ( Model, Cmd Msg )
-init flags =
+init : Maybe ImageMeta -> () -> ( Model, Cmd Msg )
+init mbInput flags =
     ( { id = "InputId"
-      , mbOriImageWidth = Nothing
-      , mbOriImageHeight = Nothing
+      , mbOriImageWidth =
+            Maybe.map (.imgWidth << .size) mbInput
+      , mbOriImageHeight =
+            Maybe.map (.imgHeight << .size) mbInput
+      , mbOriFileSize = Nothing
+      , mbCaption = Maybe.andThen .caption mbInput
       , desiredWidth = Nothing
       , desiredHeight = Nothing
-      , desiredFilename = Nothing
+      , desiredFilename =
+            Maybe.map .src mbInput
+                |> Maybe.andThen
+                    (\src ->
+                        case src of
+                            UrlSrc filename ->
+                                Just filename
+
+                            Inline filename _ ->
+                                Just filename
+                    )
       , desiredRotationAngle = 0
       , sliderValue = 100
       , needToResize = False
       , needToRotate = False
       , canResize = False
-      , mbImage = Nothing
-      , mode = FileReader
+      , mbImageFromFile = Nothing
+      , mode = ImageController FileReader
       }
     , Cmd.none
     )
@@ -109,14 +151,24 @@ init flags =
 
 update msg model =
     case msg of
-        UploadImage ->
-            case model.mbImage of
-                Nothing ->
-                    ( model, Cmd.none )
+        ---------------------------
+        -- Image Attribute Editor--
+        ---------------------------
+        SetAlignment alignment ->
+            ( model, Cmd.none )
 
-                Just file ->
-                    ( model, uploadImage file )
+        SetCaption caption ->
+            ( model, Cmd.none )
 
+        ---------------------
+        -- ImageController --
+        ---------------------
+        --UploadImage ->
+        --    case model.mbImageFromFile of
+        --        Nothing ->
+        --            ( model, Cmd.none )
+        --        Just file ->
+        --            ( model, uploadImage file )
         FileRead data ->
             let
                 newImage =
@@ -124,13 +176,15 @@ update msg model =
                     , filename = data.filename
                     , width = data.width
                     , height = data.height
+                    , filesize = data.filesize
                     }
             in
             ( { model
-                | mbImage = Just newImage
-                , mode = Edit
+                | mbImageFromFile = Just newImage
+                , mode = ImageController Editor
                 , mbOriImageWidth = Just data.width
                 , mbOriImageHeight = Just data.height
+                , mbOriFileSize = Just data.filesize
                 , needToResize = False
               }
             , Cmd.none
@@ -143,11 +197,12 @@ update msg model =
                     , filename = data.filename
                     , width = data.width
                     , height = data.height
+                    , filesize = data.filesize
                     }
             in
             ( { model
-                | mbImage = Just newImage
-                , mode = Edit
+                | mbImageFromFile = Just newImage
+                , mode = ImageController Editor
                 , needToResize = False
                 , needToRotate = False
                 , canResize = False
@@ -218,6 +273,27 @@ update msg model =
             , Cmd.none
             )
 
+        ResetImageController ->
+            ( { model
+                | mode = ImageController FileReader
+                , mbOriImageWidth = Nothing
+                , mbOriImageHeight = Nothing
+                , mbOriFileSize = Nothing
+                , desiredWidth = Nothing
+                , desiredHeight = Nothing
+                , desiredRotationAngle = 0
+                , sliderValue = 100
+                , needToResize = False
+                , needToRotate = False
+                , canResize = False
+                , mbImageFromFile = Nothing
+              }
+            , Cmd.none
+            )
+
+        ----------
+        -- Misc --
+        ----------
         ChangeMode mode ->
             ( model, Cmd.none )
 
@@ -227,56 +303,107 @@ update msg model =
         Quit ->
             ( model, Cmd.none )
 
-        Reset ->
-            ( model, Cmd.none )
-
         NoOp ->
             ( model, Cmd.none )
 
 
-view model =
+view config model =
     layout
         []
     <|
-        column
-            [ spacing 15
-            , Font.size 16
-            , padding 15
-            ]
-            [ case model.mode of
-                FileReader ->
-                    fileReaderView model
+        case model.mode of
+            ImageAttributeEditor ->
+                imageAttributeEditorView config model
 
-                Edit ->
-                    editView model
-            , imageController
-                ([ HtmlAttr.style "id" model.id
-                 , HtmlEvents.on "fileRead" (decodeImageData FileRead)
-                 , HtmlEvents.on "imageRead" (decodeImageData ImageRead)
-                 , if model.mode /= FileReader then
-                    HtmlAttr.hidden True
-                   else
-                    noHtmlAttr
-                 , if model.needToRotate then
-                    HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
-                   else
-                    noHtmlAttr
-                 ]
-                    ++ (if model.needToResize then
-                            [ (if model.desiredRotationAngle == 90 || model.desiredRotationAngle == 270 then
-                                model.desiredWidth
-                               else
-                                model.desiredHeight
-                              )
-                                |> Maybe.map (\h -> Encode.int h)
-                                |> Maybe.map (\val -> HtmlAttr.property "desiredSize" val)
-                                |> Maybe.withDefault noHtmlAttr
-                            ]
-                        else
-                            []
-                       )
-                )
+            ImagePicker ->
+                imagePickerView config model
+
+            ImageController imgContMode ->
+                imageControllerView model imgContMode
+
+
+imageAttributeEditorView config model =
+    column
+        [ spacing 15
+        , Font.size 16
+        , padding 15
+        ]
+        [ text "Alignement: "
+        , row
+            [ spacing 15 ]
+            [ Input.button (toogleButtonStyle True True)
+                { onPress = Just (SetAlignment ARight)
+                , label = el [] (html <| alignLeft iconSize)
+                }
+            , Input.button (toogleButtonStyle True True)
+                { onPress = Just (SetAlignment ACenter)
+                , label = el [] (html <| alignCenter iconSize)
+                }
+            , Input.button (toogleButtonStyle True True)
+                { onPress = Just (SetAlignment ARight)
+                , label = el [] (html <| alignRight iconSize)
+                }
             ]
+        , row
+            [ spacing 15 ]
+            [ Input.text textInputStyle
+                { onChange =
+                    SetCaption
+                , text =
+                    "Nothing"
+                , placeholder = Nothing
+                , label =
+                    Input.labelLeft [ centerY ]
+                        (el [ width (px 110) ] (text "Légende: "))
+                }
+            ]
+        ]
+
+
+imagePickerView config model =
+    Element.none
+
+
+imageControllerView model imgContMode =
+    column
+        [ spacing 15
+        , Font.size 16
+        , padding 15
+        ]
+        [ case imgContMode of
+            FileReader ->
+                fileReaderView model
+
+            Editor ->
+                editView model
+        , imageController
+            ([ HtmlAttr.style "id" model.id
+             , HtmlEvents.on "fileRead" (decodeImageData FileRead)
+             , HtmlEvents.on "imageRead" (decodeImageData ImageRead)
+             , if imgContMode /= FileReader then
+                HtmlAttr.hidden True
+               else
+                noHtmlAttr
+             , if model.needToRotate then
+                HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
+               else
+                noHtmlAttr
+             ]
+                ++ (if model.needToResize then
+                        [ (if model.desiredRotationAngle == 90 || model.desiredRotationAngle == 270 then
+                            model.desiredWidth
+                           else
+                            model.desiredHeight
+                          )
+                            |> Maybe.map (\h -> Encode.int h)
+                            |> Maybe.map (\val -> HtmlAttr.property "desiredSize" val)
+                            |> Maybe.withDefault noHtmlAttr
+                        ]
+                    else
+                        []
+                   )
+            )
+        ]
 
 
 fileReaderView model =
@@ -306,7 +433,7 @@ imageController attributes =
 
 
 editView model =
-    case ( model.mbImage, model.mbOriImageWidth, model.mbOriImageHeight ) of
+    case ( model.mbImageFromFile, model.mbOriImageWidth, model.mbOriImageHeight ) of
         ( Just f, Just oriW, Just oriH ) ->
             column
                 [ spacing 15 ]
@@ -385,8 +512,51 @@ editView model =
                             )
                         ]
                     , Input.button (buttonStyle model.canResize)
-                        { onPress = Just SetResize
+                        { onPress =
+                            if model.canResize then
+                                Just SetResize
+                            else
+                                Nothing
                         , label = text "Redimensionner"
+                        }
+                    ]
+                , row
+                    [ spacing 15 ]
+                    [ row
+                        [ spacing 5 ]
+                        [ el [] (text "Taille originale: ")
+                        , el []
+                            (text
+                                (model.mbOriFileSize
+                                    |> Maybe.map String.fromInt
+                                    |> Maybe.map (\s -> s ++ " kb")
+                                    |> Maybe.withDefault "0 kb"
+                                )
+                            )
+                        ]
+                    , row
+                        [ spacing 5 ]
+                        [ el [] (text "Taille actuelle: ")
+                        , el []
+                            (text
+                                (model.mbImageFromFile
+                                    |> Maybe.map .filesize
+                                    |> Maybe.map String.fromInt
+                                    |> Maybe.map (\s -> s ++ " kb")
+                                    |> Maybe.withDefault "0 kb"
+                                )
+                            )
+                        ]
+                    ]
+                , row
+                    [ spacing 15 ]
+                    [ Input.button (buttonStyle True)
+                        { onPress = Just ResetImageController
+                        , label = text "Nouveau fichier"
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress = Just (ChangeMode ImagePicker)
+                        , label = text "Retour"
                         }
                     ]
                 , text "Aperçu: "
@@ -411,21 +581,20 @@ subscriptions model =
     Sub.batch []
 
 
-uploadImage : Image -> Cmd Msg
-uploadImage file =
-    Http.send UploadResult (fileUploadRequest file)
 
-
-fileUploadRequest : Image -> Http.Request ()
-fileUploadRequest { contents, filename } =
-    let
-        body =
-            Encode.object
-                [ ( "contents", Encode.string contents )
-                , ( "filename", Encode.string filename )
-                ]
-    in
-    Http.post "fileUpload.php" (jsonBody body) (Decode.succeed ())
+--uploadImage : Image -> Cmd Msg
+--uploadImage file =
+--    Http.send UploadResult (fileUploadRequest file)
+--fileUploadRequest : Image -> Http.Request ()
+--fileUploadRequest { contents, filename } =
+--    let
+--        body =
+--            Encode.object
+--                [ ( "contents", Encode.string contents )
+--                , ( "filename", Encode.string filename )
+--                ]
+--    in
+--    Http.post "fileUpload.php" (jsonBody body) (Decode.succeed ())
 
 
 buttonStyle isActive =
@@ -441,6 +610,39 @@ buttonStyle isActive =
                 , Border.width 1
                 , Border.color (rgb 0.9 0.9 0.9)
                 ]
+            else
+                [ Background.color (rgb 0.95 0.95 0.95)
+                , Font.color (rgb 0.7 0.7 0.7)
+                , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                , Border.width 1
+                , Border.color (rgb 0.95 0.95 0.95)
+                ]
+           )
+
+
+toogleButtonStyle isPressed isActive =
+    [ Border.rounded 5
+    , Font.center
+    , centerY
+    , padding 5
+    , focused [ Border.glow (rgb 1 1 1) 0 ]
+    ]
+        ++ (if isActive then
+                [ Background.color (rgb 0.9 0.9 0.9)
+                , Border.width 1
+                , Border.color (rgb 0.9 0.9 0.9)
+                , mouseOver
+                    [ Font.color (rgb 0.3 0.3 0.3)
+                    ]
+                ]
+                    ++ (if isPressed then
+                            []
+                        else
+                            [ Background.color (rgb 1 1 1)
+                            , Border.width 1
+                            , Border.color (rgb 0.9 0.9 0.9)
+                            ]
+                       )
             else
                 [ Background.color (rgb 0.95 0.95 0.95)
                 , Font.color (rgb 0.7 0.7 0.7)
