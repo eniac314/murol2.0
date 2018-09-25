@@ -14,9 +14,9 @@ import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
 import Http exposing (..)
+import Icons exposing (rotateCcw, rotateCw)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Icons exposing (rotateCw, rotateCcw)
 
 
 type alias Model =
@@ -29,6 +29,7 @@ type alias Model =
     , desiredRotationAngle : Int
     , sliderValue : Float
     , needToResize : Bool
+    , needToRotate : Bool
     , canResize : Bool
     , mbImage : Maybe Image
     , mode : Mode
@@ -97,6 +98,7 @@ init flags =
       , desiredRotationAngle = 0
       , sliderValue = 100
       , needToResize = False
+      , needToRotate = False
       , canResize = False
       , mbImage = Nothing
       , mode = FileReader
@@ -124,15 +126,15 @@ update msg model =
                     , height = data.height
                     }
             in
-                ( { model
-                    | mbImage = Just newImage
-                    , mode = Edit
-                    , mbOriImageWidth = Just data.width
-                    , mbOriImageHeight = Just data.height
-                    , needToResize = False
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | mbImage = Just newImage
+                , mode = Edit
+                , mbOriImageWidth = Just data.width
+                , mbOriImageHeight = Just data.height
+                , needToResize = False
+              }
+            , Cmd.none
+            )
 
         ImageRead data ->
             let
@@ -143,14 +145,15 @@ update msg model =
                     , height = data.height
                     }
             in
-                ( { model
-                    | mbImage = Just newImage
-                    , mode = Edit
-                    , needToResize = False
-                    , canResize = False
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | mbImage = Just newImage
+                , mode = Edit
+                , needToResize = False
+                , needToRotate = False
+                , canResize = False
+              }
+            , Cmd.none
+            )
 
         UploadResult (Ok ()) ->
             ( model, Cmd.none )
@@ -162,6 +165,9 @@ update msg model =
             ( { model
                 | desiredRotationAngle =
                     modBy 360 (90 + model.desiredRotationAngle)
+                , needToRotate = True
+                , mbOriImageWidth = model.mbOriImageHeight
+                , mbOriImageHeight = model.mbOriImageWidth
               }
             , Cmd.none
             )
@@ -170,6 +176,9 @@ update msg model =
             ( { model
                 | desiredRotationAngle =
                     modBy 360 (model.desiredRotationAngle - 90)
+                , needToRotate = True
+                , mbOriImageWidth = model.mbOriImageHeight
+                , mbOriImageHeight = model.mbOriImageWidth
               }
             , Cmd.none
             )
@@ -187,16 +196,16 @@ update msg model =
                         desiredHeight =
                             desiredWidth / ratio
                     in
-                        ( { model
-                            | sliderValue = n
-                            , desiredWidth =
-                                Just <| round desiredWidth
-                            , desiredHeight =
-                                Just <| round desiredHeight
-                            , canResize = True
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | sliderValue = n
+                        , desiredWidth =
+                            Just <| round desiredWidth
+                        , desiredHeight =
+                            Just <| round desiredHeight
+                        , canResize = True
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -248,10 +257,17 @@ view model =
                     HtmlAttr.hidden True
                    else
                     noHtmlAttr
-                 , HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
+                 , if model.needToRotate then
+                    HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
+                   else
+                    noHtmlAttr
                  ]
                     ++ (if model.needToResize then
-                            [ model.desiredHeight
+                            [ (if model.desiredRotationAngle == 90 || model.desiredRotationAngle == 270 then
+                                model.desiredWidth
+                               else
+                                model.desiredHeight
+                              )
                                 |> Maybe.map (\h -> Encode.int h)
                                 |> Maybe.map (\val -> HtmlAttr.property "desiredSize" val)
                                 |> Maybe.withDefault noHtmlAttr
@@ -274,6 +290,9 @@ fileReaderView model =
 
 
 imageController attributes =
+    --Keyed.el []
+    --    ( "test"
+    --      --String.fromInt <| List.length attributes
     el []
         (html <|
             Html.node "image-controller"
@@ -316,8 +335,9 @@ editView model =
                         { onPress = Just RotateRight
                         , label = el [] (html <| rotateCw iconSize)
                         }
-                      -- text "Nom de fichier: "
-                      --, text f.filename
+
+                    -- text "Nom de fichier: "
+                    --, text f.filename
                     ]
                 , row
                     [ spacing 15 ]
@@ -329,10 +349,11 @@ editView model =
                         , Input.slider
                             [ Element.height (Element.px 30)
                             , Element.width (px 250)
-                              -- Here is where we're creating/styling the "track"
+
+                            -- Here is where we're creating/styling the "track"
                             , Element.behindContent
                                 (Element.el
-                                    [ Element.width (fill)
+                                    [ Element.width fill
                                     , Element.height (Element.px 2)
                                     , Element.centerY
                                     , Background.color (rgb 0.9 0.9 0.9)
@@ -342,7 +363,7 @@ editView model =
                                 )
                             ]
                             { onChange = Resize
-                            , label = Input.labelLeft [ centerY ] (Element.none)
+                            , label = Input.labelLeft [ centerY ] Element.none
                             , min = 0
                             , max = 100
                             , step = Just 1
@@ -368,7 +389,7 @@ editView model =
                         , label = text "Redimensionner"
                         }
                     ]
-                , text ("Aperçu: ")
+                , text "Aperçu: "
                 , el
                     [ width (maximum 650 fill)
                     , height (maximum 550 fill)
@@ -404,7 +425,7 @@ fileUploadRequest { contents, filename } =
                 , ( "filename", Encode.string filename )
                 ]
     in
-        Http.post "fileUpload.php" (jsonBody body) (Decode.succeed ())
+    Http.post "fileUpload.php" (jsonBody body) (Decode.succeed ())
 
 
 buttonStyle isActive =

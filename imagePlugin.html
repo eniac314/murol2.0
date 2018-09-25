@@ -26,14 +26,18 @@
 
     set desiredSize(maxHeight){
       if (maxHeight != null && this._original != null) {
-        resize(this._original.contents, maxHeight, this._original.filename, this);
+        this._maxHeight = maxHeight;
+        // resize(this._original.contents, maxHeight, this._original.filename, this);
+        transform(this._original.contents,this._original.filename, this);
       }
     }
     
     set rotationAngle(rAngle){
-      console.log("test");
+      // console.log("test");
       if (rAngle != null && this._original != null){
-        rotateImage(this._original.contents, rAngle, this._original.filename, this);
+        this._rAngle = rAngle;
+        // rotateImage(this._original.contents, rAngle, this._original.filename, this);
+        transform(this._original.contents,this._original.filename, this);
       }
     }
     
@@ -66,6 +70,8 @@
             
             this._fileData = fileData;
             this._original = fileData;
+            this._maxHeight = image.height;
+            this._rAngle = 0;
 
             this.dispatchEvent(new CustomEvent('fileRead'));
           };
@@ -90,6 +96,13 @@
         image.width *= max_height / image.height;
         image.height = max_height;
       }
+ 
+        if(image.height > max_height) {
+          image.width *= max_height / image.height;
+          image.height = max_height; 
+        }
+     
+
       var ctx = canvas.getContext("2d");
       
       canvas.width = image.width;
@@ -107,8 +120,10 @@
             };
             
       caller._fileData = fileData;
+      
+      rotateImage(fileData.contents, caller._rAngle, caller._original.filename, caller);
 
-      caller.dispatchEvent(new CustomEvent('imageRead'));
+      
     };
     
     image.src = src;
@@ -159,9 +174,14 @@
   image.src = src;
   } 
   
+  
+  function transform(src, filename, caller){
+      resize(caller._original.contents, caller._maxHeight, caller._original.filename, caller);
+   
+  }
 
 
-
+  
   
 
     
