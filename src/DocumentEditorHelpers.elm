@@ -112,6 +112,17 @@ newTextBlock nextUid =
         (TextBlock [])
 
 
+newImage nextUid =
+    newCell
+        nextUid
+        (Image
+            { src = UrlSrc ""
+            , caption = Nothing
+            , size = ImgSize 0 0
+            }
+        )
+
+
 
 --------------------
 -- new Containers --

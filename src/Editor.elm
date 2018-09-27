@@ -163,6 +163,7 @@ type alias Model =
     , currentPlugin : Maybe EditorPlugin
     , tablePlugin : TablePlugin.DocTable
     , textBlockPlugin : TextBlockPlugin.DocTextBlock
+    , imagePlugin : ImagePlugin.Model
     }
 
 
@@ -227,6 +228,7 @@ type Msg
       -----------------------------
     | TablePluginMsg TablePlugin.Msg
     | TextBlockPluginMsg TextBlockPlugin.Msg
+    | ImagePluginMsg ImagePlugin.Msg
       -------------------
       -- Persistence   --
       -------------------
@@ -258,6 +260,9 @@ init doc flags =
 
         ( newTextBlockPlugin, textBlockPluginCmds ) =
             TextBlockPlugin.init [] Nothing
+
+        ( newImagePlugin, imagePluginCmds ) =
+            ImagePlugin.init Nothing
 
         handlers =
             { containerClickHandler = SelectDoc
@@ -304,12 +309,14 @@ init doc flags =
       , currentPlugin = Nothing
       , tablePlugin = TablePlugin.init Nothing
       , textBlockPlugin = newTextBlockPlugin
+      , imagePlugin = newImagePlugin
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
         , Task.attempt MainInterfaceViewport
             (Dom.getViewportOf "mainInterface")
         , textBlockPluginCmds
+        , Cmd.map ImagePluginMsg imagePluginCmds
         , LocalStorage.send
             cmdPort
             (LocalStorage.listKeys "")
@@ -792,6 +799,60 @@ update msg model =
                         _ ->
                             ( model, Cmd.none )
 
+        ImagePluginMsg imgPlugMsg ->
+            let
+                ( newImagePlugin, imagePluginCmds, mbPluginData ) =
+                    ImagePlugin.update imgPlugMsg model.imagePlugin
+            in
+            case mbPluginData of
+                Nothing ->
+                    ( { model | imagePlugin = newImagePlugin }
+                    , Cmd.map ImagePluginMsg imagePluginCmds
+                    )
+
+                Just PluginQuit ->
+                    ( { model
+                        | imagePlugin = newImagePlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        , Cmd.map ImagePluginMsg imagePluginCmds
+                        ]
+                    )
+
+                Just (PluginData ( imgMeta, attrs )) ->
+                    case extractDoc model.document of
+                        Cell ({ cellContent } as lv) ->
+                            case cellContent of
+                                Image _ ->
+                                    let
+                                        newDoc =
+                                            updateCurrent
+                                                (Cell
+                                                    { lv
+                                                        | cellContent = Image imgMeta
+                                                        , attrs = attrs
+                                                    }
+                                                )
+                                                model.document
+                                    in
+                                    ( { model
+                                        | document = newDoc
+                                        , currentPlugin = Nothing
+                                      }
+                                    , Cmd.batch
+                                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                                        , Cmd.map ImagePluginMsg imagePluginCmds
+                                        ]
+                                    )
+
+                                _ ->
+                                    ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
         -------------------
         -- Persistence   --
         -------------------
@@ -1099,7 +1160,8 @@ pluginView : Model -> EditorPlugin -> Element Msg
 pluginView model plugin =
     case plugin of
         ImagePlugin ->
-            el [] (text "Nothing  here yet!")
+            ImagePlugin.view { picListing = [] } model.imagePlugin
+                |> Element.map ImagePluginMsg
 
         TablePlugin ->
             TablePlugin.view model.tablePlugin
@@ -1140,13 +1202,6 @@ pluginView model plugin =
                 }
 
 
-
---{ createNewCell = \_ -> NoOp
---, createNewContainer = \_ -> NoOp
---, nextUid = model.nextUid
---}
-
-
 openPlugin : Model -> ( Model, Cmd Msg )
 openPlugin model =
     case extractDoc model.document of
@@ -1178,6 +1233,18 @@ openPlugin model =
                         | currentPlugin = Just NewDocPlugin
                       }
                     , Cmd.none
+                    )
+
+                Image imgMeta ->
+                    let
+                        ( newImagePlugin, imagePluginCmds ) =
+                            ImagePlugin.init (Just ( imgMeta, attrs ))
+                    in
+                    ( { model
+                        | currentPlugin = Just ImagePlugin
+                        , imagePlugin = newImagePlugin
+                      }
+                    , Cmd.map ImagePluginMsg imagePluginCmds
                     )
 
                 _ ->

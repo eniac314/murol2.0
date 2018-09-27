@@ -184,7 +184,7 @@ decodeImageData msg =
 --main : Program () Model Msg
 --main =
 --    Browser.element
---        { init = init Nothing
+--        { init = (_ -> init Nothing)
 --        , update =
 --            \model msg ->
 --                let
@@ -197,8 +197,8 @@ decodeImageData msg =
 --        }
 
 
-init : Maybe ( ImageMeta, List DocAttribute ) -> () -> ( Model, Cmd Msg )
-init mbInput flags =
+init : Maybe ( ImageMeta, List DocAttribute ) -> ( Model, Cmd Msg )
+init mbInput =
     ( { mode = ImageAttributeEditor
 
       ----------------------------
@@ -498,18 +498,18 @@ update msg model =
 
 
 view config model =
-    layout
-        []
-    <|
-        case model.mode of
-            ImageAttributeEditor ->
-                imageAttributeEditorView config model
+    --layout
+    --    []
+    --<|
+    case model.mode of
+        ImageAttributeEditor ->
+            imageAttributeEditorView config model
 
-            ImagePicker ->
-                imagePickerView config model
+        ImagePicker ->
+            imagePickerView config model
 
-            ImageController imgContMode ->
-                imageControllerView model imgContMode
+        ImageController imgContMode ->
+            imageControllerView model imgContMode
 
 
 imageAttributeEditorView config model =
@@ -517,6 +517,7 @@ imageAttributeEditorView config model =
         [ spacing 15
         , Font.size 16
         , padding 15
+        , alignTop
         ]
         [ text "Alignement: "
         , row
@@ -548,10 +549,21 @@ imageAttributeEditorView config model =
                 }
             ]
         , row [ spacing 15 ]
-            [ text "Aperçu: "
+            [ case model.mbImageMeta of
+                Nothing ->
+                    Element.none
+
+                Just _ ->
+                    text "Aperçu: "
             , Input.button (buttonStyle True)
                 { onPress = Just (ChangeMode ImagePicker)
-                , label = el [] (text "Remplacer image")
+                , label =
+                    case model.mbImageMeta of
+                        Nothing ->
+                            el [] (text "Nouvelle Image")
+
+                        Just _ ->
+                            el [] (text "Remplacer Image")
                 }
             ]
         , el
@@ -599,6 +611,7 @@ imagePickerView config model =
         [ spacing 15
         , Font.size 16
         , padding 15
+        , alignTop
         ]
         [ row [ width fill ]
             [ text "Choisir image existante: "
@@ -693,6 +706,7 @@ imageControllerView model imgContMode =
         [ spacing 15
         , Font.size 16
         , padding 15
+        , alignTop
         ]
         [ case imgContMode of
             FileReader ->

@@ -93,7 +93,10 @@ view config =
                             ]
                     }
                 , Input.button buttonStyle
-                    { onPress = Nothing
+                    { onPress =
+                        Just <|
+                            config.createNewCell
+                                (newImage config.nextUid)
                     , label =
                         row [ spacing 10 ]
                             [ text "Image"
