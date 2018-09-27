@@ -3,6 +3,7 @@ module ImagePlugin exposing (..)
 import Browser exposing (element)
 import Dict exposing (..)
 import Document exposing (..)
+import DummyFileSys exposing (dummyImageList)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -34,8 +35,7 @@ type alias Model =
     ---------------------------
     -- Internal Image Picker --
     ---------------------------
-    , selectedFolder : Maybe String
-    , selectedImage : Maybe String
+    , selectedImage : Maybe ( String, ( Int, Int ) )
 
     ---------------------------------------
     -- Image Controller (load and resize)--
@@ -96,8 +96,8 @@ type Msg
       ------------------
       -- Image Picker --
       ------------------
-    | SelectFolder String
-    | SelectImage String
+    | SelectImage ( String, ( Int, Int ) )
+    | ConfirmSelected
       ---------------------
       -- ImageController --
       ---------------------
@@ -160,7 +160,6 @@ init mbInput flags =
       ---------------------------
       -- Internal Image Picker --
       ---------------------------
-      , selectedFolder = Nothing
       , selectedImage = Nothing
 
       ---------------------------------------
@@ -202,15 +201,34 @@ update msg model =
         ------------------
         -- Image Picker --
         ------------------
-        SelectFolder folder ->
-            ( { model | selectedFolder = Just folder }
+        SelectImage data ->
+            ( { model | selectedImage = Just data }
             , Cmd.none
             )
 
-        SelectImage image ->
-            ( { model | selectedImage = Just image }
-            , Cmd.none
-            )
+        ConfirmSelected ->
+            case model.selectedImage of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just ( url, ( width, height ) ) ->
+                    let
+                        newImageMeta =
+                            { src = UrlSrc ("images/" ++ url)
+                            , caption =
+                                model.mbCaption
+                            , size =
+                                { imgWidth = width
+                                , imgHeight = height
+                                }
+                            }
+                    in
+                    ( { model
+                        | mbImageMeta = Just newImageMeta
+                        , mode = ImageAttributeEditor
+                      }
+                    , Cmd.none
+                    )
 
         ---------------------
         -- ImageController --
@@ -462,10 +480,9 @@ imagePickerView config model =
         , Font.size 16
         , padding 15
         ]
-        [ text "Choisir Image: "
+        [ text "Choisir image existante: "
         , row
-            [ padding 15
-            , spacing 15
+            [ spacing 15
             ]
             [ column
                 [ width (px 200)
@@ -475,40 +492,86 @@ imagePickerView config model =
                 , scrollbarY
                 , Background.color (rgb 1 1 1)
                 ]
-                (List.map (entryView model.selectedFolder SelectFolder) (Dict.keys dummyImageList))
-            , column
+                (List.map (entryView model.selectedImage SelectImage) dummyImageList)
+            , el
                 [ width (px 350)
                 , height (px 300)
                 , Border.width 1
                 , Border.color (rgb 0.8 0.8 0.8)
-                , clipX
-                , scrollbarY
                 , Background.color (rgb 1 1 1)
-                ]
-                (Maybe.andThen (\folder -> Dict.get folder dummyImageList) model.selectedFolder
-                    |> Maybe.map (List.map (entryView model.selectedImage SelectImage))
-                    |> Maybe.withDefault []
-                )
+                , case model.selectedImage of
+                    Nothing ->
+                        noAttr
 
-            --, Input.button
-            --    (buttonStyle (not (mbFile == Nothing)) ++ [ alignTop ])
-            --    { onPress =
-            --        if not (mbFile == Nothing) then
-            --            Just (ConfirmFileUrl uid)
-            --        else
-            --            Nothing
-            --    , label =
-            --        row [ spacing 5 ]
-            --            [ el [] (html <| Icons.externalLink iconSize)
-            --            , el [] (text "Valider")
-            --            ]
-            --}
+                    Just ( url, ( w, h ) ) ->
+                        Background.uncropped ("images/" ++ url)
+                ]
+                Element.none
+
+            --(case model.selectedImage of
+            --    Nothing ->
+            --        Element.none
+            --    Just ( url, ( w, h ) ) ->
+            --        --el
+            --        --    ([ clip
+            --        --     ]
+            --        --        ++ (if h > w || h > 295 then
+            --        --                [ if (round <| toFloat w * 295 / toFloat h) >= 350 then
+            --        --                    height (px <| round <| toFloat h * 350 / toFloat w)
+            --        --                  else
+            --        --                    height (px 295)
+            --        --                ]
+            --        --            else
+            --        --                [ width (maximum 350 fill) ]
+            --        --           )
+            --        --    )
+            --        image
+            --            ([ centerY
+            --             , centerX
+            --             , clip
+            --             ]
+            --                ++ (if h > w || h > 295 then
+            --                        [ if (round <| toFloat w * 295 / toFloat h) >= 350 then
+            --                            height (px <| round <| toFloat h * 350 / toFloat w)
+            --                          else
+            --                            height (px 295)
+            --                        ]
+            --                    else
+            --                        [ width (maximum 350 fill) ]
+            --                   )
+            --            )
+            --            { src =
+            --                "images/" ++ url
+            --            , description =
+            --                ""
+            --            }
+            --)
+            ]
+        , row
+            [ spacing 15
+            ]
+            [ Input.button (buttonStyle True)
+                { onPress = Just (ChangeMode (ImageController FileReader))
+                , label = text "Charger une nouvelle image"
+                }
+            , Input.button
+                (buttonStyle True)
+                { onPress = Just (ChangeMode ImageAttributeEditor)
+                , label = text "Retour"
+                }
+            , Input.button (buttonStyle True)
+                { onPress = Just ConfirmSelected
+                , label = text "Valider"
+                }
             ]
         ]
 
 
-entryView : Maybe String -> (String -> Msg) -> String -> Element.Element Msg
-entryView mbSel msg e =
+
+--entryView : Maybe ( String, ( Int, Int ) ) -> (String -> Msg) -> ( String, ( Int, Int ) ) -> Element.Element Msg
+
+
+entryView mbSel msg (( url, ( w, h ) ) as e) =
     el
         [ Events.onClick (msg e)
         , pointer
@@ -528,7 +591,7 @@ entryView mbSel msg e =
         , width fill
         , paddingXY 15 5
         ]
-        (text e)
+        (text url)
 
 
 imageControllerView model imgContMode =
@@ -570,6 +633,16 @@ imageControllerView model imgContMode =
                         []
                    )
             )
+        , case imgContMode of
+            FileReader ->
+                Input.button
+                    (buttonStyle True)
+                    { onPress = Just (ChangeMode ImageAttributeEditor)
+                    , label = text "Retour"
+                    }
+
+            Editor ->
+                Element.none
         ]
 
 
@@ -844,8 +917,3 @@ noHtmlAttr =
 
 iconSize =
     18
-
-
-dummyImageList =
-    Dict.fromList
-        []
