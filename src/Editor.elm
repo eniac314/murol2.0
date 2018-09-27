@@ -5,6 +5,7 @@ port module Editor exposing (..)
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
+import Delay exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
 import DocumentDecoder exposing (..)
@@ -27,6 +28,7 @@ import Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode exposing (Value, null)
 import NewDocPlugin exposing (..)
+import PersistencePlugin exposing (..)
 import PortFunnel exposing (FunnelSpec, GenericMessage, ModuleDesc, StateAccessors)
 import PortFunnel.LocalStorage as LocalStorage
 import SampleDocs exposing (..)
@@ -34,7 +36,6 @@ import StyleSheets exposing (..)
 import TablePlugin exposing (..)
 import Task exposing (perform)
 import TextBlockPlugin exposing (..)
-import PersistencePlugin exposing (..)
 import Yajson exposing (..)
 import Yajson.Stringify exposing (..)
 
@@ -126,21 +127,21 @@ storageHandler response state mdl =
         model =
             { mdl | funnelState = state }
     in
-        case response of
-            -- A `Response` is used to return values for `Get` and `ListKeys`.
-            LocalStorage.GetResponse { key, value } ->
-                ( { model
-                    | localStorageKey = key
-                    , localStorageValue = value
-                  }
-                , Cmd.none
-                )
+    case response of
+        -- A `Response` is used to return values for `Get` and `ListKeys`.
+        LocalStorage.GetResponse { key, value } ->
+            ( { model
+                | localStorageKey = key
+                , localStorageValue = value
+              }
+            , Cmd.none
+            )
 
-            LocalStorage.ListKeysResponse { keys } ->
-                ( { model | localStorageKeys = keys }, Cmd.none )
+        LocalStorage.ListKeysResponse { keys } ->
+            ( { model | localStorageKeys = keys }, Cmd.none )
 
-            _ ->
-                ( model, Cmd.none )
+        _ ->
+            ( model, Cmd.none )
 
 
 type alias Model =
@@ -236,6 +237,7 @@ type Msg
     | PutInLocalStorage
     | RemoveFromLocalStorage
     | ClearLocalStorage
+    | ListKeys
     | Process Json.Encode.Value
       ---------
       -- Misc--
@@ -284,35 +286,35 @@ init doc flags =
         funnelState =
             { storage = LocalStorage.initialState "Editor" }
     in
-        ( { config = config
-          , document = initZip doc_
-          , clipboard = Nothing
-          , undoCache = []
-          , nextUid = docSize doc_
-          , controlDown = False
-          , menuClicked = False
-          , menuFocused = ""
-          , previewMode = PreviewBigScreen
-          , funnelState = funnelState
-          , localStorageKey = ""
-          , localStorageValue = Nothing
-          , localStorageKeys = []
-          , jsonBuffer = ""
-          , currentPlugin = Nothing
-          , tablePlugin = TablePlugin.init Nothing
-          , textBlockPlugin = newTextBlockPlugin
-          }
-        , Cmd.batch
-            [ Task.perform CurrentViewport Dom.getViewport
-            , Task.attempt MainInterfaceViewport
-                (Dom.getViewportOf "mainInterface")
-            , textBlockPluginCmds
-            , LocalStorage.send
-                cmdPort
-                (LocalStorage.listKeys "")
-                funnelState.storage
-            ]
-        )
+    ( { config = config
+      , document = initZip doc_
+      , clipboard = Nothing
+      , undoCache = []
+      , nextUid = docSize doc_
+      , controlDown = False
+      , menuClicked = False
+      , menuFocused = ""
+      , previewMode = PreviewBigScreen
+      , funnelState = funnelState
+      , localStorageKey = ""
+      , localStorageValue = Nothing
+      , localStorageKeys = []
+      , jsonBuffer = ""
+      , currentPlugin = Nothing
+      , tablePlugin = TablePlugin.init Nothing
+      , textBlockPlugin = newTextBlockPlugin
+      }
+    , Cmd.batch
+        [ Task.perform CurrentViewport Dom.getViewport
+        , Task.attempt MainInterfaceViewport
+            (Dom.getViewportOf "mainInterface")
+        , textBlockPluginCmds
+        , LocalStorage.send
+            cmdPort
+            (LocalStorage.listKeys "")
+            funnelState.storage
+        ]
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -326,15 +328,15 @@ update msg model =
                 ws =
                     model.config
             in
-                ( { model
-                    | config =
-                        { ws
-                            | width = round vp.viewport.width
-                            , height = round vp.viewport.height
-                        }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | config =
+                    { ws
+                        | width = round vp.viewport.width
+                        , height = round vp.viewport.height
+                    }
+              }
+            , Cmd.none
+            )
 
         CurrentViewportOf uid res ->
             case res of
@@ -350,14 +352,14 @@ update msg model =
                                 }
                                 currentConfig.sizesDict
                     in
-                        ( { model
-                            | config =
-                                { currentConfig
-                                    | sizesDict = newSizesDict
-                                }
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | config =
+                            { currentConfig
+                                | sizesDict = newSizesDict
+                            }
+                      }
+                    , Cmd.none
+                    )
 
                 Err (Dom.NotFound s) ->
                     ( model, Cmd.none )
@@ -369,15 +371,15 @@ update msg model =
                         currentConfig =
                             model.config
                     in
-                        ( { model
-                            | config =
-                                { currentConfig
-                                    | mainInterfaceHeight =
-                                        round viewport.height
-                                }
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | config =
+                            { currentConfig
+                                | mainInterfaceHeight =
+                                    round viewport.height
+                            }
+                      }
+                    , Cmd.none
+                    )
 
                 Err (Dom.NotFound s) ->
                     ( model, Cmd.none )
@@ -390,9 +392,9 @@ update msg model =
                 newConfig =
                     { cfg | width = width, height = height }
             in
-                ( { model | config = newConfig }
-                , Cmd.batch [ updateSizes newConfig ]
-                )
+            ( { model | config = newConfig }
+            , Cmd.batch [ updateSizes newConfig ]
+            )
 
         RefreshSizes ->
             ( model
@@ -437,15 +439,15 @@ update msg model =
                 newDoc =
                     zipUp model.document
             in
-                if e.deltaY > 0 then
-                    ( { model
-                        | document =
-                            Maybe.withDefault model.document newDoc
-                      }
-                    , Cmd.none
-                    )
-                else
-                    ( model, Cmd.none )
+            if e.deltaY > 0 then
+                ( { model
+                    | document =
+                        Maybe.withDefault model.document newDoc
+                  }
+                , Cmd.none
+                )
+            else
+                ( model, Cmd.none )
 
         Rewind ->
             ( { model
@@ -541,28 +543,28 @@ update msg model =
                     { model | document = updateCurrent newDoc model.document }
                         |> openPlugin
             in
-                ( { newModel | nextUid = model.nextUid + 1 }
-                , Cmd.batch
-                    [ cmd ]
-                )
+            ( { newModel | nextUid = model.nextUid + 1 }
+            , Cmd.batch
+                [ cmd ]
+            )
 
         DeleteSelected ->
             let
                 newDoc =
                     safeDeleteCurrent model.nextUid model.document
             in
-                ( { model
-                    | document =
-                        Maybe.withDefault model.document
-                            newDoc
-                    , undoCache =
-                        model.document
-                            :: model.undoCache
-                            |> List.take undoCacheDepth
-                    , nextUid = model.nextUid + 1
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | document =
+                    Maybe.withDefault model.document
+                        newDoc
+                , undoCache =
+                    model.document
+                        :: model.undoCache
+                        |> List.take undoCacheDepth
+                , nextUid = model.nextUid + 1
+              }
+            , Cmd.none
+            )
 
         Copy ->
             ( { model
@@ -580,19 +582,19 @@ update msg model =
                 newDoc =
                     safeDeleteCurrent model.nextUid model.document
             in
-                ( { model
-                    | document =
-                        Maybe.withDefault model.document
-                            newDoc
-                    , undoCache =
-                        model.document
-                            :: model.undoCache
-                            |> List.take undoCacheDepth
-                    , nextUid = model.nextUid + 1
-                    , clipboard = Just currentDoc
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | document =
+                    Maybe.withDefault model.document
+                        newDoc
+                , undoCache =
+                    model.document
+                        :: model.undoCache
+                        |> List.take undoCacheDepth
+                , nextUid = model.nextUid + 1
+                , clipboard = Just currentDoc
+              }
+            , Cmd.none
+            )
 
         Paste ->
             case ( extractDoc model.document, model.clipboard ) of
@@ -601,12 +603,12 @@ update msg model =
                         newDoc =
                             Container cv (xs ++ [ doc ])
                     in
-                        ( { model
-                            | document = updateCurrent newDoc model.document
-                            , clipboard = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | document = updateCurrent newDoc model.document
+                        , clipboard = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -664,9 +666,9 @@ update msg model =
                 newConfig =
                     { config | width = newWidth }
             in
-                ( { model | previewMode = pm, config = newConfig }
-                , updateSizes newConfig
-                )
+            ( { model | previewMode = pm, config = newConfig }
+            , updateSizes newConfig
+            )
 
         ToogleCountainersColors ->
             let
@@ -679,7 +681,7 @@ update msg model =
                             not config.containersBkgColors
                     }
             in
-                ( { model | config = newConfig }, Cmd.none )
+            ( { model | config = newConfig }, Cmd.none )
 
         SetEditorPlugin mbPlugin ->
             ( { model | currentPlugin = mbPlugin }, Cmd.none )
@@ -692,102 +694,102 @@ update msg model =
                 ( newTablePlugin, mbPluginData ) =
                     TablePlugin.update tableMsg model.tablePlugin
             in
-                case mbPluginData of
-                    Nothing ->
-                        ( { model | tablePlugin = newTablePlugin }
-                        , Cmd.batch
-                            []
-                        )
+            case mbPluginData of
+                Nothing ->
+                    ( { model | tablePlugin = newTablePlugin }
+                    , Cmd.batch
+                        []
+                    )
 
-                    Just PluginQuit ->
-                        ( { model
-                            | tablePlugin = newTablePlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.batch
-                            [ scrollTo <| getHtmlId (extractDoc model.document) ]
-                        )
+                Just PluginQuit ->
+                    ( { model
+                        | tablePlugin = newTablePlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                    )
 
-                    Just (PluginData tm) ->
-                        case extractDoc model.document of
-                            Cell ({ cellContent } as lv) ->
-                                case cellContent of
-                                    Table _ ->
-                                        let
-                                            newDoc =
-                                                updateCurrent
-                                                    (Cell { lv | cellContent = Table tm })
-                                                    model.document
-                                        in
-                                            ( { model
-                                                | document = newDoc
-                                                , currentPlugin = Nothing
-                                              }
-                                            , Cmd.batch
-                                                [ scrollTo <| getHtmlId (extractDoc model.document) ]
-                                            )
+                Just (PluginData tm) ->
+                    case extractDoc model.document of
+                        Cell ({ cellContent } as lv) ->
+                            case cellContent of
+                                Table _ ->
+                                    let
+                                        newDoc =
+                                            updateCurrent
+                                                (Cell { lv | cellContent = Table tm })
+                                                model.document
+                                    in
+                                    ( { model
+                                        | document = newDoc
+                                        , currentPlugin = Nothing
+                                      }
+                                    , Cmd.batch
+                                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                                    )
 
-                                    _ ->
-                                        ( model, Cmd.none )
+                                _ ->
+                                    ( model, Cmd.none )
 
-                            _ ->
-                                ( model, Cmd.none )
+                        _ ->
+                            ( model, Cmd.none )
 
         TextBlockPluginMsg textBlockMsg ->
             let
                 ( newTextBlockPlugin, textBlockPluginCmds, mbPluginData ) =
                     TextBlockPlugin.update textBlockMsg model.textBlockPlugin
             in
-                case mbPluginData of
-                    Nothing ->
-                        ( { model | textBlockPlugin = newTextBlockPlugin }
-                        , Cmd.batch
-                            [ Cmd.map TextBlockPluginMsg textBlockPluginCmds
-                            ]
-                        )
+            case mbPluginData of
+                Nothing ->
+                    ( { model | textBlockPlugin = newTextBlockPlugin }
+                    , Cmd.batch
+                        [ Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        ]
+                    )
 
-                    Just PluginQuit ->
-                        ( { model
-                            | textBlockPlugin = newTextBlockPlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.batch
-                            [ scrollTo <| getHtmlId (extractDoc model.document)
-                            , Cmd.map TextBlockPluginMsg textBlockPluginCmds
-                            ]
-                        )
+                Just PluginQuit ->
+                    ( { model
+                        | textBlockPlugin = newTextBlockPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        ]
+                    )
 
-                    Just (PluginData ( tbElems, attrs )) ->
-                        case extractDoc model.document of
-                            Cell ({ cellContent } as lv) ->
-                                case cellContent of
-                                    TextBlock _ ->
-                                        let
-                                            newDoc =
-                                                updateCurrent
-                                                    (Cell
-                                                        { lv
-                                                            | cellContent = TextBlock tbElems
-                                                            , attrs = attrs
-                                                        }
-                                                    )
-                                                    model.document
-                                        in
-                                            ( { model
-                                                | document = newDoc
-                                                , currentPlugin = Nothing
-                                              }
-                                            , Cmd.batch
-                                                [ scrollTo <| getHtmlId (extractDoc model.document)
-                                                , Cmd.map TextBlockPluginMsg textBlockPluginCmds
-                                                ]
-                                            )
+                Just (PluginData ( tbElems, attrs )) ->
+                    case extractDoc model.document of
+                        Cell ({ cellContent } as lv) ->
+                            case cellContent of
+                                TextBlock _ ->
+                                    let
+                                        newDoc =
+                                            updateCurrent
+                                                (Cell
+                                                    { lv
+                                                        | cellContent = TextBlock tbElems
+                                                        , attrs = attrs
+                                                    }
+                                                )
+                                                model.document
+                                    in
+                                    ( { model
+                                        | document = newDoc
+                                        , currentPlugin = Nothing
+                                      }
+                                    , Cmd.batch
+                                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                                        ]
+                                    )
 
-                                    _ ->
-                                        ( model, Cmd.none )
+                                _ ->
+                                    ( model, Cmd.none )
 
-                            _ ->
-                                ( model, Cmd.none )
+                        _ ->
+                            ( model, Cmd.none )
 
         -------------------
         -- Persistence   --
@@ -802,9 +804,9 @@ update msg model =
                         ( newModel, cmd ) =
                             init newDoc ""
                     in
-                        ( { newModel | currentPlugin = Just PersistencePlugin }
-                        , cmd
-                        )
+                    ( { newModel | currentPlugin = Just PersistencePlugin }
+                    , cmd
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -816,7 +818,7 @@ update msg model =
             ( { model
                 | localStorageValue = Just val
                 , jsonBuffer =
-                    (Yajson.fromValue val
+                    Yajson.fromValue val
                         |> (\res ->
                                 case res of
                                     Ok json ->
@@ -825,7 +827,6 @@ update msg model =
                                     Err error ->
                                         "error"
                            )
-                    )
               }
             , Cmd.none
             )
@@ -841,7 +842,7 @@ update msg model =
                             Nothing
 
                 newBuffer =
-                    (Yajson.fromValue (Maybe.withDefault null newLocalStorageValue)
+                    Yajson.fromValue (Maybe.withDefault null newLocalStorageValue)
                         |> (\res ->
                                 case res of
                                     Ok json ->
@@ -850,15 +851,14 @@ update msg model =
                                     Err error ->
                                         "error"
                            )
-                    )
             in
-                ( { model
-                    | jsonBuffer = newBuffer
-                    , localStorageValue =
-                        newLocalStorageValue
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | jsonBuffer = newBuffer
+                , localStorageValue =
+                    newLocalStorageValue
+              }
+            , Cmd.none
+            )
 
         GetFromLocalStorage ->
             ( model
@@ -870,31 +870,48 @@ update msg model =
 
         PutInLocalStorage ->
             ( model
-            , LocalStorage.send
-                cmdPort
-                (LocalStorage.put
-                    model.localStorageKey
-                    model.localStorageValue
-                )
-                model.funnelState.storage
+            , Cmd.batch
+                [ LocalStorage.send
+                    cmdPort
+                    (LocalStorage.put
+                        model.localStorageKey
+                        model.localStorageValue
+                    )
+                    model.funnelState.storage
+                , after 500 Millisecond ListKeys
+                ]
             )
 
         RemoveFromLocalStorage ->
             ( model
-            , LocalStorage.send
-                cmdPort
-                (LocalStorage.put
-                    model.localStorageKey
-                    Nothing
-                )
-                model.funnelState.storage
+            , Cmd.batch
+                [ LocalStorage.send
+                    cmdPort
+                    (LocalStorage.put
+                        model.localStorageKey
+                        Nothing
+                    )
+                    model.funnelState.storage
+                , after 500 Millisecond ListKeys
+                ]
             )
 
         ClearLocalStorage ->
             ( model
+            , Cmd.batch
+                [ LocalStorage.send
+                    cmdPort
+                    (LocalStorage.clear "")
+                    model.funnelState.storage
+                , after 500 Millisecond ListKeys
+                ]
+            )
+
+        ListKeys ->
+            ( model
             , LocalStorage.send
                 cmdPort
-                (LocalStorage.clear "")
+                (LocalStorage.listKeys "")
                 model.funnelState.storage
             )
 
@@ -910,46 +927,43 @@ update msg model =
                         moduleName =
                             genericMessage.moduleName
                     in
-                        case Dict.get moduleName funnels of
-                            Just funnel ->
-                                case funnel of
-                                    StorageFunnel storFunnel ->
-                                        case
-                                            PortFunnel.appProcess cmdPort
-                                                genericMessage
-                                                storFunnel
-                                                model.funnelState
-                                                model
-                                        of
-                                            Err _ ->
-                                                ( model, Cmd.none )
+                    case Dict.get moduleName funnels of
+                        Just funnel ->
+                            case funnel of
+                                StorageFunnel storFunnel ->
+                                    case
+                                        PortFunnel.appProcess cmdPort
+                                            genericMessage
+                                            storFunnel
+                                            model.funnelState
+                                            model
+                                    of
+                                        Err _ ->
+                                            ( model, Cmd.none )
 
-                                            Ok ( mdl, cmd ) ->
-                                                let
-                                                    newBuffer =
-                                                        (Yajson.fromValue (Maybe.withDefault null mdl.localStorageValue)
-                                                            |> (\res ->
-                                                                    case res of
-                                                                        Ok json ->
-                                                                            pretty json
+                                        Ok ( mdl, cmd ) ->
+                                            let
+                                                newBuffer =
+                                                    Yajson.fromValue (Maybe.withDefault null mdl.localStorageValue)
+                                                        |> (\res ->
+                                                                case res of
+                                                                    Ok json ->
+                                                                        pretty json
 
-                                                                        Err error ->
-                                                                            "error"
-                                                               )
-                                                        )
-                                                in
-                                                    ( { mdl | jsonBuffer = newBuffer }
-                                                    , Cmd.batch
-                                                        [ cmd
-                                                        , LocalStorage.send
-                                                            cmdPort
-                                                            (LocalStorage.listKeys "")
-                                                            mdl.funnelState.storage
-                                                        ]
-                                                    )
+                                                                    Err error ->
+                                                                        "error"
+                                                           )
+                                            in
+                                            ( { mdl
+                                                | jsonBuffer = newBuffer
+                                              }
+                                            , Cmd.batch
+                                                [ cmd
+                                                ]
+                                            )
 
-                            _ ->
-                                ( model, Cmd.none )
+                        _ ->
+                            ( model, Cmd.none )
 
         ---------
         -- Misc--
@@ -974,19 +988,19 @@ view model =
             (column
                 ([ width fill
                  , height (maximum model.config.height fill)
-                   --, Background.color (rgba 1 0.5 0.3 0.4)
+
+                 --, Background.color (rgba 1 0.5 0.3 0.4)
                  ]
                     --++ (if model.currentPlugin == Nothing && model.controlDown then
                     --        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
                     --    else
                     --        []
                     --   )
-                    ++
-                        (if model.menuClicked then
+                    ++ (if model.menuClicked then
                             [ onClick MenuClickOff ]
-                         else
+                        else
                             []
-                        )
+                       )
                 )
                 [ mainInterface
                     { clicked = model.menuClicked
@@ -1001,11 +1015,13 @@ view model =
                     }
                 , row
                     [ width fill
-                      --NOTE: trick to make the columns scrollable
+
+                    --NOTE: trick to make the columns scrollable
                     , clip
                     , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
-                      --NOTE: works too
-                      --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
+
+                    --NOTE: works too
+                    --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
                     , height fill
                     ]
                     [ documentStructView
@@ -1021,17 +1037,18 @@ view model =
                         Just plugin ->
                             pluginView model plugin
                     ]
-                  --mainMenu
-                  --  { clicked = model.menuClicked
-                  --  , currentFocus = model.menuFocused
-                  --  , isInPlugin = model.currentPlugin /= Nothing
-                  --  , clipboardEmpty = model.clipboard == Nothing
-                  --  , undoCacheEmpty = model.undoCache == []
-                  --  , selectionIsRoot = zipUp model.document == Nothing
-                  --  , selectionIsContainer = isContainer (extractDoc model.document)
-                  --  , previewMode = model.previewMode
-                  --  , containersBkgColors = model.config.containersBkgColors
-                  --  }
+
+                --mainMenu
+                --  { clicked = model.menuClicked
+                --  , currentFocus = model.menuFocused
+                --  , isInPlugin = model.currentPlugin /= Nothing
+                --  , clipboardEmpty = model.clipboard == Nothing
+                --  , undoCacheEmpty = model.undoCache == []
+                --  , selectionIsRoot = zipUp model.document == Nothing
+                --  , selectionIsContainer = isContainer (extractDoc model.document)
+                --  , previewMode = model.previewMode
+                --  , containersBkgColors = model.config.containersBkgColors
+                --  }
                 ]
             )
         ]
@@ -1043,7 +1060,8 @@ documentView model =
     column
         [ scrollbarY
         , height fill
-          -- needed to be able to scroll
+
+        -- needed to be able to scroll
         , width fill
         , htmlAttribute <| HtmlAttr.id "documentContainer"
         , case model.previewMode of
@@ -1100,6 +1118,7 @@ pluginView model plugin =
                 , nextUid = model.nextUid
                 }
 
+        --Element.none
         PersistencePlugin ->
             PersistencePlugin.view
                 { localStorageKeys = model.localStorageKeys
@@ -1145,13 +1164,13 @@ openPlugin model =
                         ( newTextBlockPlugin, textBlockPluginCmds ) =
                             TextBlockPlugin.init attrs (Just tbElems)
                     in
-                        ( { model
-                            | currentPlugin = Just TextBlockPlugin
-                            , textBlockPlugin = newTextBlockPlugin
-                          }
-                        , Cmd.batch
-                            [ textBlockPluginCmds ]
-                        )
+                    ( { model
+                        | currentPlugin = Just TextBlockPlugin
+                        , textBlockPlugin = newTextBlockPlugin
+                      }
+                    , Cmd.batch
+                        [ textBlockPluginCmds ]
+                    )
 
                 EmptyCell ->
                     ( { model
@@ -1237,97 +1256,97 @@ mainInterface config =
                         ]
                    )
     in
-        column
+    column
+        [ width fill
+        , Font.size 15
+        , htmlAttribute <| HtmlAttr.id "mainInterface"
+        ]
+        [ mainMenu config
+        , row
             [ width fill
-            , Font.size 15
-            , htmlAttribute <| HtmlAttr.id "mainInterface"
+            , spacing 15
+            , paddingXY 15 10
+            , Background.color (rgb 0.9 0.9 0.9)
             ]
-            [ mainMenu config
-            , row
-                [ width fill
-                , spacing 15
-                , paddingXY 15 10
-                , Background.color (rgb 0.9 0.9 0.9)
+            (List.map interfaceButton <|
+                [ { defButtonConfig
+                    | icons = [ plusSquare iconSize ]
+                    , labelText = "Ajouter"
+                    , msg = Just AddNewInside
+                    , isActive =
+                        not config.isInPlugin
+                            && config.selectionIsContainer
+                  }
+                , { defButtonConfig
+                    | icons =
+                        [ plusSquare iconSize
+                        , chevronsUp iconSize
+                        ]
+                    , labelText = "Ajouter au dessus"
+                    , msg = Just AddNewLeft
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons =
+                        [ plusSquare iconSize
+                        , chevronsDown iconSize
+                        ]
+                    , labelText = "Ajouter en dessous"
+                    , msg = Just AddNewRight
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ edit iconSize ]
+                    , labelText = "Modifier"
+                    , msg = Just EditCell
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsContainer
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ xSquare iconSize ]
+                    , labelText = "Supprimer"
+                    , msg = Just DeleteSelected
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ chevronsUp iconSize ]
+                    , labelText = "Monter"
+                    , msg = Just SwapLeft
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ chevronsDown iconSize ]
+                    , labelText = "Descendre"
+                    , msg = Just SwapRight
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ refreshCw iconSize ]
+                    , labelText = "Rafraichir"
+                    , msg = Just RefreshSizes
+                    , isActive = True
+                  }
+                , { defButtonConfig
+                    | icons = [ settings iconSize ]
+                    , labelText = "Préférences"
+                    , msg = Nothing
+                    , isActive = False
+                  }
                 ]
-                (List.map interfaceButton <|
-                    [ { defButtonConfig
-                        | icons = [ plusSquare iconSize ]
-                        , labelText = "Ajouter"
-                        , msg = Just AddNewInside
-                        , isActive =
-                            not config.isInPlugin
-                                && config.selectionIsContainer
-                      }
-                    , { defButtonConfig
-                        | icons =
-                            [ plusSquare iconSize
-                            , chevronsUp iconSize
-                            ]
-                        , labelText = "Ajouter au dessus"
-                        , msg = Just AddNewLeft
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons =
-                            [ plusSquare iconSize
-                            , chevronsDown iconSize
-                            ]
-                        , labelText = "Ajouter en dessous"
-                        , msg = Just AddNewRight
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ edit iconSize ]
-                        , labelText = "Modifier"
-                        , msg = Just EditCell
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsContainer
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ xSquare iconSize ]
-                        , labelText = "Supprimer"
-                        , msg = Just DeleteSelected
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ chevronsUp iconSize ]
-                        , labelText = "Monter"
-                        , msg = Just SwapLeft
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ chevronsDown iconSize ]
-                        , labelText = "Descendre"
-                        , msg = Just SwapRight
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ refreshCw iconSize ]
-                        , labelText = "Rafraichir"
-                        , msg = Just RefreshSizes
-                        , isActive = True
-                      }
-                    , { defButtonConfig
-                        | icons = [ settings iconSize ]
-                        , labelText = "Préférences"
-                        , msg = Nothing
-                        , isActive = False
-                      }
-                    ]
-                )
-            ]
+            )
+        ]
 
 
 mainMenu : MenuConfig -> Element Msg
@@ -1541,9 +1560,9 @@ mainMenu config =
               )
             ]
     in
-        row
-            []
-            (List.map topEntry menuData)
+    row
+        []
+        (List.map topEntry menuData)
 
 
 
@@ -1558,9 +1577,9 @@ updateSizes { sizesDict } =
         cmd uid id =
             Task.attempt (CurrentViewportOf uid) (Dom.getViewportOf id)
     in
-        Dict.keys sizesDict
-            |> List.map (\uid -> cmd uid ("sizeTracked" ++ String.fromInt uid))
-            |> Cmd.batch
+    Dict.keys sizesDict
+        |> List.map (\uid -> cmd uid ("sizeTracked" ++ String.fromInt uid))
+        |> Cmd.batch
 
 
 scrollTo : Maybe String -> Cmd Msg
