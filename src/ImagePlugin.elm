@@ -1,6 +1,7 @@
 module ImagePlugin exposing (..)
 
 import Browser exposing (element)
+import Dict exposing (..)
 import Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -21,11 +22,28 @@ import Json.Encode as Encode
 
 
 type alias Model =
-    { id : String
+    { mode : Mode
+
+    ----------------------------
+    -- Image Attribute Editor --
+    ----------------------------
+    , mbCaption : Maybe String
+    , alignment : Alignement
+    , mbImageMeta : Maybe ImageMeta
+
+    ---------------------------
+    -- Internal Image Picker --
+    ---------------------------
+    , selectedFolder : Maybe String
+    , selectedImage : Maybe String
+
+    ---------------------------------------
+    -- Image Controller (load and resize)--
+    ---------------------------------------
+    , id : String
     , mbOriImageWidth : Maybe Int
     , mbOriImageHeight : Maybe Int
     , mbOriFileSize : Maybe Int
-    , mbCaption : Maybe String
     , desiredWidth : Maybe Int
     , desiredHeight : Maybe Int
     , desiredFilename : Maybe String
@@ -35,7 +53,6 @@ type alias Model =
     , needToRotate : Bool
     , canResize : Bool
     , mbImageFromFile : Maybe ImageFromFile
-    , mode : Mode
     }
 
 
@@ -65,12 +82,22 @@ type Alignement
     | ALeft
 
 
+findAlignment : List DocAttribute -> Alignement
+findAlignment attrs =
+    ACenter
+
+
 type Msg
     = ---------------------------
       -- Image Attribute Editor--
       ---------------------------
       SetAlignment Alignement
     | SetCaption String
+      ------------------
+      -- Image Picker --
+      ------------------
+    | SelectFolder String
+    | SelectImage String
       ---------------------
       -- ImageController --
       ---------------------
@@ -115,35 +142,43 @@ main =
         }
 
 
-init : Maybe ImageMeta -> () -> ( Model, Cmd Msg )
+init : Maybe ( ImageMeta, List DocAttribute ) -> () -> ( Model, Cmd Msg )
 init mbInput flags =
-    ( { id = "InputId"
-      , mbOriImageWidth =
-            Maybe.map (.imgWidth << .size) mbInput
-      , mbOriImageHeight =
-            Maybe.map (.imgHeight << .size) mbInput
+    ( { mode = ImageAttributeEditor
+
+      ----------------------------
+      -- Image Attribute Editor --
+      ----------------------------
+      , mbCaption =
+            Maybe.andThen (.caption << Tuple.first) mbInput
+      , alignment =
+            Maybe.map (findAlignment << Tuple.second) mbInput
+                |> Maybe.withDefault ACenter
+      , mbImageMeta =
+            Maybe.map Tuple.first mbInput
+
+      ---------------------------
+      -- Internal Image Picker --
+      ---------------------------
+      , selectedFolder = Nothing
+      , selectedImage = Nothing
+
+      ---------------------------------------
+      -- Image Controller (load and resize)--
+      ---------------------------------------
+      , id = "InputId"
+      , mbOriImageWidth = Nothing
+      , mbOriImageHeight = Nothing
       , mbOriFileSize = Nothing
-      , mbCaption = Maybe.andThen .caption mbInput
       , desiredWidth = Nothing
       , desiredHeight = Nothing
-      , desiredFilename =
-            Maybe.map .src mbInput
-                |> Maybe.andThen
-                    (\src ->
-                        case src of
-                            UrlSrc filename ->
-                                Just filename
-
-                            Inline filename _ ->
-                                Just filename
-                    )
+      , desiredFilename = Nothing
       , desiredRotationAngle = 0
       , sliderValue = 100
       , needToResize = False
       , needToRotate = False
       , canResize = False
       , mbImageFromFile = Nothing
-      , mode = ImageController FileReader
       }
     , Cmd.none
     )
@@ -155,20 +190,31 @@ update msg model =
         -- Image Attribute Editor--
         ---------------------------
         SetAlignment alignment ->
-            ( model, Cmd.none )
+            ( { model | alignment = alignment }
+            , Cmd.none
+            )
 
         SetCaption caption ->
-            ( model, Cmd.none )
+            ( { model | mbCaption = Just caption }
+            , Cmd.none
+            )
+
+        ------------------
+        -- Image Picker --
+        ------------------
+        SelectFolder folder ->
+            ( { model | selectedFolder = Just folder }
+            , Cmd.none
+            )
+
+        SelectImage image ->
+            ( { model | selectedImage = Just image }
+            , Cmd.none
+            )
 
         ---------------------
         -- ImageController --
         ---------------------
-        --UploadImage ->
-        --    case model.mbImageFromFile of
-        --        Nothing ->
-        --            ( model, Cmd.none )
-        --        Just file ->
-        --            ( model, uploadImage file )
         FileRead data ->
             let
                 newImage =
@@ -223,6 +269,8 @@ update msg model =
                 , needToRotate = True
                 , mbOriImageWidth = model.mbOriImageHeight
                 , mbOriImageHeight = model.mbOriImageWidth
+                , desiredWidth = model.desiredHeight
+                , desiredHeight = model.desiredWidth
               }
             , Cmd.none
             )
@@ -234,6 +282,8 @@ update msg model =
                 , needToRotate = True
                 , mbOriImageWidth = model.mbOriImageHeight
                 , mbOriImageHeight = model.mbOriImageWidth
+                , desiredWidth = model.desiredHeight
+                , desiredHeight = model.desiredWidth
               }
             , Cmd.none
             )
@@ -295,7 +345,9 @@ update msg model =
         -- Misc --
         ----------
         ChangeMode mode ->
-            ( model, Cmd.none )
+            ( { model | mode = mode }
+            , Cmd.none
+            )
 
         SaveAndQuit ->
             ( model, Cmd.none )
@@ -331,15 +383,15 @@ imageAttributeEditorView config model =
         [ text "Alignement: "
         , row
             [ spacing 15 ]
-            [ Input.button (toogleButtonStyle True True)
-                { onPress = Just (SetAlignment ARight)
+            [ Input.button (toogleButtonStyle (model.alignment == ALeft) True)
+                { onPress = Just (SetAlignment ALeft)
                 , label = el [] (html <| alignLeft iconSize)
                 }
-            , Input.button (toogleButtonStyle True True)
+            , Input.button (toogleButtonStyle (model.alignment == ACenter) True)
                 { onPress = Just (SetAlignment ACenter)
                 , label = el [] (html <| alignCenter iconSize)
                 }
-            , Input.button (toogleButtonStyle True True)
+            , Input.button (toogleButtonStyle (model.alignment == ARight) True)
                 { onPress = Just (SetAlignment ARight)
                 , label = el [] (html <| alignRight iconSize)
                 }
@@ -350,18 +402,133 @@ imageAttributeEditorView config model =
                 { onChange =
                     SetCaption
                 , text =
-                    "Nothing"
+                    Maybe.withDefault "" model.mbCaption
                 , placeholder = Nothing
                 , label =
                     Input.labelLeft [ centerY ]
                         (el [ width (px 110) ] (text "Légende: "))
                 }
             ]
+        , row [ spacing 15 ]
+            [ text "Aperçu: "
+            , Input.button (buttonStyle True)
+                { onPress = Just (ChangeMode ImagePicker)
+                , label = el [] (text "Remplacer image")
+                }
+            ]
+        , el
+            [ width (maximum 650 fill)
+            , height (maximum 550 fill)
+            , scrollbars
+            ]
+            (image
+                [ centerY
+                , centerX
+                ]
+                { src =
+                    Maybe.map .src model.mbImageMeta
+                        |> Maybe.map
+                            (\src ->
+                                case src of
+                                    Inline _ base64 ->
+                                        base64
+
+                                    UrlSrc url ->
+                                        url
+                            )
+                        |> Maybe.withDefault ""
+                , description =
+                    Maybe.withDefault "" model.mbCaption
+                }
+            )
+        , row
+            [ spacing 15
+            ]
+            [ Input.button (buttonStyle True)
+                { onPress = Just Quit
+                , label = text "Quitter"
+                }
+            , Input.button (buttonStyle True)
+                { onPress = Just SaveAndQuit
+                , label = text "Valider et Quitter"
+                }
+            ]
         ]
 
 
 imagePickerView config model =
-    Element.none
+    column
+        [ spacing 15
+        , Font.size 16
+        , padding 15
+        ]
+        [ text "Choisir Image: "
+        , row
+            [ padding 15
+            , spacing 15
+            ]
+            [ column
+                [ width (px 200)
+                , height (px 300)
+                , Border.width 1
+                , Border.color (rgb 0.8 0.8 0.8)
+                , scrollbarY
+                , Background.color (rgb 1 1 1)
+                ]
+                (List.map (entryView model.selectedFolder SelectFolder) (Dict.keys dummyImageList))
+            , column
+                [ width (px 350)
+                , height (px 300)
+                , Border.width 1
+                , Border.color (rgb 0.8 0.8 0.8)
+                , clipX
+                , scrollbarY
+                , Background.color (rgb 1 1 1)
+                ]
+                (Maybe.andThen (\folder -> Dict.get folder dummyImageList) model.selectedFolder
+                    |> Maybe.map (List.map (entryView model.selectedImage SelectImage))
+                    |> Maybe.withDefault []
+                )
+
+            --, Input.button
+            --    (buttonStyle (not (mbFile == Nothing)) ++ [ alignTop ])
+            --    { onPress =
+            --        if not (mbFile == Nothing) then
+            --            Just (ConfirmFileUrl uid)
+            --        else
+            --            Nothing
+            --    , label =
+            --        row [ spacing 5 ]
+            --            [ el [] (html <| Icons.externalLink iconSize)
+            --            , el [] (text "Valider")
+            --            ]
+            --}
+            ]
+        ]
+
+
+entryView : Maybe String -> (String -> Msg) -> String -> Element.Element Msg
+entryView mbSel msg e =
+    el
+        [ Events.onClick (msg e)
+        , pointer
+        , mouseOver
+            [ Font.color (rgb 1 1 1)
+            , Background.color (rgb 0.7 0.7 0.7)
+            ]
+        , case mbSel of
+            Just sel ->
+                if sel == e then
+                    Background.color (rgb 0.8 0.8 0.8)
+                else
+                    Background.color (rgb 1 1 1)
+
+            _ ->
+                Background.color (rgb 1 1 1)
+        , width fill
+        , paddingXY 15 5
+        ]
+        (text e)
 
 
 imageControllerView model imgContMode =
@@ -566,7 +733,9 @@ editView model =
                     , scrollbars
                     ]
                     (image
-                        []
+                        [ centerY
+                        , centerX
+                        ]
                         { src = f.contents
                         , description = f.filename
                         }
@@ -675,3 +844,8 @@ noHtmlAttr =
 
 iconSize =
     18
+
+
+dummyImageList =
+    Dict.fromList
+        []

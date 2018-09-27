@@ -4,6 +4,130 @@
 		"selected_items":
 		[
 			[
+				"neee",
+				"needToRotate"
+			],
+			[
+				"no",
+				"noHtmlAttr"
+			],
+			[
+				"at",
+				"attributes"
+			],
+			[
+				"de",
+				"desiredSize"
+			],
+			[
+				"ro",
+				"rotationAngle"
+			],
+			[
+				"funnel",
+				"funnelState"
+			],
+			[
+				"loc",
+				"localStorageValue"
+			],
+			[
+				"json",
+				"jsonBuffer"
+			],
+			[
+				"pre",
+				"prettyJson"
+			],
+			[
+				"new",
+				"newBuffer"
+			],
+			[
+				"De",
+				"DecodeJsonBuffer"
+			],
+			[
+				"lo",
+				"localStorageValue"
+			],
+			[
+				"J",
+				"JsonInput"
+			],
+			[
+				"js",
+				"jsonString"
+			],
+			[
+				"sel",
+				"setLocalStorageValue"
+			],
+			[
+				"Label",
+				"labelLeft"
+			],
+			[
+				"la",
+				"label"
+			],
+			[
+				"spa",
+				"spacingXY"
+			],
+			[
+				"loca",
+				"localStorageKey"
+			],
+			[
+				"Per",
+				"PersistencePlugin"
+			],
+			[
+				"Set",
+				"SetEditorPlugin"
+			],
+			[
+				"cur",
+				"currentPlugin"
+			],
+			[
+				"Ed",
+				"EditorPlugin"
+			],
+			[
+				"ex",
+				"extractDoc"
+			],
+			[
+				"list",
+				"ListLocalStorageKeys"
+			],
+			[
+				"lis",
+				"ListLocalStorageKeys"
+			],
+			[
+				"load",
+				"LoadDocument"
+			],
+			[
+				"put",
+				"PutInLocalStorage"
+			],
+			[
+				"se",
+				"SetLocalStorageValue"
+			],
+			[
+				"set",
+				"SetLocalStorageValue"
+			],
+			[
+				"button",
+				"buttonStyle"
+			],
+			[
 				"le",
 				"leafContent"
 			],
@@ -172,20 +296,12 @@
 				"paddingXY"
 			],
 			[
-				"set",
-				"SetStyle"
-			],
-			[
 				"Fo",
 				"FocusStyleSelector"
 			],
 			[
 				"Blue",
 				"BlurStyleSelector"
-			],
-			[
-				"Set",
-				"SetStyle"
 			],
 			[
 				"style",
@@ -348,10 +464,6 @@
 				"alignLeft"
 			],
 			[
-				"new",
-				"newTabLink"
-			],
-			[
 				"class",
 				"classifyDevice"
 			],
@@ -374,10 +486,6 @@
 			[
 				"ht",
 				"htmlId"
-			],
-			[
-				"se",
-				"setSizeTrackedDocUids"
 			],
 			[
 				"add",
@@ -406,124 +514,33 @@
 			[
 				"imgS",
 				"imgSizes"
-			],
-			[
-				"con",
-				"containerWidth"
-			],
-			[
-				"get",
-				"getImgSizes"
-			],
-			[
-				"Le",
-				"LeafValue"
-			],
-			[
-				"cla",
-				"class"
-			],
-			[
-				"hi",
-				"height"
-			],
-			[
-				"nodeLa",
-				"nodeLabel"
-			],
-			[
-				"Lea",
-				"Leaf"
-			],
-			[
-				"mouse",
-				"mouseEnter"
-			],
-			[
-				"St",
-				"StyleElementAttr"
-			],
-			[
-				"a",
-				"attrs"
-			],
-			[
-				"resp",
-				"responsivePreFormat"
-			],
-			[
-				"renderRe",
-				"renderResponsiveBloc"
-			],
-			[
-				"renderT",
-				"renderTextColumnNode"
-			],
-			[
-				"Pa",
-				"Paragraph"
-			],
-			[
-				"Tex",
-				"TextColumn"
-			],
-			[
-				"Col",
-				"Column"
-			],
-			[
-				"chi",
-				"children"
-			],
-			[
-				"Document",
-				"Document2"
-			],
-			[
-				"No",
-				"Nothing"
-			],
-			[
-				"Node",
-				"NodeAttribute"
-			],
-			[
-				"Leaf",
-				"LeafValue"
-			],
-			[
-				"Link",
-				"LinkMeta"
-			],
-			[
-				"Ima",
-				"ImageMeta"
-			],
-			[
-				"ne",
-				"neverWrapper"
-			],
-			[
-				"Align",
-				"AlignRight"
-			],
-			[
-				"E",
-				"Editor"
-			],
-			[
-				"Text",
-				"TextNode"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "src/Editor.elm",
+			"file": "/home/eniac314/prog/elm/elm-localstorage/site/index.html",
 			"settings":
 			{
-				"buffer_size": 47409,
+				"buffer_size": 1453,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "imagePlugin.html",
+			"settings":
+			{
+				"buffer_size": 5007,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/ImagePlugin.elm",
+			"settings":
+			{
+				"buffer_size": 20698,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -595,6 +612,11 @@
 	},
 	"file_history":
 	[
+		"/home/eniac314/prog/elm/debug/src/Main.elm",
+		"/home/eniac314/prog/elm/murol2.0/src/Editor.elm",
+		"/home/eniac314/prog/elm/murol2.0/src/PersistencePlugin.elm",
+		"/home/eniac314/prog/elm/murol2.0/src/",
+		"/home/eniac314/prog/elm/murol2.0/src/Persistence.elm",
 		"/home/eniac314/prog/elm/murol2.0/src/Table.elm",
 		"/home/eniac314/prog/elm/murol2.0/src/TextBlock.elm",
 		"/home/eniac314/prog/elm/murol2.0/elm.json",
@@ -717,16 +739,11 @@
 		"/home/eniac314/prog/elm/mairieMurol/PatrimoinePhoto.html",
 		"/home/eniac314/prog/elm/mairieMurol/PériEtExtra-scolaire.html",
 		"/home/eniac314/prog/elm/mairieMurol/PetitesAnnonces.html",
-		"/home/eniac314/prog/elm/mairieMurol/Photothèque.html",
-		"/home/eniac314/prog/elm/mairieMurol/PrintempsEte.html",
-		"/home/eniac314/prog/elm/mairieMurol/README.md",
-		"/home/eniac314/prog/elm/mairieMurol/Restaurants.html",
-		"/home/eniac314/prog/elm/mairieMurol/robots.txt",
-		"/home/eniac314/prog/elm/mairieMurol/SallesMunicipales.html"
+		"/home/eniac314/prog/elm/mairieMurol/Photothèque.html"
 	],
 	"find":
 	{
-		"height": 27.0
+		"height": 40.0
 	},
 	"find_in_files":
 	{
@@ -740,6 +757,14 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"angle",
+			"view",
+			"decodeValue",
+			"SetJs",
+			"SetJ",
+			"set",
+			"open",
+			"Plugin"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -747,6 +772,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"rAngle"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -757,16 +783,78 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "src/Editor.elm",
+					"file": "/home/eniac314/prog/elm/elm-localstorage/site/index.html",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 47409,
+						"buffer_size": 1453,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								488,
+								488
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 55.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "imagePlugin.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5007,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"rainbowth.lispy": false,
+							"syntax": "Packages/HTML/HTML.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1296.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/ImagePlugin.elm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20698,
 						"regions":
 						{
 						},
@@ -785,7 +873,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 4358.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -845,7 +933,7 @@
 	"project": "murol2.0.sublime-project",
 	"replace":
 	{
-		"height": 50.0
+		"height": 71.0
 	},
 	"save_all_on_build": true,
 	"select_file":
