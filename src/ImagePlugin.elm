@@ -3,6 +3,7 @@ module ImagePlugin exposing (..)
 import Browser exposing (element)
 import Dict exposing (..)
 import Document exposing (..)
+import DocumentEditorHelpers exposing (..)
 import DummyFileSys exposing (dummyImageList)
 import Element exposing (..)
 import Element.Background as Background
@@ -31,6 +32,7 @@ type alias Model =
     , mbCaption : Maybe String
     , alignment : Alignement
     , mbImageMeta : Maybe ImageMeta
+    , imageAttrs : List DocAttribute
 
     ---------------------------
     -- Internal Image Picker --
@@ -84,7 +86,53 @@ type Alignement
 
 findAlignment : List DocAttribute -> Alignement
 findAlignment attrs =
-    ACenter
+    let
+        helper xs =
+            case xs of
+                [] ->
+                    ACenter
+
+                AlignRight :: _ ->
+                    ARight
+
+                AlignLeft :: _ ->
+                    ALeft
+
+                y :: ys ->
+                    helper ys
+    in
+    helper attrs
+
+
+setAligment : Alignement -> List DocAttribute -> List DocAttribute
+setAligment a attrs =
+    let
+        removeOldAlignment acc xs =
+            case xs of
+                [] ->
+                    List.reverse acc
+
+                AlignRight :: xs_ ->
+                    removeOldAlignment acc xs_
+
+                AlignLeft :: xs_ ->
+                    removeOldAlignment acc xs_
+
+                y :: ys ->
+                    removeOldAlignment (y :: acc) ys
+
+        newAlignment =
+            case a of
+                ACenter ->
+                    []
+
+                ARight ->
+                    [ AlignRight ]
+
+                ALeft ->
+                    [ AlignLeft ]
+    in
+    newAlignment ++ removeOldAlignment [] attrs
 
 
 type Msg
@@ -101,7 +149,6 @@ type Msg
       ---------------------
       -- ImageController --
       ---------------------
-      --| UploadImage
     | FileRead ImageFromFile
     | ImageRead ImageFromFile
     | UploadResult (Result Error ())
@@ -111,6 +158,7 @@ type Msg
     | SetResize
     | SetFilename String
     | ResetImageController
+    | ConfirmNewImage
       ----------
       -- Misc --
       ----------
@@ -132,14 +180,21 @@ decodeImageData msg =
         )
 
 
-main : Program () Model Msg
-main =
-    Browser.element
-        { init = init Nothing
-        , update = update
-        , view = view { picListing = [] }
-        , subscriptions = subscriptions
-        }
+
+--main : Program () Model Msg
+--main =
+--    Browser.element
+--        { init = init Nothing
+--        , update =
+--            \model msg ->
+--                let
+--                    ( newModel, cmd, maybeOutput ) =
+--                        update model msg
+--                in
+--                ( newModel, cmd )
+--        , view = view { picListing = [] }
+--        , subscriptions = subscriptions
+--        }
 
 
 init : Maybe ( ImageMeta, List DocAttribute ) -> () -> ( Model, Cmd Msg )
@@ -156,6 +211,9 @@ init mbInput flags =
                 |> Maybe.withDefault ACenter
       , mbImageMeta =
             Maybe.map Tuple.first mbInput
+      , imageAttrs =
+            Maybe.map Tuple.second mbInput
+                |> Maybe.withDefault []
 
       ---------------------------
       -- Internal Image Picker --
@@ -191,11 +249,13 @@ update msg model =
         SetAlignment alignment ->
             ( { model | alignment = alignment }
             , Cmd.none
+            , Nothing
             )
 
         SetCaption caption ->
             ( { model | mbCaption = Just caption }
             , Cmd.none
+            , Nothing
             )
 
         ------------------
@@ -204,12 +264,13 @@ update msg model =
         SelectImage data ->
             ( { model | selectedImage = Just data }
             , Cmd.none
+            , Nothing
             )
 
         ConfirmSelected ->
             case model.selectedImage of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
                 Just ( url, ( width, height ) ) ->
                     let
@@ -228,6 +289,7 @@ update msg model =
                         , mode = ImageAttributeEditor
                       }
                     , Cmd.none
+                    , Nothing
                     )
 
         ---------------------
@@ -252,6 +314,7 @@ update msg model =
                 , needToResize = False
               }
             , Cmd.none
+            , Nothing
             )
 
         ImageRead data ->
@@ -272,13 +335,14 @@ update msg model =
                 , canResize = False
               }
             , Cmd.none
+            , Nothing
             )
 
         UploadResult (Ok ()) ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Nothing )
 
         UploadResult (Err e) ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Nothing )
 
         RotateRight ->
             ( { model
@@ -291,6 +355,7 @@ update msg model =
                 , desiredHeight = model.desiredWidth
               }
             , Cmd.none
+            , Nothing
             )
 
         RotateLeft ->
@@ -304,6 +369,7 @@ update msg model =
                 , desiredHeight = model.desiredWidth
               }
             , Cmd.none
+            , Nothing
             )
 
         Resize n ->
@@ -328,17 +394,19 @@ update msg model =
                         , canResize = True
                       }
                     , Cmd.none
+                    , Nothing
                     )
 
                 _ ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none, Nothing )
 
         SetResize ->
-            ( { model | needToResize = True }, Cmd.none )
+            ( { model | needToResize = True }, Cmd.none, Nothing )
 
         SetFilename filename ->
             ( { model | desiredFilename = Just filename }
             , Cmd.none
+            , Nothing
             )
 
         ResetImageController ->
@@ -357,7 +425,43 @@ update msg model =
                 , mbImageFromFile = Nothing
               }
             , Cmd.none
+            , Nothing
             )
+
+        ConfirmNewImage ->
+            case model.mbImageFromFile of
+                Nothing ->
+                    ( model, Cmd.none, Nothing )
+
+                Just { contents, filename, width, height } ->
+                    let
+                        newImageMeta =
+                            { src = Inline filename contents
+                            , caption = model.mbCaption
+                            , size =
+                                { imgWidth = width
+                                , imgHeight = height
+                                }
+                            }
+                    in
+                    ( { model
+                        | mode = ImageAttributeEditor
+                        , mbImageMeta = Just newImageMeta
+                        , mbOriImageWidth = Nothing
+                        , mbOriImageHeight = Nothing
+                        , mbOriFileSize = Nothing
+                        , desiredWidth = Nothing
+                        , desiredHeight = Nothing
+                        , desiredRotationAngle = 0
+                        , sliderValue = 100
+                        , needToResize = False
+                        , needToRotate = False
+                        , canResize = False
+                        , mbImageFromFile = Nothing
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
 
         ----------
         -- Misc --
@@ -365,16 +469,32 @@ update msg model =
         ChangeMode mode ->
             ( { model | mode = mode }
             , Cmd.none
+            , Nothing
             )
 
         SaveAndQuit ->
-            ( model, Cmd.none )
+            case model.mbImageMeta of
+                Nothing ->
+                    ( model, Cmd.none, Nothing )
+
+                Just imageMeta ->
+                    ( model
+                    , Cmd.none
+                    , Just <|
+                        PluginData
+                            ( imageMeta
+                            , setAligment model.alignment model.imageAttrs
+                            )
+                    )
 
         Quit ->
-            ( model, Cmd.none )
+            ( model
+            , Cmd.none
+            , Just PluginQuit
+            )
 
         NoOp ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Nothing )
 
 
 view config model =
@@ -480,7 +600,20 @@ imagePickerView config model =
         , Font.size 16
         , padding 15
         ]
-        [ text "Choisir image existante: "
+        [ row [ width fill ]
+            [ text "Choisir image existante: "
+            , Maybe.map
+                (\( url, ( w, h ) ) ->
+                    el [ Element.alignRight ]
+                        (text <|
+                            String.fromInt w
+                                ++ "x"
+                                ++ String.fromInt h
+                        )
+                )
+                model.selectedImage
+                |> Maybe.withDefault Element.none
+            ]
         , row
             [ spacing 15
             ]
@@ -507,45 +640,6 @@ imagePickerView config model =
                         Background.uncropped ("images/" ++ url)
                 ]
                 Element.none
-
-            --(case model.selectedImage of
-            --    Nothing ->
-            --        Element.none
-            --    Just ( url, ( w, h ) ) ->
-            --        --el
-            --        --    ([ clip
-            --        --     ]
-            --        --        ++ (if h > w || h > 295 then
-            --        --                [ if (round <| toFloat w * 295 / toFloat h) >= 350 then
-            --        --                    height (px <| round <| toFloat h * 350 / toFloat w)
-            --        --                  else
-            --        --                    height (px 295)
-            --        --                ]
-            --        --            else
-            --        --                [ width (maximum 350 fill) ]
-            --        --           )
-            --        --    )
-            --        image
-            --            ([ centerY
-            --             , centerX
-            --             , clip
-            --             ]
-            --                ++ (if h > w || h > 295 then
-            --                        [ if (round <| toFloat w * 295 / toFloat h) >= 350 then
-            --                            height (px <| round <| toFloat h * 350 / toFloat w)
-            --                          else
-            --                            height (px 295)
-            --                        ]
-            --                    else
-            --                        [ width (maximum 350 fill) ]
-            --                   )
-            --            )
-            --            { src =
-            --                "images/" ++ url
-            --            , description =
-            --                ""
-            --            }
-            --)
             ]
         , row
             [ spacing 15
@@ -797,6 +891,10 @@ editView model =
                     , Input.button (buttonStyle True)
                         { onPress = Just (ChangeMode ImagePicker)
                         , label = text "Retour"
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress = Just ConfirmNewImage
+                        , label = text "Valider"
                         }
                     ]
                 , text "Aperçu: "

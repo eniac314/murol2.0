@@ -25,6 +25,7 @@ import Html exposing (map)
 import Html.Attributes as HtmlAttr
 import Html.Events.Extra.Wheel as Wheel
 import Icons exposing (..)
+import ImagePlugin exposing (..)
 import Json.Decode as Decode
 import Json.Encode exposing (Value, null)
 import NewDocPlugin exposing (..)
