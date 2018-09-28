@@ -106,6 +106,9 @@ responsivePreFormat config document =
                 Image meta ->
                     l
 
+                Video meta ->
+                    l
+
                 TextBlock xs ->
                     l
 

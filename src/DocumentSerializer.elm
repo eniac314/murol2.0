@@ -67,6 +67,10 @@ encodeCellContent cellContent =
             object
                 [ ( "Image", encodeImageMeta im ) ]
 
+        Video vm ->
+            object
+                [ ( "Video", encodeVideoMeta vm ) ]
+
         Table tm ->
             object
                 [ ( "Table", encodeTableMeta tm ) ]
@@ -238,6 +242,39 @@ encodeImgSource imgSrc =
                         ]
                   )
                 ]
+
+
+encodeVideoMeta : VideoMeta -> Value
+encodeVideoMeta { src, size, frameBorder, suggestions, controls, privacy, title, startAt, hosting } =
+    object
+        [ ( "src", string src )
+        , ( "size", encodeVideoSize size )
+        , ( "frameBorder", bool frameBorder )
+        , ( "suggestions", bool suggestions )
+        , ( "controls", bool controls )
+        , ( "privacy", bool privacy )
+        , ( "title", bool title )
+        , ( "startAt"
+          , Maybe.map int startAt
+                |> Maybe.withDefault null
+          )
+        , ( "hosting", encodeVideoHost hosting )
+        ]
+
+
+encodeVideoHost : VideoHost -> Value
+encodeVideoHost host =
+    case host of
+        Youtube ->
+            string "Youtube"
+
+
+encodeVideoSize : VideoSize -> Value
+encodeVideoSize { videoWidth, videoHeight } =
+    object
+        [ ( "videoWidth", int videoWidth )
+        , ( "videoHeight", int videoHeight )
+        ]
 
 
 encodeDocColor : DocColor -> Value

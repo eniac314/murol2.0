@@ -106,6 +106,16 @@ view config =
                     { onPress =
                         Just <|
                             config.createNewCell
+                                (newVideo config.nextUid)
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Video"
+                            ]
+                    }
+                , Input.button buttonStyle
+                    { onPress =
+                        Just <|
+                            config.createNewCell
                                 (newTable config.nextUid)
                     , label =
                         row [ spacing 10 ]

@@ -43,10 +43,52 @@ type alias CellValue =
 
 type CellContent
     = Image ImageMeta
+    | Video VideoMeta
     | Table TableMeta
     | CustomElement String
     | TextBlock (List TextBlockElement)
     | EmptyCell
+
+
+type alias ImageMeta =
+    { src : ImageSrc
+    , caption : Maybe String
+    , size : ImgSize
+    }
+
+
+type ImageSrc
+    = UrlSrc String
+    | Inline String String
+
+
+type alias ImgSize =
+    { imgWidth : Int
+    , imgHeight : Int
+    }
+
+
+type alias VideoMeta =
+    { src : String
+    , size : VideoSize
+    , frameBorder : Bool
+    , suggestions : Bool
+    , controls : Bool
+    , privacy : Bool
+    , title : Bool
+    , startAt : Maybe Int
+    , hosting : VideoHost
+    }
+
+
+type alias VideoSize =
+    { videoWidth : Int
+    , videoHeight : Int
+    }
+
+
+type VideoHost
+    = Youtube
 
 
 type TextBlockElement
@@ -63,24 +105,6 @@ type alias Li =
 type TextBlockPrimitive
     = Text (List DocAttribute) String
     | Link (List DocAttribute) LinkMeta
-
-
-type ImageSrc
-    = UrlSrc String
-    | Inline String String
-
-
-type alias ImgSize =
-    { imgWidth : Int
-    , imgHeight : Int
-    }
-
-
-type alias ImageMeta =
-    { src : ImageSrc
-    , caption : Maybe String
-    , size : ImgSize
-    }
 
 
 type alias LinkMeta =

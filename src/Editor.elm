@@ -37,6 +37,7 @@ import StyleSheets exposing (..)
 import TablePlugin exposing (..)
 import Task exposing (perform)
 import TextBlockPlugin exposing (..)
+import VideoPlugin exposing (..)
 import Yajson exposing (..)
 import Yajson.Stringify exposing (..)
 
@@ -164,6 +165,7 @@ type alias Model =
     , tablePlugin : TablePlugin.DocTable
     , textBlockPlugin : TextBlockPlugin.DocTextBlock
     , imagePlugin : ImagePlugin.Model
+    , videoPlugin : VideoPlugin.Model
     }
 
 
@@ -176,6 +178,7 @@ type PreviewMode
 
 type EditorPlugin
     = ImagePlugin
+    | VideoPlugin
     | TablePlugin
     | CustomElementPlugin
     | TextBlockPlugin
@@ -229,6 +232,7 @@ type Msg
     | TablePluginMsg TablePlugin.Msg
     | TextBlockPluginMsg TextBlockPlugin.Msg
     | ImagePluginMsg ImagePlugin.Msg
+    | VideoPluginMsg VideoPlugin.Msg
       -------------------
       -- Persistence   --
       -------------------
@@ -310,6 +314,7 @@ init doc flags =
       , tablePlugin = TablePlugin.init Nothing
       , textBlockPlugin = newTextBlockPlugin
       , imagePlugin = newImagePlugin
+      , videoPlugin = VideoPlugin.init Nothing
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
@@ -853,6 +858,54 @@ update msg model =
                         _ ->
                             ( model, Cmd.none )
 
+        VideoPluginMsg vidPlugMsg ->
+            let
+                ( newVideoPlugin, mbPluginData ) =
+                    VideoPlugin.update vidPlugMsg model.videoPlugin
+            in
+            case mbPluginData of
+                Nothing ->
+                    ( { model | videoPlugin = newVideoPlugin }, Cmd.none )
+
+                Just PluginQuit ->
+                    ( { model
+                        | videoPlugin = newVideoPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , scrollTo <| getHtmlId (extractDoc model.document)
+                    )
+
+                Just (PluginData ( videoMeta, attrs )) ->
+                    case extractDoc model.document of
+                        Cell ({ cellContent } as lv) ->
+                            case cellContent of
+                                Video _ ->
+                                    let
+                                        newDoc =
+                                            updateCurrent
+                                                (Cell
+                                                    { lv
+                                                        | cellContent = Video videoMeta
+                                                        , attrs = attrs
+                                                    }
+                                                )
+                                                model.document
+                                    in
+                                    ( { model
+                                        | document = newDoc
+                                        , currentPlugin = Nothing
+                                      }
+                                    , Cmd.batch
+                                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                                        ]
+                                    )
+
+                                _ ->
+                                    ( model, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+
         -------------------
         -- Persistence   --
         -------------------
@@ -1099,18 +1152,6 @@ view model =
                         Just plugin ->
                             pluginView model plugin
                     ]
-
-                --mainMenu
-                --  { clicked = model.menuClicked
-                --  , currentFocus = model.menuFocused
-                --  , isInPlugin = model.currentPlugin /= Nothing
-                --  , clipboardEmpty = model.clipboard == Nothing
-                --  , undoCacheEmpty = model.undoCache == []
-                --  , selectionIsRoot = zipUp model.document == Nothing
-                --  , selectionIsContainer = isContainer (extractDoc model.document)
-                --  , previewMode = model.previewMode
-                --  , containersBkgColors = model.config.containersBkgColors
-                --  }
                 ]
             )
         ]
@@ -1181,7 +1222,10 @@ pluginView model plugin =
                 , nextUid = model.nextUid
                 }
 
-        --Element.none
+        VideoPlugin ->
+            VideoPlugin.view [] model.videoPlugin
+                |> Element.map VideoPluginMsg
+
         PersistencePlugin ->
             PersistencePlugin.view
                 { localStorageKeys = model.localStorageKeys
@@ -1245,6 +1289,18 @@ openPlugin model =
                         , imagePlugin = newImagePlugin
                       }
                     , Cmd.map ImagePluginMsg imagePluginCmds
+                    )
+
+                Video videoMeta ->
+                    let
+                        newVideoPlugin =
+                            VideoPlugin.init (Just ( videoMeta, attrs ))
+                    in
+                    ( { model
+                        | currentPlugin = Just VideoPlugin
+                        , videoPlugin = newVideoPlugin
+                      }
+                    , Cmd.none
                     )
 
                 _ ->

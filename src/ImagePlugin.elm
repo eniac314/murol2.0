@@ -30,7 +30,7 @@ type alias Model =
     -- Image Attribute Editor --
     ----------------------------
     , mbCaption : Maybe String
-    , alignment : Alignement
+    , alignment : Alignment
     , mbImageMeta : Maybe ImageMeta
     , imageAttrs : List DocAttribute
 
@@ -78,68 +78,11 @@ type ImageControllerMode
     | Editor
 
 
-type Alignement
-    = ARight
-    | ACenter
-    | ALeft
-
-
-findAlignment : List DocAttribute -> Alignement
-findAlignment attrs =
-    let
-        helper xs =
-            case xs of
-                [] ->
-                    ACenter
-
-                AlignRight :: _ ->
-                    ARight
-
-                AlignLeft :: _ ->
-                    ALeft
-
-                y :: ys ->
-                    helper ys
-    in
-    helper attrs
-
-
-setAligment : Alignement -> List DocAttribute -> List DocAttribute
-setAligment a attrs =
-    let
-        removeOldAlignment acc xs =
-            case xs of
-                [] ->
-                    List.reverse acc
-
-                AlignRight :: xs_ ->
-                    removeOldAlignment acc xs_
-
-                AlignLeft :: xs_ ->
-                    removeOldAlignment acc xs_
-
-                y :: ys ->
-                    removeOldAlignment (y :: acc) ys
-
-        newAlignment =
-            case a of
-                ACenter ->
-                    []
-
-                ARight ->
-                    [ AlignRight ]
-
-                ALeft ->
-                    [ AlignLeft ]
-    in
-    newAlignment ++ removeOldAlignment [] attrs
-
-
 type Msg
     = ---------------------------
       -- Image Attribute Editor--
       ---------------------------
-      SetAlignment Alignement
+      SetAlignment Alignment
     | SetCaption String
       ------------------
       -- Image Picker --
@@ -519,7 +462,8 @@ imageAttributeEditorView config model =
         , padding 15
         , alignTop
         ]
-        [ text "Alignement: "
+        [ text "Insérer / Modifier une Image:"
+        , text "Alignement: "
         , row
             [ spacing 15 ]
             [ Input.button (toogleButtonStyle (model.alignment == ALeft) True)
@@ -933,98 +877,6 @@ editView model =
 
 subscriptions model =
     Sub.batch []
-
-
-
---uploadImage : Image -> Cmd Msg
---uploadImage file =
---    Http.send UploadResult (fileUploadRequest file)
---fileUploadRequest : Image -> Http.Request ()
---fileUploadRequest { contents, filename } =
---    let
---        body =
---            Encode.object
---                [ ( "contents", Encode.string contents )
---                , ( "filename", Encode.string filename )
---                ]
---    in
---    Http.post "fileUpload.php" (jsonBody body) (Decode.succeed ())
-
-
-buttonStyle isActive =
-    [ Border.rounded 5
-    , Font.center
-    , centerY
-    , padding 5
-    , focused [ Border.glow (rgb 1 1 1) 0 ]
-    ]
-        ++ (if isActive then
-                [ Background.color (rgb 0.9 0.9 0.9)
-                , mouseOver [ Font.color (rgb 255 255 255) ]
-                , Border.width 1
-                , Border.color (rgb 0.9 0.9 0.9)
-                ]
-            else
-                [ Background.color (rgb 0.95 0.95 0.95)
-                , Font.color (rgb 0.7 0.7 0.7)
-                , htmlAttribute <| HtmlAttr.style "cursor" "default"
-                , Border.width 1
-                , Border.color (rgb 0.95 0.95 0.95)
-                ]
-           )
-
-
-toogleButtonStyle isPressed isActive =
-    [ Border.rounded 5
-    , Font.center
-    , centerY
-    , padding 5
-    , focused [ Border.glow (rgb 1 1 1) 0 ]
-    ]
-        ++ (if isActive then
-                [ Background.color (rgb 0.9 0.9 0.9)
-                , Border.width 1
-                , Border.color (rgb 0.9 0.9 0.9)
-                , mouseOver
-                    [ Font.color (rgb 0.3 0.3 0.3)
-                    ]
-                ]
-                    ++ (if isPressed then
-                            []
-                        else
-                            [ Background.color (rgb 1 1 1)
-                            , Border.width 1
-                            , Border.color (rgb 0.9 0.9 0.9)
-                            ]
-                       )
-            else
-                [ Background.color (rgb 0.95 0.95 0.95)
-                , Font.color (rgb 0.7 0.7 0.7)
-                , htmlAttribute <| HtmlAttr.style "cursor" "default"
-                , Border.width 1
-                , Border.color (rgb 0.95 0.95 0.95)
-                ]
-           )
-
-
-textInputStyle =
-    [ width (px 250)
-    , paddingXY 5 5
-    , spacing 15
-    , focused [ Border.glow (rgb 1 1 1) 0 ]
-    ]
-
-
-property name value =
-    htmlAttribute <| HtmlAttr.property name value
-
-
-noAttr =
-    htmlAttribute <| HtmlAttr.class ""
-
-
-noHtmlAttr =
-    HtmlAttr.class ""
 
 
 iconSize =

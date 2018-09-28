@@ -3,6 +3,7 @@ module DocumentView exposing (..)
 import Array exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
+import DocumentEditorHelpers exposing (buildYoutubeUrl)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -43,6 +44,9 @@ renderDoc config document =
             case cellContent of
                 Image meta ->
                     renderImage config id attrs meta
+
+                Video meta ->
+                    renderVideo config id attrs meta
 
                 TextBlock xs ->
                     renderTextBlock config attrs xs
@@ -126,7 +130,7 @@ renderTextBlockPrimitive config tbAttrs p =
 
 
 renderLi config tbAttrs li =
-    row
+    paragraph
         ([ paddingEach
             { top = 0
             , left = 20
@@ -222,6 +226,27 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
                 , Attr.style "height" "auto"
                 , Html.Events.on "load" (Decode.succeed (config.onLoadMsg uid))
                 , Attr.src src_
+                ]
+                []
+        )
+    ]
+
+
+renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
+    let
+        attrs_ =
+            idStyle config.styleSheet id
+                ++ renderAttrs config attrs
+    in
+    [ el attrs_
+        (html <|
+            Html.iframe
+                [ Attr.src <|
+                    buildYoutubeUrl vidMeta.src vidMeta
+                , Attr.width vidMeta.size.videoWidth
+                , Attr.height vidMeta.size.videoHeight
+                , Attr.attribute "allowfullscreen" "true"
+                , Attr.attribute "allow" "autoplay; encrypted-media"
                 ]
                 []
         )

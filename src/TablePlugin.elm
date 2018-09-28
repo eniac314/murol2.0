@@ -458,10 +458,12 @@ update msg model =
 view : DocTable -> Element Msg
 view model =
     --layout [] <|
-    el
-        ([ Font.size 14
+    column
+        ([ Font.size 16
          , width fill
          , alignTop
+         , padding 15
+         , spacing 15
          ]
             ++ (if model.styleSelectorFocused then
                     [ Events.onClick StyleSelectorClickOff ]
@@ -474,13 +476,14 @@ view model =
          --        []
          --   )
         )
-        (case model.mode of
+        [ text "Insérer / Modifier un tableau: "
+        , case model.mode of
             DisplayOnly ->
                 displayOnlyView model
 
             Edit ->
                 editView model
-        )
+        ]
 
 
 displayOnlyView : DocTable -> Element Msg
@@ -552,7 +555,6 @@ displayOnlyView model =
     in
     column
         [ spacing 15
-        , padding 15
         , width fill
         ]
         [ interfaceView
@@ -726,7 +728,6 @@ editView model =
     in
     column
         [ spacing 15
-        , padding 15
         , width fill
         ]
         [ interfaceView
@@ -756,24 +757,6 @@ textInputStyle =
     , paddingXY 5 5
     , spacing 15
     ]
-
-
-buttonStyle isActive =
-    [ Border.rounded 5
-    , Font.center
-    , centerY
-    , padding 5
-    ]
-        ++ (if isActive then
-                [ Background.color (rgb 0.9 0.9 0.9)
-                , mouseOver [ Font.color (rgb 255 255 255) ]
-                ]
-            else
-                [ Background.color (rgb 0.95 0.95 0.95)
-                , Font.color (rgb 0.7 0.7 0.7)
-                , htmlAttribute <| HtmlAttr.style "cursor" "default"
-                ]
-           )
 
 
 focusIsValid : Maybe ( Int, Int ) -> Data -> Bool

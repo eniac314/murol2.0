@@ -175,6 +175,9 @@ cellContentToString lc =
         Image _ ->
             "Image"
 
+        Video _ ->
+            "Video"
+
         Table _ ->
             "Tableau"
 

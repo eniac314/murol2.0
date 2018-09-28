@@ -70,6 +70,8 @@ decodeCellContent =
     oneOf
         [ succeed Image
             |> required "Image" decodeImageMeta
+        , succeed Video
+            |> required "Video" decodeVideoMeta
         , succeed Table
             |> required "Table" decodeTableMeta
         , succeed CustomElement
@@ -191,6 +193,43 @@ decodeImgSource =
             |> requiredAt [ "Inline", "filename" ] string
             |> requiredAt [ "Inline", "contents" ] string
         ]
+
+
+decodeVideoMeta : Decoder VideoMeta
+decodeVideoMeta =
+    succeed VideoMeta
+        |> required "src" string
+        |> required "size" decodeVideoSize
+        |> required "frameBorder" bool
+        |> required "suggestions" bool
+        |> required "controls" bool
+        |> required "privacy" bool
+        |> required "title" bool
+        |> required "startAt" (nullable int)
+        |> required "hosting" decodeVideoHost
+
+
+decodeVideoHost : Decoder VideoHost
+decodeVideoHost =
+    string
+        |> andThen
+            (\str ->
+                case str of
+                    "Youtube" ->
+                        succeed Youtube
+
+                    somethingElse ->
+                        fail <|
+                            "Unknown VideoHost: "
+                                ++ somethingElse
+            )
+
+
+decodeVideoSize : Decoder VideoSize
+decodeVideoSize =
+    succeed VideoSize
+        |> required "videoWidth" int
+        |> required "videoHeight" int
 
 
 decodeDocColor : Decoder DocColor

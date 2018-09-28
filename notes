@@ -1,3 +1,11 @@
+- add break to parser
+
+- add calendar
+
+- add 360 pics
+
+- add real full screen mode 
+
 - check if Internal Type idea could be used 
 
 - fix Ul
@@ -9,12 +17,10 @@
 - fix add sizetracked ids happening only at init time
 	|-> recompute when adding/editing? new image
 
-- ajouter simple (insert in container)? 
 
 - edit features for containers
 
 - refaire keyboard subs 
-
 
 
 - 2 possibiltés pour les custom leaves:
@@ -39,9 +45,7 @@
 
 - check elm spa
 
-- visualisation structure document
 
-- local storage autosave (check for version bump of billstclair/elm-localstorage, currently 4.0.3 )
 
 - editorPlugins:
 	* table
@@ -54,6 +58,5 @@
 
 - check elm test for testing uuid uniqueness invariants
 
-- if working with ports check billstclair/elm-port-funnel
 
 - height shrink in Input.multiline fo Table
