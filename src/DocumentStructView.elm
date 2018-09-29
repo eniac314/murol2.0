@@ -4,7 +4,7 @@ import Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events exposing (..)
+import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Icons exposing (..)
@@ -17,8 +17,6 @@ documentStructView config selectedContainer document =
         , width (maximum 330 fill)
         , height fill
         , alignTop
-
-        --, Background.color (rgba 0 0 0.7 0.3)
         , Font.size 14
         , Font.family
             [ Font.monospace
@@ -71,7 +69,14 @@ docTreeView config offsets ( sContainer, selection ) document =
             [ row [ width fill ]
                 (prefix offsets
                     ++ [ el
-                            [ labelFontColor ]
+                            [ if config.containersColors && sel then
+                                Font.color <| containerLabelToColor containerLabel
+                              else
+                                labelFontColor
+                            , Events.onClick (config.zipToUidCmd id.uid)
+                            , pointer
+                            , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                            ]
                             (text <| containerLabelToString containerLabel)
                        ]
                 )
@@ -97,7 +102,11 @@ docTreeView config offsets ( sContainer, selection ) document =
             [ row []
                 (prefix offsets
                     ++ [ el
-                            [ labelFontColor ]
+                            [ labelFontColor
+                            , Events.onClick (config.zipToUidCmd id.uid)
+                            , pointer
+                            , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                            ]
                             (text <| cellContentToString cellContent)
                        ]
                 )
@@ -155,8 +164,8 @@ prefix offsets =
     helper [] (List.reverse offsets)
 
 
-containerLabelToString nl =
-    case nl of
+containerLabelToString cl =
+    case cl of
         DocColumn ->
             "Colonne"
 
@@ -168,6 +177,21 @@ containerLabelToString nl =
 
         ResponsiveBloc ->
             "Bloc réactif"
+
+
+containerLabelToColor cl =
+    case cl of
+        DocColumn ->
+            rgba 0 1 0 0.6
+
+        DocRow ->
+            rgba 1 0 0 0.6
+
+        TextColumn ->
+            rgba 0 0 1 0.6
+
+        ResponsiveBloc ->
+            rgba 0 0 0 1
 
 
 cellContentToString lc =

@@ -115,7 +115,7 @@ defaulStyleSheet =
                         { offset = ( 4, 4 )
                         , size = 5
                         , blur = 10
-                        , color = rgba 0 0 0 0.16
+                        , color = rgba 0 0 0 0.45
                         }
 
                     --, Background.color

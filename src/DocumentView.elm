@@ -49,7 +49,7 @@ renderDoc config document =
                     renderVideo config id attrs meta
 
                 TextBlock xs ->
-                    renderTextBlock config attrs xs
+                    renderTextBlock config id attrs xs
 
                 Table meta ->
                     renderTable config id attrs meta
@@ -61,15 +61,16 @@ renderDoc config document =
                     renderEmptyCell config id attrs
 
 
-renderTextBlock config attrs xs =
-    List.map (renderTextBlockElement config attrs) xs
+renderTextBlock config id attrs xs =
+    List.map (renderTextBlockElement config id attrs) xs
 
 
-renderTextBlockElement config tbAttrs tbe =
+renderTextBlockElement config id tbAttrs tbe =
     case tbe of
         Paragraph attrs xs ->
             paragraph
                 (config.styleSheet.paragraphStyle
+                    ++ idStyle config.styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
@@ -78,6 +79,7 @@ renderTextBlockElement config tbAttrs tbe =
         UList attrs xs ->
             paragraph
                 (renderAttrs config tbAttrs
+                    ++ idStyle config.styleSheet id
                     ++ renderAttrs config attrs
                     ++ [ spacing 10 ]
                 )
@@ -92,13 +94,16 @@ renderTextBlockElement config tbAttrs tbe =
             paragraph
                 ([ Region.heading level ]
                     ++ headingStyle
+                    ++ idStyle config.styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
                 [ text s ]
 
         TBPrimitive p ->
-            renderTextBlockPrimitive config tbAttrs p
+            el
+                (idStyle config.styleSheet id)
+                (renderTextBlockPrimitive config tbAttrs p)
 
 
 renderTextBlockPrimitive config tbAttrs p =
@@ -106,6 +111,7 @@ renderTextBlockPrimitive config tbAttrs p =
         Text attrs s ->
             el
                 (config.styleSheet.textStyle
+                    --++ idStyle config.styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
@@ -121,6 +127,7 @@ renderTextBlockPrimitive config tbAttrs p =
             in
             linkFun
                 (config.styleSheet.linkStyle
+                    --++ idStyle config.styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )

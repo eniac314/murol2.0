@@ -203,6 +203,7 @@ type Msg
       -- Document Zipper manipulation--
       ---------------------------------
     | SelectDoc Int
+    | ZipToUid Int
     | WheelEvent Wheel.Event
     | Rewind
     | SwapLeft
@@ -446,6 +447,19 @@ update msg model =
                       }
                     , Cmd.batch
                         []
+                    )
+
+        ZipToUid uid ->
+            case zipToUid uid model.document of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just newDocument ->
+                    ( { model
+                        | document = newDocument
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc newDocument) ]
                     )
 
         WheelEvent e ->
@@ -1101,7 +1115,9 @@ view model =
                     , height fill
                     ]
                     [ documentStructView
-                        model.config
+                        { zipToUidCmd = ZipToUid
+                        , containersColors = model.config.containersBkgColors
+                        }
                         (extractDoc model.document
                             |> getUid
                         )

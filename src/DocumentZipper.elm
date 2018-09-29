@@ -16,6 +16,7 @@ module DocumentZipper
         , zipDown
         , zipLeft
         , zipRight
+        , zipToUid
         , zipUp
         )
 
@@ -196,6 +197,29 @@ zipRight { current, contexts } =
                             }
                                 :: cs
                         }
+
+
+zipToUid : Int -> DocZipper -> Maybe DocZipper
+zipToUid uid docZipper =
+    let
+        helper ({ current, contexts } as zipper) =
+            if getUid current == uid then
+                Just zipper
+            else
+                case current of
+                    Cell _ ->
+                        Nothing
+
+                    Container _ children ->
+                        let
+                            nextStep child =
+                                zipDown (\d -> getUid d == getUid child) zipper
+                                    |> Maybe.andThen helper
+                        in
+                        List.filterMap nextStep children
+                            |> List.head
+    in
+    helper (rewind docZipper)
 
 
 

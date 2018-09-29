@@ -1550,6 +1550,11 @@ textBlocPreview model config =
             ]
             (renderTextBlock
                 config
+                { uid = -1
+                , docStyleId = Nothing
+                , htmlId = Nothing
+                , classes = Set.empty
+                }
                 model.wholeTextBlocAttr
                 model.output
             )
