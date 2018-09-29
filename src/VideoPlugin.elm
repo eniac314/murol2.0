@@ -136,6 +136,7 @@ update msg model =
                         , title = res.title
                         , startAt = res.startAt
                         , size = VideoSize res.width res.height
+                        , sizeRatio = toFloat res.width / toFloat res.height
                       }
                     , Nothing
                     )
@@ -261,6 +262,9 @@ view config model =
         , padding 15
         , alignTop
         , Font.size 16
+        , width fill
+        , height fill
+        , scrollbars
         ]
         [ text "Insérer / Modifier une video:"
         , column
