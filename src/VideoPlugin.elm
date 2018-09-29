@@ -29,9 +29,6 @@ type alias Model =
     , title : Bool
     , startAt : Maybe Int
     , size : VideoSize
-
-    --, width : Int
-    --, height : Int
     , sizeRatio : Float
     , error : String
     }
@@ -415,6 +412,10 @@ view config model =
                                 buildYoutubeUrl url model
                             , Attr.width model.size.videoWidth
                             , Attr.height model.size.videoHeight
+                            , if model.frameBorder then
+                                noHtmlAttr
+                              else
+                                Attr.attribute "frameborder" "0"
                             , Attr.attribute "allowfullscreen" "true"
                             , Attr.attribute "allow" "autoplay; encrypted-media"
                             ]
@@ -431,6 +432,10 @@ view config model =
                                         buildYoutubeUrl vidMeta.src model
                                     , Attr.width model.size.videoWidth
                                     , Attr.height model.size.videoHeight
+                                    , if model.frameBorder then
+                                        noHtmlAttr
+                                      else
+                                        Attr.attribute "frameborder" "0"
                                     , Attr.attribute "allowfullscreen" "true"
                                     , Attr.attribute "allow" "autoplay; encrypted-media"
                                     ]
@@ -567,45 +572,3 @@ parseTime str =
 
         _ ->
             Nothing
-
-
-
---buildYoutubeUrl src videoMeta =
---    let
---        params =
---            [ Maybe.map (\n -> "start=" ++ String.fromInt n) videoMeta.startAt
---            , if not videoMeta.frameBorder then
---                Just "frameborder=0"
---              else
---                Nothing
---            , if not videoMeta.suggestions then
---                Just "rel=0"
---              else
---                Nothing
---            , if not videoMeta.controls then
---                Just "controls=0"
---              else
---                Nothing
---            , if not videoMeta.title then
---                Just "showinfo=0"
---              else
---                Nothing
---            ]
---                |> List.filterMap identity
---                |> String.join "&"
---                |> (\s ->
---                        if s == "" then
---                            s
---                        else
---                            "?" ++ s
---                   )
---    in
---    "https://www.youtube"
---        ++ (if videoMeta.privacy then
---                "-nocookie"
---            else
---                ""
---           )
---        ++ ".com/embed/"
---        ++ src
---        ++ params

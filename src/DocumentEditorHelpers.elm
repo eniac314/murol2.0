@@ -30,6 +30,16 @@ type Alignment
     | ALeft
 
 
+type EditorPlugin
+    = ImagePlugin
+    | VideoPlugin
+    | TablePlugin
+    | CustomElementPlugin
+    | TextBlockPlugin
+    | NewDocPlugin
+    | PersistencePlugin
+
+
 findAlignment : List DocAttribute -> Alignment
 findAlignment attrs =
     let
@@ -159,53 +169,6 @@ newCell nextUid cellContent =
 
 emptyCell nextUid =
     newCell nextUid EmptyCell
-
-
-newTable nextUid =
-    newCell
-        nextUid
-        (Table
-            { style = ""
-            , nbrRows = 0
-            , nbrCols = 0
-            , data = []
-            }
-        )
-
-
-newTextBlock nextUid =
-    newCell
-        nextUid
-        (TextBlock [])
-
-
-newImage nextUid =
-    newCell
-        nextUid
-        (Image
-            { src = UrlSrc ""
-            , caption = Nothing
-            , size = ImgSize 0 0
-            }
-        )
-
-
-newVideo nextUid =
-    newCell
-        nextUid
-        (Video
-            { src = ""
-            , size =
-                VideoSize 0 0
-            , frameBorder = False
-            , suggestions = False
-            , controls = False
-            , privacy = False
-            , title = False
-            , startAt = Nothing
-            , hosting = Youtube
-            }
-        )
 
 
 

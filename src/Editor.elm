@@ -176,14 +176,15 @@ type PreviewMode
     | PreviewPhone
 
 
-type EditorPlugin
-    = ImagePlugin
-    | VideoPlugin
-    | TablePlugin
-    | CustomElementPlugin
-    | TextBlockPlugin
-    | NewDocPlugin
-    | PersistencePlugin
+
+--type EditorPlugin
+--    = ImagePlugin
+--    | VideoPlugin
+--    | TablePlugin
+--    | CustomElementPlugin
+--    | TextBlockPlugin
+--    | NewDocPlugin
+--    | PersistencePlugin
 
 
 type Msg
@@ -210,8 +211,8 @@ type Msg
     | AddNewInside
     | AddNewLeft
     | AddNewRight
-    | CreateNewContainer Document
-    | CreateNewCell Document
+    | CreateNewContainer ContainerLabel
+    | CreateNewCell EditorPlugin
     | DeleteSelected
     | Copy
     | Cut
@@ -540,9 +541,10 @@ update msg model =
                         ]
                     )
 
-        CreateNewContainer newDoc ->
+        CreateNewContainer containerLabel ->
             ( { model
-                | document = updateCurrent newDoc model.document
+                | document =
+                    updateCurrent (newContainer model.nextUid containerLabel) model.document
                 , nextUid = model.nextUid + 2
                 , currentPlugin = Nothing
               }
@@ -550,11 +552,11 @@ update msg model =
                 []
             )
 
-        CreateNewCell newDoc ->
+        CreateNewCell plugin ->
             let
                 ( newModel, cmd ) =
-                    { model | document = updateCurrent newDoc model.document }
-                        |> openPlugin
+                    { model | currentPlugin = Just plugin }
+                        |> openNewPlugin
             in
             ( { newModel | nextUid = model.nextUid + 1 }
             , Cmd.batch
@@ -724,29 +726,24 @@ update msg model =
                     )
 
                 Just (PluginData tm) ->
-                    case extractDoc model.document of
-                        Cell ({ cellContent } as lv) ->
-                            case cellContent of
-                                Table _ ->
-                                    let
-                                        newDoc =
-                                            updateCurrent
-                                                (Cell { lv | cellContent = Table tm })
-                                                model.document
-                                    in
-                                    ( { model
-                                        | document = newDoc
-                                        , currentPlugin = Nothing
-                                      }
-                                    , Cmd.batch
-                                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
-                                    )
-
-                                _ ->
-                                    ( model, Cmd.none )
-
-                        _ ->
-                            ( model, Cmd.none )
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , attrs = getAttrs (extractDoc model.document)
+                                    , cellContent = Table tm
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                    )
 
         TextBlockPluginMsg textBlockMsg ->
             let
@@ -773,36 +770,26 @@ update msg model =
                     )
 
                 Just (PluginData ( tbElems, attrs )) ->
-                    case extractDoc model.document of
-                        Cell ({ cellContent } as lv) ->
-                            case cellContent of
-                                TextBlock _ ->
-                                    let
-                                        newDoc =
-                                            updateCurrent
-                                                (Cell
-                                                    { lv
-                                                        | cellContent = TextBlock tbElems
-                                                        , attrs = attrs
-                                                    }
-                                                )
-                                                model.document
-                                    in
-                                    ( { model
-                                        | document = newDoc
-                                        , currentPlugin = Nothing
-                                      }
-                                    , Cmd.batch
-                                        [ scrollTo <| getHtmlId (extractDoc model.document)
-                                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
-                                        ]
-                                    )
-
-                                _ ->
-                                    ( model, Cmd.none )
-
-                        _ ->
-                            ( model, Cmd.none )
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = TextBlock tbElems
+                                    , attrs = attrs
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        ]
+                    )
 
         ImagePluginMsg imgPlugMsg ->
             let
@@ -827,36 +814,26 @@ update msg model =
                     )
 
                 Just (PluginData ( imgMeta, attrs )) ->
-                    case extractDoc model.document of
-                        Cell ({ cellContent } as lv) ->
-                            case cellContent of
-                                Image _ ->
-                                    let
-                                        newDoc =
-                                            updateCurrent
-                                                (Cell
-                                                    { lv
-                                                        | cellContent = Image imgMeta
-                                                        , attrs = attrs
-                                                    }
-                                                )
-                                                model.document
-                                    in
-                                    ( { model
-                                        | document = newDoc
-                                        , currentPlugin = Nothing
-                                      }
-                                    , Cmd.batch
-                                        [ scrollTo <| getHtmlId (extractDoc model.document)
-                                        , Cmd.map ImagePluginMsg imagePluginCmds
-                                        ]
-                                    )
-
-                                _ ->
-                                    ( model, Cmd.none )
-
-                        _ ->
-                            ( model, Cmd.none )
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = Image imgMeta
+                                    , attrs = attrs
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        , Cmd.map ImagePluginMsg imagePluginCmds
+                        ]
+                    )
 
         VideoPluginMsg vidPlugMsg ->
             let
@@ -876,42 +853,26 @@ update msg model =
                     )
 
                 Just (PluginData ( videoMeta, attrs )) ->
-                    case extractDoc model.document of
-                        Cell ({ cellContent } as lv) ->
-                            case cellContent of
-                                Video _ ->
-                                    let
-                                        newDoc =
-                                            updateCurrent
-                                                (Cell
-                                                    { lv
-                                                        | cellContent = Video videoMeta
-                                                        , attrs = attrs
-                                                    }
-                                                )
-                                                model.document
-                                    in
-                                    ( { model
-                                        | document = newDoc
-                                        , currentPlugin = Nothing
-                                      }
-                                    , Cmd.batch
-                                        [ scrollTo <| getHtmlId (extractDoc model.document)
-                                        ]
-                                    )
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = Video videoMeta
+                                    , attrs = attrs
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        ]
+                    )
 
-                                _ ->
-                                    ( model, Cmd.none )
-
-                        _ ->
-                            ( model, Cmd.none )
-
-        -------------------
-        -- Persistence   --
-        -------------------
-        --LocalStorage.send (getCmdPort model)
-        --    message
-        --    model.funnelState.storage
         LoadDocument ->
             case Maybe.map (Decode.decodeValue decodeDocument) model.localStorageValue of
                 Just (Ok newDoc) ->
@@ -1246,8 +1207,60 @@ pluginView model plugin =
                 }
 
 
+openNewPlugin : Model -> ( Model, Cmd Msg )
+openNewPlugin model =
+    -- NOTE: reset corresponding plugin when the selection is an empty cell
+    -- then open the plugin
+    case model.currentPlugin of
+        Just TablePlugin ->
+            ( { model
+                | tablePlugin = TablePlugin.init Nothing
+              }
+            , Cmd.none
+            )
+
+        Just TextBlockPlugin ->
+            let
+                ( newTextBlockPlugin, textBlockPluginCmds ) =
+                    TextBlockPlugin.init [] Nothing
+            in
+            ( { model
+                | textBlockPlugin = newTextBlockPlugin
+              }
+            , Cmd.batch
+                [ textBlockPluginCmds ]
+            )
+
+        Just ImagePlugin ->
+            let
+                ( newImagePlugin, imagePluginCmds ) =
+                    ImagePlugin.init Nothing
+            in
+            ( { model
+                | imagePlugin = newImagePlugin
+              }
+            , Cmd.map ImagePluginMsg imagePluginCmds
+            )
+
+        Just VideoPlugin ->
+            let
+                newVideoPlugin =
+                    VideoPlugin.init Nothing
+            in
+            ( { model
+                | videoPlugin = newVideoPlugin
+              }
+            , Cmd.none
+            )
+
+        _ ->
+            ( model, Cmd.none )
+
+
 openPlugin : Model -> ( Model, Cmd Msg )
 openPlugin model =
+    -- NOTE: open the plugin corresponding to the current selection
+    -- and initializes it with selection content
     case extractDoc model.document of
         Cell { cellContent, id, attrs } ->
             case cellContent of

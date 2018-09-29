@@ -33,8 +33,9 @@ view config =
                 [ Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewContainer
-                                (newContainer config.nextUid DocColumn)
+                            config.createNewContainer DocColumn
+
+                    --(newContainer config.nextUid DocColumn)
                     , label =
                         row [ spacing 10 ]
                             [ text "Créer colonne"
@@ -43,8 +44,9 @@ view config =
                 , Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewContainer
-                                (newContainer config.nextUid DocRow)
+                            config.createNewContainer DocRow
+
+                    --(newContainer config.nextUid DocRow)
                     , label =
                         row [ spacing 10 ]
                             [ text "Créer ligne"
@@ -53,8 +55,9 @@ view config =
                 , Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewContainer
-                                (newContainer config.nextUid TextColumn)
+                            config.createNewContainer TextColumn
+
+                    --(newContainer config.nextUid TextColumn)
                     , label =
                         row [ spacing 10 ]
                             [ text "Créer colonne de texte"
@@ -63,8 +66,9 @@ view config =
                 , Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewContainer
-                                (newContainer config.nextUid ResponsiveBloc)
+                            config.createNewContainer ResponsiveBloc
+
+                    --(newContainer config.nextUid ResponsiveBloc)
                     , label =
                         row [ spacing 10 ]
                             [ text "Créer bloc réactif"
@@ -85,8 +89,7 @@ view config =
                 [ Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewCell
-                                (newTextBlock config.nextUid)
+                            config.createNewCell TextBlockPlugin
                     , label =
                         row [ spacing 10 ]
                             [ text "Créer bloc de texte"
@@ -95,8 +98,7 @@ view config =
                 , Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewCell
-                                (newImage config.nextUid)
+                            config.createNewCell ImagePlugin
                     , label =
                         row [ spacing 10 ]
                             [ text "Image"
@@ -105,8 +107,7 @@ view config =
                 , Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewCell
-                                (newVideo config.nextUid)
+                            config.createNewCell VideoPlugin
                     , label =
                         row [ spacing 10 ]
                             [ text "Video"
@@ -115,8 +116,7 @@ view config =
                 , Input.button buttonStyle
                     { onPress =
                         Just <|
-                            config.createNewCell
-                                (newTable config.nextUid)
+                            config.createNewCell TablePlugin
                     , label =
                         row [ spacing 10 ]
                             [ text "Tableau"

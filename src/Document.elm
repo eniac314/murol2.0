@@ -262,6 +262,15 @@ isContainer document =
             False
 
 
+getId doc =
+    case doc of
+        Cell { cellContent, id, attrs } ->
+            id
+
+        Container { containerLabel, id, attrs } _ ->
+            id
+
+
 getUid doc =
     case doc of
         Cell { cellContent, id, attrs } ->
@@ -419,6 +428,15 @@ toogleClass class document =
 
         Cell lv ->
             Cell { lv | id = newId lv.id }
+
+
+getAttrs doc =
+    case doc of
+        Cell { cellContent, id, attrs } ->
+            attrs
+
+        Container { containerLabel, id, attrs } _ ->
+            attrs
 
 
 addAttrs : Document -> List DocAttribute -> Document

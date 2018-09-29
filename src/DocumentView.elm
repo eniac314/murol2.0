@@ -3,7 +3,7 @@ module DocumentView exposing (..)
 import Array exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
-import DocumentEditorHelpers exposing (buildYoutubeUrl)
+import DocumentEditorHelpers exposing (buildYoutubeUrl, noHtmlAttr)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -245,6 +245,10 @@ renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
                     buildYoutubeUrl vidMeta.src vidMeta
                 , Attr.width vidMeta.size.videoWidth
                 , Attr.height vidMeta.size.videoHeight
+                , if vidMeta.frameBorder then
+                    noHtmlAttr
+                  else
+                    Attr.attribute "frameborder" "0"
                 , Attr.attribute "allowfullscreen" "true"
                 , Attr.attribute "allow" "autoplay; encrypted-media"
                 ]
