@@ -37,6 +37,7 @@ type EditorPlugin
     | CustomElementPlugin
     | TextBlockPlugin
     | NewDocPlugin
+    | ContainerEditPlugin
     | PersistencePlugin
 
 

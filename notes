@@ -10,13 +10,9 @@
 
 - fix Ul
 
-- setSelection when making a new tag
-
 - fix add sizetracked ids happening only at init time
 	|-> recompute when adding/editing? new image
 
-
-- edit features for containers
 
 - refaire keyboard subs 
 

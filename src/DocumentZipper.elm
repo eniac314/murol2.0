@@ -321,7 +321,7 @@ addNewInside nextUid { current, contexts } =
     case current of
         Container cv xs ->
             Just
-                { current = Container cv (emptyCell nextUid :: xs)
+                { current = Container cv (xs ++ [ emptyCell nextUid ])
                 , contexts = contexts
                 }
 

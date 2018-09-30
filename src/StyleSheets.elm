@@ -35,10 +35,11 @@ defaulStyleSheet =
         ]
     , columnStyle =
         [ spacing 15
-        , centerX
+        , width fill
         ]
     , rowStyle =
         [ width fill
+        , spacing 15
         ]
     , textColumnStyle =
         [ spacing 15
@@ -90,6 +91,7 @@ defaulStyleSheet =
                     , Font.size 16
                     , width (maximum 900 fill)
                     , height fill
+                    , centerX
                     ]
                   )
                 ]

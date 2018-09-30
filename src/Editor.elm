@@ -5,6 +5,7 @@ port module Editor exposing (..)
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
+import ContainerEditPlugin exposing (..)
 import Delay exposing (..)
 import Dict exposing (..)
 import Document exposing (..)
@@ -199,6 +200,7 @@ type Msg
     | SwapRight
     | EditCell
     | EditContainer
+    | SwapContainerType ContainerLabel
     | AddNewInside
     | AddNewLeft
     | AddNewRight
@@ -503,7 +505,25 @@ update msg model =
             openPlugin model
 
         EditContainer ->
-            ( model, Cmd.none )
+            ( { model | currentPlugin = Just ContainerEditPlugin }, Cmd.none )
+
+        SwapContainerType containerLabel ->
+            case extractDoc model.document of
+                Container cv children ->
+                    let
+                        newDoc =
+                            Container { cv | containerLabel = containerLabel } children
+                    in
+                    ( { model
+                        | document =
+                            updateCurrent newDoc model.document
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         AddNewInside ->
             case addNewInside model.nextUid model.document of
@@ -1194,6 +1214,18 @@ pluginView model plugin =
                 , nextUid = model.nextUid
                 }
 
+        ContainerEditPlugin ->
+            case extractDoc model.document of
+                Container cv _ ->
+                    ContainerEditPlugin.view
+                        { currentContainer = cv.containerLabel
+                        , swapContainerType = SwapContainerType
+                        , goBack = SetEditorPlugin Nothing
+                        }
+
+                _ ->
+                    text "Aucun containeur sélectionné"
+
         VideoPlugin ->
             VideoPlugin.view [] model.videoPlugin
                 |> Element.map VideoPluginMsg
@@ -1450,10 +1482,14 @@ mainInterface config =
                 , { defButtonConfig
                     | icons = [ edit iconSize ]
                     , labelText = "Modifier"
-                    , msg = Just EditCell
+                    , msg =
+                        if config.selectionIsContainer then
+                            Just EditContainer
+                        else
+                            Just EditCell
                     , isActive =
                         not config.isInPlugin
-                            && not config.selectionIsContainer
+                            --&& not config.selectionIsContainer
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig

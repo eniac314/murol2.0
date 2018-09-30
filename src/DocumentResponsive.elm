@@ -89,9 +89,12 @@ responsivePreFormat config document =
                             Nothing ->
                                 renderSameHeightImgRow config.width document
                         --Container nv (List.map (responsivePreFormat config) children)
+                    else if device.class == Phone || device.class == Tablet then
+                        responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
                     else
                         Container nv (List.map (responsivePreFormat config) children)
 
+                --Container nv (List.map (responsivePreFormat config) children)
                 TextColumn ->
                     if device.class == Phone || device.class == Tablet then
                         responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
@@ -198,6 +201,7 @@ renderSameHeightImgRow containerWidth document =
                     List.foldr (\i n -> i.newWidth + n) 0 imgsScaledToMinHeight
 
                 spacingOffset =
+                    --1
                     if containerWidth > 500 then
                         20
                     else
