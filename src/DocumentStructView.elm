@@ -69,15 +69,23 @@ docTreeView config offsets ( sContainer, selection ) document =
             [ row [ width fill ]
                 (prefix offsets
                     ++ [ el
-                            [ if config.containersColors && sel then
+                            ([ if config.containersColors && sel then
                                 Font.color <| containerLabelToColor containerLabel
-                              else
+                               else
                                 labelFontColor
-                            , Events.onClick (config.zipToUidCmd id.uid)
-                            , pointer
-                            , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                            ]
+                             ]
+                                ++ (if config.isActive then
+                                        [ Events.onClick (config.zipToUidCmd id.uid)
+                                        , pointer
+                                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                                        ]
+                                    else
+                                        []
+                                   )
+                            )
                             (text <| containerLabelToString containerLabel)
+
+                       --(text <| String.fromInt id.uid ++ " " ++ containerLabelToString containerLabel)
                        ]
                 )
             ]
@@ -102,12 +110,20 @@ docTreeView config offsets ( sContainer, selection ) document =
             [ row []
                 (prefix offsets
                     ++ [ el
-                            [ labelFontColor
-                            , Events.onClick (config.zipToUidCmd id.uid)
-                            , pointer
-                            , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                            ]
+                            ([ labelFontColor
+                             ]
+                                ++ (if config.isActive then
+                                        [ Events.onClick (config.zipToUidCmd id.uid)
+                                        , pointer
+                                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                                        ]
+                                    else
+                                        []
+                                   )
+                            )
                             (text <| cellContentToString cellContent)
+
+                       --(text <| String.fromInt id.uid ++ " " ++ cellContentToString cellContent)
                        ]
                 )
             ]

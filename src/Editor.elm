@@ -176,17 +176,6 @@ type PreviewMode
     | PreviewPhone
 
 
-
---type EditorPlugin
---    = ImagePlugin
---    | VideoPlugin
---    | TablePlugin
---    | CustomElementPlugin
---    | TextBlockPlugin
---    | NewDocPlugin
---    | PersistencePlugin
-
-
 type Msg
     = ----------------------------------------------
       -- Dom manipulation && Dom events processing--
@@ -209,6 +198,7 @@ type Msg
     | SwapLeft
     | SwapRight
     | EditCell
+    | EditContainer
     | AddNewInside
     | AddNewLeft
     | AddNewRight
@@ -511,6 +501,9 @@ update msg model =
 
         EditCell ->
             openPlugin model
+
+        EditContainer ->
+            ( model, Cmd.none )
 
         AddNewInside ->
             case addNewInside model.nextUid model.document of
@@ -1117,6 +1110,7 @@ view model =
                     [ documentStructView
                         { zipToUidCmd = ZipToUid
                         , containersColors = model.config.containersBkgColors
+                        , isActive = model.currentPlugin == Nothing
                         }
                         (extractDoc model.document
                             |> getUid
@@ -1196,6 +1190,7 @@ pluginView model plugin =
             NewDocPlugin.view
                 { createNewCell = CreateNewCell
                 , createNewContainer = CreateNewContainer
+                , goBack = SetEditorPlugin Nothing
                 , nextUid = model.nextUid
                 }
 
