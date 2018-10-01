@@ -22,6 +22,7 @@ import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
+import Filesys exposing (..)
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
 import Html.Events.Extra.Wheel as Wheel
