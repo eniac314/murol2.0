@@ -127,7 +127,7 @@ decodeImageData msg =
 --main : Program () Model Msg
 --main =
 --    Browser.element
---        { init = (_ -> init Nothing)
+--        { init = (\_ -> init Nothing)
 --        , update =
 --            \model msg ->
 --                let
