@@ -163,6 +163,8 @@ type alias Model =
     , localStorageValue : Maybe Value
     , localStorageKeys : List String
     , jsonBuffer : String
+    , filesys : Maybe Filesys
+    , filesysConfig : FilesysConfig Msg
     , currentPlugin : Maybe EditorPlugin
     , tablePlugin : TablePlugin.DocTable
     , textBlockPlugin : TextBlockPlugin.DocTextBlock
@@ -221,6 +223,11 @@ type Msg
     | SetPreviewMode PreviewMode
     | ToogleCountainersColors
     | SetEditorPlugin (Maybe EditorPlugin)
+      ---------------------
+      -- Filesys message --
+      ---------------------
+    | ToogleFileSys
+    | NewFileSys Filesys (Maybe (Cmd Msg))
       -----------------------------
       -- Plugins messages routing--
       -----------------------------
@@ -305,6 +312,8 @@ init doc flags =
       , localStorageValue = Nothing
       , localStorageKeys = []
       , jsonBuffer = ""
+      , filesys = Filesys.init (defFilesysConfig NewFileSys)
+      , filesysConfig = defFilesysConfig NewFileSys
       , currentPlugin = Nothing
       , tablePlugin = TablePlugin.init Nothing
       , textBlockPlugin = newTextBlockPlugin
@@ -729,6 +738,25 @@ update msg model =
         SetEditorPlugin mbPlugin ->
             ( { model | currentPlugin = mbPlugin }, Cmd.none )
 
+        ---------------------
+        -- Filesys message --
+        ---------------------
+        ToogleFileSys ->
+            ( { model
+                | currentPlugin =
+                    if model.currentPlugin == Just FilesysDebug then
+                        Nothing
+                    else
+                        Just FilesysDebug
+              }
+            , Cmd.none
+            )
+
+        NewFileSys newFileSys mbCmd ->
+            ( { model | filesys = Just newFileSys }
+            , Maybe.withDefault Cmd.none mbCmd
+            )
+
         -----------------------------
         -- Plugins messages routing--
         -----------------------------
@@ -1116,6 +1144,7 @@ view model =
                     , selectionIsContainer = isContainer (extractDoc model.document)
                     , previewMode = model.previewMode
                     , containersBkgColors = model.config.containersBkgColors
+                    , filesysOpen = model.currentPlugin == Just FilesysDebug
                     }
                 , row
                     [ width fill
@@ -1249,6 +1278,11 @@ pluginView model plugin =
                 , document = extractDoc (rewind model.document)
                 , noOp = NoOp
                 }
+
+        FilesysDebug ->
+            Filesys.view
+                model.filesysConfig
+                model.filesys
 
 
 openNewPlugin : Model -> ( Model, Cmd Msg )
@@ -1387,6 +1421,7 @@ type alias MenuConfig =
     , selectionIsContainer : Bool
     , previewMode : PreviewMode
     , containersBkgColors : Bool
+    , filesysOpen : Bool
     }
 
 
@@ -1699,6 +1734,13 @@ mainMenu config =
                         | label = "Editeur de feuille de style"
                         , isSelectable = True
                         , isActive = False
+                    }
+                  , { defEntry
+                        | label = "Système de fichier"
+                        , isSelectable = True
+                        , isActive = True
+                        , isSelected = config.filesysOpen
+                        , msg = ToogleFileSys
                     }
                   ]
                 , [ { defEntry

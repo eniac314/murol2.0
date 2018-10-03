@@ -1,12 +1,14 @@
 module Filesys exposing (..)
 
 import Browser exposing (element)
+import DocumentEditorHelpers exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Lazy as Lazy
 
 
 type FsItem
@@ -23,6 +25,7 @@ type alias Meta =
 type alias Filesys =
     { current : FsItem
     , contexts : List Context
+    , version : Int
     }
 
 
@@ -33,101 +36,129 @@ type alias Context =
     }
 
 
-main : Program () Model Msg
-main =
-    Browser.element
-        { init = \_ -> init Nothing
-        , update =
-            \model msg ->
-                let
-                    ( newModel, cmd, maybeOutput ) =
-                        update model msg
-                in
-                ( newModel, cmd )
-        , view = view { picListing = [] }
-        , subscriptions = subscriptions
-        }
-
-
-type alias Model =
-    { filesys : Maybe Filesys
+type alias FilesysConfig msg =
+    { version : Int
+    , fileList : List FsItem
+    , externalMsg : Filesys -> Maybe (Cmd msg) -> msg
     }
 
 
-type Msg
-    = GoHome
-    | GoNext
-    | GoPrev
-    | GoTo (List String)
-    | NewFile
-    | NewFolder
-    | Delete
-    | Rename String
+defFilesysConfig externalMsg =
+    { version = 0
+    , fileList = dummyFiles
+    , externalMsg = externalMsg
+    }
 
 
-init mbInput =
-    ( { filesys =
-            List.foldr (\f acc -> insert f "Images" acc) Nothing dummyFiles
-                |> Maybe.map initFileSys
-      }
-    , Cmd.none
-    )
+init config =
+    List.foldr (\f acc -> insert f "Images" acc) Nothing config.fileList
+        |> Maybe.map (initFileSys config.version)
 
 
-subscriptions model =
-    Sub.batch []
-
-
-update msg model =
-    case msg of
-        GoHome ->
-            ( model, Cmd.none, Nothing )
-
-        GoNext ->
-            ( model, Cmd.none, Nothing )
-
-        GoPrev ->
-            ( model, Cmd.none, Nothing )
-
-        GoTo path ->
-            ( model, Cmd.none, Nothing )
-
-        NewFile ->
-            ( model, Cmd.none, Nothing )
-
-        NewFolder ->
-            ( model, Cmd.none, Nothing )
-
-        Delete ->
-            ( model, Cmd.none, Nothing )
-
-        Rename newName ->
-            ( model, Cmd.none, Nothing )
-
-
-view config model =
-    layout
-        [ Font.size 16
+view : FilesysConfig msg -> Maybe Filesys -> Element msg
+view config mbFilesys =
+    let
+        filesys =
+            Maybe.andThen
+                (\fs ->
+                    if config.version /= fs.version then
+                        init config
+                    else
+                        mbFilesys
+                )
+                mbFilesys
+    in
+    column
+        [ spacing 20
+        , Font.size 16
         , Font.family
             [ Font.monospace ]
+        , alignTop
+        , padding 15
         ]
-        (column
-            [ spacing 20 ]
-            [ model.filesys
-                |> Maybe.map rewindFilesys
-                |> Maybe.map extractFsItem
-                |> Maybe.map fsItemToElement
-                |> Maybe.withDefault (text "wrong FsItem")
+        [ filesys
+            --|> Maybe.map rewindFilesys
+            |> Maybe.map extractFsItem
+            |> Maybe.map (fsItemToElement config mbFilesys)
+            |> Maybe.withDefault (text "wrong FsItem")
 
-            --, text <| Debug.toString <| List.foldr (\f acc -> insert f "Images" acc) Nothing dummyFiles
-            ]
+        --, text <| Debug.toString <| List.foldr (\f acc -> insert f "Images" acc) Nothing dummyFiles
+        ]
+
+
+fsItemToElement : FilesysConfig msg -> Maybe Filesys -> FsItem -> Element msg
+fsItemToElement config mbFilesys fsItem =
+    let
+        paddingOffset n =
+            paddingEach
+                { top = 0
+                , left = n * 10
+                , right = 0
+                , bottom = 0
+                }
+
+        helper offset f =
+            case f of
+                File { name, path } ->
+                    [ row
+                        [ paddingOffset offset
+                        , spacing 10
+                        ]
+                        [ el [ Font.bold ]
+                            (text name)
+                        , el
+                            [ Font.size 14
+                            , Font.color (rgb 0.7 0.7 0.7)
+                            ]
+                            (text <| String.join "/" path)
+                        ]
+                    ]
+
+                Folder { name, path } children ->
+                    [ row
+                        [ paddingOffset offset
+                        , spacing 10
+                        ]
+                        [ el
+                            [ Font.bold
+                            , Font.color (rgba 0 0 1 0.5)
+                            ]
+                            (text name)
+                        , el
+                            [ Font.size 14
+                            , Font.color (rgb 0.7 0.7 0.7)
+                            ]
+                            (text <| String.join "/" path)
+                        ]
+                    ]
+                        ++ List.concatMap (helper (offset + 4)) children
+
+        goBackButton mbfs =
+            Input.button (buttonStyle True)
+                { onPress =
+                    mbfs
+                        |> Maybe.andThen zipUpFilesys
+                        |> Maybe.map
+                            (\fs -> config.externalMsg fs Nothing)
+                , label =
+                    row [ spacing 10 ]
+                        [ text "Back"
+                        ]
+                }
+    in
+    column
+        [ spacing 10 ]
+        ([ Lazy.lazy goBackButton mbFilesys
+         ]
+            ++ helper 0 fsItem
         )
 
 
-initFileSys : FsItem -> Filesys
-initFileSys fsItem =
+initFileSys : Int -> FsItem -> Filesys
+initFileSys version fsItem =
     { current = fsItem
     , contexts = []
+    , version = version
     }
 
 
@@ -137,8 +168,8 @@ extractFsItem { current, contexts } =
 
 
 updateCurrFilesys : FsItem -> Filesys -> Filesys
-updateCurrFilesys new { current, contexts } =
-    { current = new, contexts = contexts }
+updateCurrFilesys new filesys =
+    { filesys | current = new }
 
 
 rewindFilesys : Filesys -> Filesys
@@ -152,21 +183,23 @@ rewindFilesys filesys =
 
 
 zipUpFilesys : Filesys -> Maybe Filesys
-zipUpFilesys { current, contexts } =
-    case contexts of
-        [] ->
-            Nothing
+zipUpFilesys filesys =
+    Debug.log "running zipUp" <|
+        case filesys.contexts of
+            [] ->
+                Nothing
 
-        { parent, left, right } :: cs ->
-            Just
-                { current = Folder parent (left ++ [ current ] ++ right)
-                , contexts = cs
-                }
+            { parent, left, right } :: cs ->
+                Just
+                    { filesys
+                        | current = Folder parent (left ++ [ filesys.current ] ++ right)
+                        , contexts = cs
+                    }
 
 
 zipDownFilesys : (FsItem -> Bool) -> Filesys -> Maybe Filesys
-zipDownFilesys p { current, contexts } =
-    case current of
+zipDownFilesys p filesys =
+    case filesys.current of
         File _ ->
             Nothing
 
@@ -184,13 +217,14 @@ zipDownFilesys p { current, contexts } =
 
                 f :: fs ->
                     Just
-                        { current = f
-                        , contexts =
-                            { parent = meta
-                            , left = l
-                            , right = fs
-                            }
-                                :: contexts
+                        { filesys
+                            | current = f
+                            , contexts =
+                                { parent = meta
+                                , left = l
+                                , right = fs
+                                }
+                                    :: filesys.contexts
                         }
 
 
@@ -345,55 +379,3 @@ break p xs =
                         helper ys_ (y :: left)
     in
     helper xs []
-
-
-fsItemToElement : FsItem -> Element msg
-fsItemToElement fsItem =
-    let
-        paddingOffset n =
-            paddingEach
-                { top = 0
-                , left = n * 10
-                , right = 0
-                , bottom = 0
-                }
-
-        helper offset f =
-            case f of
-                File { name, path } ->
-                    [ row
-                        [ paddingOffset offset
-                        , spacing 10
-                        ]
-                        [ el [ Font.bold ]
-                            (text name)
-                        , el
-                            [ Font.size 14
-                            , Font.color (rgb 0.7 0.7 0.7)
-                            ]
-                            (text <| String.join "/" path)
-                        ]
-                    ]
-
-                Folder { name, path } children ->
-                    [ row
-                        [ paddingOffset offset
-                        , spacing 10
-                        ]
-                        [ el
-                            [ Font.bold
-                            , Font.color (rgba 0 0 1 0.5)
-                            ]
-                            (text name)
-                        , el
-                            [ Font.size 14
-                            , Font.color (rgb 0.7 0.7 0.7)
-                            ]
-                            (text <| String.join "/" path)
-                        ]
-                    ]
-                        ++ List.concatMap (helper (offset + 4)) children
-    in
-    column
-        [ spacing 10 ]
-        (helper 0 fsItem)

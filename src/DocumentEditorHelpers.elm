@@ -39,6 +39,7 @@ type EditorPlugin
     | NewDocPlugin
     | ContainerEditPlugin
     | PersistencePlugin
+    | FilesysDebug
 
 
 findAlignment : List DocAttribute -> Alignment
