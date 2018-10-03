@@ -22,7 +22,7 @@ import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
-import Filesys exposing (..)
+import FilesysPlugin exposing (..)
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
 import Html.Events.Extra.Wheel as Wheel
@@ -163,13 +163,12 @@ type alias Model =
     , localStorageValue : Maybe Value
     , localStorageKeys : List String
     , jsonBuffer : String
-    , filesys : Maybe Filesys
-    , filesysConfig : FilesysConfig Msg
     , currentPlugin : Maybe EditorPlugin
-    , tablePlugin : TablePlugin.DocTable
-    , textBlockPlugin : TextBlockPlugin.DocTextBlock
-    , imagePlugin : ImagePlugin.Model
-    , videoPlugin : VideoPlugin.Model
+    , filesysPlugin : FilesysPlugin.Model Msg
+    , tablePlugin : TablePlugin.Model Msg
+    , textBlockPlugin : TextBlockPlugin.Model Msg
+    , imagePlugin : ImagePlugin.Model Msg
+    , videoPlugin : VideoPlugin.Model Msg
     }
 
 
@@ -227,10 +226,10 @@ type Msg
       -- Filesys message --
       ---------------------
     | ToogleFileSys
-    | NewFileSys Filesys (Maybe (Cmd Msg))
       -----------------------------
       -- Plugins messages routing--
       -----------------------------
+    | FilesysPluginMsg FilesysPlugin.Msg
     | TablePluginMsg TablePlugin.Msg
     | TextBlockPluginMsg TextBlockPlugin.Msg
     | ImagePluginMsg ImagePlugin.Msg
@@ -265,10 +264,13 @@ init doc flags =
             setSizeTrackedDocUids doc
 
         ( newTextBlockPlugin, textBlockPluginCmds ) =
-            TextBlockPlugin.init [] Nothing
+            TextBlockPlugin.init [] Nothing TextBlockPluginMsg
 
         ( newImagePlugin, imagePluginCmds ) =
-            ImagePlugin.init Nothing
+            ImagePlugin.init Nothing ImagePluginMsg
+
+        ( newFilesysPlugin, filesysPluginCmds ) =
+            FilesysPlugin.init ImagesRoot ReadOnly FilesysPluginMsg
 
         handlers =
             { containerClickHandler = SelectDoc
@@ -312,20 +314,20 @@ init doc flags =
       , localStorageValue = Nothing
       , localStorageKeys = []
       , jsonBuffer = ""
-      , filesys = Filesys.init (defFilesysConfig NewFileSys)
-      , filesysConfig = defFilesysConfig NewFileSys
       , currentPlugin = Nothing
-      , tablePlugin = TablePlugin.init Nothing
+      , filesysPlugin = newFilesysPlugin
+      , tablePlugin = TablePlugin.init Nothing TablePluginMsg
       , textBlockPlugin = newTextBlockPlugin
       , imagePlugin = newImagePlugin
-      , videoPlugin = VideoPlugin.init Nothing
+      , videoPlugin = VideoPlugin.init Nothing VideoPluginMsg
       }
     , Cmd.batch
         [ Task.perform CurrentViewport Dom.getViewport
         , Task.attempt MainInterfaceViewport
             (Dom.getViewportOf "mainInterface")
         , textBlockPluginCmds
-        , Cmd.map ImagePluginMsg imagePluginCmds
+        , imagePluginCmds
+        , filesysPluginCmds
         , LocalStorage.send
             cmdPort
             (LocalStorage.listKeys "")
@@ -752,14 +754,18 @@ update msg model =
             , Cmd.none
             )
 
-        NewFileSys newFileSys mbCmd ->
-            ( { model | filesys = Just newFileSys }
-            , Maybe.withDefault Cmd.none mbCmd
-            )
-
         -----------------------------
         -- Plugins messages routing--
         -----------------------------
+        FilesysPluginMsg filesysPluginMsg ->
+            let
+                ( newFilesysPlugin, filesysPluginCmds, mbPluginData ) =
+                    FilesysPlugin.update filesysPluginMsg model.filesysPlugin
+            in
+            ( { model | filesysPlugin = newFilesysPlugin }
+            , Cmd.batch [ filesysPluginCmds ]
+            )
+
         TablePluginMsg tableMsg ->
             let
                 ( newTablePlugin, mbPluginData ) =
@@ -810,7 +816,7 @@ update msg model =
                 Nothing ->
                     ( { model | textBlockPlugin = newTextBlockPlugin }
                     , Cmd.batch
-                        [ Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        [ textBlockPluginCmds
                         ]
                     )
 
@@ -821,7 +827,7 @@ update msg model =
                       }
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc model.document)
-                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        , textBlockPluginCmds
                         ]
                     )
 
@@ -843,7 +849,7 @@ update msg model =
                       }
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc model.document)
-                        , Cmd.map TextBlockPluginMsg textBlockPluginCmds
+                        , textBlockPluginCmds
                         ]
                     )
 
@@ -855,7 +861,7 @@ update msg model =
             case mbPluginData of
                 Nothing ->
                     ( { model | imagePlugin = newImagePlugin }
-                    , Cmd.map ImagePluginMsg imagePluginCmds
+                    , imagePluginCmds
                     )
 
                 Just PluginQuit ->
@@ -865,7 +871,7 @@ update msg model =
                       }
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc model.document)
-                        , Cmd.map ImagePluginMsg imagePluginCmds
+                        , imagePluginCmds
                         ]
                     )
 
@@ -887,7 +893,7 @@ update msg model =
                       }
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc model.document)
-                        , Cmd.map ImagePluginMsg imagePluginCmds
+                        , imagePluginCmds
                         ]
                     )
 
@@ -1222,19 +1228,18 @@ pluginView : Model -> EditorPlugin -> Element Msg
 pluginView model plugin =
     case plugin of
         ImagePlugin ->
-            ImagePlugin.view { picListing = [] } model.imagePlugin
-                |> Element.map ImagePluginMsg
+            ImagePlugin.view
+                { picListing = [], externalMsg = ImagePluginMsg }
+                model.imagePlugin
 
         TablePlugin ->
             TablePlugin.view model.tablePlugin
-                |> Element.map TablePluginMsg
 
         CustomElementPlugin ->
             el [] (text "Nothing  here yet!")
 
         TextBlockPlugin ->
             TextBlockPlugin.view model.textBlockPlugin model.config
-                |> Element.map TextBlockPluginMsg
 
         NewDocPlugin ->
             NewDocPlugin.view
@@ -1257,9 +1262,11 @@ pluginView model plugin =
                     text "Aucun containeur sélectionné"
 
         VideoPlugin ->
-            VideoPlugin.view [] model.videoPlugin
-                |> Element.map VideoPluginMsg
+            VideoPlugin.view
+                []
+                model.videoPlugin
 
+        --|> Element.map VideoPluginMsg
         PersistencePlugin ->
             PersistencePlugin.view
                 { localStorageKeys = model.localStorageKeys
@@ -1280,9 +1287,9 @@ pluginView model plugin =
                 }
 
         FilesysDebug ->
-            Filesys.view
-                model.filesysConfig
-                model.filesys
+            FilesysPlugin.view
+                []
+                model.filesysPlugin
 
 
 openNewPlugin : Model -> ( Model, Cmd Msg )
@@ -1292,7 +1299,7 @@ openNewPlugin model =
     case model.currentPlugin of
         Just TablePlugin ->
             ( { model
-                | tablePlugin = TablePlugin.init Nothing
+                | tablePlugin = TablePlugin.init Nothing TablePluginMsg
               }
             , Cmd.none
             )
@@ -1300,7 +1307,7 @@ openNewPlugin model =
         Just TextBlockPlugin ->
             let
                 ( newTextBlockPlugin, textBlockPluginCmds ) =
-                    TextBlockPlugin.init [] Nothing
+                    TextBlockPlugin.init [] Nothing TextBlockPluginMsg
             in
             ( { model
                 | textBlockPlugin = newTextBlockPlugin
@@ -1312,18 +1319,18 @@ openNewPlugin model =
         Just ImagePlugin ->
             let
                 ( newImagePlugin, imagePluginCmds ) =
-                    ImagePlugin.init Nothing
+                    ImagePlugin.init Nothing ImagePluginMsg
             in
             ( { model
                 | imagePlugin = newImagePlugin
               }
-            , Cmd.map ImagePluginMsg imagePluginCmds
+            , imagePluginCmds
             )
 
         Just VideoPlugin ->
             let
                 newVideoPlugin =
-                    VideoPlugin.init Nothing
+                    VideoPlugin.init Nothing VideoPluginMsg
             in
             ( { model
                 | videoPlugin = newVideoPlugin
@@ -1345,7 +1352,8 @@ openPlugin model =
                 Table tm ->
                     ( { model
                         | currentPlugin = Just TablePlugin
-                        , tablePlugin = TablePlugin.init (Just tm)
+                        , tablePlugin =
+                            TablePlugin.init (Just tm) TablePluginMsg
                       }
                     , Cmd.none
                     )
@@ -1353,7 +1361,9 @@ openPlugin model =
                 TextBlock tbElems ->
                     let
                         ( newTextBlockPlugin, textBlockPluginCmds ) =
-                            TextBlockPlugin.init attrs (Just tbElems)
+                            TextBlockPlugin.init attrs
+                                (Just tbElems)
+                                TextBlockPluginMsg
                     in
                     ( { model
                         | currentPlugin = Just TextBlockPlugin
@@ -1373,19 +1383,19 @@ openPlugin model =
                 Image imgMeta ->
                     let
                         ( newImagePlugin, imagePluginCmds ) =
-                            ImagePlugin.init (Just ( imgMeta, attrs ))
+                            ImagePlugin.init (Just ( imgMeta, attrs )) ImagePluginMsg
                     in
                     ( { model
                         | currentPlugin = Just ImagePlugin
                         , imagePlugin = newImagePlugin
                       }
-                    , Cmd.map ImagePluginMsg imagePluginCmds
+                    , imagePluginCmds
                     )
 
                 Video videoMeta ->
                     let
                         newVideoPlugin =
-                            VideoPlugin.init (Just ( videoMeta, attrs ))
+                            VideoPlugin.init (Just ( videoMeta, attrs )) VideoPluginMsg
                     in
                     ( { model
                         | currentPlugin = Just VideoPlugin

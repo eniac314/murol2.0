@@ -16,7 +16,7 @@ import Html.Attributes as Attr
 import Icons exposing (..)
 
 
-type alias Model =
+type alias Model msg =
     { pastedHtml : Maybe String
     , mbVideoMeta : Maybe VideoMeta
     , videoAttrs : List DocAttribute
@@ -31,6 +31,7 @@ type alias Model =
     , size : VideoSize
     , sizeRatio : Float
     , error : String
+    , externalMsg : Msg -> msg
     }
 
 
@@ -51,8 +52,8 @@ type Msg
     | NoOp
 
 
-init : Maybe ( VideoMeta, List DocAttribute ) -> Model
-init mbInput =
+init : Maybe ( VideoMeta, List DocAttribute ) -> (Msg -> msg) -> Model msg
+init mbInput externalMsg =
     { pastedHtml = Nothing
     , mbVideoMeta =
         Maybe.map Tuple.first mbInput
@@ -109,10 +110,11 @@ init mbInput =
             mbInput
             |> Maybe.withDefault (560 / 315)
     , error = ""
+    , externalMsg = externalMsg
     }
 
 
-update : Msg -> Model -> ( Model, Maybe (PluginResult ( VideoMeta, List DocAttribute )) )
+update : Msg -> Model msg -> ( Model msg, Maybe (PluginResult ( VideoMeta, List DocAttribute )) )
 update msg model =
     case msg of
         SetEmbedString s ->
@@ -254,209 +256,210 @@ update msg model =
 
 
 view config model =
-    column
-        [ spacing 15
-        , padding 15
-        , alignTop
-        , Font.size 16
-        , width fill
-        , height fill
-        , scrollbars
-        ]
-        [ text "Insérer / Modifier une video:"
-        , column
-            [ spacing 10
-            , width (px 500)
-            ]
-            [ Input.multiline
-                [ width fill ]
-                { onChange = SetEmbedString
-                , text =
-                    model.pastedHtml
-                        |> Maybe.withDefault ""
-                , placeholder = Nothing
-                , label =
-                    Input.labelAbove
-                        []
-                        (text "Copier ici le code d'intégration:")
-                , spellcheck = False
-                }
-            , Input.button
-                (buttonStyle (model.pastedHtml /= Nothing))
-                { onPress =
-                    if model.pastedHtml /= Nothing then
-                        Just ParseHtml
-                    else
-                        Nothing
-                , label = text "Valider"
-                }
-            ]
-        , column
-            [ spacing 15 ]
-            [ text "Alignement: "
-            , row
-                [ spacing 15 ]
-                [ Input.button (toogleButtonStyle (model.alignment == ALeft) True)
-                    { onPress = Just (SetAlignment ALeft)
-                    , label = el [] (html <| Icons.alignLeft iconSize)
-                    }
-                , Input.button (toogleButtonStyle (model.alignment == ACenter) True)
-                    { onPress = Just (SetAlignment ACenter)
-                    , label = el [] (html <| Icons.alignCenter iconSize)
-                    }
-                , Input.button (toogleButtonStyle (model.alignment == ARight) True)
-                    { onPress = Just (SetAlignment ARight)
-                    , label = el [] (html <| Icons.alignRight iconSize)
-                    }
-                ]
-            , text "Options: "
-            , row
-                [ spacing 15 ]
-                [ Input.checkbox
-                    []
-                    { onChange = CheckFrameBorder
-                    , icon = checkIcon
-                    , checked = model.frameBorder
-                    , label =
-                        Input.labelLeft
-                            []
-                            (text "Bordure")
-                    }
-                , Input.checkbox
-                    []
-                    { onChange = CheckTitle
-                    , icon = checkIcon
-                    , checked = model.title
-                    , label =
-                        Input.labelLeft
-                            []
-                            (text "Afficher titre")
-                    }
-                , Input.checkbox
-                    []
-                    { onChange = CheckControls
-                    , icon = checkIcon
-                    , checked = model.controls
-                    , label =
-                        Input.labelLeft
-                            []
-                            (text "Commandes")
-                    }
-                , Input.checkbox
-                    []
-                    { onChange = CheckSuggestions
-                    , icon = checkIcon
-                    , checked = model.suggestions
-                    , label =
-                        Input.labelLeft
-                            []
-                            (text "Suggestions")
-                    }
-                , Input.checkbox
-                    []
-                    { onChange = CheckPrivacy
-                    , icon = checkIcon
-                    , checked = model.privacy
-                    , label =
-                        Input.labelLeft
-                            []
-                            (text "Mode privé")
-                    }
-                ]
-            , row
-                [ spacing 15 ]
-                [ Input.text
-                    (textInputStyle ++ [ width (px 50) ])
-                    { onChange = SetWidth
-                    , text = String.fromInt model.size.videoWidth
-                    , placeholder = Nothing
-                    , label =
-                        Input.labelLeft
-                            [ centerY ]
-                            (text "largeur: ")
-                    }
-                , Input.text
-                    (textInputStyle ++ [ width (px 50) ])
-                    { onChange = SetHeight
-                    , text = String.fromInt model.size.videoHeight
-                    , placeholder = Nothing
-                    , label =
-                        Input.labelLeft
-                            [ centerY ]
-                            (text "hauteur: ")
-                    }
-                , Input.text
-                    (textInputStyle ++ [ width (px 100) ])
-                    { onChange = SetStartAt
-                    , text =
-                        Maybe.map String.fromInt model.startAt
-                            |> Maybe.withDefault ""
-                    , placeholder =
-                        Just <|
-                            Input.placeholder
-                                []
-                                (text "hh:mm:ss")
-                    , label =
-                        Input.labelLeft
-                            [ centerY ]
-                            (text "Commencer lecture à: ")
-                    }
-                ]
-            ]
-        , case model.newSrc of
-            Just url ->
-                el []
-                    (html <|
-                        Html.iframe
-                            [ Attr.src <|
-                                buildYoutubeUrl url model
-                            , Attr.width model.size.videoWidth
-                            , Attr.height model.size.videoHeight
-                            , if model.frameBorder then
-                                noHtmlAttr
-                              else
-                                Attr.attribute "frameborder" "0"
-                            , Attr.attribute "allowfullscreen" "true"
-                            , Attr.attribute "allow" "autoplay; encrypted-media"
-                            ]
-                            []
-                    )
-
-            Nothing ->
-                case model.mbVideoMeta of
-                    Just vidMeta ->
-                        el []
-                            (html <|
-                                Html.iframe
-                                    [ Attr.src <|
-                                        buildYoutubeUrl vidMeta.src model
-                                    , Attr.width model.size.videoWidth
-                                    , Attr.height model.size.videoHeight
-                                    , if model.frameBorder then
-                                        noHtmlAttr
-                                      else
-                                        Attr.attribute "frameborder" "0"
-                                    , Attr.attribute "allowfullscreen" "true"
-                                    , Attr.attribute "allow" "autoplay; encrypted-media"
-                                    ]
-                                    []
-                            )
-
-                    Nothing ->
-                        Element.none
-        , row
+    Element.map model.externalMsg <|
+        column
             [ spacing 15
+            , padding 15
+            , alignTop
+            , Font.size 16
+            , width fill
+            , height fill
+            , scrollbars
             ]
-            [ Input.button (buttonStyle True)
-                { onPress = Just Quit
-                , label = text "Quitter"
-                }
-            , Input.button (buttonStyle True)
-                { onPress = Just SaveAndQuit
-                , label = text "Valider et Quitter"
-                }
+            [ text "Insérer / Modifier une video:"
+            , column
+                [ spacing 10
+                , width (px 500)
+                ]
+                [ Input.multiline
+                    [ width fill ]
+                    { onChange = SetEmbedString
+                    , text =
+                        model.pastedHtml
+                            |> Maybe.withDefault ""
+                    , placeholder = Nothing
+                    , label =
+                        Input.labelAbove
+                            []
+                            (text "Copier ici le code d'intégration:")
+                    , spellcheck = False
+                    }
+                , Input.button
+                    (buttonStyle (model.pastedHtml /= Nothing))
+                    { onPress =
+                        if model.pastedHtml /= Nothing then
+                            Just ParseHtml
+                        else
+                            Nothing
+                    , label = text "Valider"
+                    }
+                ]
+            , column
+                [ spacing 15 ]
+                [ text "Alignement: "
+                , row
+                    [ spacing 15 ]
+                    [ Input.button (toogleButtonStyle (model.alignment == ALeft) True)
+                        { onPress = Just (SetAlignment ALeft)
+                        , label = el [] (html <| Icons.alignLeft iconSize)
+                        }
+                    , Input.button (toogleButtonStyle (model.alignment == ACenter) True)
+                        { onPress = Just (SetAlignment ACenter)
+                        , label = el [] (html <| Icons.alignCenter iconSize)
+                        }
+                    , Input.button (toogleButtonStyle (model.alignment == ARight) True)
+                        { onPress = Just (SetAlignment ARight)
+                        , label = el [] (html <| Icons.alignRight iconSize)
+                        }
+                    ]
+                , text "Options: "
+                , row
+                    [ spacing 15 ]
+                    [ Input.checkbox
+                        []
+                        { onChange = CheckFrameBorder
+                        , icon = checkIcon
+                        , checked = model.frameBorder
+                        , label =
+                            Input.labelLeft
+                                []
+                                (text "Bordure")
+                        }
+                    , Input.checkbox
+                        []
+                        { onChange = CheckTitle
+                        , icon = checkIcon
+                        , checked = model.title
+                        , label =
+                            Input.labelLeft
+                                []
+                                (text "Afficher titre")
+                        }
+                    , Input.checkbox
+                        []
+                        { onChange = CheckControls
+                        , icon = checkIcon
+                        , checked = model.controls
+                        , label =
+                            Input.labelLeft
+                                []
+                                (text "Commandes")
+                        }
+                    , Input.checkbox
+                        []
+                        { onChange = CheckSuggestions
+                        , icon = checkIcon
+                        , checked = model.suggestions
+                        , label =
+                            Input.labelLeft
+                                []
+                                (text "Suggestions")
+                        }
+                    , Input.checkbox
+                        []
+                        { onChange = CheckPrivacy
+                        , icon = checkIcon
+                        , checked = model.privacy
+                        , label =
+                            Input.labelLeft
+                                []
+                                (text "Mode privé")
+                        }
+                    ]
+                , row
+                    [ spacing 15 ]
+                    [ Input.text
+                        (textInputStyle ++ [ width (px 50) ])
+                        { onChange = SetWidth
+                        , text = String.fromInt model.size.videoWidth
+                        , placeholder = Nothing
+                        , label =
+                            Input.labelLeft
+                                [ centerY ]
+                                (text "largeur: ")
+                        }
+                    , Input.text
+                        (textInputStyle ++ [ width (px 50) ])
+                        { onChange = SetHeight
+                        , text = String.fromInt model.size.videoHeight
+                        , placeholder = Nothing
+                        , label =
+                            Input.labelLeft
+                                [ centerY ]
+                                (text "hauteur: ")
+                        }
+                    , Input.text
+                        (textInputStyle ++ [ width (px 100) ])
+                        { onChange = SetStartAt
+                        , text =
+                            Maybe.map String.fromInt model.startAt
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "hh:mm:ss")
+                        , label =
+                            Input.labelLeft
+                                [ centerY ]
+                                (text "Commencer lecture à: ")
+                        }
+                    ]
+                ]
+            , case model.newSrc of
+                Just url ->
+                    el []
+                        (html <|
+                            Html.iframe
+                                [ Attr.src <|
+                                    buildYoutubeUrl url model
+                                , Attr.width model.size.videoWidth
+                                , Attr.height model.size.videoHeight
+                                , if model.frameBorder then
+                                    noHtmlAttr
+                                  else
+                                    Attr.attribute "frameborder" "0"
+                                , Attr.attribute "allowfullscreen" "true"
+                                , Attr.attribute "allow" "autoplay; encrypted-media"
+                                ]
+                                []
+                        )
+
+                Nothing ->
+                    case model.mbVideoMeta of
+                        Just vidMeta ->
+                            el []
+                                (html <|
+                                    Html.iframe
+                                        [ Attr.src <|
+                                            buildYoutubeUrl vidMeta.src model
+                                        , Attr.width model.size.videoWidth
+                                        , Attr.height model.size.videoHeight
+                                        , if model.frameBorder then
+                                            noHtmlAttr
+                                          else
+                                            Attr.attribute "frameborder" "0"
+                                        , Attr.attribute "allowfullscreen" "true"
+                                        , Attr.attribute "allow" "autoplay; encrypted-media"
+                                        ]
+                                        []
+                                )
+
+                        Nothing ->
+                            Element.none
+            , row
+                [ spacing 15
+                ]
+                [ Input.button (buttonStyle True)
+                    { onPress = Just Quit
+                    , label = text "Quitter"
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress = Just SaveAndQuit
+                    , label = text "Valider et Quitter"
+                    }
+                ]
             ]
-        ]
 
 
 iconSize =

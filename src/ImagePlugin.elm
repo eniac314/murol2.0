@@ -23,8 +23,9 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 
 
-type alias Model =
+type alias Model msg =
     { mode : Mode
+    , externalMsg : Msg -> msg
 
     ----------------------------
     -- Image Attribute Editor --
@@ -140,9 +141,10 @@ decodeImageData msg =
 --        }
 
 
-init : Maybe ( ImageMeta, List DocAttribute ) -> ( Model, Cmd Msg )
-init mbInput =
+init : Maybe ( ImageMeta, List DocAttribute ) -> (Msg -> msg) -> ( Model msg, Cmd msg )
+init mbInput externalMsg =
     ( { mode = ImageAttributeEditor
+      , externalMsg = externalMsg
 
       ----------------------------
       -- Image Attribute Editor --
@@ -180,7 +182,7 @@ init mbInput =
       , canResize = False
       , mbImageFromFile = Nothing
       }
-    , Cmd.none
+    , Cmd.map externalMsg Cmd.none
     )
 
 
@@ -213,7 +215,10 @@ update msg model =
         ConfirmSelected ->
             case model.selectedImage of
                 Nothing ->
-                    ( model, Cmd.none, Nothing )
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
 
                 Just ( url, ( width, height ) ) ->
                     let
@@ -282,10 +287,16 @@ update msg model =
             )
 
         UploadResult (Ok ()) ->
-            ( model, Cmd.none, Nothing )
+            ( model
+            , Cmd.none
+            , Nothing
+            )
 
         UploadResult (Err e) ->
-            ( model, Cmd.none, Nothing )
+            ( model
+            , Cmd.none
+            , Nothing
+            )
 
         RotateRight ->
             ( { model
@@ -444,15 +455,16 @@ view config model =
     --layout
     --    []
     --<|
-    case model.mode of
-        ImageAttributeEditor ->
-            imageAttributeEditorView config model
+    Element.map model.externalMsg <|
+        case model.mode of
+            ImageAttributeEditor ->
+                imageAttributeEditorView config model
 
-        ImagePicker ->
-            imagePickerView config model
+            ImagePicker ->
+                imagePickerView config model
 
-        ImageController imgContMode ->
-            imageControllerView model imgContMode
+            ImageController imgContMode ->
+                imageControllerView model imgContMode
 
 
 imageAttributeEditorView config model =

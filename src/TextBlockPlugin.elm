@@ -1,4 +1,4 @@
-module TextBlockPlugin exposing (DocTextBlock, Msg, init, update, view)
+module TextBlockPlugin exposing (Model, Msg, init, update, view)
 
 --exposing (Html, node, option, select, text, textarea)
 
@@ -30,7 +30,7 @@ import Set exposing (..)
 import StyleSheets exposing (StyleSheet, defaulStyleSheet)
 
 
-type alias DocTextBlock =
+type alias Model msg =
     { rawInput : String
     , parsedInput : Result (List DeadEnd) (List Element)
     , selected : Maybe Selection
@@ -47,6 +47,7 @@ type alias DocTextBlock =
     , selectedFolder : Maybe String
     , selectedFile : Maybe String
     , colorPickerOpen : Maybe String
+    , externalMsg : Msg -> msg
 
     --, config : Config Msg
     }
@@ -115,7 +116,7 @@ type alias Selection =
 
 
 
---main : Program () DocTextBlock Msg
+--main : Program () Model msg Msg
 --main =
 --    Browser.element
 --        { init =
@@ -179,7 +180,7 @@ subscriptions model =
 --init attrs mbInput flags =
 
 
-init attrs mbInput =
+init attrs mbInput externalMsg =
     let
         { resultString, trackedData, nextUid } =
             fromTextBloc
@@ -217,6 +218,7 @@ init attrs mbInput =
               , selectedFolder = Nothing
               , selectedFile = Nothing
               , colorPickerOpen = Nothing
+              , externalMsg = externalMsg
 
               --, config =
               --      { width = 500
@@ -231,7 +233,7 @@ init attrs mbInput =
               --      , zipperHandlers = Nothing
               --      }
               }
-            , Cmd.none
+            , Cmd.map externalMsg Cmd.none
             )
 
         Err _ ->
@@ -252,6 +254,7 @@ init attrs mbInput =
               , selectedFolder = Nothing
               , selectedFile = Nothing
               , colorPickerOpen = Nothing
+              , externalMsg = externalMsg
 
               --, config =
               --      { width = 500
@@ -266,11 +269,11 @@ init attrs mbInput =
               --      , zipperHandlers = Nothing
               --      }
               }
-            , Cmd.none
+            , Cmd.map externalMsg Cmd.none
             )
 
 
-update : Msg -> DocTextBlock -> ( DocTextBlock, Cmd Msg, Maybe (PluginResult ( List TextBlockElement, List DocAttribute )) )
+update : Msg -> Model msg -> ( Model msg, Cmd msg, Maybe (PluginResult ( List TextBlockElement, List DocAttribute )) )
 update msg model =
     case msg of
         ---------------------------
@@ -334,6 +337,7 @@ update msg model =
 
                         --, Random.generate NewRandom (Random.int 0 10000)
                         ]
+                        |> Cmd.map model.externalMsg
                     , Nothing
                     )
 
@@ -946,60 +950,61 @@ iconSize =
 
 
 view model config =
-    column
-        ([ padding 15
-         , spacing 15
-         , scrollbarY
-         , height (minimum (config.height - config.mainInterfaceHeight) fill)
-         , width fill
-         ]
-            ++ (if model.internalUrlSelectorOpen then
-                    [ Events.onClick InternalUrlSelectorClickOff ]
-                else
-                    []
-               )
-            ++ (if not (model.colorPickerOpen == Nothing) then
-                    [ Events.onClick ColorPickerClickOff ]
-                else
-                    []
-               )
-        )
-        [ interfaceView model
-        , (if config.width < 1600 then
-            column
-           else
-            row
-          )
-            [ spacing 30 ]
-            [ column
-                [ alignTop
-                , spacing 20
+    Element.map model.externalMsg <|
+        column
+            ([ padding 15
+             , spacing 15
+             , scrollbarY
+             , height (minimum (config.height - config.mainInterfaceHeight) fill)
+             , width fill
+             ]
+                ++ (if model.internalUrlSelectorOpen then
+                        [ Events.onClick InternalUrlSelectorClickOff ]
+                    else
+                        []
+                   )
+                ++ (if not (model.colorPickerOpen == Nothing) then
+                        [ Events.onClick ColorPickerClickOff ]
+                    else
+                        []
+                   )
+            )
+            [ interfaceView model
+            , (if config.width < 1600 then
+                column
+               else
+                row
+              )
+                [ spacing 30 ]
+                [ column
+                    [ alignTop
+                    , spacing 20
+                    ]
+                    [ customTextArea
+                        [ width fill
+                        ]
+                        model.cursorPos
+                        model.setSelection
+                        model.rawInput
+                    , row
+                        [ spacing 15
+                        , Font.size 16
+                        ]
+                        [ Input.button (buttonStyle True)
+                            { onPress = Just Quit
+                            , label = text "Quitter"
+                            }
+                        , Input.button (buttonStyle True)
+                            { onPress = Just SaveAndQuit
+                            , label = text "Valider et Quitter"
+                            }
+                        ]
+                    ]
+                , textBlocPreview model config
                 ]
-                [ customTextArea
-                    [ width fill
-                    ]
-                    model.cursorPos
-                    model.setSelection
-                    model.rawInput
-                , row
-                    [ spacing 15
-                    , Font.size 16
-                    ]
-                    [ Input.button (buttonStyle True)
-                        { onPress = Just Quit
-                        , label = text "Quitter"
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just SaveAndQuit
-                        , label = text "Valider et Quitter"
-                        }
-                    ]
-                ]
-            , textBlocPreview model config
-            ]
 
-        --, Element.paragraph [] [ text <| Debug.toString model ]
-        ]
+            --, Element.paragraph [] [ text <| Debug.toString model ]
+            ]
 
 
 interfaceView model =

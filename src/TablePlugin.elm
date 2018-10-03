@@ -61,7 +61,7 @@ type Direction
 
 
 
---main : Program () DocTable Msg
+--main : Program () Model msg Msg
 --main =
 --    Browser.sandbox
 --        { init = init Nothing
@@ -73,7 +73,7 @@ type Direction
 --        }
 
 
-type alias DocTable =
+type alias Model msg =
     { mode : DisplayMode
     , data : Data
     , nbrColsInput : String
@@ -86,10 +86,11 @@ type alias DocTable =
     , styleSelectorFocused : Bool
     , styleSelectorInput : String
     , currentFocusedCell : Maybe ( Int, Int )
+    , externalMsg : Msg -> msg
     }
 
 
-emptyDocTable =
+emptyDocTable externalMsg =
     { mode = Edit
     , data = Array.empty
     , nbrRows = 0
@@ -102,19 +103,20 @@ emptyDocTable =
     , styleSelectorInput = ""
     , styleSelectorFocused = False
     , currentFocusedCell = Nothing
+    , externalMsg = externalMsg
     }
 
 
-init mbTableMeta =
+init mbTableMeta externalMsg =
     case mbTableMeta of
         Nothing ->
             --First time initialisation
-            emptyDocTable
+            emptyDocTable externalMsg
 
         Just { style, nbrRows, nbrCols, data } ->
             if data == [] then
                 --New Table cell
-                emptyDocTable
+                emptyDocTable externalMsg
             else
                 -- Existing Table cell
                 { mode = Edit
@@ -129,10 +131,11 @@ init mbTableMeta =
                 , styleSelectorInput = ""
                 , styleSelectorFocused = False
                 , currentFocusedCell = Nothing
+                , externalMsg = externalMsg
                 }
 
 
-update : Msg -> DocTable -> ( DocTable, Maybe (PluginResult TableMeta) )
+update : Msg -> Model msg -> ( Model msg, Maybe (PluginResult TableMeta) )
 update msg model =
     case msg of
         SetNbrRows s ->
@@ -455,38 +458,38 @@ update msg model =
             )
 
 
-view : DocTable -> Element Msg
+view : Model msg -> Element msg
 view model =
-    --layout [] <|
-    column
-        ([ Font.size 16
-         , width fill
-         , alignTop
-         , padding 15
-         , spacing 15
-         ]
-            ++ (if model.styleSelectorFocused then
-                    [ Events.onClick StyleSelectorClickOff ]
-                else
-                    []
-               )
-         --++ (if model.currentFocusedCell /= Nothing then
-         --        [ Events.onClick CellFocusOff ]
-         --    else
-         --        []
-         --   )
-        )
-        [ text "Insérer / Modifier un tableau: "
-        , case model.mode of
-            DisplayOnly ->
-                displayOnlyView model
+    Element.map model.externalMsg <|
+        column
+            ([ Font.size 16
+             , width fill
+             , alignTop
+             , padding 15
+             , spacing 15
+             ]
+                ++ (if model.styleSelectorFocused then
+                        [ Events.onClick StyleSelectorClickOff ]
+                    else
+                        []
+                   )
+             --++ (if model.currentFocusedCell /= Nothing then
+             --        [ Events.onClick CellFocusOff ]
+             --    else
+             --        []
+             --   )
+            )
+            [ text "Insérer / Modifier un tableau: "
+            , case model.mode of
+                DisplayOnly ->
+                    displayOnlyView model
 
-            Edit ->
-                editView model
-        ]
+                Edit ->
+                    editView model
+            ]
 
 
-displayOnlyView : DocTable -> Element Msg
+displayOnlyView : Model msg -> Element Msg
 displayOnlyView model =
     let
         interfaceView =
@@ -562,7 +565,7 @@ displayOnlyView model =
         ]
 
 
-editView : DocTable -> Element Msg
+editView : Model msg -> Element Msg
 editView model =
     let
         canRemove =
@@ -822,7 +825,7 @@ makeDataGrid i j =
         (always <| Array.initialize j (always ""))
 
 
-toTableMeta : DocTable -> TableMeta
+toTableMeta : Model msg -> TableMeta
 toTableMeta docTable =
     { style = docTable.currentStyle
     , nbrRows = docTable.nbrRows

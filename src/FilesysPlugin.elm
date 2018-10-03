@@ -1,4 +1,4 @@
-module Filesys exposing (..)
+module FilesysPlugin exposing (..)
 
 import Browser exposing (element)
 import DocumentEditorHelpers exposing (..)
@@ -9,6 +9,25 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy as Lazy
+
+
+type alias Model msg =
+    { renameBuffer : String
+    , root : Root
+    , displayMode : DisplayMode
+    , externalMsg : Msg -> msg
+    , mbFilesys : Maybe Filesys
+    }
+
+
+type Root
+    = ImagesRoot
+    | DocsRoot
+
+
+type DisplayMode
+    = ReadOnly
+    | ReadWrite
 
 
 type FsItem
@@ -43,6 +62,58 @@ type alias FilesysConfig msg =
     }
 
 
+type Msg
+    = GoHome
+    | GoNext
+    | GoPrev
+    | GoTo (List String)
+    | NewFile
+    | NewFolder
+    | Delete
+    | Rename String
+
+
+update msg model =
+    case msg of
+        GoHome ->
+            ( model, Cmd.none, Nothing )
+
+        GoNext ->
+            ( model, Cmd.none, Nothing )
+
+        GoPrev ->
+            ( { model
+                | mbFilesys =
+                    Maybe.andThen
+                        zipUpFilesys
+                        model.mbFilesys
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        GoTo path ->
+            ( model, Cmd.none, Nothing )
+
+        NewFile ->
+            ( model, Cmd.none, Nothing )
+
+        NewFolder ->
+            ( model, Cmd.none, Nothing )
+
+        Delete ->
+            ( model, Cmd.none, Nothing )
+
+        Rename newName ->
+            ( model, Cmd.none, Nothing )
+
+
+
+--type alias FilesysConfig msg =
+--    { filesys = Maybe Filesys
+--    }
+
+
 defFilesysConfig externalMsg =
     { version = 0
     , fileList = dummyFiles
@@ -50,24 +121,18 @@ defFilesysConfig externalMsg =
     }
 
 
-init config =
-    List.foldr (\f acc -> insert f "Images" acc) Nothing config.fileList
-        |> Maybe.map (initFileSys config.version)
+init root displayMode externalMsg =
+    ( { renameBuffer = ""
+      , root = root
+      , displayMode = displayMode
+      , externalMsg = externalMsg
+      , mbFilesys = Nothing
+      }
+    , Cmd.none
+    )
 
 
-view : FilesysConfig msg -> Maybe Filesys -> Element msg
-view config mbFilesys =
-    let
-        filesys =
-            Maybe.andThen
-                (\fs ->
-                    if config.version /= fs.version then
-                        init config
-                    else
-                        mbFilesys
-                )
-                mbFilesys
-    in
+view config model =
     column
         [ spacing 20
         , Font.size 16
@@ -76,18 +141,21 @@ view config mbFilesys =
         , alignTop
         , padding 15
         ]
-        [ filesys
-            --|> Maybe.map rewindFilesys
+        [ model.mbFilesys
+            |> Maybe.map rewindFilesys
             |> Maybe.map extractFsItem
-            |> Maybe.map (fsItemToElement config mbFilesys)
+            |> Maybe.map (fsItemToElement model config)
             |> Maybe.withDefault (text "wrong FsItem")
 
         --, text <| Debug.toString <| List.foldr (\f acc -> insert f "Images" acc) Nothing dummyFiles
         ]
 
 
-fsItemToElement : FilesysConfig msg -> Maybe Filesys -> FsItem -> Element msg
-fsItemToElement config mbFilesys fsItem =
+
+--fsItemToElement : FilesysConfig msg -> FsItem -> Element msg
+
+
+fsItemToElement model config fsItem =
     let
         paddingOffset n =
             paddingEach
@@ -132,23 +200,17 @@ fsItemToElement config mbFilesys fsItem =
                         ]
                     ]
                         ++ List.concatMap (helper (offset + 4)) children
-
-        goBackButton mbfs =
-            Input.button (buttonStyle True)
-                { onPress =
-                    mbfs
-                        |> Maybe.andThen zipUpFilesys
-                        |> Maybe.map
-                            (\fs -> config.externalMsg fs Nothing)
-                , label =
-                    row [ spacing 10 ]
-                        [ text "Back"
-                        ]
-                }
     in
     column
         [ spacing 10 ]
-        ([ Lazy.lazy goBackButton mbFilesys
+        ([ Input.button (buttonStyle True)
+            { onPress =
+                Just <| model.externalMsg GoPrev
+            , label =
+                row [ spacing 10 ]
+                    [ text "Prev"
+                    ]
+            }
          ]
             ++ helper 0 fsItem
         )

@@ -5351,16 +5351,15 @@ var author$project$Editor$CurrentViewport = function (a) {
 	return {$: 'CurrentViewport', a: a};
 };
 var author$project$Editor$EditCell = {$: 'EditCell'};
+var author$project$Editor$FilesysPluginMsg = function (a) {
+	return {$: 'FilesysPluginMsg', a: a};
+};
 var author$project$Editor$ImagePluginMsg = function (a) {
 	return {$: 'ImagePluginMsg', a: a};
 };
 var author$project$Editor$MainInterfaceViewport = function (a) {
 	return {$: 'MainInterfaceViewport', a: a};
 };
-var author$project$Editor$NewFileSys = F2(
-	function (a, b) {
-		return {$: 'NewFileSys', a: a, b: b};
-	});
 var author$project$Editor$NoOp = {$: 'NoOp'};
 var author$project$Editor$PreviewBigScreen = {$: 'PreviewBigScreen'};
 var author$project$Editor$RefreshSizes = {$: 'RefreshSizes'};
@@ -5368,393 +5367,21 @@ var author$project$Editor$Rewind = {$: 'Rewind'};
 var author$project$Editor$SelectDoc = function (a) {
 	return {$: 'SelectDoc', a: a};
 };
+var author$project$Editor$TablePluginMsg = function (a) {
+	return {$: 'TablePluginMsg', a: a};
+};
+var author$project$Editor$TextBlockPluginMsg = function (a) {
+	return {$: 'TextBlockPluginMsg', a: a};
+};
+var author$project$Editor$VideoPluginMsg = function (a) {
+	return {$: 'VideoPluginMsg', a: a};
+};
 var elm$core$Basics$identity = function (x) {
 	return x;
 };
 var author$project$Editor$cmdPort = _Platform_outgoingPort('cmdPort', elm$core$Basics$identity);
-var author$project$Filesys$File = function (a) {
-	return {$: 'File', a: a};
-};
-var author$project$Filesys$Folder = F2(
-	function (a, b) {
-		return {$: 'Folder', a: a, b: b};
-	});
-var author$project$Filesys$Meta = F2(
-	function (path, name) {
-		return {name: name, path: path};
-	});
-var author$project$Filesys$dummyFiles = _List_fromArray(
-	[
-		author$project$Filesys$File(
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['pic1', 'Folder1', 'Images']),
-			'pic1')),
-		author$project$Filesys$File(
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['pic2', 'Folder1', 'Images']),
-			'pic2')),
-		author$project$Filesys$File(
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['pic2', 'Folder1', 'Images']),
-			'pic2')),
-		author$project$Filesys$File(
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['pic3', 'Folder2', 'Folder1', 'Images']),
-			'pic3')),
-		author$project$Filesys$File(
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['test', 'Folder4', 'Folder2', 'Folder1', 'Images']),
-			'test')),
-		author$project$Filesys$File(
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['pic4', 'Folder1', 'Images']),
-			'pic4')),
-		A2(
-		author$project$Filesys$Folder,
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['Folder3', 'Folder1', 'Images']),
-			'Folder3'),
-		_List_Nil),
-		A2(
-		author$project$Filesys$Folder,
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['Folder3', 'Folder1', 'Images']),
-			'Folder3'),
-		_List_Nil),
-		A2(
-		author$project$Filesys$Folder,
-		A2(
-			author$project$Filesys$Meta,
-			_List_fromArray(
-				['Images']),
-			'Images'),
-		_List_Nil)
-	]);
-var author$project$Filesys$defFilesysConfig = function (externalMsg) {
-	return {externalMsg: externalMsg, fileList: author$project$Filesys$dummyFiles, version: 0};
-};
-var author$project$Filesys$initFileSys = F2(
-	function (version, fsItem) {
-		return {contexts: _List_Nil, current: fsItem, version: version};
-	});
-var author$project$Filesys$break = F2(
-	function (p, xs) {
-		var helper = F2(
-			function (ys, left) {
-				helper:
-				while (true) {
-					if (!ys.b) {
-						return _Utils_Tuple2(left, _List_Nil);
-					} else {
-						var y = ys.a;
-						var ys_ = ys.b;
-						if (p(y)) {
-							return _Utils_Tuple2(
-								elm$core$List$reverse(left),
-								A2(elm$core$List$cons, y, ys_));
-						} else {
-							var $temp$ys = ys_,
-								$temp$left = A2(elm$core$List$cons, y, left);
-							ys = $temp$ys;
-							left = $temp$left;
-							continue helper;
-						}
-					}
-				}
-			});
-		return A2(helper, xs, _List_Nil);
-	});
-var author$project$Filesys$getName = function (fsItem) {
-	if (fsItem.$ === 'Folder') {
-		var name = fsItem.a.name;
-		return name;
-	} else {
-		var name = fsItem.a.name;
-		return name;
-	}
-};
-var author$project$Filesys$getPath = function (fsItem) {
-	if (fsItem.$ === 'Folder') {
-		var path = fsItem.a.path;
-		return path;
-	} else {
-		var path = fsItem.a.path;
-		return path;
-	}
-};
-var elm$core$Basics$apL = F2(
-	function (f, x) {
-		return f(x);
-	});
-var elm$core$Basics$eq = _Utils_equal;
-var elm$core$Basics$neq = _Utils_notEqual;
-var elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
-var elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(xs);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
-var elm$core$Maybe$andThen = F2(
-	function (callback, maybeValue) {
-		if (maybeValue.$ === 'Just') {
-			var value = maybeValue.a;
-			return callback(value);
-		} else {
-			return elm$core$Maybe$Nothing;
-		}
-	});
-var elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return elm$core$Maybe$Nothing;
-		}
-	});
-var author$project$Filesys$insert = F3(
-	function (f, rootName, mbFsItem_) {
-		var helper = F2(
-			function (reversePath, mbFsItem) {
-				helper:
-				while (true) {
-					if (mbFsItem.$ === 'Nothing') {
-						if (!reversePath.b) {
-							var $temp$reversePath = reversePath,
-								$temp$mbFsItem = elm$core$Maybe$Just(
-								A2(
-									author$project$Filesys$Folder,
-									A2(
-										author$project$Filesys$Meta,
-										_List_fromArray(
-											[rootName]),
-										rootName),
-									_List_Nil));
-							reversePath = $temp$reversePath;
-							mbFsItem = $temp$mbFsItem;
-							continue helper;
-						} else {
-							var root = reversePath.a;
-							if (!_Utils_eq(root, rootName)) {
-								return elm$core$Maybe$Nothing;
-							} else {
-								var $temp$reversePath = reversePath,
-									$temp$mbFsItem = elm$core$Maybe$Just(
-									A2(
-										author$project$Filesys$Folder,
-										A2(
-											author$project$Filesys$Meta,
-											_List_fromArray(
-												[rootName]),
-											rootName),
-										_List_Nil));
-								reversePath = $temp$reversePath;
-								mbFsItem = $temp$mbFsItem;
-								continue helper;
-							}
-						}
-					} else {
-						if (mbFsItem.a.$ === 'Folder') {
-							var _n2 = mbFsItem.a;
-							var meta = _n2.a;
-							var children = _n2.b;
-							if (!reversePath.b) {
-								return elm$core$Maybe$Just(
-									A2(author$project$Filesys$Folder, meta, children));
-							} else {
-								if (!reversePath.b.b) {
-									var curr = reversePath.a;
-									return (!_Utils_eq(curr, meta.name)) ? elm$core$Maybe$Nothing : (A2(elm$core$List$member, f, children) ? elm$core$Maybe$Just(
-										A2(author$project$Filesys$Folder, meta, children)) : elm$core$Maybe$Just(
-										A2(
-											author$project$Filesys$Folder,
-											meta,
-											A2(elm$core$List$cons, f, children))));
-								} else {
-									var curr = reversePath.a;
-									var _n4 = reversePath.b;
-									var next = _n4.a;
-									var rest = _n4.b;
-									if (!_Utils_eq(curr, meta.name)) {
-										return elm$core$Maybe$Nothing;
-									} else {
-										var _n5 = A2(
-											author$project$Filesys$break,
-											function (f_) {
-												return _Utils_eq(
-													author$project$Filesys$getName(f_),
-													next);
-											},
-											children);
-										var l = _n5.a;
-										var r = _n5.b;
-										if (!r.b) {
-											var newFolder = A2(
-												author$project$Filesys$Folder,
-												{
-													name: next,
-													path: A2(elm$core$List$cons, next, meta.path)
-												},
-												_List_Nil);
-											return A2(
-												elm$core$Maybe$andThen,
-												function (nsbt) {
-													return elm$core$Maybe$Just(
-														A2(
-															author$project$Filesys$Folder,
-															meta,
-															A2(elm$core$List$cons, nsbt, children)));
-												},
-												A2(
-													helper,
-													A2(elm$core$List$cons, next, rest),
-													elm$core$Maybe$Just(newFolder)));
-										} else {
-											var next_ = r.a;
-											var rest_ = r.b;
-											return A2(
-												elm$core$Maybe$andThen,
-												function (nsbt) {
-													return elm$core$Maybe$Just(
-														A2(
-															author$project$Filesys$Folder,
-															meta,
-															_Utils_ap(
-																l,
-																A2(elm$core$List$cons, nsbt, rest_))));
-												},
-												A2(
-													helper,
-													A2(elm$core$List$cons, next, rest),
-													elm$core$Maybe$Just(next_)));
-										}
-									}
-								}
-							}
-						} else {
-							return elm$core$Maybe$Nothing;
-						}
-					}
-				}
-			});
-		return A2(
-			elm$core$Maybe$andThen,
-			function (p) {
-				return A2(helper, p, mbFsItem_);
-			},
-			A2(
-				elm$core$Maybe$map,
-				elm$core$List$reverse,
-				elm$core$List$tail(
-					author$project$Filesys$getPath(f))));
-	});
-var author$project$Filesys$init = function (config) {
-	return A2(
-		elm$core$Maybe$map,
-		author$project$Filesys$initFileSys(config.version),
-		A3(
-			elm$core$List$foldr,
-			F2(
-				function (f, acc) {
-					return A3(author$project$Filesys$insert, f, 'Images', acc);
-				}),
-			elm$core$Maybe$Nothing,
-			config.fileList));
-};
-var author$project$DocumentEditorHelpers$ACenter = {$: 'ACenter'};
-var author$project$DocumentEditorHelpers$ALeft = {$: 'ALeft'};
-var author$project$DocumentEditorHelpers$ARight = {$: 'ARight'};
-var author$project$DocumentEditorHelpers$findAlignment = function (attrs) {
-	var helper = function (xs) {
-		helper:
-		while (true) {
-			if (!xs.b) {
-				return author$project$DocumentEditorHelpers$ACenter;
-			} else {
-				switch (xs.a.$) {
-					case 'AlignRight':
-						var _n1 = xs.a;
-						return author$project$DocumentEditorHelpers$ARight;
-					case 'AlignLeft':
-						var _n2 = xs.a;
-						return author$project$DocumentEditorHelpers$ALeft;
-					default:
-						var y = xs.a;
-						var ys = xs.b;
-						var $temp$xs = ys;
-						xs = $temp$xs;
-						continue helper;
-				}
-			}
-		}
-	};
-	return helper(attrs);
-};
-var author$project$ImagePlugin$ImageAttributeEditor = {$: 'ImageAttributeEditor'};
-var elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
+var author$project$FilesysPlugin$ImagesRoot = {$: 'ImagesRoot'};
+var author$project$FilesysPlugin$ReadOnly = {$: 'ReadOnly'};
 var elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
 		return true;
@@ -5807,6 +5434,7 @@ var elm$core$Array$compressNodes = F2(
 			}
 		}
 	});
+var elm$core$Basics$eq = _Utils_equal;
 var elm$core$Tuple$first = function (_n0) {
 	var x = _n0.a;
 	return x;
@@ -5826,6 +5454,10 @@ var elm$core$Array$treeFromBuilder = F2(
 				continue treeFromBuilder;
 			}
 		}
+	});
+var elm$core$Basics$apL = F2(
+	function (f, x) {
+		return f(x);
 	});
 var elm$core$Basics$floor = _Basics_floor;
 var elm$core$Basics$max = F2(
@@ -6111,52 +5743,124 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 	});
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
+var author$project$FilesysPlugin$init = F3(
+	function (root, displayMode, externalMsg) {
+		return _Utils_Tuple2(
+			{displayMode: displayMode, externalMsg: externalMsg, mbFilesys: elm$core$Maybe$Nothing, renameBuffer: '', root: root},
+			elm$core$Platform$Cmd$none);
+	});
+var author$project$DocumentEditorHelpers$ACenter = {$: 'ACenter'};
+var author$project$DocumentEditorHelpers$ALeft = {$: 'ALeft'};
+var author$project$DocumentEditorHelpers$ARight = {$: 'ARight'};
+var author$project$DocumentEditorHelpers$findAlignment = function (attrs) {
+	var helper = function (xs) {
+		helper:
+		while (true) {
+			if (!xs.b) {
+				return author$project$DocumentEditorHelpers$ACenter;
+			} else {
+				switch (xs.a.$) {
+					case 'AlignRight':
+						var _n1 = xs.a;
+						return author$project$DocumentEditorHelpers$ARight;
+					case 'AlignLeft':
+						var _n2 = xs.a;
+						return author$project$DocumentEditorHelpers$ALeft;
+					default:
+						var y = xs.a;
+						var ys = xs.b;
+						var $temp$xs = ys;
+						xs = $temp$xs;
+						continue helper;
+				}
+			}
+		}
+	};
+	return helper(attrs);
+};
+var author$project$ImagePlugin$ImageAttributeEditor = {$: 'ImageAttributeEditor'};
+var elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
+	});
+var elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var elm$core$Platform$Cmd$map = _Platform_map;
 var elm$core$Tuple$second = function (_n0) {
 	var y = _n0.b;
 	return y;
 };
-var author$project$ImagePlugin$init = function (mbInput) {
-	return _Utils_Tuple2(
-		{
-			alignment: A2(
-				elm$core$Maybe$withDefault,
-				author$project$DocumentEditorHelpers$ACenter,
-				A2(
-					elm$core$Maybe$map,
-					A2(elm$core$Basics$composeL, author$project$DocumentEditorHelpers$findAlignment, elm$core$Tuple$second),
-					mbInput)),
-			canResize: false,
-			desiredFilename: elm$core$Maybe$Nothing,
-			desiredHeight: elm$core$Maybe$Nothing,
-			desiredRotationAngle: 0,
-			desiredWidth: elm$core$Maybe$Nothing,
-			id: 'InputId',
-			imageAttrs: A2(
-				elm$core$Maybe$withDefault,
-				_List_Nil,
-				A2(elm$core$Maybe$map, elm$core$Tuple$second, mbInput)),
-			mbCaption: A2(
-				elm$core$Maybe$andThen,
-				A2(
-					elm$core$Basics$composeL,
-					function ($) {
-						return $.caption;
-					},
-					elm$core$Tuple$first),
-				mbInput),
-			mbImageFromFile: elm$core$Maybe$Nothing,
-			mbImageMeta: A2(elm$core$Maybe$map, elm$core$Tuple$first, mbInput),
-			mbOriFileSize: elm$core$Maybe$Nothing,
-			mbOriImageHeight: elm$core$Maybe$Nothing,
-			mbOriImageWidth: elm$core$Maybe$Nothing,
-			mode: author$project$ImagePlugin$ImageAttributeEditor,
-			needToResize: false,
-			needToRotate: false,
-			selectedImage: elm$core$Maybe$Nothing,
-			sliderValue: 100
-		},
-		elm$core$Platform$Cmd$none);
-};
+var author$project$ImagePlugin$init = F2(
+	function (mbInput, externalMsg) {
+		return _Utils_Tuple2(
+			{
+				alignment: A2(
+					elm$core$Maybe$withDefault,
+					author$project$DocumentEditorHelpers$ACenter,
+					A2(
+						elm$core$Maybe$map,
+						A2(elm$core$Basics$composeL, author$project$DocumentEditorHelpers$findAlignment, elm$core$Tuple$second),
+						mbInput)),
+				canResize: false,
+				desiredFilename: elm$core$Maybe$Nothing,
+				desiredHeight: elm$core$Maybe$Nothing,
+				desiredRotationAngle: 0,
+				desiredWidth: elm$core$Maybe$Nothing,
+				externalMsg: externalMsg,
+				id: 'InputId',
+				imageAttrs: A2(
+					elm$core$Maybe$withDefault,
+					_List_Nil,
+					A2(elm$core$Maybe$map, elm$core$Tuple$second, mbInput)),
+				mbCaption: A2(
+					elm$core$Maybe$andThen,
+					A2(
+						elm$core$Basics$composeL,
+						function ($) {
+							return $.caption;
+						},
+						elm$core$Tuple$first),
+					mbInput),
+				mbImageFromFile: elm$core$Maybe$Nothing,
+				mbImageMeta: A2(elm$core$Maybe$map, elm$core$Tuple$first, mbInput),
+				mbOriFileSize: elm$core$Maybe$Nothing,
+				mbOriImageHeight: elm$core$Maybe$Nothing,
+				mbOriImageWidth: elm$core$Maybe$Nothing,
+				mode: author$project$ImagePlugin$ImageAttributeEditor,
+				needToResize: false,
+				needToRotate: false,
+				selectedImage: elm$core$Maybe$Nothing,
+				sliderValue: 100
+			},
+			A2(elm$core$Platform$Cmd$map, externalMsg, elm$core$Platform$Cmd$none));
+	});
 var elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
 var elm$core$Dict$Black = {$: 'Black'};
@@ -6703,7 +6407,9 @@ var author$project$StyleSheets$defaulStyleSheet = {
 	textStyle: _List_Nil
 };
 var author$project$TablePlugin$Edit = {$: 'Edit'};
-var author$project$TablePlugin$emptyDocTable = {currentFocusedCell: elm$core$Maybe$Nothing, currentStyle: 'bleu-blanc', data: elm$core$Array$empty, error: '', mode: author$project$TablePlugin$Edit, nbrCols: 0, nbrColsInput: '', nbrRows: 0, nbrRowsInput: '', setupDone: false, styleSelectorFocused: false, styleSelectorInput: ''};
+var author$project$TablePlugin$emptyDocTable = function (externalMsg) {
+	return {currentFocusedCell: elm$core$Maybe$Nothing, currentStyle: 'bleu-blanc', data: elm$core$Array$empty, error: '', externalMsg: externalMsg, mode: author$project$TablePlugin$Edit, nbrCols: 0, nbrColsInput: '', nbrRows: 0, nbrRowsInput: '', setupDone: false, styleSelectorFocused: false, styleSelectorInput: ''};
+};
 var elm$core$Array$fromListHelp = F3(
 	function (list, nodeList, nodeListSize) {
 		fromListHelp:
@@ -6739,30 +6445,32 @@ var elm$core$Array$fromList = function (list) {
 		return A3(elm$core$Array$fromListHelp, list, _List_Nil, 0);
 	}
 };
-var author$project$TablePlugin$init = function (mbTableMeta) {
-	if (mbTableMeta.$ === 'Nothing') {
-		return author$project$TablePlugin$emptyDocTable;
-	} else {
-		var style = mbTableMeta.a.style;
-		var nbrRows = mbTableMeta.a.nbrRows;
-		var nbrCols = mbTableMeta.a.nbrCols;
-		var data = mbTableMeta.a.data;
-		return _Utils_eq(data, _List_Nil) ? author$project$TablePlugin$emptyDocTable : {
-			currentFocusedCell: elm$core$Maybe$Nothing,
-			currentStyle: style,
-			data: elm$core$Array$fromList(data),
-			error: '',
-			mode: author$project$TablePlugin$Edit,
-			nbrCols: nbrCols,
-			nbrColsInput: '',
-			nbrRows: nbrRows,
-			nbrRowsInput: '',
-			setupDone: true,
-			styleSelectorFocused: false,
-			styleSelectorInput: ''
-		};
-	}
-};
+var author$project$TablePlugin$init = F2(
+	function (mbTableMeta, externalMsg) {
+		if (mbTableMeta.$ === 'Nothing') {
+			return author$project$TablePlugin$emptyDocTable(externalMsg);
+		} else {
+			var style = mbTableMeta.a.style;
+			var nbrRows = mbTableMeta.a.nbrRows;
+			var nbrCols = mbTableMeta.a.nbrCols;
+			var data = mbTableMeta.a.data;
+			return _Utils_eq(data, _List_Nil) ? author$project$TablePlugin$emptyDocTable(externalMsg) : {
+				currentFocusedCell: elm$core$Maybe$Nothing,
+				currentStyle: style,
+				data: elm$core$Array$fromList(data),
+				error: '',
+				externalMsg: externalMsg,
+				mode: author$project$TablePlugin$Edit,
+				nbrCols: nbrCols,
+				nbrColsInput: '',
+				nbrRows: nbrRows,
+				nbrRowsInput: '',
+				setupDone: true,
+				styleSelectorFocused: false,
+				styleSelectorInput: ''
+			};
+		}
+	});
 var author$project$Document$FontSize = function (a) {
 	return {$: 'FontSize', a: a};
 };
@@ -8552,6 +8260,36 @@ var elm$core$Dict$update = F3(
 			return A2(elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
+var elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
 var author$project$TextBlockPlugin$updateTrackedData = F2(
 	function (currentTrackedData, elems) {
 		var getTrackedPrim = function (p) {
@@ -8740,8 +8478,8 @@ var elm$parser$Parser$run = F2(
 				A2(elm$core$List$map, elm$parser$Parser$problemToDeadEnd, problems));
 		}
 	});
-var author$project$TextBlockPlugin$init = F2(
-	function (attrs, mbInput) {
+var author$project$TextBlockPlugin$init = F3(
+	function (attrs, mbInput, externalMsg) {
 		var _n0 = author$project$TextBlockPlugin$fromTextBloc(
 			A2(elm$core$Maybe$withDefault, _List_Nil, mbInput));
 		var resultString = _n0.resultString;
@@ -8759,6 +8497,7 @@ var author$project$TextBlockPlugin$init = F2(
 					colorPickerOpen: elm$core$Maybe$Nothing,
 					currentTrackedData: elm$core$Maybe$Nothing,
 					cursorPos: elm$core$Maybe$Nothing,
+					externalMsg: externalMsg,
 					headingLevel: elm$core$Maybe$Nothing,
 					internalUrlSelectorOpen: false,
 					nextUid: nextUid,
@@ -8786,13 +8525,14 @@ var author$project$TextBlockPlugin$init = F2(
 						}
 					}()
 				},
-				elm$core$Platform$Cmd$none);
+				A2(elm$core$Platform$Cmd$map, externalMsg, elm$core$Platform$Cmd$none));
 		} else {
 			return _Utils_Tuple2(
 				{
 					colorPickerOpen: elm$core$Maybe$Nothing,
 					currentTrackedData: elm$core$Maybe$Nothing,
 					cursorPos: elm$core$Maybe$Nothing,
+					externalMsg: externalMsg,
 					headingLevel: elm$core$Maybe$Nothing,
 					internalUrlSelectorOpen: false,
 					nextUid: 0,
@@ -8807,127 +8547,129 @@ var author$project$TextBlockPlugin$init = F2(
 					trackedData: elm$core$Dict$empty,
 					wholeTextBlocAttr: attrs
 				},
-				elm$core$Platform$Cmd$none);
+				A2(elm$core$Platform$Cmd$map, externalMsg, elm$core$Platform$Cmd$none));
 		}
 	});
 var author$project$Document$VideoSize = F2(
 	function (videoWidth, videoHeight) {
 		return {videoHeight: videoHeight, videoWidth: videoWidth};
 	});
-var author$project$VideoPlugin$init = function (mbInput) {
-	return {
-		alignment: A2(
-			elm$core$Maybe$withDefault,
-			author$project$DocumentEditorHelpers$ACenter,
-			A2(
-				elm$core$Maybe$map,
-				A2(elm$core$Basics$composeL, author$project$DocumentEditorHelpers$findAlignment, elm$core$Tuple$second),
-				mbInput)),
-		controls: A2(
-			elm$core$Maybe$withDefault,
-			false,
-			A2(
-				elm$core$Maybe$map,
+var author$project$VideoPlugin$init = F2(
+	function (mbInput, externalMsg) {
+		return {
+			alignment: A2(
+				elm$core$Maybe$withDefault,
+				author$project$DocumentEditorHelpers$ACenter,
+				A2(
+					elm$core$Maybe$map,
+					A2(elm$core$Basics$composeL, author$project$DocumentEditorHelpers$findAlignment, elm$core$Tuple$second),
+					mbInput)),
+			controls: A2(
+				elm$core$Maybe$withDefault,
+				false,
+				A2(
+					elm$core$Maybe$map,
+					A2(
+						elm$core$Basics$composeL,
+						function ($) {
+							return $.controls;
+						},
+						elm$core$Tuple$first),
+					mbInput)),
+			error: '',
+			externalMsg: externalMsg,
+			frameBorder: A2(
+				elm$core$Maybe$withDefault,
+				false,
+				A2(
+					elm$core$Maybe$map,
+					A2(
+						elm$core$Basics$composeL,
+						function ($) {
+							return $.frameBorder;
+						},
+						elm$core$Tuple$first),
+					mbInput)),
+			mbVideoMeta: A2(elm$core$Maybe$map, elm$core$Tuple$first, mbInput),
+			newSrc: elm$core$Maybe$Nothing,
+			pastedHtml: elm$core$Maybe$Nothing,
+			privacy: A2(
+				elm$core$Maybe$withDefault,
+				false,
+				A2(
+					elm$core$Maybe$map,
+					A2(
+						elm$core$Basics$composeL,
+						function ($) {
+							return $.privacy;
+						},
+						elm$core$Tuple$first),
+					mbInput)),
+			size: A2(
+				elm$core$Maybe$withDefault,
+				A2(author$project$Document$VideoSize, 560, 314),
+				A2(
+					elm$core$Maybe$map,
+					A2(
+						elm$core$Basics$composeL,
+						function ($) {
+							return $.size;
+						},
+						elm$core$Tuple$first),
+					mbInput)),
+			sizeRatio: A2(
+				elm$core$Maybe$withDefault,
+				560 / 315,
+				A2(
+					elm$core$Maybe$map,
+					function (mbI) {
+						var _n0 = function (s) {
+							return _Utils_Tuple2(s.videoWidth, s.videoHeight);
+						}(mbI.a.size);
+						var w = _n0.a;
+						var h = _n0.b;
+						return w / h;
+					},
+					mbInput)),
+			startAt: A2(
+				elm$core$Maybe$andThen,
 				A2(
 					elm$core$Basics$composeL,
 					function ($) {
-						return $.controls;
+						return $.startAt;
 					},
 					elm$core$Tuple$first),
-				mbInput)),
-		error: '',
-		frameBorder: A2(
-			elm$core$Maybe$withDefault,
-			false,
-			A2(
-				elm$core$Maybe$map,
+				mbInput),
+			suggestions: A2(
+				elm$core$Maybe$withDefault,
+				false,
 				A2(
-					elm$core$Basics$composeL,
-					function ($) {
-						return $.frameBorder;
-					},
-					elm$core$Tuple$first),
-				mbInput)),
-		mbVideoMeta: A2(elm$core$Maybe$map, elm$core$Tuple$first, mbInput),
-		newSrc: elm$core$Maybe$Nothing,
-		pastedHtml: elm$core$Maybe$Nothing,
-		privacy: A2(
-			elm$core$Maybe$withDefault,
-			false,
-			A2(
-				elm$core$Maybe$map,
+					elm$core$Maybe$map,
+					A2(
+						elm$core$Basics$composeL,
+						function ($) {
+							return $.suggestions;
+						},
+						elm$core$Tuple$first),
+					mbInput)),
+			title: A2(
+				elm$core$Maybe$withDefault,
+				false,
 				A2(
-					elm$core$Basics$composeL,
-					function ($) {
-						return $.privacy;
-					},
-					elm$core$Tuple$first),
-				mbInput)),
-		size: A2(
-			elm$core$Maybe$withDefault,
-			A2(author$project$Document$VideoSize, 560, 314),
-			A2(
-				elm$core$Maybe$map,
-				A2(
-					elm$core$Basics$composeL,
-					function ($) {
-						return $.size;
-					},
-					elm$core$Tuple$first),
-				mbInput)),
-		sizeRatio: A2(
-			elm$core$Maybe$withDefault,
-			560 / 315,
-			A2(
-				elm$core$Maybe$map,
-				function (mbI) {
-					var _n0 = function (s) {
-						return _Utils_Tuple2(s.videoWidth, s.videoHeight);
-					}(mbI.a.size);
-					var w = _n0.a;
-					var h = _n0.b;
-					return w / h;
-				},
-				mbInput)),
-		startAt: A2(
-			elm$core$Maybe$andThen,
-			A2(
-				elm$core$Basics$composeL,
-				function ($) {
-					return $.startAt;
-				},
-				elm$core$Tuple$first),
-			mbInput),
-		suggestions: A2(
-			elm$core$Maybe$withDefault,
-			false,
-			A2(
-				elm$core$Maybe$map,
-				A2(
-					elm$core$Basics$composeL,
-					function ($) {
-						return $.suggestions;
-					},
-					elm$core$Tuple$first),
-				mbInput)),
-		title: A2(
-			elm$core$Maybe$withDefault,
-			false,
-			A2(
-				elm$core$Maybe$map,
-				A2(
-					elm$core$Basics$composeL,
-					function ($) {
-						return $.title;
-					},
-					elm$core$Tuple$first),
-				mbInput)),
-		videoAttrs: A2(
-			elm$core$Maybe$withDefault,
-			_List_Nil,
-			A2(elm$core$Maybe$map, elm$core$Tuple$second, mbInput))
-	};
-};
+					elm$core$Maybe$map,
+					A2(
+						elm$core$Basics$composeL,
+						function ($) {
+							return $.title;
+						},
+						elm$core$Tuple$first),
+					mbInput)),
+			videoAttrs: A2(
+				elm$core$Maybe$withDefault,
+				_List_Nil,
+				A2(elm$core$Maybe$map, elm$core$Tuple$second, mbInput))
+		};
+	});
 var billstclair$elm_localstorage$PortFunnel$LocalStorage$State = function (a) {
 	return {$: 'State', a: a};
 };
@@ -11677,7 +11419,6 @@ var elm$browser$Debugger$Metadata$decode = function (value) {
 };
 var elm$browser$Debugger$Overlay$None = {$: 'None'};
 var elm$browser$Debugger$Overlay$none = elm$browser$Debugger$Overlay$None;
-var elm$core$Platform$Cmd$map = _Platform_map;
 var elm$browser$Debugger$Main$wrapInit = F4(
 	function (metadata, popout, init, flags) {
 		var _n0 = init(flags);
@@ -12593,6 +12334,7 @@ var elm$browser$Debugger$Report$MessageChanged = F2(
 var elm$browser$Debugger$Report$SomethingChanged = function (a) {
 	return {$: 'SomethingChanged', a: a};
 };
+var elm$core$Basics$neq = _Utils_notEqual;
 var elm$browser$Debugger$Metadata$checkTypes = F2(
 	function (old, _new) {
 		return (!_Utils_eq(old.message, _new.message)) ? A2(elm$browser$Debugger$Report$MessageChanged, old.message, _new.message) : elm$browser$Debugger$Report$SomethingChanged(
@@ -13078,20 +12820,20 @@ var author$project$Editor$init = F2(
 		var handlers = {
 			cellClick: author$project$Editor$EditCell,
 			containerClickHandler: author$project$Editor$SelectDoc,
-			containerDblClickHandler: function (_n4) {
+			containerDblClickHandler: function (_n5) {
 				return author$project$Editor$NoOp;
 			},
-			neighbourClickHandler: function (_n5) {
+			neighbourClickHandler: function (_n6) {
 				return author$project$Editor$Rewind;
 			}
 		};
 		var funnelState = {
 			storage: billstclair$elm_localstorage$PortFunnel$LocalStorage$initialState('Editor')
 		};
-		var _n0 = A2(author$project$TextBlockPlugin$init, _List_Nil, elm$core$Maybe$Nothing);
+		var _n0 = A3(author$project$TextBlockPlugin$init, _List_Nil, elm$core$Maybe$Nothing, author$project$Editor$TextBlockPluginMsg);
 		var newTextBlockPlugin = _n0.a;
 		var textBlockPluginCmds = _n0.b;
-		var _n1 = author$project$ImagePlugin$init(elm$core$Maybe$Nothing);
+		var _n1 = A2(author$project$ImagePlugin$init, elm$core$Maybe$Nothing, author$project$Editor$ImagePluginMsg);
 		var newImagePlugin = _n1.a;
 		var imagePluginCmds = _n1.b;
 		var _n2 = author$project$Document$setSizeTrackedDocUids(doc);
@@ -13103,7 +12845,7 @@ var author$project$Editor$init = F2(
 			editMode: true,
 			height: 1080,
 			mainInterfaceHeight: 75,
-			onLoadMsg: function (_n3) {
+			onLoadMsg: function (_n4) {
 				return author$project$Editor$RefreshSizes;
 			},
 			sizesDict: elm$core$Dict$fromList(
@@ -13119,6 +12861,9 @@ var author$project$Editor$init = F2(
 			width: 1920,
 			zipperHandlers: elm$core$Maybe$Just(handlers)
 		};
+		var _n3 = A3(author$project$FilesysPlugin$init, author$project$FilesysPlugin$ImagesRoot, author$project$FilesysPlugin$ReadOnly, author$project$Editor$FilesysPluginMsg);
+		var newFilesysPlugin = _n3.a;
+		var filesysPluginCmds = _n3.b;
 		return _Utils_Tuple2(
 			{
 				clipboard: elm$core$Maybe$Nothing,
@@ -13126,9 +12871,7 @@ var author$project$Editor$init = F2(
 				controlDown: false,
 				currentPlugin: elm$core$Maybe$Nothing,
 				document: author$project$DocumentZipper$initZip(doc_),
-				filesys: author$project$Filesys$init(
-					author$project$Filesys$defFilesysConfig(author$project$Editor$NewFileSys)),
-				filesysConfig: author$project$Filesys$defFilesysConfig(author$project$Editor$NewFileSys),
+				filesysPlugin: newFilesysPlugin,
 				funnelState: funnelState,
 				imagePlugin: newImagePlugin,
 				jsonBuffer: '',
@@ -13139,10 +12882,10 @@ var author$project$Editor$init = F2(
 				menuFocused: '',
 				nextUid: author$project$DocumentEditorHelpers$docSize(doc_),
 				previewMode: author$project$Editor$PreviewBigScreen,
-				tablePlugin: author$project$TablePlugin$init(elm$core$Maybe$Nothing),
+				tablePlugin: A2(author$project$TablePlugin$init, elm$core$Maybe$Nothing, author$project$Editor$TablePluginMsg),
 				textBlockPlugin: newTextBlockPlugin,
 				undoCache: _List_Nil,
-				videoPlugin: author$project$VideoPlugin$init(elm$core$Maybe$Nothing)
+				videoPlugin: A2(author$project$VideoPlugin$init, elm$core$Maybe$Nothing, author$project$Editor$VideoPluginMsg)
 			},
 			elm$core$Platform$Cmd$batch(
 				_List_fromArray(
@@ -13153,7 +12896,8 @@ var author$project$Editor$init = F2(
 						author$project$Editor$MainInterfaceViewport,
 						elm$browser$Browser$Dom$getViewportOf('mainInterface')),
 						textBlockPluginCmds,
-						A2(elm$core$Platform$Cmd$map, author$project$Editor$ImagePluginMsg, imagePluginCmds),
+						imagePluginCmds,
+						filesysPluginCmds,
 						A3(
 						billstclair$elm_localstorage$PortFunnel$LocalStorage$send,
 						author$project$Editor$cmdPort,
@@ -14537,9 +14281,6 @@ var author$project$DocumentZipper$zipToUid = F2(
 			author$project$DocumentZipper$rewind(docZipper));
 	});
 var author$project$Editor$ListKeys = {$: 'ListKeys'};
-var author$project$Editor$TextBlockPluginMsg = function (a) {
-	return {$: 'TextBlockPluginMsg', a: a};
-};
 var author$project$Editor$StorageFunnel = function (a) {
 	return {$: 'StorageFunnel', a: a};
 };
@@ -14611,12 +14352,12 @@ var author$project$Editor$openNewPlugin = function (model) {
 						_Utils_update(
 							model,
 							{
-								tablePlugin: author$project$TablePlugin$init(elm$core$Maybe$Nothing)
+								tablePlugin: A2(author$project$TablePlugin$init, elm$core$Maybe$Nothing, author$project$Editor$TablePluginMsg)
 							}),
 						elm$core$Platform$Cmd$none);
 				case 'TextBlockPlugin':
 					var _n2 = _n0.a;
-					var _n3 = A2(author$project$TextBlockPlugin$init, _List_Nil, elm$core$Maybe$Nothing);
+					var _n3 = A3(author$project$TextBlockPlugin$init, _List_Nil, elm$core$Maybe$Nothing, author$project$Editor$TextBlockPluginMsg);
 					var newTextBlockPlugin = _n3.a;
 					var textBlockPluginCmds = _n3.b;
 					return _Utils_Tuple2(
@@ -14628,17 +14369,17 @@ var author$project$Editor$openNewPlugin = function (model) {
 								[textBlockPluginCmds])));
 				case 'ImagePlugin':
 					var _n4 = _n0.a;
-					var _n5 = author$project$ImagePlugin$init(elm$core$Maybe$Nothing);
+					var _n5 = A2(author$project$ImagePlugin$init, elm$core$Maybe$Nothing, author$project$Editor$ImagePluginMsg);
 					var newImagePlugin = _n5.a;
 					var imagePluginCmds = _n5.b;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{imagePlugin: newImagePlugin}),
-						A2(elm$core$Platform$Cmd$map, author$project$Editor$ImagePluginMsg, imagePluginCmds));
+						imagePluginCmds);
 				case 'VideoPlugin':
 					var _n6 = _n0.a;
-					var newVideoPlugin = author$project$VideoPlugin$init(elm$core$Maybe$Nothing);
+					var newVideoPlugin = A2(author$project$VideoPlugin$init, elm$core$Maybe$Nothing, author$project$Editor$VideoPluginMsg);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -14672,16 +14413,19 @@ var author$project$Editor$openPlugin = function (model) {
 						model,
 						{
 							currentPlugin: elm$core$Maybe$Just(author$project$DocumentEditorHelpers$TablePlugin),
-							tablePlugin: author$project$TablePlugin$init(
-								elm$core$Maybe$Just(tm))
+							tablePlugin: A2(
+								author$project$TablePlugin$init,
+								elm$core$Maybe$Just(tm),
+								author$project$Editor$TablePluginMsg)
 						}),
 					elm$core$Platform$Cmd$none);
 			case 'TextBlock':
 				var tbElems = cellContent.a;
-				var _n2 = A2(
+				var _n2 = A3(
 					author$project$TextBlockPlugin$init,
 					attrs,
-					elm$core$Maybe$Just(tbElems));
+					elm$core$Maybe$Just(tbElems),
+					author$project$Editor$TextBlockPluginMsg);
 				var newTextBlockPlugin = _n2.a;
 				var textBlockPluginCmds = _n2.b;
 				return _Utils_Tuple2(
@@ -14704,9 +14448,11 @@ var author$project$Editor$openPlugin = function (model) {
 					elm$core$Platform$Cmd$none);
 			case 'Image':
 				var imgMeta = cellContent.a;
-				var _n3 = author$project$ImagePlugin$init(
+				var _n3 = A2(
+					author$project$ImagePlugin$init,
 					elm$core$Maybe$Just(
-						_Utils_Tuple2(imgMeta, attrs)));
+						_Utils_Tuple2(imgMeta, attrs)),
+					author$project$Editor$ImagePluginMsg);
 				var newImagePlugin = _n3.a;
 				var imagePluginCmds = _n3.b;
 				return _Utils_Tuple2(
@@ -14716,12 +14462,14 @@ var author$project$Editor$openPlugin = function (model) {
 							currentPlugin: elm$core$Maybe$Just(author$project$DocumentEditorHelpers$ImagePlugin),
 							imagePlugin: newImagePlugin
 						}),
-					A2(elm$core$Platform$Cmd$map, author$project$Editor$ImagePluginMsg, imagePluginCmds));
+					imagePluginCmds);
 			case 'Video':
 				var videoMeta = cellContent.a;
-				var newVideoPlugin = author$project$VideoPlugin$init(
+				var newVideoPlugin = A2(
+					author$project$VideoPlugin$init,
 					elm$core$Maybe$Just(
-						_Utils_Tuple2(videoMeta, attrs)));
+						_Utils_Tuple2(videoMeta, attrs)),
+					author$project$Editor$VideoPluginMsg);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -14787,6 +14535,72 @@ var author$project$Editor$updateSizes = function (_n0) {
 			},
 			elm$core$Dict$keys(sizesDict)));
 };
+var author$project$FilesysPlugin$Folder = F2(
+	function (a, b) {
+		return {$: 'Folder', a: a, b: b};
+	});
+var elm$core$Debug$log = _Debug_log;
+var author$project$FilesysPlugin$zipUpFilesys = function (filesys) {
+	return A2(
+		elm$core$Debug$log,
+		'running zipUp',
+		function () {
+			var _n0 = filesys.contexts;
+			if (!_n0.b) {
+				return elm$core$Maybe$Nothing;
+			} else {
+				var parent = _n0.a.parent;
+				var left = _n0.a.left;
+				var right = _n0.a.right;
+				var cs = _n0.b;
+				return elm$core$Maybe$Just(
+					_Utils_update(
+						filesys,
+						{
+							contexts: cs,
+							current: A2(
+								author$project$FilesysPlugin$Folder,
+								parent,
+								_Utils_ap(
+									left,
+									_Utils_ap(
+										_List_fromArray(
+											[filesys.current]),
+										right)))
+						}));
+			}
+		}());
+};
+var author$project$FilesysPlugin$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'GoHome':
+				return _Utils_Tuple3(model, elm$core$Platform$Cmd$none, elm$core$Maybe$Nothing);
+			case 'GoNext':
+				return _Utils_Tuple3(model, elm$core$Platform$Cmd$none, elm$core$Maybe$Nothing);
+			case 'GoPrev':
+				return _Utils_Tuple3(
+					_Utils_update(
+						model,
+						{
+							mbFilesys: A2(elm$core$Maybe$andThen, author$project$FilesysPlugin$zipUpFilesys, model.mbFilesys)
+						}),
+					elm$core$Platform$Cmd$none,
+					elm$core$Maybe$Nothing);
+			case 'GoTo':
+				var path = msg.a;
+				return _Utils_Tuple3(model, elm$core$Platform$Cmd$none, elm$core$Maybe$Nothing);
+			case 'NewFile':
+				return _Utils_Tuple3(model, elm$core$Platform$Cmd$none, elm$core$Maybe$Nothing);
+			case 'NewFolder':
+				return _Utils_Tuple3(model, elm$core$Platform$Cmd$none, elm$core$Maybe$Nothing);
+			case 'Delete':
+				return _Utils_Tuple3(model, elm$core$Platform$Cmd$none, elm$core$Maybe$Nothing);
+			default:
+				var newName = msg.a;
+				return _Utils_Tuple3(model, elm$core$Platform$Cmd$none, elm$core$Maybe$Nothing);
+		}
+	});
 var author$project$DocumentEditorHelpers$PluginData = function (a) {
 	return {$: 'PluginData', a: a};
 };
@@ -16046,6 +15860,15 @@ var elm$core$Result$withDefault = F2(
 			return def;
 		}
 	});
+var elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(xs);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
 var elm$core$Result$map = F2(
 	function (func, ra) {
 		if (ra.$ === 'Ok') {
@@ -16453,11 +16276,14 @@ var author$project$TextBlockPlugin$update = F2(
 								rawInput: newRawInput,
 								trackedData: newTrackedData
 							}),
-						elm$core$Platform$Cmd$batch(
-							_List_fromArray(
-								[
-									A3(andrewMacmurray$elm_delay$Delay$after, 5, andrewMacmurray$elm_delay$Delay$Millisecond, author$project$TextBlockPlugin$SetSelection)
-								])),
+						A2(
+							elm$core$Platform$Cmd$map,
+							model.externalMsg,
+							elm$core$Platform$Cmd$batch(
+								_List_fromArray(
+									[
+										A3(andrewMacmurray$elm_delay$Delay$after, 5, andrewMacmurray$elm_delay$Delay$Millisecond, author$project$TextBlockPlugin$SetSelection)
+									]))),
 						elm$core$Maybe$Nothing);
 				}
 			case 'NewSelection':
@@ -18360,21 +18186,24 @@ var author$project$Editor$update = F2(
 								elm$core$Maybe$Just(author$project$DocumentEditorHelpers$FilesysDebug)) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(author$project$DocumentEditorHelpers$FilesysDebug)
 						}),
 					elm$core$Platform$Cmd$none);
-			case 'NewFileSys':
-				var newFileSys = msg.a;
-				var mbCmd = msg.b;
+			case 'FilesysPluginMsg':
+				var filesysPluginMsg = msg.a;
+				var _n16 = A2(author$project$FilesysPlugin$update, filesysPluginMsg, model.filesysPlugin);
+				var newFilesysPlugin = _n16.a;
+				var filesysPluginCmds = _n16.b;
+				var mbPluginData = _n16.c;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{
-							filesys: elm$core$Maybe$Just(newFileSys)
-						}),
-					A2(elm$core$Maybe$withDefault, elm$core$Platform$Cmd$none, mbCmd));
+						{filesysPlugin: newFilesysPlugin}),
+					elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[filesysPluginCmds])));
 			case 'TablePluginMsg':
 				var tableMsg = msg.a;
-				var _n16 = A2(author$project$TablePlugin$update, tableMsg, model.tablePlugin);
-				var newTablePlugin = _n16.a;
-				var mbPluginData = _n16.b;
+				var _n17 = A2(author$project$TablePlugin$update, tableMsg, model.tablePlugin);
+				var newTablePlugin = _n17.a;
+				var mbPluginData = _n17.b;
 				if (mbPluginData.$ === 'Nothing') {
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -18383,7 +18212,7 @@ var author$project$Editor$update = F2(
 						elm$core$Platform$Cmd$batch(_List_Nil));
 				} else {
 					if (mbPluginData.a.$ === 'PluginQuit') {
-						var _n18 = mbPluginData.a;
+						var _n19 = mbPluginData.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -18423,10 +18252,10 @@ var author$project$Editor$update = F2(
 				}
 			case 'TextBlockPluginMsg':
 				var textBlockMsg = msg.a;
-				var _n19 = A2(author$project$TextBlockPlugin$update, textBlockMsg, model.textBlockPlugin);
-				var newTextBlockPlugin = _n19.a;
-				var textBlockPluginCmds = _n19.b;
-				var mbPluginData = _n19.c;
+				var _n20 = A2(author$project$TextBlockPlugin$update, textBlockMsg, model.textBlockPlugin);
+				var newTextBlockPlugin = _n20.a;
+				var textBlockPluginCmds = _n20.b;
+				var mbPluginData = _n20.c;
 				if (mbPluginData.$ === 'Nothing') {
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -18434,12 +18263,10 @@ var author$project$Editor$update = F2(
 							{textBlockPlugin: newTextBlockPlugin}),
 						elm$core$Platform$Cmd$batch(
 							_List_fromArray(
-								[
-									A2(elm$core$Platform$Cmd$map, author$project$Editor$TextBlockPluginMsg, textBlockPluginCmds)
-								])));
+								[textBlockPluginCmds])));
 				} else {
 					if (mbPluginData.a.$ === 'PluginQuit') {
-						var _n21 = mbPluginData.a;
+						var _n22 = mbPluginData.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -18450,12 +18277,12 @@ var author$project$Editor$update = F2(
 										author$project$Editor$scrollTo(
 										author$project$Document$getHtmlId(
 											author$project$DocumentZipper$extractDoc(model.document))),
-										A2(elm$core$Platform$Cmd$map, author$project$Editor$TextBlockPluginMsg, textBlockPluginCmds)
+										textBlockPluginCmds
 									])));
 					} else {
-						var _n22 = mbPluginData.a.a;
-						var tbElems = _n22.a;
-						var attrs = _n22.b;
+						var _n23 = mbPluginData.a.a;
+						var tbElems = _n23.a;
+						var attrs = _n23.b;
 						var newDoc = A2(
 							author$project$DocumentZipper$updateCurrent,
 							author$project$Document$Cell(
@@ -18476,25 +18303,25 @@ var author$project$Editor$update = F2(
 										author$project$Editor$scrollTo(
 										author$project$Document$getHtmlId(
 											author$project$DocumentZipper$extractDoc(model.document))),
-										A2(elm$core$Platform$Cmd$map, author$project$Editor$TextBlockPluginMsg, textBlockPluginCmds)
+										textBlockPluginCmds
 									])));
 					}
 				}
 			case 'ImagePluginMsg':
 				var imgPlugMsg = msg.a;
-				var _n23 = A2(author$project$ImagePlugin$update, imgPlugMsg, model.imagePlugin);
-				var newImagePlugin = _n23.a;
-				var imagePluginCmds = _n23.b;
-				var mbPluginData = _n23.c;
+				var _n24 = A2(author$project$ImagePlugin$update, imgPlugMsg, model.imagePlugin);
+				var newImagePlugin = _n24.a;
+				var imagePluginCmds = _n24.b;
+				var mbPluginData = _n24.c;
 				if (mbPluginData.$ === 'Nothing') {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{imagePlugin: newImagePlugin}),
-						A2(elm$core$Platform$Cmd$map, author$project$Editor$ImagePluginMsg, imagePluginCmds));
+						imagePluginCmds);
 				} else {
 					if (mbPluginData.a.$ === 'PluginQuit') {
-						var _n25 = mbPluginData.a;
+						var _n26 = mbPluginData.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -18505,12 +18332,12 @@ var author$project$Editor$update = F2(
 										author$project$Editor$scrollTo(
 										author$project$Document$getHtmlId(
 											author$project$DocumentZipper$extractDoc(model.document))),
-										A2(elm$core$Platform$Cmd$map, author$project$Editor$ImagePluginMsg, imagePluginCmds)
+										imagePluginCmds
 									])));
 					} else {
-						var _n26 = mbPluginData.a.a;
-						var imgMeta = _n26.a;
-						var attrs = _n26.b;
+						var _n27 = mbPluginData.a.a;
+						var imgMeta = _n27.a;
+						var attrs = _n27.b;
 						var newDoc = A2(
 							author$project$DocumentZipper$updateCurrent,
 							author$project$Document$Cell(
@@ -18531,15 +18358,15 @@ var author$project$Editor$update = F2(
 										author$project$Editor$scrollTo(
 										author$project$Document$getHtmlId(
 											author$project$DocumentZipper$extractDoc(model.document))),
-										A2(elm$core$Platform$Cmd$map, author$project$Editor$ImagePluginMsg, imagePluginCmds)
+										imagePluginCmds
 									])));
 					}
 				}
 			case 'VideoPluginMsg':
 				var vidPlugMsg = msg.a;
-				var _n27 = A2(author$project$VideoPlugin$update, vidPlugMsg, model.videoPlugin);
-				var newVideoPlugin = _n27.a;
-				var mbPluginData = _n27.b;
+				var _n28 = A2(author$project$VideoPlugin$update, vidPlugMsg, model.videoPlugin);
+				var newVideoPlugin = _n28.a;
+				var mbPluginData = _n28.b;
 				if (mbPluginData.$ === 'Nothing') {
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -18548,7 +18375,7 @@ var author$project$Editor$update = F2(
 						elm$core$Platform$Cmd$none);
 				} else {
 					if (mbPluginData.a.$ === 'PluginQuit') {
-						var _n29 = mbPluginData.a;
+						var _n30 = mbPluginData.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -18557,9 +18384,9 @@ var author$project$Editor$update = F2(
 								author$project$Document$getHtmlId(
 									author$project$DocumentZipper$extractDoc(model.document))));
 					} else {
-						var _n30 = mbPluginData.a.a;
-						var videoMeta = _n30.a;
-						var attrs = _n30.b;
+						var _n31 = mbPluginData.a.a;
+						var videoMeta = _n31.a;
+						var attrs = _n31.b;
 						var newDoc = A2(
 							author$project$DocumentZipper$updateCurrent,
 							author$project$Document$Cell(
@@ -18584,15 +18411,15 @@ var author$project$Editor$update = F2(
 					}
 				}
 			case 'LoadDocument':
-				var _n31 = A2(
+				var _n32 = A2(
 					elm$core$Maybe$map,
 					elm$json$Json$Decode$decodeValue(author$project$DocumentDecoder$decodeDocument),
 					model.localStorageValue);
-				if ((_n31.$ === 'Just') && (_n31.a.$ === 'Ok')) {
-					var newDoc = _n31.a.a;
-					var _n32 = A2(author$project$Editor$init, newDoc, '');
-					var newModel = _n32.a;
-					var cmd = _n32.b;
+				if ((_n32.$ === 'Just') && (_n32.a.$ === 'Ok')) {
+					var newDoc = _n32.a.a;
+					var _n33 = A2(author$project$Editor$init, newDoc, '');
+					var newModel = _n33.a;
+					var cmd = _n33.b;
 					return _Utils_Tuple2(
 						_Utils_update(
 							newModel,
@@ -18632,9 +18459,9 @@ var author$project$Editor$update = F2(
 			case 'SetJsonBuffer':
 				var s = msg.a;
 				var newLocalStorageValue = function () {
-					var _n35 = A2(elm$json$Json$Decode$decodeString, elm$json$Json$Decode$value, s);
-					if (_n35.$ === 'Ok') {
-						var value = _n35.a;
+					var _n36 = A2(elm$json$Json$Decode$decodeString, elm$json$Json$Decode$value, s);
+					if (_n36.$ === 'Ok') {
+						var value = _n36.a;
 						return elm$core$Maybe$Just(value);
 					} else {
 						return elm$core$Maybe$Nothing;
@@ -18713,23 +18540,23 @@ var author$project$Editor$update = F2(
 						model.funnelState.storage));
 			case 'Process':
 				var val = msg.a;
-				var _n36 = billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage(val);
-				if (_n36.$ === 'Err') {
+				var _n37 = billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage(val);
+				if (_n37.$ === 'Err') {
 					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 				} else {
-					var genericMessage = _n36.a;
+					var genericMessage = _n37.a;
 					var moduleName = genericMessage.moduleName;
-					var _n37 = A2(elm$core$Dict$get, moduleName, author$project$Editor$funnels);
-					if (_n37.$ === 'Just') {
-						var funnel = _n37.a;
+					var _n38 = A2(elm$core$Dict$get, moduleName, author$project$Editor$funnels);
+					if (_n38.$ === 'Just') {
+						var funnel = _n38.a;
 						var storFunnel = funnel.a;
-						var _n39 = A5(billstclair$elm_port_funnel$PortFunnel$appProcess, author$project$Editor$cmdPort, genericMessage, storFunnel, model.funnelState, model);
-						if (_n39.$ === 'Err') {
+						var _n40 = A5(billstclair$elm_port_funnel$PortFunnel$appProcess, author$project$Editor$cmdPort, genericMessage, storFunnel, model.funnelState, model);
+						if (_n40.$ === 'Err') {
 							return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 						} else {
-							var _n40 = _n39.a;
-							var mdl = _n40.a;
-							var cmd = _n40.b;
+							var _n41 = _n40.a;
+							var mdl = _n41.a;
+							var cmd = _n41.b;
 							var newBuffer = function (res) {
 								if (res.$ === 'Ok') {
 									var json = res.a;
@@ -27165,92 +26992,14 @@ var author$project$Editor$SetLocalStorageValue = function (a) {
 var author$project$Editor$SwapContainerType = function (a) {
 	return {$: 'SwapContainerType', a: a};
 };
-var author$project$Editor$TablePluginMsg = function (a) {
-	return {$: 'TablePluginMsg', a: a};
-};
-var author$project$Editor$VideoPluginMsg = function (a) {
-	return {$: 'VideoPluginMsg', a: a};
-};
-var author$project$Filesys$extractFsItem = function (_n0) {
+var author$project$FilesysPlugin$extractFsItem = function (_n0) {
 	var current = _n0.current;
 	var contexts = _n0.contexts;
 	return current;
 };
-var elm$core$Debug$log = _Debug_log;
-var author$project$Filesys$zipUpFilesys = function (filesys) {
-	return A2(
-		elm$core$Debug$log,
-		'running zipUp',
-		function () {
-			var _n0 = filesys.contexts;
-			if (!_n0.b) {
-				return elm$core$Maybe$Nothing;
-			} else {
-				var parent = _n0.a.parent;
-				var left = _n0.a.left;
-				var right = _n0.a.right;
-				var cs = _n0.b;
-				return elm$core$Maybe$Just(
-					_Utils_update(
-						filesys,
-						{
-							contexts: cs,
-							current: A2(
-								author$project$Filesys$Folder,
-								parent,
-								_Utils_ap(
-									left,
-									_Utils_ap(
-										_List_fromArray(
-											[filesys.current]),
-										right)))
-						}));
-			}
-		}());
-};
-var mdgriffith$elm_ui$Internal$Model$AllowHover = {$: 'AllowHover'};
-var mdgriffith$elm_ui$Internal$Model$Layout = {$: 'Layout'};
-var mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
-	function (a, b) {
-		return {$: 'OnlyDynamic', a: a, b: b};
-	});
-var mdgriffith$elm_ui$Element$Lazy$embed = function (x) {
-	switch (x.$) {
-		case 'Unstyled':
-			var html = x.a;
-			return html;
-		case 'Styled':
-			var styled = x.a;
-			return styled.html(
-				A2(
-					mdgriffith$elm_ui$Internal$Model$OnlyDynamic,
-					{
-						focus: {backgroundColor: elm$core$Maybe$Nothing, borderColor: elm$core$Maybe$Nothing, shadow: elm$core$Maybe$Nothing},
-						hover: mdgriffith$elm_ui$Internal$Model$AllowHover,
-						mode: mdgriffith$elm_ui$Internal$Model$Layout
-					},
-					styled.styles));
-		case 'Text':
-			var text = x.a;
-			return elm$core$Basics$always(
-				elm$virtual_dom$VirtualDom$text(text));
-		default:
-			return elm$core$Basics$always(
-				elm$virtual_dom$VirtualDom$text(''));
-	}
-};
-var mdgriffith$elm_ui$Element$Lazy$apply1 = F2(
-	function (fn, a) {
-		return mdgriffith$elm_ui$Element$Lazy$embed(
-			fn(a));
-	});
-var mdgriffith$elm_ui$Element$Lazy$lazy = F2(
-	function (fn, a) {
-		return mdgriffith$elm_ui$Internal$Model$Unstyled(
-			A3(elm$virtual_dom$VirtualDom$lazy3, mdgriffith$elm_ui$Element$Lazy$apply1, fn, a));
-	});
-var author$project$Filesys$fsItemToElement = F3(
-	function (config, mbFilesys, fsItem) {
+var author$project$FilesysPlugin$GoPrev = {$: 'GoPrev'};
+var author$project$FilesysPlugin$fsItemToElement = F3(
+	function (model, config, fsItem) {
 		var paddingOffset = function (n) {
 			return mdgriffith$elm_ui$Element$paddingEach(
 				{bottom: 0, left: n * 10, right: 0, top: 0});
@@ -27331,29 +27080,6 @@ var author$project$Filesys$fsItemToElement = F3(
 							children));
 				}
 			});
-		var goBackButton = function (mbfs) {
-			return A2(
-				mdgriffith$elm_ui$Element$Input$button,
-				author$project$DocumentEditorHelpers$buttonStyle(true),
-				{
-					label: A2(
-						mdgriffith$elm_ui$Element$row,
-						_List_fromArray(
-							[
-								mdgriffith$elm_ui$Element$spacing(10)
-							]),
-						_List_fromArray(
-							[
-								mdgriffith$elm_ui$Element$text('Back')
-							])),
-					onPress: A2(
-						elm$core$Maybe$map,
-						function (fs) {
-							return A2(config.externalMsg, fs, elm$core$Maybe$Nothing);
-						},
-						A2(elm$core$Maybe$andThen, author$project$Filesys$zipUpFilesys, mbfs))
-				});
-		};
 		return A2(
 			mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -27363,18 +27089,42 @@ var author$project$Filesys$fsItemToElement = F3(
 			_Utils_ap(
 				_List_fromArray(
 					[
-						A2(mdgriffith$elm_ui$Element$Lazy$lazy, goBackButton, mbFilesys)
+						A2(
+						mdgriffith$elm_ui$Element$Input$button,
+						author$project$DocumentEditorHelpers$buttonStyle(true),
+						{
+							label: A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(10)
+									]),
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$text('Prev')
+									])),
+							onPress: elm$core$Maybe$Just(
+								model.externalMsg(author$project$FilesysPlugin$GoPrev))
+						})
 					]),
 				A2(helper, 0, fsItem)));
 	});
-var author$project$Filesys$view = F2(
-	function (config, mbFilesys) {
-		var filesys = A2(
-			elm$core$Maybe$andThen,
-			function (fs) {
-				return (!_Utils_eq(config.version, fs.version)) ? author$project$Filesys$init(config) : mbFilesys;
-			},
-			mbFilesys);
+var author$project$FilesysPlugin$rewindFilesys = function (filesys) {
+	rewindFilesys:
+	while (true) {
+		var _n0 = author$project$FilesysPlugin$zipUpFilesys(filesys);
+		if (_n0.$ === 'Nothing') {
+			return filesys;
+		} else {
+			var filesys_ = _n0.a;
+			var $temp$filesys = filesys_;
+			filesys = $temp$filesys;
+			continue rewindFilesys;
+		}
+	}
+};
+var author$project$FilesysPlugin$view = F2(
+	function (config, model) {
 		return A2(
 			mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -27394,8 +27144,11 @@ var author$project$Filesys$view = F2(
 					mdgriffith$elm_ui$Element$text('wrong FsItem'),
 					A2(
 						elm$core$Maybe$map,
-						A2(author$project$Filesys$fsItemToElement, config, mbFilesys),
-						A2(elm$core$Maybe$map, author$project$Filesys$extractFsItem, filesys)))
+						A2(author$project$FilesysPlugin$fsItemToElement, model, config),
+						A2(
+							elm$core$Maybe$map,
+							author$project$FilesysPlugin$extractFsItem,
+							A2(elm$core$Maybe$map, author$project$FilesysPlugin$rewindFilesys, model.mbFilesys))))
 				]));
 	});
 var author$project$DocumentEditorHelpers$textInputStyle = _List_fromArray(
@@ -29965,18 +29718,24 @@ var author$project$ImagePlugin$imagePickerView = F2(
 						]))
 				]));
 	});
+var mdgriffith$elm_ui$Element$map = mdgriffith$elm_ui$Internal$Model$map;
 var author$project$ImagePlugin$view = F2(
 	function (config, model) {
-		var _n0 = model.mode;
-		switch (_n0.$) {
-			case 'ImageAttributeEditor':
-				return A2(author$project$ImagePlugin$imageAttributeEditorView, config, model);
-			case 'ImagePicker':
-				return A2(author$project$ImagePlugin$imagePickerView, config, model);
-			default:
-				var imgContMode = _n0.a;
-				return A2(author$project$ImagePlugin$imageControllerView, model, imgContMode);
-		}
+		return A2(
+			mdgriffith$elm_ui$Element$map,
+			model.externalMsg,
+			function () {
+				var _n0 = model.mode;
+				switch (_n0.$) {
+					case 'ImageAttributeEditor':
+						return A2(author$project$ImagePlugin$imageAttributeEditorView, config, model);
+					case 'ImagePicker':
+						return A2(author$project$ImagePlugin$imagePickerView, config, model);
+					default:
+						var imgContMode = _n0.a;
+						return A2(author$project$ImagePlugin$imageControllerView, model, imgContMode);
+				}
+			}());
 	});
 var author$project$NewDocPlugin$view = function (config) {
 	return A2(
@@ -31697,32 +31456,35 @@ var author$project$TablePlugin$editView = function (model) {
 };
 var author$project$TablePlugin$view = function (model) {
 	return A2(
-		mdgriffith$elm_ui$Element$column,
-		_Utils_ap(
+		mdgriffith$elm_ui$Element$map,
+		model.externalMsg,
+		A2(
+			mdgriffith$elm_ui$Element$column,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						mdgriffith$elm_ui$Element$Font$size(16),
+						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+						mdgriffith$elm_ui$Element$alignTop,
+						mdgriffith$elm_ui$Element$padding(15),
+						mdgriffith$elm_ui$Element$spacing(15)
+					]),
+				model.styleSelectorFocused ? _List_fromArray(
+					[
+						mdgriffith$elm_ui$Element$Events$onClick(author$project$TablePlugin$StyleSelectorClickOff)
+					]) : _List_Nil),
 			_List_fromArray(
 				[
-					mdgriffith$elm_ui$Element$Font$size(16),
-					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-					mdgriffith$elm_ui$Element$alignTop,
-					mdgriffith$elm_ui$Element$padding(15),
-					mdgriffith$elm_ui$Element$spacing(15)
-				]),
-			model.styleSelectorFocused ? _List_fromArray(
-				[
-					mdgriffith$elm_ui$Element$Events$onClick(author$project$TablePlugin$StyleSelectorClickOff)
-				]) : _List_Nil),
-		_List_fromArray(
-			[
-				mdgriffith$elm_ui$Element$text('Insérer / Modifier un tableau: '),
-				function () {
-				var _n0 = model.mode;
-				if (_n0.$ === 'DisplayOnly') {
-					return author$project$TablePlugin$displayOnlyView(model);
-				} else {
-					return author$project$TablePlugin$editView(model);
-				}
-			}()
-			]));
+					mdgriffith$elm_ui$Element$text('Insérer / Modifier un tableau: '),
+					function () {
+					var _n0 = model.mode;
+					if (_n0.$ === 'DisplayOnly') {
+						return author$project$TablePlugin$displayOnlyView(model);
+					} else {
+						return author$project$TablePlugin$editView(model);
+					}
+				}()
+				])));
 };
 var author$project$TextBlockPlugin$ColorPickerClickOff = {$: 'ColorPickerClickOff'};
 var author$project$TextBlockPlugin$InternalUrlSelectorClickOff = {$: 'InternalUrlSelectorClickOff'};
@@ -33763,7 +33525,6 @@ var author$project$TextBlockPlugin$interfaceView = function (model) {
 					]))
 			]));
 };
-var mdgriffith$elm_ui$Element$map = mdgriffith$elm_ui$Internal$Model$map;
 var author$project$TextBlockPlugin$textBlocPreview = F2(
 	function (model, config) {
 		return A2(
@@ -33804,83 +33565,86 @@ var author$project$TextBlockPlugin$textBlocPreview = F2(
 var author$project$TextBlockPlugin$view = F2(
 	function (model, config) {
 		return A2(
-			mdgriffith$elm_ui$Element$column,
-			_Utils_ap(
+			mdgriffith$elm_ui$Element$map,
+			model.externalMsg,
+			A2(
+				mdgriffith$elm_ui$Element$column,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$padding(15),
+							mdgriffith$elm_ui$Element$spacing(15),
+							mdgriffith$elm_ui$Element$scrollbarY,
+							mdgriffith$elm_ui$Element$height(
+							A2(mdgriffith$elm_ui$Element$minimum, config.height - config.mainInterfaceHeight, mdgriffith$elm_ui$Element$fill)),
+							mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+						]),
+					_Utils_ap(
+						model.internalUrlSelectorOpen ? _List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$Events$onClick(author$project$TextBlockPlugin$InternalUrlSelectorClickOff)
+							]) : _List_Nil,
+						(!_Utils_eq(model.colorPickerOpen, elm$core$Maybe$Nothing)) ? _List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$Events$onClick(author$project$TextBlockPlugin$ColorPickerClickOff)
+							]) : _List_Nil)),
 				_List_fromArray(
 					[
-						mdgriffith$elm_ui$Element$padding(15),
-						mdgriffith$elm_ui$Element$spacing(15),
-						mdgriffith$elm_ui$Element$scrollbarY,
-						mdgriffith$elm_ui$Element$height(
-						A2(mdgriffith$elm_ui$Element$minimum, config.height - config.mainInterfaceHeight, mdgriffith$elm_ui$Element$fill)),
-						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
-					]),
-				_Utils_ap(
-					model.internalUrlSelectorOpen ? _List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$Events$onClick(author$project$TextBlockPlugin$InternalUrlSelectorClickOff)
-						]) : _List_Nil,
-					(!_Utils_eq(model.colorPickerOpen, elm$core$Maybe$Nothing)) ? _List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$Events$onClick(author$project$TextBlockPlugin$ColorPickerClickOff)
-						]) : _List_Nil)),
-			_List_fromArray(
-				[
-					author$project$TextBlockPlugin$interfaceView(model),
-					A2(
-					(config.width < 1600) ? mdgriffith$elm_ui$Element$column : mdgriffith$elm_ui$Element$row,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$spacing(30)
-						]),
-					_List_fromArray(
-						[
-							A2(
-							mdgriffith$elm_ui$Element$column,
-							_List_fromArray(
-								[
-									mdgriffith$elm_ui$Element$alignTop,
-									mdgriffith$elm_ui$Element$spacing(20)
-								]),
-							_List_fromArray(
-								[
-									A4(
-									author$project$TextBlockPlugin$customTextArea,
-									_List_fromArray(
-										[
-											mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
-										]),
-									model.cursorPos,
-									model.setSelection,
-									model.rawInput),
-									A2(
-									mdgriffith$elm_ui$Element$row,
-									_List_fromArray(
-										[
-											mdgriffith$elm_ui$Element$spacing(15),
-											mdgriffith$elm_ui$Element$Font$size(16)
-										]),
-									_List_fromArray(
-										[
-											A2(
-											mdgriffith$elm_ui$Element$Input$button,
-											author$project$DocumentEditorHelpers$buttonStyle(true),
-											{
-												label: mdgriffith$elm_ui$Element$text('Quitter'),
-												onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$Quit)
-											}),
-											A2(
-											mdgriffith$elm_ui$Element$Input$button,
-											author$project$DocumentEditorHelpers$buttonStyle(true),
-											{
-												label: mdgriffith$elm_ui$Element$text('Valider et Quitter'),
-												onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$SaveAndQuit)
-											})
-										]))
-								])),
-							A2(author$project$TextBlockPlugin$textBlocPreview, model, config)
-						]))
-				]));
+						author$project$TextBlockPlugin$interfaceView(model),
+						A2(
+						(config.width < 1600) ? mdgriffith$elm_ui$Element$column : mdgriffith$elm_ui$Element$row,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$spacing(30)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								mdgriffith$elm_ui$Element$column,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$alignTop,
+										mdgriffith$elm_ui$Element$spacing(20)
+									]),
+								_List_fromArray(
+									[
+										A4(
+										author$project$TextBlockPlugin$customTextArea,
+										_List_fromArray(
+											[
+												mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+											]),
+										model.cursorPos,
+										model.setSelection,
+										model.rawInput),
+										A2(
+										mdgriffith$elm_ui$Element$row,
+										_List_fromArray(
+											[
+												mdgriffith$elm_ui$Element$spacing(15),
+												mdgriffith$elm_ui$Element$Font$size(16)
+											]),
+										_List_fromArray(
+											[
+												A2(
+												mdgriffith$elm_ui$Element$Input$button,
+												author$project$DocumentEditorHelpers$buttonStyle(true),
+												{
+													label: mdgriffith$elm_ui$Element$text('Quitter'),
+													onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$Quit)
+												}),
+												A2(
+												mdgriffith$elm_ui$Element$Input$button,
+												author$project$DocumentEditorHelpers$buttonStyle(true),
+												{
+													label: mdgriffith$elm_ui$Element$text('Valider et Quitter'),
+													onPress: elm$core$Maybe$Just(author$project$TextBlockPlugin$SaveAndQuit)
+												})
+											]))
+									])),
+								A2(author$project$TextBlockPlugin$textBlocPreview, model, config)
+							]))
+					])));
 	});
 var author$project$VideoPlugin$CheckControls = function (a) {
 	return {$: 'CheckControls', a: a};
@@ -33978,287 +33742,269 @@ var mdgriffith$elm_ui$Element$Input$checkbox = F2(
 var author$project$VideoPlugin$view = F2(
 	function (config, model) {
 		return A2(
-			mdgriffith$elm_ui$Element$column,
-			_List_fromArray(
-				[
-					mdgriffith$elm_ui$Element$spacing(15),
-					mdgriffith$elm_ui$Element$padding(15),
-					mdgriffith$elm_ui$Element$alignTop,
-					mdgriffith$elm_ui$Element$Font$size(16),
-					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-					mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$fill),
-					mdgriffith$elm_ui$Element$scrollbars
-				]),
-			_List_fromArray(
-				[
-					mdgriffith$elm_ui$Element$text('Insérer / Modifier une video:'),
-					A2(
-					mdgriffith$elm_ui$Element$column,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$spacing(10),
-							mdgriffith$elm_ui$Element$width(
-							mdgriffith$elm_ui$Element$px(500))
-						]),
-					_List_fromArray(
-						[
-							A2(
-							mdgriffith$elm_ui$Element$Input$multiline,
-							_List_fromArray(
-								[
-									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
-								]),
-							{
-								label: A2(
-									mdgriffith$elm_ui$Element$Input$labelAbove,
-									_List_Nil,
-									mdgriffith$elm_ui$Element$text('Copier ici le code d\'intégration:')),
-								onChange: author$project$VideoPlugin$SetEmbedString,
-								placeholder: elm$core$Maybe$Nothing,
-								spellcheck: false,
-								text: A2(elm$core$Maybe$withDefault, '', model.pastedHtml)
-							}),
-							A2(
-							mdgriffith$elm_ui$Element$Input$button,
-							author$project$DocumentEditorHelpers$buttonStyle(
-								!_Utils_eq(model.pastedHtml, elm$core$Maybe$Nothing)),
-							{
-								label: mdgriffith$elm_ui$Element$text('Valider'),
-								onPress: (!_Utils_eq(model.pastedHtml, elm$core$Maybe$Nothing)) ? elm$core$Maybe$Just(author$project$VideoPlugin$ParseHtml) : elm$core$Maybe$Nothing
-							})
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$column,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$spacing(15)
-						]),
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$text('Alignement: '),
-							A2(
-							mdgriffith$elm_ui$Element$row,
-							_List_fromArray(
-								[
-									mdgriffith$elm_ui$Element$spacing(15)
-								]),
-							_List_fromArray(
-								[
-									A2(
-									mdgriffith$elm_ui$Element$Input$button,
-									A2(
-										author$project$DocumentEditorHelpers$toogleButtonStyle,
-										_Utils_eq(model.alignment, author$project$DocumentEditorHelpers$ALeft),
-										true),
-									{
-										label: A2(
-											mdgriffith$elm_ui$Element$el,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$html(
-												author$project$Icons$alignLeft(author$project$VideoPlugin$iconSize))),
-										onPress: elm$core$Maybe$Just(
-											author$project$VideoPlugin$SetAlignment(author$project$DocumentEditorHelpers$ALeft))
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$button,
-									A2(
-										author$project$DocumentEditorHelpers$toogleButtonStyle,
-										_Utils_eq(model.alignment, author$project$DocumentEditorHelpers$ACenter),
-										true),
-									{
-										label: A2(
-											mdgriffith$elm_ui$Element$el,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$html(
-												author$project$Icons$alignCenter(author$project$VideoPlugin$iconSize))),
-										onPress: elm$core$Maybe$Just(
-											author$project$VideoPlugin$SetAlignment(author$project$DocumentEditorHelpers$ACenter))
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$button,
-									A2(
-										author$project$DocumentEditorHelpers$toogleButtonStyle,
-										_Utils_eq(model.alignment, author$project$DocumentEditorHelpers$ARight),
-										true),
-									{
-										label: A2(
-											mdgriffith$elm_ui$Element$el,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$html(
-												author$project$Icons$alignRight(author$project$VideoPlugin$iconSize))),
-										onPress: elm$core$Maybe$Just(
-											author$project$VideoPlugin$SetAlignment(author$project$DocumentEditorHelpers$ARight))
-									})
-								])),
-							mdgriffith$elm_ui$Element$text('Options: '),
-							A2(
-							mdgriffith$elm_ui$Element$row,
-							_List_fromArray(
-								[
-									mdgriffith$elm_ui$Element$spacing(15)
-								]),
-							_List_fromArray(
-								[
-									A2(
-									mdgriffith$elm_ui$Element$Input$checkbox,
-									_List_Nil,
-									{
-										checked: model.frameBorder,
-										icon: author$project$VideoPlugin$checkIcon,
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$text('Bordure')),
-										onChange: author$project$VideoPlugin$CheckFrameBorder
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$checkbox,
-									_List_Nil,
-									{
-										checked: model.title,
-										icon: author$project$VideoPlugin$checkIcon,
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$text('Afficher titre')),
-										onChange: author$project$VideoPlugin$CheckTitle
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$checkbox,
-									_List_Nil,
-									{
-										checked: model.controls,
-										icon: author$project$VideoPlugin$checkIcon,
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$text('Commandes')),
-										onChange: author$project$VideoPlugin$CheckControls
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$checkbox,
-									_List_Nil,
-									{
-										checked: model.suggestions,
-										icon: author$project$VideoPlugin$checkIcon,
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$text('Suggestions')),
-										onChange: author$project$VideoPlugin$CheckSuggestions
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$checkbox,
-									_List_Nil,
-									{
-										checked: model.privacy,
-										icon: author$project$VideoPlugin$checkIcon,
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_Nil,
-											mdgriffith$elm_ui$Element$text('Mode privé')),
-										onChange: author$project$VideoPlugin$CheckPrivacy
-									})
-								])),
-							A2(
-							mdgriffith$elm_ui$Element$row,
-							_List_fromArray(
-								[
-									mdgriffith$elm_ui$Element$spacing(15)
-								]),
-							_List_fromArray(
-								[
-									A2(
-									mdgriffith$elm_ui$Element$Input$text,
-									_Utils_ap(
-										author$project$DocumentEditorHelpers$textInputStyle,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$width(
-												mdgriffith$elm_ui$Element$px(50))
-											])),
-									{
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_fromArray(
-												[mdgriffith$elm_ui$Element$centerY]),
-											mdgriffith$elm_ui$Element$text('largeur: ')),
-										onChange: author$project$VideoPlugin$SetWidth,
-										placeholder: elm$core$Maybe$Nothing,
-										text: elm$core$String$fromInt(model.size.videoWidth)
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$text,
-									_Utils_ap(
-										author$project$DocumentEditorHelpers$textInputStyle,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$width(
-												mdgriffith$elm_ui$Element$px(50))
-											])),
-									{
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_fromArray(
-												[mdgriffith$elm_ui$Element$centerY]),
-											mdgriffith$elm_ui$Element$text('hauteur: ')),
-										onChange: author$project$VideoPlugin$SetHeight,
-										placeholder: elm$core$Maybe$Nothing,
-										text: elm$core$String$fromInt(model.size.videoHeight)
-									}),
-									A2(
-									mdgriffith$elm_ui$Element$Input$text,
-									_Utils_ap(
-										author$project$DocumentEditorHelpers$textInputStyle,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$width(
-												mdgriffith$elm_ui$Element$px(100))
-											])),
-									{
-										label: A2(
-											mdgriffith$elm_ui$Element$Input$labelLeft,
-											_List_fromArray(
-												[mdgriffith$elm_ui$Element$centerY]),
-											mdgriffith$elm_ui$Element$text('Commencer lecture à: ')),
-										onChange: author$project$VideoPlugin$SetStartAt,
-										placeholder: elm$core$Maybe$Just(
-											A2(
-												mdgriffith$elm_ui$Element$Input$placeholder,
-												_List_Nil,
-												mdgriffith$elm_ui$Element$text('hh:mm:ss'))),
-										text: A2(
-											elm$core$Maybe$withDefault,
-											'',
-											A2(elm$core$Maybe$map, elm$core$String$fromInt, model.startAt))
-									})
-								]))
-						])),
-					function () {
-					var _n0 = model.newSrc;
-					if (_n0.$ === 'Just') {
-						var url = _n0.a;
-						return A2(
-							mdgriffith$elm_ui$Element$el,
-							_List_Nil,
-							mdgriffith$elm_ui$Element$html(
+			mdgriffith$elm_ui$Element$map,
+			model.externalMsg,
+			A2(
+				mdgriffith$elm_ui$Element$column,
+				_List_fromArray(
+					[
+						mdgriffith$elm_ui$Element$spacing(15),
+						mdgriffith$elm_ui$Element$padding(15),
+						mdgriffith$elm_ui$Element$alignTop,
+						mdgriffith$elm_ui$Element$Font$size(16),
+						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+						mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$fill),
+						mdgriffith$elm_ui$Element$scrollbars
+					]),
+				_List_fromArray(
+					[
+						mdgriffith$elm_ui$Element$text('Insérer / Modifier une video:'),
+						A2(
+						mdgriffith$elm_ui$Element$column,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$spacing(10),
+								mdgriffith$elm_ui$Element$width(
+								mdgriffith$elm_ui$Element$px(500))
+							]),
+						_List_fromArray(
+							[
 								A2(
-									elm$html$Html$iframe,
-									_List_fromArray(
-										[
-											elm$html$Html$Attributes$src(
-											A2(author$project$DocumentEditorHelpers$buildYoutubeUrl, url, model)),
-											elm$html$Html$Attributes$width(model.size.videoWidth),
-											elm$html$Html$Attributes$height(model.size.videoHeight),
-											model.frameBorder ? author$project$DocumentEditorHelpers$noHtmlAttr : A2(elm$html$Html$Attributes$attribute, 'frameborder', '0'),
-											A2(elm$html$Html$Attributes$attribute, 'allowfullscreen', 'true'),
-											A2(elm$html$Html$Attributes$attribute, 'allow', 'autoplay; encrypted-media')
-										]),
-									_List_Nil)));
-					} else {
-						var _n1 = model.mbVideoMeta;
-						if (_n1.$ === 'Just') {
-							var vidMeta = _n1.a;
+								mdgriffith$elm_ui$Element$Input$multiline,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+									]),
+								{
+									label: A2(
+										mdgriffith$elm_ui$Element$Input$labelAbove,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$text('Copier ici le code d\'intégration:')),
+									onChange: author$project$VideoPlugin$SetEmbedString,
+									placeholder: elm$core$Maybe$Nothing,
+									spellcheck: false,
+									text: A2(elm$core$Maybe$withDefault, '', model.pastedHtml)
+								}),
+								A2(
+								mdgriffith$elm_ui$Element$Input$button,
+								author$project$DocumentEditorHelpers$buttonStyle(
+									!_Utils_eq(model.pastedHtml, elm$core$Maybe$Nothing)),
+								{
+									label: mdgriffith$elm_ui$Element$text('Valider'),
+									onPress: (!_Utils_eq(model.pastedHtml, elm$core$Maybe$Nothing)) ? elm$core$Maybe$Just(author$project$VideoPlugin$ParseHtml) : elm$core$Maybe$Nothing
+								})
+							])),
+						A2(
+						mdgriffith$elm_ui$Element$column,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$spacing(15)
+							]),
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$text('Alignement: '),
+								A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(15)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$Input$button,
+										A2(
+											author$project$DocumentEditorHelpers$toogleButtonStyle,
+											_Utils_eq(model.alignment, author$project$DocumentEditorHelpers$ALeft),
+											true),
+										{
+											label: A2(
+												mdgriffith$elm_ui$Element$el,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$html(
+													author$project$Icons$alignLeft(author$project$VideoPlugin$iconSize))),
+											onPress: elm$core$Maybe$Just(
+												author$project$VideoPlugin$SetAlignment(author$project$DocumentEditorHelpers$ALeft))
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$button,
+										A2(
+											author$project$DocumentEditorHelpers$toogleButtonStyle,
+											_Utils_eq(model.alignment, author$project$DocumentEditorHelpers$ACenter),
+											true),
+										{
+											label: A2(
+												mdgriffith$elm_ui$Element$el,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$html(
+													author$project$Icons$alignCenter(author$project$VideoPlugin$iconSize))),
+											onPress: elm$core$Maybe$Just(
+												author$project$VideoPlugin$SetAlignment(author$project$DocumentEditorHelpers$ACenter))
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$button,
+										A2(
+											author$project$DocumentEditorHelpers$toogleButtonStyle,
+											_Utils_eq(model.alignment, author$project$DocumentEditorHelpers$ARight),
+											true),
+										{
+											label: A2(
+												mdgriffith$elm_ui$Element$el,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$html(
+													author$project$Icons$alignRight(author$project$VideoPlugin$iconSize))),
+											onPress: elm$core$Maybe$Just(
+												author$project$VideoPlugin$SetAlignment(author$project$DocumentEditorHelpers$ARight))
+										})
+									])),
+								mdgriffith$elm_ui$Element$text('Options: '),
+								A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(15)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$Input$checkbox,
+										_List_Nil,
+										{
+											checked: model.frameBorder,
+											icon: author$project$VideoPlugin$checkIcon,
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$text('Bordure')),
+											onChange: author$project$VideoPlugin$CheckFrameBorder
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$checkbox,
+										_List_Nil,
+										{
+											checked: model.title,
+											icon: author$project$VideoPlugin$checkIcon,
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$text('Afficher titre')),
+											onChange: author$project$VideoPlugin$CheckTitle
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$checkbox,
+										_List_Nil,
+										{
+											checked: model.controls,
+											icon: author$project$VideoPlugin$checkIcon,
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$text('Commandes')),
+											onChange: author$project$VideoPlugin$CheckControls
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$checkbox,
+										_List_Nil,
+										{
+											checked: model.suggestions,
+											icon: author$project$VideoPlugin$checkIcon,
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$text('Suggestions')),
+											onChange: author$project$VideoPlugin$CheckSuggestions
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$checkbox,
+										_List_Nil,
+										{
+											checked: model.privacy,
+											icon: author$project$VideoPlugin$checkIcon,
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_Nil,
+												mdgriffith$elm_ui$Element$text('Mode privé')),
+											onChange: author$project$VideoPlugin$CheckPrivacy
+										})
+									])),
+								A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spacing(15)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$Input$text,
+										_Utils_ap(
+											author$project$DocumentEditorHelpers$textInputStyle,
+											_List_fromArray(
+												[
+													mdgriffith$elm_ui$Element$width(
+													mdgriffith$elm_ui$Element$px(50))
+												])),
+										{
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_fromArray(
+													[mdgriffith$elm_ui$Element$centerY]),
+												mdgriffith$elm_ui$Element$text('largeur: ')),
+											onChange: author$project$VideoPlugin$SetWidth,
+											placeholder: elm$core$Maybe$Nothing,
+											text: elm$core$String$fromInt(model.size.videoWidth)
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$text,
+										_Utils_ap(
+											author$project$DocumentEditorHelpers$textInputStyle,
+											_List_fromArray(
+												[
+													mdgriffith$elm_ui$Element$width(
+													mdgriffith$elm_ui$Element$px(50))
+												])),
+										{
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_fromArray(
+													[mdgriffith$elm_ui$Element$centerY]),
+												mdgriffith$elm_ui$Element$text('hauteur: ')),
+											onChange: author$project$VideoPlugin$SetHeight,
+											placeholder: elm$core$Maybe$Nothing,
+											text: elm$core$String$fromInt(model.size.videoHeight)
+										}),
+										A2(
+										mdgriffith$elm_ui$Element$Input$text,
+										_Utils_ap(
+											author$project$DocumentEditorHelpers$textInputStyle,
+											_List_fromArray(
+												[
+													mdgriffith$elm_ui$Element$width(
+													mdgriffith$elm_ui$Element$px(100))
+												])),
+										{
+											label: A2(
+												mdgriffith$elm_ui$Element$Input$labelLeft,
+												_List_fromArray(
+													[mdgriffith$elm_ui$Element$centerY]),
+												mdgriffith$elm_ui$Element$text('Commencer lecture à: ')),
+											onChange: author$project$VideoPlugin$SetStartAt,
+											placeholder: elm$core$Maybe$Just(
+												A2(
+													mdgriffith$elm_ui$Element$Input$placeholder,
+													_List_Nil,
+													mdgriffith$elm_ui$Element$text('hh:mm:ss'))),
+											text: A2(
+												elm$core$Maybe$withDefault,
+												'',
+												A2(elm$core$Maybe$map, elm$core$String$fromInt, model.startAt))
+										})
+									]))
+							])),
+						function () {
+						var _n0 = model.newSrc;
+						if (_n0.$ === 'Just') {
+							var url = _n0.a;
 							return A2(
 								mdgriffith$elm_ui$Element$el,
 								_List_Nil,
@@ -34268,7 +34014,7 @@ var author$project$VideoPlugin$view = F2(
 										_List_fromArray(
 											[
 												elm$html$Html$Attributes$src(
-												A2(author$project$DocumentEditorHelpers$buildYoutubeUrl, vidMeta.src, model)),
+												A2(author$project$DocumentEditorHelpers$buildYoutubeUrl, url, model)),
 												elm$html$Html$Attributes$width(model.size.videoWidth),
 												elm$html$Html$Attributes$height(model.size.videoHeight),
 												model.frameBorder ? author$project$DocumentEditorHelpers$noHtmlAttr : A2(elm$html$Html$Attributes$attribute, 'frameborder', '0'),
@@ -34277,61 +34023,73 @@ var author$project$VideoPlugin$view = F2(
 											]),
 										_List_Nil)));
 						} else {
-							return mdgriffith$elm_ui$Element$none;
+							var _n1 = model.mbVideoMeta;
+							if (_n1.$ === 'Just') {
+								var vidMeta = _n1.a;
+								return A2(
+									mdgriffith$elm_ui$Element$el,
+									_List_Nil,
+									mdgriffith$elm_ui$Element$html(
+										A2(
+											elm$html$Html$iframe,
+											_List_fromArray(
+												[
+													elm$html$Html$Attributes$src(
+													A2(author$project$DocumentEditorHelpers$buildYoutubeUrl, vidMeta.src, model)),
+													elm$html$Html$Attributes$width(model.size.videoWidth),
+													elm$html$Html$Attributes$height(model.size.videoHeight),
+													model.frameBorder ? author$project$DocumentEditorHelpers$noHtmlAttr : A2(elm$html$Html$Attributes$attribute, 'frameborder', '0'),
+													A2(elm$html$Html$Attributes$attribute, 'allowfullscreen', 'true'),
+													A2(elm$html$Html$Attributes$attribute, 'allow', 'autoplay; encrypted-media')
+												]),
+											_List_Nil)));
+							} else {
+								return mdgriffith$elm_ui$Element$none;
+							}
 						}
-					}
-				}(),
-					A2(
-					mdgriffith$elm_ui$Element$row,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$spacing(15)
-						]),
-					_List_fromArray(
-						[
-							A2(
-							mdgriffith$elm_ui$Element$Input$button,
-							author$project$DocumentEditorHelpers$buttonStyle(true),
-							{
-								label: mdgriffith$elm_ui$Element$text('Quitter'),
-								onPress: elm$core$Maybe$Just(author$project$VideoPlugin$Quit)
-							}),
-							A2(
-							mdgriffith$elm_ui$Element$Input$button,
-							author$project$DocumentEditorHelpers$buttonStyle(true),
-							{
-								label: mdgriffith$elm_ui$Element$text('Valider et Quitter'),
-								onPress: elm$core$Maybe$Just(author$project$VideoPlugin$SaveAndQuit)
-							})
-						]))
-				]));
+					}(),
+						A2(
+						mdgriffith$elm_ui$Element$row,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$spacing(15)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								mdgriffith$elm_ui$Element$Input$button,
+								author$project$DocumentEditorHelpers$buttonStyle(true),
+								{
+									label: mdgriffith$elm_ui$Element$text('Quitter'),
+									onPress: elm$core$Maybe$Just(author$project$VideoPlugin$Quit)
+								}),
+								A2(
+								mdgriffith$elm_ui$Element$Input$button,
+								author$project$DocumentEditorHelpers$buttonStyle(true),
+								{
+									label: mdgriffith$elm_ui$Element$text('Valider et Quitter'),
+									onPress: elm$core$Maybe$Just(author$project$VideoPlugin$SaveAndQuit)
+								})
+							]))
+					])));
 	});
 var author$project$Editor$pluginView = F2(
 	function (model, plugin) {
 		switch (plugin.$) {
 			case 'ImagePlugin':
 				return A2(
-					mdgriffith$elm_ui$Element$map,
-					author$project$Editor$ImagePluginMsg,
-					A2(
-						author$project$ImagePlugin$view,
-						{picListing: _List_Nil},
-						model.imagePlugin));
+					author$project$ImagePlugin$view,
+					{externalMsg: author$project$Editor$ImagePluginMsg, picListing: _List_Nil},
+					model.imagePlugin);
 			case 'TablePlugin':
-				return A2(
-					mdgriffith$elm_ui$Element$map,
-					author$project$Editor$TablePluginMsg,
-					author$project$TablePlugin$view(model.tablePlugin));
+				return author$project$TablePlugin$view(model.tablePlugin);
 			case 'CustomElementPlugin':
 				return A2(
 					mdgriffith$elm_ui$Element$el,
 					_List_Nil,
 					mdgriffith$elm_ui$Element$text('Nothing  here yet!'));
 			case 'TextBlockPlugin':
-				return A2(
-					mdgriffith$elm_ui$Element$map,
-					author$project$Editor$TextBlockPluginMsg,
-					A2(author$project$TextBlockPlugin$view, model.textBlockPlugin, model.config));
+				return A2(author$project$TextBlockPlugin$view, model.textBlockPlugin, model.config);
 			case 'NewDocPlugin':
 				return author$project$NewDocPlugin$view(
 					{
@@ -34354,10 +34112,7 @@ var author$project$Editor$pluginView = F2(
 					return mdgriffith$elm_ui$Element$text('Aucun containeur sélectionné');
 				}
 			case 'VideoPlugin':
-				return A2(
-					mdgriffith$elm_ui$Element$map,
-					author$project$Editor$VideoPluginMsg,
-					A2(author$project$VideoPlugin$view, _List_Nil, model.videoPlugin));
+				return A2(author$project$VideoPlugin$view, _List_Nil, model.videoPlugin);
 			case 'PersistencePlugin':
 				return author$project$PersistencePlugin$view(
 					{
@@ -34379,13 +34134,19 @@ var author$project$Editor$pluginView = F2(
 						setLocalStorageValue: author$project$Editor$SetLocalStorageValue
 					});
 			default:
-				return A2(author$project$Filesys$view, model.filesysConfig, model.filesys);
+				return A2(author$project$FilesysPlugin$view, _List_Nil, model.filesysPlugin);
 		}
+	});
+var mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
+	function (a, b) {
+		return {$: 'OnlyDynamic', a: a, b: b};
 	});
 var mdgriffith$elm_ui$Internal$Model$StaticRootAndDynamic = F2(
 	function (a, b) {
 		return {$: 'StaticRootAndDynamic', a: a, b: b};
 	});
+var mdgriffith$elm_ui$Internal$Model$AllowHover = {$: 'AllowHover'};
+var mdgriffith$elm_ui$Internal$Model$Layout = {$: 'Layout'};
 var mdgriffith$elm_ui$Internal$Model$focusDefaultStyle = {
 	backgroundColor: elm$core$Maybe$Nothing,
 	borderColor: elm$core$Maybe$Nothing,
@@ -34694,4 +34455,4 @@ var author$project$Editor$main = elm$browser$Browser$document(
 		view: author$project$Editor$view
 	});
 _Platform_export({'Editor':{'init':author$project$Editor$main(
-	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"Editor.Msg","aliases":{"Filesys.Context":{"args":[],"type":"{ parent : Filesys.Meta, left : List.List Filesys.FsItem, right : List.List Filesys.FsItem }"},"Filesys.Filesys":{"args":[],"type":"{ current : Filesys.FsItem, contexts : List.List Filesys.Context, version : Basics.Int }"},"Filesys.Meta":{"args":[],"type":"{ path : List.List String.String, name : String.String }"},"Browser.Dom.Viewport":{"args":[],"type":"{ scene : { width : Basics.Float, height : Basics.Float }, viewport : { x : Basics.Float, y : Basics.Float, width : Basics.Float, height : Basics.Float } }"},"Html.Events.Extra.Mouse.Event":{"args":[],"type":"{ keys : Html.Events.Extra.Mouse.Keys, button : Html.Events.Extra.Mouse.Button, clientPos : ( Basics.Float, Basics.Float ), offsetPos : ( Basics.Float, Basics.Float ), pagePos : ( Basics.Float, Basics.Float ), screenPos : ( Basics.Float, Basics.Float ) }"},"Html.Events.Extra.Mouse.Keys":{"args":[],"type":"{ alt : Basics.Bool, ctrl : Basics.Bool, shift : Basics.Bool }"},"Html.Events.Extra.Wheel.Event":{"args":[],"type":"{ mouseEvent : Html.Events.Extra.Mouse.Event, deltaY : Basics.Float, deltaMode : Html.Events.Extra.Wheel.DeltaMode }"},"ImagePlugin.ImageFromFile":{"args":[],"type":"{ contents : String.String, filename : String.String, width : Basics.Int, height : Basics.Int, filesize : Basics.Int }"},"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"Editor.Msg":{"args":[],"tags":{"CurrentViewport":["Browser.Dom.Viewport"],"CurrentViewportOf":["Basics.Int","Result.Result Browser.Dom.Error Browser.Dom.Viewport"],"WinResize":["Basics.Int","Basics.Int"],"RefreshSizes":[],"MainInterfaceViewport":["Result.Result Browser.Dom.Error Browser.Dom.Viewport"],"JumpTo":["Maybe.Maybe String.String"],"KeyDown":["String.String"],"KeyUp":["String.String"],"SelectDoc":["Basics.Int"],"ZipToUid":["Basics.Int"],"WheelEvent":["Html.Events.Extra.Wheel.Event"],"Rewind":[],"SwapLeft":[],"SwapRight":[],"EditCell":[],"EditContainer":[],"SwapContainerType":["Document.ContainerLabel"],"AddNewInside":[],"AddNewLeft":[],"AddNewRight":[],"CreateNewContainer":["Document.ContainerLabel"],"CreateNewCell":["DocumentEditorHelpers.EditorPlugin"],"DeleteSelected":[],"Copy":[],"Cut":[],"Paste":[],"Undo":[],"MenuClick":[],"MenuClickOff":[],"TopEntryFocused":["String.String"],"SetPreviewMode":["Editor.PreviewMode"],"ToogleCountainersColors":[],"SetEditorPlugin":["Maybe.Maybe DocumentEditorHelpers.EditorPlugin"],"ToogleFileSys":[],"NewFileSys":["Filesys.Filesys","Maybe.Maybe (Platform.Cmd.Cmd Editor.Msg)"],"TablePluginMsg":["TablePlugin.Msg"],"TextBlockPluginMsg":["TextBlockPlugin.Msg"],"ImagePluginMsg":["ImagePlugin.Msg"],"VideoPluginMsg":["VideoPlugin.Msg"],"LoadDocument":[],"SetLocalStorageKey":["String.String"],"SetLocalStorageValue":["Json.Encode.Value"],"SetJsonBuffer":["String.String"],"GetFromLocalStorage":[],"PutInLocalStorage":[],"RemoveFromLocalStorage":[],"ClearLocalStorage":[],"ListKeys":[],"Process":["Json.Encode.Value"],"NoOp":[]}},"Document.ContainerLabel":{"args":[],"tags":{"DocColumn":[],"DocRow":[],"TextColumn":[],"ResponsiveBloc":[]}},"DocumentEditorHelpers.EditorPlugin":{"args":[],"tags":{"ImagePlugin":[],"VideoPlugin":[],"TablePlugin":[],"CustomElementPlugin":[],"TextBlockPlugin":[],"NewDocPlugin":[],"ContainerEditPlugin":[],"PersistencePlugin":[],"FilesysDebug":[]}},"Editor.PreviewMode":{"args":[],"tags":{"PreviewBigScreen":[],"PreviewScreen":[],"PreviewTablet":[],"PreviewPhone":[]}},"Filesys.FsItem":{"args":[],"tags":{"Folder":["Filesys.Meta","List.List Filesys.FsItem"],"File":["Filesys.Meta"]}},"ImagePlugin.Msg":{"args":[],"tags":{"SetAlignment":["DocumentEditorHelpers.Alignment"],"SetCaption":["String.String"],"SelectImage":["( String.String, ( Basics.Int, Basics.Int ) )"],"ConfirmSelected":[],"FileRead":["ImagePlugin.ImageFromFile"],"ImageRead":["ImagePlugin.ImageFromFile"],"UploadResult":["Result.Result Http.Error ()"],"RotateRight":[],"RotateLeft":[],"Resize":["Basics.Float"],"SetResize":[],"SetFilename":["String.String"],"ResetImageController":[],"ConfirmNewImage":[],"ChangeMode":["ImagePlugin.Mode"],"SaveAndQuit":[],"Quit":[],"NoOp":[]}},"TablePlugin.Msg":{"args":[],"tags":{"SetNbrRows":["String.String"],"SetNbrCols":["String.String"],"SetStyle":["String.String"],"StyleSelectorClick":[],"StyleSelectorClickOff":[],"InitializeTable":[],"DataInput":["( Basics.Int, Basics.Int )","String.String"],"CellFocused":["Maybe.Maybe ( Basics.Int, Basics.Int )"],"RemoveSelectedRow":[],"RemoveSelectedCol":[],"AddNew":["TablePlugin.Direction"],"SwapDisplayMode":[],"SaveAndQuit":[],"Quit":[]}},"TextBlockPlugin.Msg":{"args":[],"tags":{"TextInput":["String.String"],"InsertTrackingTag":["TextBlockPlugin.TrackedDataKind"],"NewSelection":["TextBlockPlugin.Selection"],"SetSelection":[],"SetTextBlocFont":["String.String"],"SetTextBlocFontSize":["String.String"],"SetTextBlocAlignment":[],"SetTextBlocBold":[],"SetTextBlocItalic":[],"SelectHeadingLevel":["String.String"],"ConfirmHeadingLevel":["Basics.Int"],"SetUrl":["Basics.Int","String.String"],"SetInternalLinkKind":["Basics.Int","Basics.Bool"],"InternalUrlSelectorClick":[],"InternalUrlSelectorClickOff":[],"SelectInternalPage":["String.String"],"ConfirmInternalPageUrl":["Basics.Int"],"SelectFolder":["String.String"],"SelectFile":["String.String"],"ConfirmFileUrl":["Basics.Int"],"SetTextColor":["Basics.Int","String.String"],"SetBackgroundColor":["Basics.Int","String.String"],"SetInlineFont":["Basics.Int","String.String"],"SetInlineFontSize":["Basics.Int","String.String"],"SetInlineBold":["Basics.Int"],"SetInlineItalic":["Basics.Int"],"ColorPickerClick":["String.String"],"ColorPickerClickOff":[],"SaveAndQuit":[],"Quit":[],"NoOp":[]}},"VideoPlugin.Msg":{"args":[],"tags":{"SetEmbedString":["String.String"],"ParseHtml":[],"SetAlignment":["DocumentEditorHelpers.Alignment"],"CheckFrameBorder":["Basics.Bool"],"CheckControls":["Basics.Bool"],"CheckPrivacy":["Basics.Bool"],"CheckTitle":["Basics.Bool"],"CheckSuggestions":["Basics.Bool"],"SetStartAt":["String.String"],"SetWidth":["String.String"],"SetHeight":["String.String"],"Quit":[],"SaveAndQuit":[],"NoOp":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Platform.Cmd.Cmd":{"args":["msg"],"tags":{"Cmd":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Html.Events.Extra.Mouse.Button":{"args":[],"tags":{"ErrorButton":[],"MainButton":[],"MiddleButton":[],"SecondButton":[],"BackButton":[],"ForwardButton":[]}},"Html.Events.Extra.Wheel.DeltaMode":{"args":[],"tags":{"DeltaPixel":[],"DeltaLine":[],"DeltaPage":[]}},"DocumentEditorHelpers.Alignment":{"args":[],"tags":{"ARight":[],"ACenter":[],"ALeft":[]}},"ImagePlugin.Mode":{"args":[],"tags":{"ImageAttributeEditor":[],"ImagePicker":[],"ImageController":["ImagePlugin.ImageControllerMode"]}},"TablePlugin.Direction":{"args":[],"tags":{"Up":[],"Down":[],"Left":[],"Right":[]}},"TextBlockPlugin.TrackedDataKind":{"args":[],"tags":{"InternalLink":["Basics.Bool","String.String"],"ExternalLink":["String.String"],"Heading":["Basics.Int"],"InlineStyled":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"ImagePlugin.ImageControllerMode":{"args":[],"tags":{"FileReader":[],"Editor":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
+	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"Editor.Msg","aliases":{"Browser.Dom.Viewport":{"args":[],"type":"{ scene : { width : Basics.Float, height : Basics.Float }, viewport : { x : Basics.Float, y : Basics.Float, width : Basics.Float, height : Basics.Float } }"},"Html.Events.Extra.Mouse.Event":{"args":[],"type":"{ keys : Html.Events.Extra.Mouse.Keys, button : Html.Events.Extra.Mouse.Button, clientPos : ( Basics.Float, Basics.Float ), offsetPos : ( Basics.Float, Basics.Float ), pagePos : ( Basics.Float, Basics.Float ), screenPos : ( Basics.Float, Basics.Float ) }"},"Html.Events.Extra.Mouse.Keys":{"args":[],"type":"{ alt : Basics.Bool, ctrl : Basics.Bool, shift : Basics.Bool }"},"Html.Events.Extra.Wheel.Event":{"args":[],"type":"{ mouseEvent : Html.Events.Extra.Mouse.Event, deltaY : Basics.Float, deltaMode : Html.Events.Extra.Wheel.DeltaMode }"},"ImagePlugin.ImageFromFile":{"args":[],"type":"{ contents : String.String, filename : String.String, width : Basics.Int, height : Basics.Int, filesize : Basics.Int }"},"TextBlockPlugin.Selection":{"args":[],"type":"{ start : Basics.Int, finish : Basics.Int, sel : String.String }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"Editor.Msg":{"args":[],"tags":{"CurrentViewport":["Browser.Dom.Viewport"],"CurrentViewportOf":["Basics.Int","Result.Result Browser.Dom.Error Browser.Dom.Viewport"],"WinResize":["Basics.Int","Basics.Int"],"RefreshSizes":[],"MainInterfaceViewport":["Result.Result Browser.Dom.Error Browser.Dom.Viewport"],"JumpTo":["Maybe.Maybe String.String"],"KeyDown":["String.String"],"KeyUp":["String.String"],"SelectDoc":["Basics.Int"],"ZipToUid":["Basics.Int"],"WheelEvent":["Html.Events.Extra.Wheel.Event"],"Rewind":[],"SwapLeft":[],"SwapRight":[],"EditCell":[],"EditContainer":[],"SwapContainerType":["Document.ContainerLabel"],"AddNewInside":[],"AddNewLeft":[],"AddNewRight":[],"CreateNewContainer":["Document.ContainerLabel"],"CreateNewCell":["DocumentEditorHelpers.EditorPlugin"],"DeleteSelected":[],"Copy":[],"Cut":[],"Paste":[],"Undo":[],"MenuClick":[],"MenuClickOff":[],"TopEntryFocused":["String.String"],"SetPreviewMode":["Editor.PreviewMode"],"ToogleCountainersColors":[],"SetEditorPlugin":["Maybe.Maybe DocumentEditorHelpers.EditorPlugin"],"ToogleFileSys":[],"FilesysPluginMsg":["FilesysPlugin.Msg"],"TablePluginMsg":["TablePlugin.Msg"],"TextBlockPluginMsg":["TextBlockPlugin.Msg"],"ImagePluginMsg":["ImagePlugin.Msg"],"VideoPluginMsg":["VideoPlugin.Msg"],"LoadDocument":[],"SetLocalStorageKey":["String.String"],"SetLocalStorageValue":["Json.Encode.Value"],"SetJsonBuffer":["String.String"],"GetFromLocalStorage":[],"PutInLocalStorage":[],"RemoveFromLocalStorage":[],"ClearLocalStorage":[],"ListKeys":[],"Process":["Json.Encode.Value"],"NoOp":[]}},"Document.ContainerLabel":{"args":[],"tags":{"DocColumn":[],"DocRow":[],"TextColumn":[],"ResponsiveBloc":[]}},"DocumentEditorHelpers.EditorPlugin":{"args":[],"tags":{"ImagePlugin":[],"VideoPlugin":[],"TablePlugin":[],"CustomElementPlugin":[],"TextBlockPlugin":[],"NewDocPlugin":[],"ContainerEditPlugin":[],"PersistencePlugin":[],"FilesysDebug":[]}},"Editor.PreviewMode":{"args":[],"tags":{"PreviewBigScreen":[],"PreviewScreen":[],"PreviewTablet":[],"PreviewPhone":[]}},"FilesysPlugin.Msg":{"args":[],"tags":{"GoHome":[],"GoNext":[],"GoPrev":[],"GoTo":["List.List String.String"],"NewFile":[],"NewFolder":[],"Delete":[],"Rename":["String.String"]}},"ImagePlugin.Msg":{"args":[],"tags":{"SetAlignment":["DocumentEditorHelpers.Alignment"],"SetCaption":["String.String"],"SelectImage":["( String.String, ( Basics.Int, Basics.Int ) )"],"ConfirmSelected":[],"FileRead":["ImagePlugin.ImageFromFile"],"ImageRead":["ImagePlugin.ImageFromFile"],"UploadResult":["Result.Result Http.Error ()"],"RotateRight":[],"RotateLeft":[],"Resize":["Basics.Float"],"SetResize":[],"SetFilename":["String.String"],"ResetImageController":[],"ConfirmNewImage":[],"ChangeMode":["ImagePlugin.Mode"],"SaveAndQuit":[],"Quit":[],"NoOp":[]}},"TablePlugin.Msg":{"args":[],"tags":{"SetNbrRows":["String.String"],"SetNbrCols":["String.String"],"SetStyle":["String.String"],"StyleSelectorClick":[],"StyleSelectorClickOff":[],"InitializeTable":[],"DataInput":["( Basics.Int, Basics.Int )","String.String"],"CellFocused":["Maybe.Maybe ( Basics.Int, Basics.Int )"],"RemoveSelectedRow":[],"RemoveSelectedCol":[],"AddNew":["TablePlugin.Direction"],"SwapDisplayMode":[],"SaveAndQuit":[],"Quit":[]}},"TextBlockPlugin.Msg":{"args":[],"tags":{"TextInput":["String.String"],"InsertTrackingTag":["TextBlockPlugin.TrackedDataKind"],"NewSelection":["TextBlockPlugin.Selection"],"SetSelection":[],"SetTextBlocFont":["String.String"],"SetTextBlocFontSize":["String.String"],"SetTextBlocAlignment":[],"SetTextBlocBold":[],"SetTextBlocItalic":[],"SelectHeadingLevel":["String.String"],"ConfirmHeadingLevel":["Basics.Int"],"SetUrl":["Basics.Int","String.String"],"SetInternalLinkKind":["Basics.Int","Basics.Bool"],"InternalUrlSelectorClick":[],"InternalUrlSelectorClickOff":[],"SelectInternalPage":["String.String"],"ConfirmInternalPageUrl":["Basics.Int"],"SelectFolder":["String.String"],"SelectFile":["String.String"],"ConfirmFileUrl":["Basics.Int"],"SetTextColor":["Basics.Int","String.String"],"SetBackgroundColor":["Basics.Int","String.String"],"SetInlineFont":["Basics.Int","String.String"],"SetInlineFontSize":["Basics.Int","String.String"],"SetInlineBold":["Basics.Int"],"SetInlineItalic":["Basics.Int"],"ColorPickerClick":["String.String"],"ColorPickerClickOff":[],"SaveAndQuit":[],"Quit":[],"NoOp":[]}},"VideoPlugin.Msg":{"args":[],"tags":{"SetEmbedString":["String.String"],"ParseHtml":[],"SetAlignment":["DocumentEditorHelpers.Alignment"],"CheckFrameBorder":["Basics.Bool"],"CheckControls":["Basics.Bool"],"CheckPrivacy":["Basics.Bool"],"CheckTitle":["Basics.Bool"],"CheckSuggestions":["Basics.Bool"],"SetStartAt":["String.String"],"SetWidth":["String.String"],"SetHeight":["String.String"],"Quit":[],"SaveAndQuit":[],"NoOp":[]}},"Browser.Dom.Error":{"args":[],"tags":{"NotFound":["String.String"]}},"Basics.Bool":{"args":[],"tags":{"True":[],"False":[]}},"Basics.Float":{"args":[],"tags":{"Float":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Html.Events.Extra.Mouse.Button":{"args":[],"tags":{"ErrorButton":[],"MainButton":[],"MiddleButton":[],"SecondButton":[],"BackButton":[],"ForwardButton":[]}},"Html.Events.Extra.Wheel.DeltaMode":{"args":[],"tags":{"DeltaPixel":[],"DeltaLine":[],"DeltaPage":[]}},"DocumentEditorHelpers.Alignment":{"args":[],"tags":{"ARight":[],"ACenter":[],"ALeft":[]}},"ImagePlugin.Mode":{"args":[],"tags":{"ImageAttributeEditor":[],"ImagePicker":[],"ImageController":["ImagePlugin.ImageControllerMode"]}},"TablePlugin.Direction":{"args":[],"tags":{"Up":[],"Down":[],"Left":[],"Right":[]}},"TextBlockPlugin.TrackedDataKind":{"args":[],"tags":{"InternalLink":["Basics.Bool","String.String"],"ExternalLink":["String.String"],"Heading":["Basics.Int"],"InlineStyled":[]}},"List.List":{"args":["a"],"tags":{}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"ImagePlugin.ImageControllerMode":{"args":[],"tags":{"FileReader":[],"Editor":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
