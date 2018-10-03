@@ -1288,7 +1288,9 @@ pluginView model plugin =
 
         FilesysDebug ->
             FilesysPlugin.view
-                []
+                { maxHeight =
+                    model.config.height - model.config.mainInterfaceHeight
+                }
                 model.filesysPlugin
 
 

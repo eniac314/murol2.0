@@ -1,0 +1,264 @@
+{"images":
+[{"path":"images/Logo_LABEL_FamillePlus_RVB.jpg", "name":"Logo_LABEL_FamillePlus_RVB.jpg"}
+,{"path":"images/voie1.jpg", "name":"voie1.jpg"}
+,{"path":"images/Recycling.png", "name":"Recycling.png"}
+,{"path":"images/cover.xcf", "name":"cover.xcf"}
+,{"path":"images/bourg.jpg", "name":"bourg.jpg"}
+,{"path":"images/test/Logo_LABEL_FamillePlus_RVB.jpg", "name":"Logo_LABEL_FamillePlus_RVB.jpg"}
+,{"path":"images/lake.png", "name":"lake.png"}
+,{"path":"images/famillesPlus.png", "name":"famillesPlus.png"}
+,{"path":"images/horizon3.jpg", "name":"horizon3.jpg"}
+,{"path":"images/routes.jpg", "name":"routes.jpg"}
+,{"path":"images/bannerbg.jpg", "name":"bannerbg.jpg"}
+,{"path":"images/visiteVirt.jpg", "name":"visiteVirt.jpg"}
+,{"path":"images/chassagne.jpg", "name":"chassagne.jpg"}
+,{"path":"images/springbanner1567.jpg", "name":"springbanner1567.jpg"}
+,{"path":"images/100_6427.JPG", "name":"100_6427.JPG"}
+,{"path":"images/dArrow.jpeg", "name":"dArrow.jpeg"}
+,{"path":"images/illustration animations estivales.jpg", "name":"illustration animations estivales.jpg"}
+,{"path":"images/icon2017leaf.png", "name":"icon2017leaf.png"}
+,{"path":"images/murol vue générale.jpg", "name":"murol vue générale.jpg"}
+,{"path":"images/bgblue.jpg", "name":"bgblue.jpg"}
+,{"path":"images/artistes/image14.jpg", "name":"image14.jpg"}
+,{"path":"images/artistes/FresqueA-2012.jpg", "name":"FresqueA-2012.jpg"}
+,{"path":"images/artistes/image10.jpg", "name":"image10.jpg"}
+,{"path":"images/artistes/Claire-Gouttebel.jpg", "name":"Claire-Gouttebel.jpg"}
+,{"path":"images/artistes/lavedrine1.jpg", "name":"lavedrine1.jpg"}
+,{"path":"images/artistes/image9.jpg", "name":"image9.jpg"}
+,{"path":"images/artistes/image11.jpg", "name":"image11.jpg"}
+,{"path":"images/artistes/image13.jpg", "name":"image13.jpg"}
+,{"path":"images/artistes/Entete-Marie.jpg", "name":"Entete-Marie.jpg"}
+,{"path":"images/artistes/image8.jpg", "name":"image8.jpg"}
+,{"path":"images/artistes/image15.jpg", "name":"image15.jpg"}
+,{"path":"images/artistes/image9.jpeg", "name":"image9.jpeg"}
+,{"path":"images/artistes/image3.jpg", "name":"image3.jpg"}
+,{"path":"images/artistes/image12.jpg", "name":"image12.jpg"}
+,{"path":"images/artistes/image7.jpg", "name":"image7.jpg"}
+,{"path":"images/calendVac.jpg", "name":"calendVac.jpg"}
+,{"path":"images/Village fleuri.png", "name":"Village fleuri.png"}
+,{"path":"images/lake.jpg", "name":"lake.jpg"}
+,{"path":"images/menubg.gif", "name":"menubg.gif"}
+,{"path":"images/chassagne1.jpg", "name":"chassagne1.jpg"}
+,{"path":"images/lac2.jpg", "name":"lac2.jpg"}
+,{"path":"images/OT.jpg", "name":"OT.jpg"}
+,{"path":"images/prélong.jpg", "name":"prélong.jpg"}
+,{"path":"images/mapBig.jpg", "name":"mapBig.jpg"}
+,{"path":"images/double-arrow-pointing-left-direction_318-50564.png.jpeg", "name":"double-arrow-pointing-left-direction_318-50564.png.jpeg"}
+,{"path":"images/banner_automne_1567.jpg", "name":"banner_automne_1567.jpg"}
+,{"path":"images/lac1.jpg", "name":"lac1.jpg"}
+,{"path":"images/winter_iconbgB.gif", "name":"winter_iconbgB.gif"}
+,{"path":"images/chassagne3.jpg", "name":"chassagne3.jpg"}
+,{"path":"images/icon2017blur.png", "name":"icon2017blur.png"}
+,{"path":"images/summertopbannerwater.png", "name":"summertopbannerwater.png"}
+,{"path":"images/picLac02.jpg", "name":"picLac02.jpg"}
+,{"path":"images/rajat.jpg", "name":"rajat.jpg"}
+,{"path":"images/banner_winter2_1567.jpg", "name":"banner_winter2_1567.jpg"}
+,{"path":"images/four à pain Beaune.jpg", "name":"four à pain Beaune.jpg"}
+,{"path":"images/elus/DOTTE.jpg", "name":"DOTTE.jpg"}
+,{"path":"images/elus/GOUTTEBEL.jpg", "name":"GOUTTEBEL.jpg"}
+,{"path":"images/elus/DEBOUT.jpg", "name":"DEBOUT.jpg"}
+,{"path":"images/elus/CATTARELLI.jpg", "name":"CATTARELLI.jpg"}
+,{"path":"images/elus/PEROL.jpg", "name":"PEROL.jpg"}
+,{"path":"images/elus/ROUX.jpg", "name":"ROUX.jpg"}
+,{"path":"images/elus/LANARO.jpg", "name":"LANARO.jpg"}
+,{"path":"images/elus/GILLARD.jpg", "name":"GILLARD.jpg"}
+,{"path":"images/elus/COMPAGNON.jpg", "name":"COMPAGNON.jpg"}
+,{"path":"images/elus/DUMONTEL.jpg", "name":"DUMONTEL.jpg"}
+,{"path":"images/elus/LAIR.jpg", "name":"LAIR.jpg"}
+,{"path":"images/elus/AUBERTY.jpg", "name":"AUBERTY.jpg"}
+,{"path":"images/elus/BOUCHE.jpg", "name":"BOUCHE.jpg"}
+,{"path":"images/elus/MAURY.jpg", "name":"MAURY.jpg"}
+,{"path":"images/2 Murol, le bourg.jpg", "name":"2 Murol, le bourg.jpg"}
+,{"path":"images/jachère.JPG", "name":"jachère.JPG"}
+,{"path":"images/bannerS.jpg", "name":"bannerS.jpg"}
+,{"path":"images/FamillePlus2.gif", "name":"FamillePlus2.gif"}
+,{"path":"images/bulletin/cover.gif", "name":"cover.gif"}
+,{"path":"images/bulletin/cover4.png", "name":"cover4.png"}
+,{"path":"images/bulletin/cover2.png", "name":"cover2.png"}
+,{"path":"images/bulletin/cover6.jpg", "name":"cover6.jpg"}
+,{"path":"images/bulletin/cover3.png", "name":"cover3.png"}
+,{"path":"images/bulletin/cover8.jpg", "name":"cover8.jpg"}
+,{"path":"images/bulletin/cover5.png", "name":"cover5.png"}
+,{"path":"images/bulletin/BULLETIN 7 définitif-page-001.jpg", "name":"BULLETIN 7 définitif-page-001.jpg"}
+,{"path":"images/bulletin/cover1.png", "name":"cover1.png"}
+,{"path":"images/bulletin/cover7.jpg", "name":"cover7.jpg"}
+,{"path":"images/bulletin/cover0.png", "name":"cover0.png"}
+,{"path":"images/tiles/sortir/chateau.jpg", "name":"chateau.jpg"}
+,{"path":"images/tiles/sortir/salle cinema.jpg", "name":"salle cinema.jpg"}
+,{"path":"images/tiles/sortir/sortir environs.jpg", "name":"sortir environs.jpg"}
+,{"path":"images/tiles/sortir/musee.jpg", "name":"musee.jpg"}
+,{"path":"images/tiles/transports/les dessertes.jpg", "name":"les dessertes.jpg"}
+,{"path":"images/tiles/transports/déneigement.jpg", "name":"déneigement.jpg"}
+,{"path":"images/tiles/transports/navette.jpg", "name":"navette.jpg"}
+,{"path":"images/tiles/transports/logo-covoiturage.jpg", "name":"logo-covoiturage.jpg"}
+,{"path":"images/tiles/elections/01.jpg", "name":"01.jpg"}
+,{"path":"images/tiles/elections/02.jpg", "name":"02.jpg"}
+,{"path":"images/tiles/elections/03.jpg", "name":"03.jpg"}
+,{"path":"images/tiles/seniors/SIVOM.jpg", "name":"SIVOM.jpg"}
+,{"path":"images/tiles/seniors/autres.jpg", "name":"autres.jpg"}
+,{"path":"images/tiles/seniors/info.jpg", "name":"info.jpg"}
+,{"path":"images/tiles/decouvrirMurol/murolTile.jpg", "name":"murolTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/beauneTile.jpg", "name":"beauneTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/cheminTile.jpg", "name":"cheminTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/rajatTile.jpg", "name":"rajatTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/groireTile.jpg", "name":"groireTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/tartaretTile.jpg", "name":"tartaretTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/lacChambonTile.jpg", "name":"lacChambonTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/chassagneTile.jpg", "name":"chassagneTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/chautignatTile.jpg", "name":"chautignatTile.jpg"}
+,{"path":"images/tiles/decouvrirMurol/chateauTile.jpg", "name":"chateauTile.jpg"}
+,{"path":"images/tiles/hebergements/meuble.jpg", "name":"meuble.jpg"}
+,{"path":"images/tiles/hebergements/test.xcf", "name":"test.xcf"}
+,{"path":"images/tiles/hebergements/placeholder.jpg", "name":"placeholder.jpg"}
+,{"path":"images/tiles/hebergements/famillePlus.jpg", "name":"famillePlus.jpg"}
+,{"path":"images/tiles/hebergements/villageVac.jpg", "name":"villageVac.jpg"}
+,{"path":"images/tiles/hebergements/chambresHotes.jpg", "name":"chambresHotes.jpg"}
+,{"path":"images/tiles/hebergements/hotels.jpg", "name":"hotels.jpg"}
+,{"path":"images/tiles/hebergements/campings.jpg", "name":"campings.jpg"}
+,{"path":"images/tiles/photothèque/diaporama2016.jpg", "name":"diaporama2016.jpg"}
+,{"path":"images/tiles/photothèque/journeeMurolais.jpg", "name":"journeeMurolais.jpg"}
+,{"path":"images/tiles/photothèque/diaporama2015.jpg", "name":"diaporama2015.jpg"}
+,{"path":"images/tiles/photothèque/patrimoine.jpg", "name":"patrimoine.jpg"}
+,{"path":"images/tiles/photothèque/revolution.jpg", "name":"revolution.jpg"}
+,{"path":"images/tiles/photothèque/diaporama2017.jpg", "name":"diaporama2017.jpg"}
+,{"path":"images/tiles/photothèque/printempsEte.jpg", "name":"printempsEte.jpg"}
+,{"path":"images/tiles/photothèque/annee2018.jpg", "name":"annee2018.jpg"}
+,{"path":"images/tiles/photothèque/medievales.jpg", "name":"medievales.jpg"}
+,{"path":"images/tiles/photothèque/automneHiver.jpg", "name":"automneHiver.jpg"}
+,{"path":"images/tiles/photothèque/annee2017.jpg", "name":"annee2017.jpg"}
+,{"path":"images/tiles/photothèque/festival.jpg", "name":"festival.jpg"}
+,{"path":"images/tiles/photothèque/festivalArt.jpg", "name":"festivalArt.jpg"}
+,{"path":"images/tiles/photothèque/annee2016.jpg", "name":"annee2016.jpg"}
+,{"path":"images/tiles/misc/ASSOC CULTURE.jpg", "name":"ASSOC CULTURE.jpg"}
+,{"path":"images/tiles/misc/ASSOC PRO.jpg", "name":"ASSOC PRO.jpg"}
+,{"path":"images/tiles/misc/ASSOC SPORT.jpg", "name":"ASSOC SPORT.jpg"}
+,{"path":"images/tiles/misc/salle des fêtes Murol.jpg", "name":"salle des fêtes Murol.jpg"}
+,{"path":"images/tiles/misc/salle de Beaune.jpg", "name":"salle de Beaune.jpg"}
+,{"path":"images/tiles/animation/medievales.jpg", "name":"medievales.jpg"}
+,{"path":"images/tiles/animation/festivalArt.jpg", "name":"festivalArt.jpg"}
+,{"path":"images/tiles/animation/orig/medievales.jpg", "name":"medievales.jpg"}
+,{"path":"images/tiles/animation/orig/festivalArt.jpg", "name":"festivalArt.jpg"}
+,{"path":"images/tiles/animation/orig/feu d'artifice.jpg", "name":"feu d'artifice.jpg"}
+,{"path":"images/tiles/animation/orig/horizon.jpg", "name":"horizon.jpg"}
+,{"path":"images/tiles/animation/orig/animation estivale.jpg", "name":"animation estivale.jpg"}
+,{"path":"images/tiles/animation/orig/expoMusée.jpg", "name":"expoMusée.jpg"}
+,{"path":"images/tiles/animation/feu d'artifice.jpg", "name":"feu d'artifice.jpg"}
+,{"path":"images/tiles/animation/horizon.jpg", "name":"horizon.jpg"}
+,{"path":"images/tiles/animation/animation estivale.jpg", "name":"animation estivale.jpg"}
+,{"path":"images/tiles/animation/done/medievales.jpg", "name":"medievales.jpg"}
+,{"path":"images/tiles/animation/done/festivalArt.jpg", "name":"festivalArt.jpg"}
+,{"path":"images/tiles/animation/done/feu d'artifice.jpg", "name":"feu d'artifice.jpg"}
+,{"path":"images/tiles/animation/done/horizon.jpg", "name":"horizon.jpg"}
+,{"path":"images/tiles/animation/done/animation estivale.jpg", "name":"animation estivale.jpg"}
+,{"path":"images/tiles/animation/done/expoMusée.jpg", "name":"expoMusée.jpg"}
+,{"path":"images/tiles/animation/expoMusée.jpg", "name":"expoMusée.jpg"}
+,{"path":"images/tiles/periscolaire/actiJeunesse.jpg", "name":"actiJeunesse.jpg"}
+,{"path":"images/tiles/periscolaire/garderie.jpg", "name":"garderie.jpg"}
+,{"path":"images/tiles/periscolaire/centre de loisirs.jpg", "name":"centre de loisirs.jpg"}
+,{"path":"images/tiles/periscolaire/restaurant scolaire.jpg", "name":"restaurant scolaire.jpg"}
+,{"path":"images/tiles/periscolaire/TAP.jpg", "name":"TAP.jpg"}
+,{"path":"images/tiles/periscolaire/navette.jpg", "name":"navette.jpg"}
+,{"path":"images/tiles/restaurants/restaurants.jpg", "name":"restaurants.jpg"}
+,{"path":"images/tiles/restaurants/drinks.jpg", "name":"drinks.jpg"}
+,{"path":"images/tiles/environnement/risques.jpg", "name":"risques.jpg"}
+,{"path":"images/tiles/environnement/eau.jpg", "name":"eau.jpg"}
+,{"path":"images/tiles/environnement/dechets.jpg", "name":"dechets.jpg"}
+,{"path":"images/tiles/environnement/orig/risques.jpg", "name":"risques.jpg"}
+,{"path":"images/tiles/environnement/orig/eau.jpg", "name":"eau.jpg"}
+,{"path":"images/tiles/environnement/orig/dechets.jpg", "name":"dechets.jpg"}
+,{"path":"images/tiles/environnement/orig/devDurable.jpg", "name":"devDurable.jpg"}
+,{"path":"images/tiles/environnement/orig/millieuxSensibles.jpg", "name":"millieuxSensibles.jpg"}
+,{"path":"images/tiles/environnement/orig/espacesVerts.jpg", "name":"espacesVerts.jpg"}
+,{"path":"images/tiles/environnement/devDurable.jpg", "name":"devDurable.jpg"}
+,{"path":"images/tiles/environnement/millieuxSensibles.jpg", "name":"millieuxSensibles.jpg"}
+,{"path":"images/tiles/environnement/done/risques.jpg", "name":"risques.jpg"}
+,{"path":"images/tiles/environnement/done/eau.jpg", "name":"eau.jpg"}
+,{"path":"images/tiles/environnement/done/dechets.jpg", "name":"dechets.jpg"}
+,{"path":"images/tiles/environnement/done/devDurable.jpg", "name":"devDurable.jpg"}
+,{"path":"images/tiles/environnement/done/millieuxSensibles.jpg", "name":"millieuxSensibles.jpg"}
+,{"path":"images/tiles/environnement/done/espacesVerts.jpg", "name":"espacesVerts.jpg"}
+,{"path":"images/tiles/environnement/espacesVerts.jpg", "name":"espacesVerts.jpg"}
+,{"path":"images/voie2.jpg", "name":"voie2.jpg"}
+,{"path":"images/winter_iconbgS.gif", "name":"winter_iconbgS.gif"}
+,{"path":"images/trail.jpg", "name":"trail.jpg"}
+,{"path":"images/logo-chateau-de-murol-800.png", "name":"logo-chateau-de-murol-800.png"}
+,{"path":"images/peintres.png", "name":"peintres.png"}
+,{"path":"images/chateau1.jpg", "name":"chateau1.jpg"}
+,{"path":"images/musée archéologique.jpg", "name":"musée archéologique.jpg"}
+,{"path":"images/carteZones.jpg", "name":"carteZones.jpg"}
+,{"path":"images/bannerbgf.jpg", "name":"bannerbgf.jpg"}
+,{"path":"images/picLac03.jpg", "name":"picLac03.jpg"}
+,{"path":"images/winter_bg.jpg", "name":"winter_bg.jpg"}
+,{"path":"images/banner.jpg", "name":"banner.jpg"}
+,{"path":"images/bourgHiver.jpg", "name":"bourgHiver.jpg"}
+,{"path":"images/Station_Tourisme_RVB.jpg", "name":"Station_Tourisme_RVB.jpg"}
+,{"path":"images/lonelyplanet.png", "name":"lonelyplanet.png"}
+,{"path":"images/picLac01.jpg", "name":"picLac01.jpg"}
+,{"path":"images/springbg2017.jpg", "name":"springbg2017.jpg"}
+,{"path":"images/icon2017L.png", "name":"icon2017L.png"}
+,{"path":"images/groire3.jpg", "name":"groire3.jpg"}
+,{"path":"images/StationVertegf.jpg", "name":"StationVertegf.jpg"}
+,{"path":"images/famillePlus.jpg", "name":"famillePlus.jpg"}
+,{"path":"images/fleurie.png", "name":"fleurie.png"}
+,{"path":"images/tmp/bgblue.jpg", "name":"bgblue.jpg"}
+,{"path":"images/tmp/fleurie.png", "name":"fleurie.png"}
+,{"path":"images/tmp/landscapebottomO.png", "name":"landscapebottomO.png"}
+,{"path":"images/tmp/landscape1920.jpg", "name":"landscape1920.jpg"}
+,{"path":"images/tmp/landscapebottom.png", "name":"landscapebottom.png"}
+,{"path":"images/mapSmall.jpg", "name":"mapSmall.jpg"}
+,{"path":"images/automne_iconbg.gif", "name":"automne_iconbg.gif"}
+,{"path":"images/Village fleuri.jpg", "name":"Village fleuri.jpg"}
+,{"path":"images/Mairie.jpg", "name":"Mairie.jpg"}
+,{"path":"images/news/lonely.png", "name":"lonely.png"}
+,{"path":"images/news/PAVILLON BLEU LOGO 2.png", "name":"PAVILLON BLEU LOGO 2.png"}
+,{"path":"images/maisonSante.jpg", "name":"maisonSante.jpg"}
+,{"path":"images/bgLeaf.png", "name":"bgLeaf.png"}
+,{"path":"images/banner_automne_1149.jpg", "name":"banner_automne_1149.jpg"}
+,{"path":"images/springbanner1149.jpg", "name":"springbanner1149.jpg"}
+,{"path":"images/museePeintre.jpeg", "name":"museePeintre.jpeg"}
+,{"path":"images/landscapebottomO.png", "name":"landscapebottomO.png"}
+,{"path":"images/IMGP6178.JPG", "name":"IMGP6178.JPG"}
+,{"path":"images/banner_winter2_1149.jpg", "name":"banner_winter2_1149.jpg"}
+,{"path":"images/bannerbgf.png", "name":"bannerbgf.png"}
+,{"path":"images/restaurants.jpg", "name":"restaurants.jpg"}
+,{"path":"images/parcoursSportSmall.jpg", "name":"parcoursSportSmall.jpg"}
+,{"path":"images/Cloth.jpg", "name":"Cloth.jpg"}
+,{"path":"images/drinks.jpg", "name":"drinks.jpg"}
+,{"path":"images/seismes.jpg", "name":"seismes.jpg"}
+,{"path":"images/uArrow.jpeg", "name":"uArrow.jpeg"}
+,{"path":"images/Mairiebg.gif", "name":"Mairiebg.gif"}
+,{"path":"images/lac3.jpg", "name":"lac3.jpg"}
+,{"path":"images/snowflake1.png", "name":"snowflake1.png"}
+,{"path":"images/banner_winter_1567.jpg", "name":"banner_winter_1567.jpg"}
+,{"path":"images/programme2016.jpg", "name":"programme2016.jpg"}
+,{"path":"images/seismes.gif", "name":"seismes.gif"}
+,{"path":"images/PAVILLON BLEU LOGO 2.png", "name":"PAVILLON BLEU LOGO 2.png"}
+,{"path":"images/memoImageMagick", "name":"memoImageMagick"}
+,{"path":"images/sancy_hiver.jpg", "name":"sancy_hiver.jpg"}
+,{"path":"images/landscape1920.jpg", "name":"landscape1920.jpg"}
+,{"path":"images/icon2017.png", "name":"icon2017.png"}
+,{"path":"images/repl-temp-000.elm", "name":"repl-temp-000.elm"}
+,{"path":"images/logosmurol.png", "name":"logosmurol.png"}
+,{"path":"images/bgLeafwithflowers.png", "name":"bgLeafwithflowers.png"}
+,{"path":"images/panoTartaret.jpg", "name":"panoTartaret.jpg"}
+,{"path":"images/groire1.jpg", "name":"groire1.jpg"}
+,{"path":"images/bgLeafOLD.png", "name":"bgLeafOLD.png"}
+,{"path":"images/landscapebottom.png", "name":"landscapebottom.png"}
+,{"path":"images/Cézallier-Neige-2.jpg", "name":"Cézallier-Neige-2.jpg"}
+,{"path":"images/automne_bg.jpg", "name":"automne_bg.jpg"}
+,{"path":"images/automne_bg2.jpg", "name":"automne_bg2.jpg"}
+,{"path":"images/parcoursSportBig.jpg", "name":"parcoursSportBig.jpg"}
+,{"path":"images/bourg2.jpg", "name":"bourg2.jpg"}
+,{"path":"images/banner_winter_1149.jpg", "name":"banner_winter_1149.jpg"}
+,{"path":"images/automne_iconbg02.gif", "name":"automne_iconbg02.gif"}
+,{"path":"images/chassagne2.jpg", "name":"chassagne2.jpg"}
+,{"path":"images/dicrim.png", "name":"dicrim.png"}
+,{"path":"images/groire2.jpg", "name":"groire2.jpg"}
+,{"path":"images/tartaretBois.jpg", "name":"tartaretBois.jpg"}
+,{"path":"images/hori2.jpg", "name":"hori2.jpg"}
+,{"path":"images/jachère fleurie.png", "name":"jachère fleurie.png"}
+,{"path":"images/bgLeaf2.png", "name":"bgLeaf2.png"}
+,{"path":"images/wtreesbg.jpg", "name":"wtreesbg.jpg"}
+]
+}
+

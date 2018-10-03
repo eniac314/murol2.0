@@ -9,6 +9,11 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy as Lazy
+import Html.Attributes as HtmlAttr
+import Http exposing (..)
+import Icons exposing (..)
+import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 
 
 type alias Model msg =
@@ -17,6 +22,9 @@ type alias Model msg =
     , displayMode : DisplayMode
     , externalMsg : Msg -> msg
     , mbFilesys : Maybe Filesys
+    , lastLocation : Path
+    , selectedFile : Path
+    , error : String
     }
 
 
@@ -36,15 +44,18 @@ type FsItem
 
 
 type alias Meta =
-    { path : List String
+    { path : Path
     , name : String
     }
+
+
+type alias Path =
+    List String
 
 
 type alias Filesys =
     { current : FsItem
     , contexts : List Context
-    , version : Int
     }
 
 
@@ -55,45 +66,117 @@ type alias Context =
     }
 
 
-type alias FilesysConfig msg =
-    { version : Int
-    , fileList : List FsItem
-    , externalMsg : Filesys -> Maybe (Cmd msg) -> msg
-    }
+init root displayMode externalMsg =
+    ( { renameBuffer = ""
+      , root = root
+      , displayMode = displayMode
+      , externalMsg = externalMsg
+      , mbFilesys = Nothing
+      , lastLocation = []
+      , selectedFile = []
+      , error = ""
+      }
+    , Cmd.map externalMsg (getFileList root)
+    )
 
 
 type Msg
     = GoHome
     | GoNext
     | GoPrev
-    | GoTo (List String)
+    | GoTo Path
+    | SelectFile Path
     | NewFile
     | NewFolder
     | Delete
     | Rename String
+    | RefreshFilesys Root (Result Http.Error (List FsItem))
 
 
 update msg model =
     case msg of
         GoHome ->
-            ( model, Cmd.none, Nothing )
-
-        GoNext ->
-            ( model, Cmd.none, Nothing )
-
-        GoPrev ->
             ( { model
                 | mbFilesys =
-                    Maybe.andThen
-                        zipUpFilesys
-                        model.mbFilesys
+                    let
+                        newFilesys =
+                            model.mbFilesys
+                                |> Maybe.map rewindFilesys
+                    in
+                    case newFilesys of
+                        Nothing ->
+                            model.mbFilesys
+
+                        otherwise ->
+                            otherwise
+                , lastLocation =
+                    Maybe.map extractFsItem model.mbFilesys
+                        |> Maybe.map getPath
+                        |> Maybe.withDefault []
               }
             , Cmd.none
             , Nothing
             )
 
+        GoNext ->
+            case model.lastLocation of
+                [] ->
+                    ( model, Cmd.none, Nothing )
+
+                path ->
+                    ( { model
+                        | mbFilesys =
+                            model.mbFilesys
+                                |> Maybe.map rewindFilesys
+                                |> Maybe.map
+                                    (zipToFsItem path)
+                                |> Maybe.withDefault model.mbFilesys
+                        , lastLocation = []
+                      }
+                    , Cmd.none
+                    , selectedFilename model
+                    )
+
+        GoPrev ->
+            ( { model
+                | mbFilesys =
+                    case Maybe.andThen zipUpFilesys model.mbFilesys of
+                        Nothing ->
+                            model.mbFilesys
+
+                        otherwise ->
+                            otherwise
+                , lastLocation =
+                    Maybe.map extractFsItem model.mbFilesys
+                        |> Maybe.map getPath
+                        |> Maybe.withDefault []
+              }
+            , Cmd.none
+            , selectedFilename model
+            )
+
+        SelectFile path ->
+            ( { model | selectedFile = path }
+            , Cmd.none
+            , Nothing
+            )
+
         GoTo path ->
-            ( model, Cmd.none, Nothing )
+            ( { model
+                | mbFilesys =
+                    model.mbFilesys
+                        |> Maybe.map rewindFilesys
+                        |> Maybe.map
+                            (zipToFsItem path)
+                        |> Maybe.withDefault model.mbFilesys
+                , lastLocation =
+                    Maybe.map extractFsItem model.mbFilesys
+                        |> Maybe.map getPath
+                        |> Maybe.withDefault []
+              }
+            , Cmd.none
+            , selectedFilename model
+            )
 
         NewFile ->
             ( model, Cmd.none, Nothing )
@@ -102,10 +185,49 @@ update msg model =
             ( model, Cmd.none, Nothing )
 
         Delete ->
-            ( model, Cmd.none, Nothing )
+            ( { model
+                | mbFilesys =
+                    Maybe.map
+                        delete
+                        model.mbFilesys
+                        |> Maybe.withDefault model.mbFilesys
+                , lastLocation = []
+              }
+            , Cmd.none
+            , selectedFilename model
+            )
 
         Rename newName ->
             ( model, Cmd.none, Nothing )
+
+        RefreshFilesys root res ->
+            case res of
+                Ok fs ->
+                    ( { model
+                        | mbFilesys =
+                            case root of
+                                ImagesRoot ->
+                                    List.foldr (\f acc -> insert f "images" acc) Nothing fs
+                                        |> Maybe.map initFileSys
+
+                                DocsRoot ->
+                                    List.foldr (\f acc -> insert f "Base Documentaire" acc) Nothing fs
+                                        |> Maybe.map initFileSys
+                        , lastLocation = []
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Err e ->
+                    ( { model | error = "can't refresh" }, Cmd.none, Nothing )
+
+
+selectedFilename : Model msg -> Maybe FsItem
+selectedFilename { mbFilesys } =
+    mbFilesys
+        |> Maybe.andThen
+            (Just << extractFsItem)
 
 
 
@@ -115,21 +237,38 @@ update msg model =
 
 
 defFilesysConfig externalMsg =
-    { version = 0
-    , fileList = dummyFiles
+    { fileList = dummyFiles
     , externalMsg = externalMsg
     }
 
 
-init root displayMode externalMsg =
-    ( { renameBuffer = ""
-      , root = root
-      , displayMode = displayMode
-      , externalMsg = externalMsg
-      , mbFilesys = Nothing
-      }
-    , Cmd.none
-    )
+getFileList root =
+    case root of
+        ImagesRoot ->
+            Http.get "http://localhost:3000/images" decodeImages
+                |> Http.send (RefreshFilesys root)
+
+        _ ->
+            Cmd.none
+
+
+decodeImages =
+    Decode.list decodeImage
+
+
+decodeImage =
+    Decode.succeed
+        (\p f ->
+            File
+                { path =
+                    String.split "/" p
+
+                --|> List.reverse
+                , name = f
+                }
+        )
+        |> Pipeline.required "path" Decode.string
+        |> Pipeline.required "name" Decode.string
 
 
 view config model =
@@ -140,23 +279,193 @@ view config model =
             [ Font.monospace ]
         , alignTop
         , padding 15
+        , scrollbarY
+        , height (minimum config.maxHeight fill)
+        , width fill
         ]
-        [ model.mbFilesys
-            |> Maybe.map rewindFilesys
-            |> Maybe.map extractFsItem
-            |> Maybe.map (fsItemToElement model config)
-            |> Maybe.withDefault (text "wrong FsItem")
+        [ mainInterface model config
+        , filesysView model config
 
-        --, text <| Debug.toString <| List.foldr (\f acc -> insert f "Images" acc) Nothing dummyFiles
+        --, model.mbFilesys
+        --    --|> Maybe.map rewindFilesys
+        --    |> Maybe.map extractFsItem
+        --    |> Maybe.map (fsItemToElement model config)
+        --    |> Maybe.withDefault (text "wrong FsItem")
+        --, text <| Debug.toString <|  dummyFiles
         ]
 
 
 
 --fsItemToElement : FilesysConfig msg -> FsItem -> Element msg
+--fsItemToElement : Model ->
+
+
+mainInterface model config =
+    let
+        iconSize =
+            22
+    in
+    row [ spacing 15 ]
+        [ Input.button (buttonStyle True)
+            { onPress =
+                Just <| model.externalMsg GoPrev
+            , label =
+                row [ spacing 10 ]
+                    [ html <| Icons.chevronLeft iconSize
+                    ]
+            }
+        , Input.button (buttonStyle (model.lastLocation /= []))
+            { onPress =
+                if model.lastLocation /= [] then
+                    Just <| model.externalMsg GoNext
+                else
+                    Nothing
+            , label =
+                row [ spacing 10 ]
+                    [ html <| Icons.chevronRight iconSize
+                    ]
+            }
+        , Input.button (buttonStyle True)
+            { onPress =
+                Just <| model.externalMsg GoHome
+            , label =
+                row [ spacing 10 ]
+                    [ html <| Icons.home iconSize
+                    ]
+            }
+        ]
+
+
+filesysView model config =
+    let
+        iEv handler msg =
+            handler (model.externalMsg msg)
+
+        fileView { name, path } =
+            case model.root of
+                ImagesRoot ->
+                    column
+                        ([ pointer
+                         ]
+                            ++ (if model.selectedFile == path then
+                                    [ Border.width 1
+                                    , Border.color (rgb 0.8 0.8 0.8)
+                                    , padding 6
+                                    ]
+                                else
+                                    [ padding 7 ]
+                               )
+                        )
+                        [ el
+                            [ width (px 100)
+                            , height (px 100)
+
+                            --, Border.width 1
+                            --, Border.color (rgb 0.8 0.8 0.8)
+                            , Background.uncropped (String.join "/" path)
+                            , iEv Events.onClick (SelectFile path)
+                            ]
+                            Element.none
+                        , paragraph
+                            [ width (px 100)
+                            , clip
+                            , Font.size 12
+                            , paddingXY 0 5
+                            ]
+                            [ text name ]
+                        ]
+
+                DocsRoot ->
+                    column
+                        [ padding 7 ]
+                        [ el
+                            [ width (px 80)
+                            , height (px 80)
+                            , Border.width 1
+                            , Border.color (rgb 0.8 0.8 0.8)
+                            , Background.color (rgb 1 1 1)
+
+                            --, Background.uncropped (String.join "/" path)
+                            , iEv Events.onClick (SelectFile path)
+                            ]
+                            Element.none
+                        , el
+                            [ htmlAttribute <| HtmlAttr.style "word-wrap" "break-word"
+                            , width (px 80)
+                            ]
+                            (text name)
+                        ]
+
+        folderView { name, path } =
+            column
+                [ padding 7
+                , pointer
+                , mouseOver
+                    [ Background.color (rgba 0.3 0.4 0.6 0.3) ]
+                , htmlAttribute <| HtmlAttr.style "transition" "0.1s"
+                ]
+                [ el
+                    [ width (px 80)
+                    , height (px 80)
+
+                    --, Border.width 1
+                    --, Border.color (rgb 0.8 0.8 0.8)
+                    , Background.color (rgb 1 1 1)
+                    , Background.uncropped "assets/images/folder.svg"
+                    , iEv Events.onClick (GoTo path)
+                    ]
+                    Element.none
+                , paragraph
+                    [ width (px 80)
+                    , clip
+                    , Font.size 14
+                    ]
+                    [ text name ]
+                ]
+
+        contentView fsItem =
+            case fsItem of
+                File meta ->
+                    fileView meta
+
+                Folder meta _ ->
+                    folderView meta
+    in
+    case model.mbFilesys of
+        Nothing ->
+            text "Erreur système de fichier"
+
+        Just filesys ->
+            case extractFsItem filesys of
+                File meta ->
+                    fileView meta
+
+                Folder meta contents ->
+                    paragraph
+                        []
+                        (List.partition
+                            (\f ->
+                                case f of
+                                    File _ ->
+                                        True
+
+                                    _ ->
+                                        False
+                            )
+                            contents
+                            |> (\( files, folders ) ->
+                                    List.sortBy getName folders
+                                        ++ List.sortBy getName files
+                               )
+                            |> List.map contentView
+                        )
 
 
 fsItemToElement model config fsItem =
     let
+        iEv handler msg =
+            handler (model.externalMsg msg)
+
         paddingOffset n =
             paddingEach
                 { top = 0
@@ -172,7 +481,12 @@ fsItemToElement model config fsItem =
                         [ paddingOffset offset
                         , spacing 10
                         ]
-                        [ el [ Font.bold ]
+                        [ el
+                            [ Font.bold
+                            , iEv
+                                Events.onClick
+                                (GoTo path)
+                            ]
                             (text name)
                         , el
                             [ Font.size 14
@@ -190,6 +504,9 @@ fsItemToElement model config fsItem =
                         [ el
                             [ Font.bold
                             , Font.color (rgba 0 0 1 0.5)
+                            , iEv
+                                Events.onClick
+                                (GoTo path)
                             ]
                             (text name)
                         , el
@@ -203,24 +520,13 @@ fsItemToElement model config fsItem =
     in
     column
         [ spacing 10 ]
-        ([ Input.button (buttonStyle True)
-            { onPress =
-                Just <| model.externalMsg GoPrev
-            , label =
-                row [ spacing 10 ]
-                    [ text "Prev"
-                    ]
-            }
-         ]
-            ++ helper 0 fsItem
-        )
+        (helper 0 fsItem)
 
 
-initFileSys : Int -> FsItem -> Filesys
-initFileSys version fsItem =
+initFileSys : FsItem -> Filesys
+initFileSys fsItem =
     { current = fsItem
     , contexts = []
-    , version = version
     }
 
 
@@ -246,17 +552,17 @@ rewindFilesys filesys =
 
 zipUpFilesys : Filesys -> Maybe Filesys
 zipUpFilesys filesys =
-    Debug.log "running zipUp" <|
-        case filesys.contexts of
-            [] ->
-                Nothing
+    --Debug.log "running zipUp" <|
+    case filesys.contexts of
+        [] ->
+            Nothing
 
-            { parent, left, right } :: cs ->
-                Just
-                    { filesys
-                        | current = Folder parent (left ++ [ filesys.current ] ++ right)
-                        , contexts = cs
-                    }
+        { parent, left, right } :: cs ->
+            Just
+                { filesys
+                    | current = Folder parent (left ++ [ filesys.current ] ++ right)
+                    , contexts = cs
+                }
 
 
 zipDownFilesys : (FsItem -> Bool) -> Filesys -> Maybe Filesys
@@ -290,8 +596,8 @@ zipDownFilesys p filesys =
                         }
 
 
-zipToFsItem : FsItem -> Filesys -> Maybe Filesys
-zipToFsItem f filesys =
+zipToFsItem : Path -> Filesys -> Maybe Filesys
+zipToFsItem path filesys =
     let
         helper remainingPath filesys_ =
             case remainingPath of
@@ -311,7 +617,20 @@ zipToFsItem f filesys =
                         zipDownFilesys (\fsItem -> getName fsItem == next) filesys_
                             |> Maybe.andThen (helper (next :: rest))
     in
-    helper (List.reverse (getPath f)) filesys
+    helper path filesys
+
+
+delete : Filesys -> Maybe Filesys
+delete { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            Just
+                { current = Folder parent (left ++ right)
+                , contexts = cs
+                }
 
 
 getName : FsItem -> String
@@ -324,7 +643,7 @@ getName fsItem =
             name
 
 
-getPath : FsItem -> List String
+getPath : FsItem -> Path
 getPath fsItem =
     case fsItem of
         Folder { path } _ ->
@@ -342,19 +661,19 @@ insert f rootName mbFsItem_ =
     -- crée les repertoires intermédiaires au besoin.
     -- Les doublons sont ignorés.
     -- Format pour f:
-    --     [ File (Meta [ "pic1", "Folder1", "Images" ] "pic1")
-    --     , Folder (Meta [ "Folder3", "Folder1", "Images" ] "Folder3") []
+    --     [ File (Meta [ "Images", "Folder1", "pic1"] "pic1")
+    --     , Folder (Meta [ "Images" , "Folder1", "Folder3" ] "Folder3") []
     --     , Folder (Meta [ "Images" ] "Images") []
     --     ]
     -- LES REPERTOIRES DOIVENT ETRE VIDES!
     let
-        helper reversePath mbFsItem =
+        helper path mbFsItem =
             case mbFsItem of
                 Nothing ->
-                    case reversePath of
+                    case path of
                         [] ->
                             helper
-                                reversePath
+                                path
                                 (Just <| Folder (Meta [ rootName ] rootName) [])
 
                         root :: _ ->
@@ -362,11 +681,11 @@ insert f rootName mbFsItem_ =
                                 Nothing
                             else
                                 helper
-                                    reversePath
+                                    path
                                     (Just <| Folder (Meta [ rootName ] rootName) [])
 
                 Just (Folder meta children) ->
-                    case reversePath of
+                    case path of
                         [] ->
                             Just <| Folder meta children
 
@@ -392,7 +711,7 @@ insert f rootName mbFsItem_ =
                                             newFolder =
                                                 Folder
                                                     { name = next
-                                                    , path = next :: meta.path
+                                                    , path = meta.path ++ [ next ]
                                                     }
                                                     []
                                         in
@@ -408,21 +727,19 @@ insert f rootName mbFsItem_ =
                 _ ->
                     Nothing
     in
-    List.tail (getPath f)
+    List.reverse (getPath f)
+        |> List.tail
         |> Maybe.map List.reverse
         |> Maybe.andThen (\p -> helper p mbFsItem_)
 
 
 dummyFiles =
-    [ File (Meta [ "pic1", "Folder1", "Images" ] "pic1")
-    , File (Meta [ "pic2", "Folder1", "Images" ] "pic2")
-    , File (Meta [ "pic2", "Folder1", "Images" ] "pic2")
-    , File (Meta [ "pic3", "Folder2", "Folder1", "Images" ] "pic3")
-    , File (Meta [ "test", "Folder4", "Folder2", "Folder1", "Images" ] "test")
-    , File (Meta [ "pic4", "Folder1", "Images" ] "pic4")
-    , Folder (Meta [ "Folder3", "Folder1", "Images" ] "Folder3") []
-    , Folder (Meta [ "Folder3", "Folder1", "Images" ] "Folder3") []
-    , Folder (Meta [ "Images" ] "Images") []
+    [ File (Meta (List.reverse [ "pic1", "Folder1", "Images" ]) "pic1")
+    , File (Meta (List.reverse [ "pic2", "Folder1", "Images" ]) "pic2")
+    , File (Meta (List.reverse [ "pic2", "Folder1", "Images" ]) "pic2")
+    , File (Meta (List.reverse [ "pic3", "Folder2", "Folder1", "Images" ]) "pic3")
+    , File (Meta (List.reverse [ "test", "Folder4", "Folder2", "Folder1", "Images" ]) "test")
+    , File (Meta (List.reverse [ "pic4", "Folder1", "Images" ]) "pic4")
     ]
 
 

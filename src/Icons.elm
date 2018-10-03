@@ -313,6 +313,22 @@ alignRight size =
         ]
 
 
+chevronLeft : Int -> Html msg
+chevronLeft size =
+    customSvgFeatherIcon
+        size
+        "chevron-left"
+        [ Svg.polyline [ points "15 18 9 12 15 6" ] [] ]
+
+
+chevronRight : Int -> Html msg
+chevronRight size =
+    customSvgFeatherIcon
+        size
+        "chevron-right"
+        [ Svg.polyline [ points "9 18 15 12 9 6" ] [] ]
+
+
 chevronsUp : Int -> Html msg
 chevronsUp size =
     customSvgFeatherIcon size
@@ -329,6 +345,20 @@ chevronsDown size =
         [ Svg.polyline [ points "7 13 12 18 17 13" ] []
         , Svg.polyline [ points "7 6 12 11 17 6" ] []
         ]
+
+
+chevronsLeft : Int -> Html msg
+chevronsLeft size =
+    customSvgFeatherIcon size
+        "chevrons-left"
+        [ Svg.polyline [ points "11 17 6 12 11 7" ] [], Svg.polyline [ points "18 17 13 12 18 7" ] [] ]
+
+
+chevronsRight : Int -> Html msg
+chevronsRight size =
+    customSvgFeatherIcon size
+        "chevrons-right"
+        [ Svg.polyline [ points "13 17 18 12 13 7" ] [], Svg.polyline [ points "6 17 11 12 6 7" ] [] ]
 
 
 refreshCw : Int -> Html msg
@@ -403,4 +433,39 @@ rotateCw size =
         "rotate-cw"
         [ Svg.polyline [ points "23 4 23 10 17 10" ] []
         , Svg.path [ d "M20.49 15a9 9 0 1 1-2.12-9.36L23 10" ] []
+        ]
+
+
+folder : Int -> Html msg
+folder size =
+    customSvgFeatherIcon size
+        "folder"
+        [ Svg.path [ d "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" ] [] ]
+
+
+folderMinus : Int -> Html msg
+folderMinus size =
+    customSvgFeatherIcon size
+        "folder-minus"
+        [ Svg.path [ d "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" ] []
+        , Svg.line [ x1 "9", y1 "14", x2 "15", y2 "14" ] []
+        ]
+
+
+folderPlus : Int -> Html msg
+folderPlus size =
+    customSvgFeatherIcon size
+        "folder-plus"
+        [ Svg.path [ d "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" ] []
+        , Svg.line [ x1 "12", y1 "11", x2 "12", y2 "17" ] []
+        , Svg.line [ x1 "9", y1 "14", x2 "15", y2 "14" ] []
+        ]
+
+
+home : Int -> Html msg
+home size =
+    customSvgFeatherIcon size
+        "home"
+        [ Svg.path [ d "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" ] []
+        , Svg.polyline [ points "9 22 9 12 15 12 15 22" ] []
         ]
