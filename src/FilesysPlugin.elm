@@ -1,5 +1,6 @@
 module FilesysPlugin exposing (..)
 
+import AuthPlugin exposing (LogInfo(..))
 import Browser exposing (element)
 import DocumentEditorHelpers exposing (..)
 import Element exposing (..)
@@ -15,6 +16,7 @@ import Http exposing (..)
 import Icons exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import Json.Encode as Encode
 import String.Extra exposing (..)
 
 
@@ -68,7 +70,7 @@ type alias Context =
     }
 
 
-init root displayMode externalMsg =
+init root displayMode logInfo externalMsg =
     ( { renameBuffer = ""
       , root = root
       , displayMode = displayMode
@@ -78,7 +80,12 @@ init root displayMode externalMsg =
       , selectedFsItem = []
       , error = ""
       }
-    , Cmd.map externalMsg (getFileList root)
+    , case logInfo of
+        LoggedIn { sessionId } ->
+            Cmd.map externalMsg (getFileList root sessionId)
+
+        LoggedOut ->
+            Cmd.none
     )
 
 
@@ -92,11 +99,12 @@ type Msg
     | NewFolder
     | Delete
     | Rename String
+    | Refresh
     | RefreshFilesys Root (Result Http.Error (List FsItem))
     | NoOp
 
 
-update msg model =
+update config msg model =
     case msg of
         GoHome ->
             ( { model
@@ -203,6 +211,17 @@ update msg model =
         Rename newName ->
             ( model, Cmd.none, Nothing )
 
+        Refresh ->
+            ( model
+            , case config.logInfo of
+                LoggedIn { sessionId } ->
+                    Cmd.map model.externalMsg (getFileList model.root sessionId)
+
+                LoggedOut ->
+                    Cmd.none
+            , Nothing
+            )
+
         RefreshFilesys root res ->
             case res of
                 Ok fs ->
@@ -248,14 +267,31 @@ defFilesysConfig externalMsg =
     }
 
 
-getFileList root =
-    case root of
-        ImagesRoot ->
-            Http.get "http://localhost:3000/images" decodeImages
-                |> Http.send (RefreshFilesys root)
 
-        _ ->
-            Cmd.none
+--getFileList root =
+--    case root of
+--        ImagesRoot ->
+--            Http.get "http://localhost:3000/images" decodeImages
+--                |> Http.send (RefreshFilesys root)
+--        _ ->
+--            Cmd.none
+
+
+getFileList : Root -> String -> Cmd Msg
+getFileList root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "getFiles.php" body decodeImages
+    in
+    Http.send (RefreshFilesys root) request
 
 
 decodeImages =
@@ -353,6 +389,14 @@ mainInterface model config =
             , label =
                 row [ spacing 10 ]
                     [ html <| Icons.home iconSize
+                    ]
+            }
+        , Input.button (buttonStyle True)
+            { onPress =
+                Just <| model.externalMsg Refresh
+            , label =
+                row [ spacing 10 ]
+                    [ html <| Icons.refreshCw iconSize
                     ]
             }
         ]

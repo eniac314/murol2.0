@@ -30,7 +30,8 @@ type alias Model msg =
     , confirmPassword : String
     , logInfo : LogInfo
     , pluginMode : PluginMode
-    , files : List String
+
+    --, files : List String
     , logs : List Log
     , zone : Time.Zone
     , externalMsg : Msg -> msg
@@ -43,7 +44,8 @@ init externalMsg =
     , confirmPassword = ""
     , logInfo = LoggedOut
     , pluginMode = LoginMode Initial
-    , files = []
+
+    --, files = []
     , logs = []
     , zone = Time.utc
     , externalMsg = externalMsg
@@ -56,7 +58,8 @@ reset model =
         , password = ""
         , confirmPassword = ""
         , pluginMode = LoginMode Initial
-        , files = []
+
+        --, files = []
         , logs = []
       }
     , login model
@@ -91,8 +94,8 @@ type Msg
     | Logout
     | ConfirmLogout (Result Http.Error Bool)
     | ChangePluginMode PluginMode
-    | GetFiles
-    | SetFiles (Result Http.Error (List String))
+      --| GetFiles
+      --| SetFiles (Result Http.Error (List String))
     | AddLog (Posix -> Log) Posix
     | Quit
     | NoOp
@@ -226,31 +229,27 @@ internalUpdate msg model =
             , Nothing
             )
 
-        GetFiles ->
-            ( model
-            , case model.logInfo of
-                LoggedOut ->
-                    Cmd.none
-
-                LoggedIn { sessionId } ->
-                    getFiles sessionId
-            , Nothing
-            )
-
-        SetFiles res ->
-            case res of
-                Err e ->
-                    ( model
-                    , newLog
-                        "Echec récupération fichiers"
-                        (Just <| httpErrorToString e)
-                        True
-                    , Nothing
-                    )
-
-                Ok files ->
-                    ( { model | files = files }, Cmd.none, Nothing )
-
+        --GetFiles ->
+        --    ( model
+        --    , case model.logInfo of
+        --        LoggedOut ->
+        --            Cmd.none
+        --        LoggedIn { sessionId } ->
+        --            getFiles sessionId
+        --    , Nothing
+        --    )
+        --SetFiles res ->
+        --    case res of
+        --        Err e ->
+        --            ( model
+        --            , newLog
+        --                "Echec récupération fichiers"
+        --                (Just <| httpErrorToString e)
+        --                True
+        --            , Nothing
+        --            )
+        --        Ok files ->
+        --            ( { model | files = files }, Cmd.none, Nothing )
         AddLog l t ->
             ( { model | logs = l t :: model.logs }
             , Cmd.none
@@ -335,25 +334,23 @@ decodeLogoutResult =
     Decode.field "notLoggedIn" Decode.bool
 
 
-getFiles : String -> Cmd Msg
-getFiles sessionId =
-    let
-        body =
-            Encode.object
-                [ ( "sessionId"
-                  , Encode.string sessionId
-                  )
-                ]
-                |> Http.jsonBody
 
-        request =
-            Http.post "getFiles.php" body decodeFiles
-    in
-    Http.send SetFiles request
-
-
-decodeFiles =
-    Decode.list Decode.string
+--getFiles : String -> Cmd Msg
+--getFiles sessionId =
+--    let
+--        body =
+--            Encode.object
+--                [ ( "sessionId"
+--                  , Encode.string sessionId
+--                  )
+--                ]
+--                |> Http.jsonBody
+--        request =
+--            Http.post "getFiles.php" body decodeFiles
+--    in
+--    Http.send SetFiles request
+--decodeFiles =
+--    Decode.list Decode.string
 
 
 httpErrorToString : Http.Error -> String
@@ -428,10 +425,17 @@ signUpView config status model =
                             (el [ width (px 110) ] (text "Confirmation: "))
                     , show = False
                     }
-                , Input.button (buttonStyle True)
-                    { onPress = Just SignUp
-                    , label = text "Envoyer"
-                    }
+                , row
+                    [ spacing 15 ]
+                    [ Input.button (buttonStyle True)
+                        { onPress = Just SignUp
+                        , label = text "Envoyer"
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress = Just Quit
+                        , label = text "Retour"
+                        }
+                    ]
                 ]
 
         waitingView =

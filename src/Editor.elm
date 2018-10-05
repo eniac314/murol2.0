@@ -273,7 +273,7 @@ init doc flags =
             ImagePlugin.init Nothing ImagePluginMsg
 
         ( newFilesysPlugin, filesysPluginCmds ) =
-            FilesysPlugin.init ImagesRoot ReadOnly FilesysPluginMsg
+            FilesysPlugin.init ImagesRoot ReadOnly LoggedOut FilesysPluginMsg
 
         handlers =
             { containerClickHandler = SelectDoc
@@ -780,7 +780,7 @@ update msg model =
         FilesysPluginMsg filesysPluginMsg ->
             let
                 ( newFilesysPlugin, filesysPluginCmds, mbPluginData ) =
-                    FilesysPlugin.update filesysPluginMsg model.filesysPlugin
+                    FilesysPlugin.update { logInfo = getLogInfo model.authPlugin } filesysPluginMsg model.filesysPlugin
             in
             ( { model | filesysPlugin = newFilesysPlugin }
             , Cmd.batch [ filesysPluginCmds ]
