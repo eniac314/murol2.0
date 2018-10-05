@@ -1,0 +1,48 @@
+- add break to parser
+
+- add calendar
+
+- add 360 pics
+
+- add real full screen mode 
+
+- check if Internal Type idea could be used 
+
+- fix Ul
+
+- fix add sizetracked ids happening only at init time
+	|-> recompute when adding/editing? new image
+
+
+- refaire keyboard subs 
+
+
+- 2 possibiltés pour les custom leaves:
+	* hardcoded
+	* parsed (String -> Element Never)?
+
+- demander tradeoffs z-index
+
+
+- colaboratory : https://colab.research.google.com/notebooks/welcome.ipynb#scrollTo=oYZkU7ZN3CL0
+
+- remove background colors, selected and hovered class from stylesheet
+	put them in documentView associated with config flags
+
+
+- ajouter bloc photothèque?
+
+- set document max width 
+
+- integration réseaux sociaux?
+
+- check elm spa
+
+- remove empty docs before saving
+
+- check elm test for testing uuid uniqueness invariants
+
+
+- height shrink in Input.multiline fo Table
+
+- desactiver couper / supprimer  pour dernier élément dans un containeur
