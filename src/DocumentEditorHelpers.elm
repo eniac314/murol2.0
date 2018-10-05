@@ -40,6 +40,7 @@ type EditorPlugin
     | ContainerEditPlugin
     | PersistencePlugin
     | FilesysDebug
+    | AuthPlugin
 
 
 findAlignment : List DocAttribute -> Alignment

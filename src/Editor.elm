@@ -2,6 +2,7 @@ port module Editor exposing (..)
 
 --import Doc
 
+import AuthPlugin exposing (..)
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
@@ -165,6 +166,7 @@ type alias Model =
     , jsonBuffer : String
     , currentPlugin : Maybe EditorPlugin
     , filesysPlugin : FilesysPlugin.Model Msg
+    , authPlugin : AuthPlugin.Model Msg
     , tablePlugin : TablePlugin.Model Msg
     , textBlockPlugin : TextBlockPlugin.Model Msg
     , imagePlugin : ImagePlugin.Model Msg
@@ -229,6 +231,7 @@ type Msg
       -----------------------------
       -- Plugins messages routing--
       -----------------------------
+    | AuthPluginMsg AuthPlugin.Msg
     | FilesysPluginMsg FilesysPlugin.Msg
     | TablePluginMsg TablePlugin.Msg
     | TextBlockPluginMsg TextBlockPlugin.Msg
@@ -316,6 +319,7 @@ init doc flags =
       , jsonBuffer = ""
       , currentPlugin = Nothing
       , filesysPlugin = newFilesysPlugin
+      , authPlugin = AuthPlugin.init AuthPluginMsg
       , tablePlugin = TablePlugin.init Nothing TablePluginMsg
       , textBlockPlugin = newTextBlockPlugin
       , imagePlugin = newImagePlugin
@@ -757,6 +761,22 @@ update msg model =
         -----------------------------
         -- Plugins messages routing--
         -----------------------------
+        AuthPluginMsg authPluginMsg ->
+            let
+                ( newAuthPlugin, authPluginCmds, mbPluginAction ) =
+                    AuthPlugin.update authPluginMsg model.authPlugin
+            in
+            ( { model
+                | authPlugin = newAuthPlugin
+                , currentPlugin =
+                    if mbPluginAction == Just PluginQuit then
+                        Nothing
+                    else
+                        model.currentPlugin
+              }
+            , authPluginCmds
+            )
+
         FilesysPluginMsg filesysPluginMsg ->
             let
                 ( newFilesysPlugin, filesysPluginCmds, mbPluginData ) =
@@ -1151,6 +1171,7 @@ view model =
                     , previewMode = model.previewMode
                     , containersBkgColors = model.config.containersBkgColors
                     , filesysOpen = model.currentPlugin == Just FilesysDebug
+                    , logInfo = getLogInfo model.authPlugin
                     }
                 , row
                     [ width fill
@@ -1293,6 +1314,9 @@ pluginView model plugin =
                 }
                 model.filesysPlugin
 
+        AuthPlugin ->
+            AuthPlugin.view () model.authPlugin
+
 
 openNewPlugin : Model -> ( Model, Cmd Msg )
 openNewPlugin model =
@@ -1434,6 +1458,7 @@ type alias MenuConfig =
     , previewMode : PreviewMode
     , containersBkgColors : Bool
     , filesysOpen : Bool
+    , logInfo : AuthPlugin.LogInfo
     }
 
 
@@ -1800,8 +1825,36 @@ mainMenu config =
             ]
     in
     row
-        []
-        (List.map topEntry menuData)
+        [ width fill ]
+        (List.map topEntry menuData
+            ++ [ el
+                    [ Element.alignRight
+                    , paddingEach
+                        { top = 0
+                        , right = 10
+                        , left = 0
+                        , bottom = 0
+                        }
+                    ]
+                    (Input.button
+                        (buttonStyle True
+                            ++ [ paddingXY 5 2
+                               ]
+                        )
+                        { onPress =
+                            Just <|
+                                SetEditorPlugin (Just AuthPlugin)
+                        , label =
+                            case config.logInfo of
+                                LoggedOut ->
+                                    text "Connexion"
+
+                                _ ->
+                                    text "Déconnexion"
+                        }
+                    )
+               ]
+        )
 
 
 

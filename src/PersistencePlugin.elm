@@ -1,19 +1,20 @@
 module PersistencePlugin exposing (..)
 
+import DocumentEditorHelpers exposing (..)
+import DocumentSerializer exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
-import Element.Keyed as Keyed
 import Html exposing (Html)
 import Html.Attributes as HtmlAttr
-import Json.Encode exposing (null)
 import Json.Decode exposing (decodeString, value)
-import DocumentSerializer exposing (..)
+import Json.Encode exposing (null)
 
 
 view config =
@@ -48,10 +49,11 @@ view config =
                              , pointer
                              , paddingXY 5 3
                              ]
-                                ++ if f == config.localStorageKey then
-                                    [ Background.color (rgba 0.3 0 1 0.3) ]
-                                   else
-                                    []
+                                ++ (if f == config.localStorageKey then
+                                        [ Background.color (rgba 0.3 0 1 0.3) ]
+                                    else
+                                        []
+                                   )
                             )
                             (text f)
                     )
@@ -59,7 +61,7 @@ view config =
                 )
             , row
                 [ spacing 15 ]
-                [ Input.button buttonStyle
+                [ Input.button (buttonStyle True)
                     { onPress =
                         Just
                             config.removeFromLocalStorage
@@ -68,7 +70,7 @@ view config =
                             [ text "Effacer fichier"
                             ]
                     }
-                , Input.button buttonStyle
+                , Input.button (buttonStyle True)
                     { onPress =
                         Just
                             config.clearLocalStorage
@@ -80,7 +82,7 @@ view config =
                 ]
             , row
                 [ spacing 15 ]
-                [ Input.button buttonStyle
+                [ Input.button (buttonStyle True)
                     { onPress =
                         Just
                             config.getFromLocalStorage
@@ -89,7 +91,7 @@ view config =
                             [ text "Charger fichier"
                             ]
                     }
-                , Input.button buttonStyle
+                , Input.button (buttonStyle True)
                     { onPress =
                         Just
                             config.loadDocument
@@ -119,7 +121,7 @@ view config =
                     , text =
                         config.jsonBuffer
                     , placeholder = Nothing
-                    , label = Input.labelLeft [] (Element.none)
+                    , label = Input.labelLeft [] Element.none
                     , spellcheck = False
                     }
                 )
@@ -144,7 +146,7 @@ view config =
                             ]
                             (Element.text "Nom du fichier: ")
                     }
-                , Input.button buttonStyle
+                , Input.button (buttonStyle True)
                     { onPress =
                         Just <|
                             config.setLocalStorageValue
@@ -154,7 +156,7 @@ view config =
                             [ text "Conversion Document -> Json"
                             ]
                     }
-                , Input.button buttonStyle
+                , Input.button (buttonStyle True)
                     { onPress =
                         Just
                             config.putInLocalStorage
@@ -165,7 +167,7 @@ view config =
                     }
                 ]
             ]
-        , Input.button buttonStyle
+        , Input.button (buttonStyle True)
             { onPress =
                 Just <|
                     config.setEditorPlugin Nothing
@@ -177,12 +179,13 @@ view config =
         ]
 
 
-buttonStyle =
-    [ Border.rounded 5
-    , Font.center
-    , centerY
-    , paddingXY 5 3
-    , Background.color (rgb 0.9 0.9 0.9)
-    , mouseOver
-        [ Background.color (rgb 0.95 0.95 0.95) ]
-    ]
+
+--(buttonStyle True) True=
+--    [ Border.rounded 5
+--    , Font.center
+--    , centerY
+--    , paddingXY 5 3
+--    , Background.color (rgb 0.9 0.9 0.9)
+--    , mouseOver
+--        [ Background.color (rgb 0.95 0.95 0.95) ]
+--    ]

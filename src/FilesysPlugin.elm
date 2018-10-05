@@ -10,10 +10,12 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy as Lazy
 import Html.Attributes as HtmlAttr
+import Html.Events exposing (preventDefaultOn)
 import Http exposing (..)
 import Icons exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
+import String.Extra exposing (..)
 
 
 type alias Model msg =
@@ -23,7 +25,7 @@ type alias Model msg =
     , externalMsg : Msg -> msg
     , mbFilesys : Maybe Filesys
     , lastLocation : Path
-    , selectedFile : Path
+    , selectedFsItem : Path
     , error : String
     }
 
@@ -73,7 +75,7 @@ init root displayMode externalMsg =
       , externalMsg = externalMsg
       , mbFilesys = Nothing
       , lastLocation = []
-      , selectedFile = []
+      , selectedFsItem = []
       , error = ""
       }
     , Cmd.map externalMsg (getFileList root)
@@ -85,12 +87,13 @@ type Msg
     | GoNext
     | GoPrev
     | GoTo Path
-    | SelectFile Path
+    | SelectFsItem Path
     | NewFile
     | NewFolder
     | Delete
     | Rename String
     | RefreshFilesys Root (Result Http.Error (List FsItem))
+    | NoOp
 
 
 update msg model =
@@ -155,10 +158,10 @@ update msg model =
             , selectedFilename model
             )
 
-        SelectFile path ->
-            ( { model | selectedFile = path }
+        SelectFsItem path ->
+            ( { model | selectedFsItem = path }
             , Cmd.none
-            , Nothing
+            , selectedFilename model
             )
 
         GoTo path ->
@@ -222,6 +225,9 @@ update msg model =
                 Err e ->
                     ( { model | error = "can't refresh" }, Cmd.none, Nothing )
 
+        NoOp ->
+            ( model, Cmd.none, Nothing )
+
 
 selectedFilename : Model msg -> Maybe FsItem
 selectedFilename { mbFilesys } =
@@ -269,6 +275,22 @@ decodeImage =
         )
         |> Pipeline.required "path" Decode.string
         |> Pipeline.required "name" Decode.string
+
+
+onDoubleClick : (Msg -> msg) -> Msg -> Attribute msg
+onDoubleClick externalMsg msg =
+    let
+        decodeNbrClicks =
+            Decode.at [ "detail" ] Decode.int
+
+        preventIfDoubleClick n =
+            if n > 1 then
+                ( externalMsg msg, True )
+            else
+                ( externalMsg NoOp, False )
+    in
+    preventDefaultOn "mousedown" (Decode.map preventIfDoubleClick decodeNbrClicks)
+        |> htmlAttribute
 
 
 view config model =
@@ -345,34 +367,52 @@ filesysView model config =
             case model.root of
                 ImagesRoot ->
                     column
-                        ([ pointer
-                         ]
-                            ++ (if model.selectedFile == path then
-                                    [ Border.width 1
-                                    , Border.color (rgb 0.8 0.8 0.8)
-                                    , padding 6
-                                    ]
-                                else
-                                    [ padding 7 ]
-                               )
-                        )
+                        [ pointer
+                        , padding 7
+                        , mouseOver
+                            (if model.selectedFsItem == path then
+                                []
+                             else
+                                [ Background.color (rgba 0.3 0.4 0.6 0.3) ]
+                            )
+                        , Border.rounded 5
+                        , if model.selectedFsItem == path then
+                            Background.color (rgba 0.3 0.4 0.6 0.5)
+                          else
+                            noAttr
+                        , iEv Events.onClick (SelectFsItem path)
+                        , alignTop
+                        ]
                         [ el
-                            [ width (px 100)
-                            , height (px 100)
-
-                            --, Border.width 1
-                            --, Border.color (rgb 0.8 0.8 0.8)
-                            , Background.uncropped (String.join "/" path)
-                            , iEv Events.onClick (SelectFile path)
+                            [ width (px 80)
+                            , height (px 80)
+                            , Background.color
+                                (rgb 0.95 0.95 0.95)
+                            , Border.rounded 5
+                            , padding 0
+                            , spacing 0
+                            , htmlAttribute <| HtmlAttr.style "transition" "0.1s"
                             ]
-                            Element.none
+                            (el
+                                [ width (px 67)
+                                , height (px 67)
+                                , Background.uncropped (String.join "/" path)
+                                , Background.color (rgba 1 1 1 1)
+                                , centerX
+                                , centerY
+                                ]
+                                Element.none
+                            )
                         , paragraph
-                            [ width (px 100)
+                            [ width (px 80)
                             , clip
                             , Font.size 12
                             , paddingXY 0 5
+                            , Font.center
                             ]
-                            [ text name ]
+                            [ text <|
+                                prettyName name 10
+                            ]
                         ]
 
                 DocsRoot ->
@@ -384,9 +424,7 @@ filesysView model config =
                             , Border.width 1
                             , Border.color (rgb 0.8 0.8 0.8)
                             , Background.color (rgb 1 1 1)
-
-                            --, Background.uncropped (String.join "/" path)
-                            , iEv Events.onClick (SelectFile path)
+                            , iEv Events.onClick (SelectFsItem path)
                             ]
                             Element.none
                         , el
@@ -398,29 +436,42 @@ filesysView model config =
 
         folderView { name, path } =
             column
-                [ padding 7
-                , pointer
-                , mouseOver
-                    [ Background.color (rgba 0.3 0.4 0.6 0.3) ]
-                , htmlAttribute <| HtmlAttr.style "transition" "0.1s"
-                ]
+                ([ padding 7
+                 , pointer
+                 , Border.rounded 5
+                 , mouseOver
+                    (if model.selectedFsItem == path then
+                        []
+                     else
+                        [ Background.color (rgba 0.3 0.4 0.6 0.3) ]
+                    )
+                 , htmlAttribute <| HtmlAttr.style "transition" "0.1s"
+                 , iEv Events.onClick (SelectFsItem path)
+                 , onDoubleClick model.externalMsg (GoTo path)
+                 , alignTop
+                 ]
+                    ++ (if model.selectedFsItem == path then
+                            [ Background.color (rgba 0.3 0.4 0.6 0.5)
+                            ]
+                        else
+                            []
+                       )
+                )
                 [ el
                     [ width (px 80)
                     , height (px 80)
-
-                    --, Border.width 1
-                    --, Border.color (rgb 0.8 0.8 0.8)
                     , Background.color (rgb 1 1 1)
                     , Background.uncropped "assets/images/folder.svg"
-                    , iEv Events.onClick (GoTo path)
                     ]
                     Element.none
                 , paragraph
                     [ width (px 80)
                     , clip
-                    , Font.size 14
+                    , Font.size 12
+                    , Font.center
+                    , paddingXY 0 5
                     ]
-                    [ text name ]
+                    [ text <| prettyName name 10 ]
                 ]
 
         contentView fsItem =
@@ -441,8 +492,8 @@ filesysView model config =
                     fileView meta
 
                 Folder meta contents ->
-                    paragraph
-                        []
+                    wrappedRow
+                        [ spacing 5 ]
                         (List.partition
                             (\f ->
                                 case f of
@@ -459,6 +510,64 @@ filesysView model config =
                                )
                             |> List.map contentView
                         )
+
+
+prettyName name n =
+    String.words name
+        |> List.concatMap
+            (\s ->
+                let
+                    l =
+                        String.length s
+                in
+                if l >= n then
+                    String.split "." s
+                        |> String.join " ."
+                        |> String.words
+                else
+                    [ s ]
+            )
+        |> List.concatMap
+            (String.Extra.break
+                n
+            )
+        |> (\xs ->
+                if List.length xs > 3 then
+                    List.indexedMap
+                        (\i s ->
+                            if i == 2 then
+                                if String.length s >= 7 then
+                                    String.left 7 s ++ "..."
+                                else
+                                    s ++ "..."
+                            else
+                                s
+                        )
+                        xs
+                        |> List.take 3
+                else
+                    xs
+           )
+        |> customJoin [] n " "
+
+
+customJoin acc n s xs =
+    case xs of
+        [] ->
+            String.join s (List.reverse acc)
+
+        xs1 :: xs2 :: rest ->
+            if
+                (String.length xs1 + String.length xs2)
+                    <= n
+                    && (String.contains "." xs1 || String.contains "." xs2)
+            then
+                customJoin ((xs1 ++ xs2) :: acc) n s rest
+            else
+                customJoin (xs1 :: acc) n s (xs2 :: rest)
+
+        xs1 :: rest ->
+            customJoin (xs1 :: acc) n s rest
 
 
 fsItemToElement model config fsItem =
