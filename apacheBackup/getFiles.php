@@ -11,7 +11,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   	exit();
     }
 
-    if(!isset($php_data->sessionId)){
+    if(!isset($php_data->sessionId) || !isset($php_data->root)){
        logError("wrong input");
    	exit();
     }
@@ -25,11 +25,21 @@ if(getenv('REQUEST_METHOD') == 'POST') {
       exit();
     }
    
-   $images = 
-   		getDirContents('images');
-   	echo (json_encode($images));
-   
-   exit();
+    if($php_data->root == 'images'){
+
+      $images = 
+  		getDirContents('images');
+      
+      echo (json_encode($images));
+      exit();
+    
+    } else if ($php_data->root == 'baseDocumentaire'){
+    	$docs = 
+    	  getDirContents('baseDocumentaire');
+     	
+     	echo (json_encode($docs));
+     	exit();
+    }
 
 } else {
   logError("invalid request");
@@ -41,9 +51,28 @@ function getDirContents($dir, &$results = array()){
     foreach($files as $key => $value){
         $path = realpath($dir.DIRECTORY_SEPARATOR.$value);
         if(!is_dir($path)) {
+            $name = $value;
+            $relativePath = substr($path, 1 + strlen(getcwd()), strlen($path) - 1 - strlen(getcwd()));
+            
+            if (exif_imagetype($path)) {
+                $imgSize = getimagesize($path);
+                
+                $size = array( 'width' => $imgSize[0]
+                             , 'height' => $imgSize[1]
+                             );
+		    } else {
+				$size =	NULL;
+			};
+            
+            $fileSize = filesize($path);
+            $fileSize = ($fileSize == false)? NULL: $fileSize;
+
             $results[] = 
-            	array('name' => $value
-            	     , 'path' => substr($path, 1 + strlen(getcwd()), strlen($path) - 1 - strlen(getcwd())));
+            	array( 'name' => $name
+            	     , 'path' => $relativePath
+            	     , 'imgSize' => $size
+            	     , 'fileSize' => $fileSize		
+            	    );
         } else if($value != "." && $value != "..") {
             getDirContents($path, $results);
         }

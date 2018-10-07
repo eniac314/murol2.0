@@ -62,6 +62,7 @@ subscriptions model =
         , onKeyDown (Decode.map KeyDown keyDecoder)
         , onKeyUp (Decode.map KeyUp keyDecoder)
         , subPort Process
+        , FilesysPlugin.subscriptions model.filesysPlugin
         ]
 
 

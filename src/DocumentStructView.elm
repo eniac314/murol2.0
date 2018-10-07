@@ -21,6 +21,14 @@ documentStructView config selectedContainer document =
         , Font.family
             [ Font.monospace
             ]
+        , Border.solid
+        , Border.widthEach
+            { top = 0
+            , bottom = 0
+            , left = 0
+            , right = 2
+            }
+        , Border.color (rgb 0.8 0.8 0.8)
         ]
         [ menuView config
         , mainPanel config selectedContainer document

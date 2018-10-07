@@ -30,8 +30,6 @@ type alias Model msg =
     , confirmPassword : String
     , logInfo : LogInfo
     , pluginMode : PluginMode
-
-    --, files : List String
     , logs : List Log
     , zone : Time.Zone
     , externalMsg : Msg -> msg
@@ -44,8 +42,6 @@ init externalMsg =
     , confirmPassword = ""
     , logInfo = LoggedOut
     , pluginMode = LoginMode Initial
-
-    --, files = []
     , logs = []
     , zone = Time.utc
     , externalMsg = externalMsg
@@ -58,8 +54,6 @@ reset model =
         , password = ""
         , confirmPassword = ""
         , pluginMode = LoginMode Initial
-
-        --, files = []
         , logs = []
       }
     , login model
@@ -99,14 +93,6 @@ type Msg
     | AddLog (Posix -> Log) Posix
     | Quit
     | NoOp
-
-
-type alias Log =
-    { message : String
-    , mbDetails : Maybe String
-    , isError : Bool
-    , timeStamp : Posix
-    }
 
 
 update msg model =
@@ -229,27 +215,6 @@ internalUpdate msg model =
             , Nothing
             )
 
-        --GetFiles ->
-        --    ( model
-        --    , case model.logInfo of
-        --        LoggedOut ->
-        --            Cmd.none
-        --        LoggedIn { sessionId } ->
-        --            getFiles sessionId
-        --    , Nothing
-        --    )
-        --SetFiles res ->
-        --    case res of
-        --        Err e ->
-        --            ( model
-        --            , newLog
-        --                "Echec récupération fichiers"
-        --                (Just <| httpErrorToString e)
-        --                True
-        --            , Nothing
-        --            )
-        --        Ok files ->
-        --            ( { model | files = files }, Cmd.none, Nothing )
         AddLog l t ->
             ( { model | logs = l t :: model.logs }
             , Cmd.none
@@ -332,47 +297,6 @@ logout =
 
 decodeLogoutResult =
     Decode.field "notLoggedIn" Decode.bool
-
-
-
---getFiles : String -> Cmd Msg
---getFiles sessionId =
---    let
---        body =
---            Encode.object
---                [ ( "sessionId"
---                  , Encode.string sessionId
---                  )
---                ]
---                |> Http.jsonBody
---        request =
---            Http.post "getFiles.php" body decodeFiles
---    in
---    Http.send SetFiles request
---decodeFiles =
---    Decode.list Decode.string
-
-
-httpErrorToString : Http.Error -> String
-httpErrorToString e =
-    case e of
-        BadUrl s ->
-            "Url invalide: " ++ s
-
-        Timeout ->
-            "Délai d'attente dépassé"
-
-        NetworkError ->
-            "Erreur de réseau"
-
-        BadStatus resp ->
-            "Erreur serveur: "
-                ++ String.fromInt resp.status.code
-                ++ " - "
-                ++ resp.status.message
-
-        BadPayload decodingError resp ->
-            "Erreur décodage: " ++ decodingError
 
 
 view config model =

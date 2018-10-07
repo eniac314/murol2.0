@@ -1,5 +1,6 @@
 module PersistencePlugin exposing (..)
 
+import Base64 exposing (..)
 import DocumentEditorHelpers exposing (..)
 import DocumentSerializer exposing (..)
 import Element exposing (..)
@@ -11,7 +12,7 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
-import Html exposing (Html)
+import Html as Html
 import Html.Attributes as HtmlAttr
 import Json.Decode exposing (decodeString, value)
 import Json.Encode exposing (null)
@@ -166,6 +167,17 @@ view config =
                             ]
                     }
                 ]
+            ]
+        , row [ spacing 15 ]
+            [ el [ Font.bold ] (text "Lien téléchargement: ")
+            , html <|
+                Html.a
+                    [ HtmlAttr.href <|
+                        "data:application/octet-stream;charset=utf-16le;base64,"
+                            ++ Base64.encode config.jsonBuffer
+                    , HtmlAttr.download (config.localStorageKey ++ ".json")
+                    ]
+                    [ Html.text <| config.localStorageKey ++ ".json" ]
             ]
         , Input.button (buttonStyle True)
             { onPress =
