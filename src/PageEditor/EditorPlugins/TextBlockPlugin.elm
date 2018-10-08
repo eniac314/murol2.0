@@ -116,63 +116,6 @@ type alias Selection =
     }
 
 
-
---main : Program () Model msg Msg
---main =
---    Browser.element
---        { init =
---            init
---                [ FontSize 16
---                , Font "Arial"
---                ]
---                (Just <|
---                    [ Paragraph []
---                        [ Text [] "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
---                        ]
---                    , Paragraph []
---                        [ Text [] "Le bourg de Murol est implanté dans un écrin de verdure à 850 mètres d'altitude, dans la vallée de la Couze Chambon, sur le versant Est du massif du Sancy."
---                        ]
---                    , Paragraph []
---                        [ Text [] "Enchâssé entre le volcan boisé du "
---                        , Link []
---                            { label = "Tartaret"
---                            , targetBlank = False
---                            , url = ""
---                            }
---                        , Text [] " le promontoire du "
---                        , Link []
---                            { label = "château de Murol"
---                            , targetBlank = False
---                            , url = ""
---                            }
---                        , Text [] " et le puy de Bessolles, le village vous ravira par ses sites remarquables et pittoresques."
---                        ]
---                    , Paragraph []
---                        [ Text [] "Au pied du château, découvrez le parc arboré du Prélong où se trouvent le "
---                        , Link []
---                            { label = "musée des Peintres de l’Ecole de Murols"
---                            , targetBlank = True
---                            , url = "http://www.musee-murol.fr/fr"
---                            }
---                        , Text [] " et le musée archéologique."
---                        ]
---                    , Paragraph []
---                        [ Text [] "Dans le sud du département du Puy-de-Dôme, la commune de Murol est traversée par la Couze Chambon (affluent de l'Allier) et son affluent le Fredet. Au sud-ouest, la partie orientale du lac Chambon fait partie du territoire communal. "
---                        ]
---                    ]
---                )
---        , update =
---            \model msg ->
---                let
---                    ( newModel, cmd, maybeOutput ) =
---                        update model msg
---                in
---                ( newModel, cmd )
---        , view = view
---        , subscriptions = subscriptions
---        }
-
-
 subscriptions model =
     Sub.none
 
@@ -220,19 +163,6 @@ init attrs mbInput externalMsg =
               , selectedFile = Nothing
               , colorPickerOpen = Nothing
               , externalMsg = externalMsg
-
-              --, config =
-              --      { width = 500
-              --      , height = 800
-              --      , styleSheet = defaulStyleSheet
-              --      , containersBkgColors = False
-              --      , customElems = Dict.empty
-              --      , editMode = False
-              --      , mainInterfaceHeight = 0
-              --      , onLoadMsg = \_ -> NoOp
-              --      , sizesDict = Dict.empty
-              --      , zipperHandlers = Nothing
-              --      }
               }
             , Cmd.map externalMsg Cmd.none
             )
@@ -256,19 +186,6 @@ init attrs mbInput externalMsg =
               , selectedFile = Nothing
               , colorPickerOpen = Nothing
               , externalMsg = externalMsg
-
-              --, config =
-              --      { width = 500
-              --      , height = 800
-              --      , styleSheet = defaulStyleSheet
-              --      , containersBkgColors = False
-              --      , customElems = Dict.empty
-              --      , editMode = False
-              --      , mainInterfaceHeight = 0
-              --      , onLoadMsg = \_ -> NoOp
-              --      , sizesDict = Dict.empty
-              --      , zipperHandlers = Nothing
-              --      }
               }
             , Cmd.map externalMsg Cmd.none
             )
@@ -956,7 +873,7 @@ view model config =
             ([ padding 15
              , spacing 15
              , scrollbarY
-             , height (minimum (config.height - config.mainInterfaceHeight) fill)
+             , height fill
              , width fill
              ]
                 ++ (if model.internalUrlSelectorOpen then
@@ -990,6 +907,12 @@ view model config =
                     , row
                         [ spacing 15
                         , Font.size 16
+                        , paddingEach
+                            { top = 0
+                            , bottom = 15
+                            , right = 0
+                            , left = 0
+                            }
                         ]
                         [ Input.button (buttonStyle True)
                             { onPress = Just Quit

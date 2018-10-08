@@ -15,6 +15,7 @@ import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons as Icons exposing (..)
+import Internals.ToolHelpers exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
@@ -32,6 +33,7 @@ type alias Model msg =
     , lastLocation : Maybe FsItem
     , selectedFsItem : Maybe FsItem
     , logs : List Log
+    , loadingSatus : ToolLoadingSatus
     }
 
 
@@ -94,23 +96,34 @@ type alias Context =
     }
 
 
-init root displayMode logInfo externalMsg =
-    ( { renameBuffer = ""
-      , root = root
-      , displayMode = displayMode
-      , externalMsg = externalMsg
-      , mbFilesys = Nothing
-      , lastLocation = Nothing
-      , selectedFsItem = Nothing
-      , logs = []
-      }
-    , case logInfo of
+init root displayMode externalMsg =
+    { renameBuffer = ""
+    , root = root
+    , displayMode = displayMode
+    , externalMsg = externalMsg
+    , mbFilesys = Nothing
+    , lastLocation = Nothing
+    , selectedFsItem = Nothing
+    , logs = []
+    , loadingSatus = ToolLoadingWaiting
+    }
+
+
+load model logInfo =
+    case logInfo of
         LoggedIn { sessionId } ->
-            Cmd.map externalMsg (getFileList root sessionId)
+            Cmd.map model.externalMsg (getFileList model.root sessionId)
 
         LoggedOut ->
             Cmd.none
-    )
+
+
+loadingStatus model =
+    model.loadingSatus
+
+
+loadingView model =
+    toolLoadingView "Chargement Explorateur de fichiers: " model
 
 
 type Msg
@@ -299,13 +312,14 @@ internalUpdate config msg model =
                                     List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing fs
                                         |> Maybe.map initFileSys
                         , lastLocation = Nothing
+                        , loadingSatus = ToolLoadingSuccess
                       }
                     , Cmd.none
                     , Nothing
                     )
 
                 Err e ->
-                    ( model
+                    ( { model | loadingSatus = ToolLoadingFailure (httpErrorToString e) }
                     , Cmd.none
                     , Nothing
                     )

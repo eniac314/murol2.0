@@ -404,7 +404,11 @@ internalUpdate msg model =
                     { cfg | width = width, height = height }
             in
             ( { model | config = newConfig }
-            , Cmd.batch [ updateSizes newConfig ]
+            , Cmd.batch
+                [ updateSizes newConfig
+                , Task.attempt MainInterfaceViewport
+                    (Dom.getViewportOf "mainInterface")
+                ]
             )
 
         RefreshSizes ->
@@ -1076,7 +1080,7 @@ view config model =
     Element.map model.externalMsg <|
         column
             ([ width fill
-             , height (maximum model.config.height fill)
+             , height (maximum (model.config.height - 35) fill)
 
              --, Background.color (rgba 1 0.5 0.3 0.4)
              ]
@@ -1101,7 +1105,7 @@ view config model =
                 , selectionIsContainer = isContainer (extractDoc model.document)
                 , previewMode = model.previewMode
                 , containersBkgColors = model.config.containersBkgColors
-                , logInfo = getLogInfo config.logInfo
+                , logInfo = config.logInfo
                 }
             , row
                 [ width fill

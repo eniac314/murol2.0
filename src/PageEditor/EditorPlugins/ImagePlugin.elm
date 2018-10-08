@@ -457,15 +457,21 @@ view config model =
     --    []
     --<|
     Element.map model.externalMsg <|
-        case model.mode of
-            ImageAttributeEditor ->
-                imageAttributeEditorView config model
+        column
+            [ height fill
+            , width fill
+            , scrollbarY
+            ]
+            [ case model.mode of
+                ImageAttributeEditor ->
+                    imageAttributeEditorView config model
 
-            ImagePicker ->
-                imagePickerView config model
+                ImagePicker ->
+                    imagePickerView config model
 
-            ImageController imgContMode ->
-                imageControllerView model imgContMode
+                ImageController imgContMode ->
+                    imageControllerView model imgContMode
+            ]
 
 
 imageAttributeEditorView config model =

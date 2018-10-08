@@ -450,6 +450,12 @@ view config model =
                             Element.none
             , row
                 [ spacing 15
+                , paddingEach
+                    { top = 0
+                    , bottom = 15
+                    , right = 0
+                    , left = 0
+                    }
                 ]
                 [ Input.button (buttonStyle True)
                     { onPress = Just Quit

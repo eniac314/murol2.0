@@ -23,6 +23,9 @@ view config =
         [ spacing 15
         , padding 15
         , Font.size 16
+        , height fill
+        , width fill
+        , scrollbarY
         ]
         [ el
             [ Font.bold
@@ -179,13 +182,22 @@ view config =
                     ]
                     [ Html.text <| config.localStorageKey ++ ".json" ]
             ]
-        , Input.button (buttonStyle True)
-            { onPress =
-                Just <|
-                    config.setEditorPlugin Nothing
-            , label =
-                row [ spacing 10 ]
-                    [ text "Retour"
-                    ]
-            }
+        , el
+            [ paddingEach
+                { top = 0
+                , bottom = 15
+                , right = 0
+                , left = 0
+                }
+            ]
+            (Input.button (buttonStyle True)
+                { onPress =
+                    Just <|
+                        config.setEditorPlugin Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ text "Retour"
+                        ]
+                }
+            )
         ]

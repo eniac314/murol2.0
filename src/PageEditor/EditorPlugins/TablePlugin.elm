@@ -465,6 +465,8 @@ view model =
         column
             ([ Font.size 16
              , width fill
+             , height fill
+             , scrollbarY
              , alignTop
              , padding 15
              , spacing 15
@@ -738,7 +740,14 @@ editView model =
         , tableView
         , if model.setupDone then
             row
-                [ spacing 15 ]
+                [ spacing 15
+                , paddingEach
+                    { top = 0
+                    , bottom = 15
+                    , right = 0
+                    , left = 0
+                    }
+                ]
                 [ Input.button (buttonStyle True)
                     { onPress = Just Quit
                     , label = text "Quitter"
