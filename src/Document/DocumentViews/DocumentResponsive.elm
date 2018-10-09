@@ -1,7 +1,8 @@
-module PageEditor.DocumentViews.DocumentResponsive exposing (..)
+module Document.DocumentViews.DocumentResponsive exposing (..)
 
 import Array exposing (..)
 import Dict exposing (..)
+import Document.Document exposing (..)
 import Element
     exposing
         ( Attribute
@@ -36,7 +37,6 @@ import Element
         , textColumn
         , width
         )
-import PageEditor.Internals.Document exposing (..)
 import Set exposing (..)
 
 

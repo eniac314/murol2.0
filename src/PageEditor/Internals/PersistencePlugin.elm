@@ -1,6 +1,7 @@
 module PageEditor.Internals.PersistencePlugin exposing (..)
 
 import Base64 exposing (..)
+import Document.Json.DocumentSerializer exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -15,7 +16,6 @@ import Html.Attributes as HtmlAttr
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode exposing (decodeString, value)
 import Json.Encode exposing (null)
-import PageEditor.Json.DocumentSerializer exposing (..)
 
 
 view config =

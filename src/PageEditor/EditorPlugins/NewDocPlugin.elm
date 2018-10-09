@@ -1,5 +1,6 @@
 module PageEditor.EditorPlugins.NewDocPlugin exposing (..)
 
+import Document.Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -10,7 +11,6 @@ import Element.Lazy as Lazy
 import Element.Region as Region
 import Html exposing (Html)
 import Internals.CommonStyleHelpers exposing (..)
-import PageEditor.Internals.Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 
 

@@ -1,10 +1,11 @@
 module PageEditor.EditorPlugins.TextBlockPlugin exposing (Model, Msg, init, update, view)
 
---exposing (Html, node, option, select, text, textarea)
-
 import Browser exposing (element)
 import Delay exposing (..)
 import Dict exposing (..)
+import Document.Document as Document exposing (..)
+import Document.DocumentViews.DocumentView exposing (renderTextBlock)
+import Document.DocumentViews.StyleSheets exposing (StyleSheet, defaulStyleSheet)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -22,11 +23,7 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons as Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import PageEditor.DocumentViews.DocumentView exposing (renderTextBlock)
-import PageEditor.DocumentViews.StyleSheets exposing (StyleSheet, defaulStyleSheet)
-import PageEditor.Internals.Document as Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
-import PageEditor.Json.DocumentSerializer exposing (..)
 import Parser exposing (..)
 import Set exposing (..)
 

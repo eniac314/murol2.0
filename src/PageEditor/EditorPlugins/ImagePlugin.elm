@@ -2,6 +2,7 @@ module PageEditor.EditorPlugins.ImagePlugin exposing (..)
 
 import Browser exposing (element)
 import Dict exposing (..)
+import Document.Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -19,7 +20,6 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (alignCenter, alignLeft, alignRight, rotateCcw, rotateCw)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import PageEditor.Internals.Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageEditor.Internals.DummyFileSys exposing (dummyImageList)
 

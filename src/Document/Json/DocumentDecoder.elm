@@ -1,9 +1,9 @@
-module PageEditor.Json.DocumentDecoder exposing (..)
+module Document.Json.DocumentDecoder exposing (..)
 
 import Array exposing (fromList)
+import Document.Document exposing (..)
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
-import PageEditor.Internals.Document exposing (..)
 import Set exposing (fromList)
 
 

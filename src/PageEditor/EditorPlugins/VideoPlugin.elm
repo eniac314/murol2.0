@@ -1,6 +1,7 @@
 module PageEditor.EditorPlugins.VideoPlugin exposing (..)
 
 import Dict exposing (..)
+import Document.Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -13,7 +14,6 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons as Icons exposing (..)
-import PageEditor.Internals.Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 
 

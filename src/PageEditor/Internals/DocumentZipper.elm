@@ -20,8 +20,8 @@ module PageEditor.Internals.DocumentZipper
         , zipUp
         )
 
+import Document.Document exposing (..)
 import Html.Events exposing (on, onMouseOut, onMouseOver)
-import PageEditor.Internals.Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 
 

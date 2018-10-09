@@ -1,4 +1,4 @@
-module PageEditor.DocumentViews.StyleSheets exposing (..)
+module Document.DocumentViews.StyleSheets exposing (..)
 
 import Dict exposing (..)
 import Element exposing (..)

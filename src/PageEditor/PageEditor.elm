@@ -5,6 +5,11 @@ import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Delay exposing (..)
 import Dict exposing (..)
+import Document.Document exposing (..)
+import Document.DocumentViews.DocumentResponsive exposing (..)
+import Document.DocumentViews.DocumentView exposing (..)
+import Document.DocumentViews.StyleSheets exposing (..)
+import Document.Json.DocumentDecoder exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -18,9 +23,6 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode exposing (Value, null)
-import PageEditor.DocumentViews.DocumentResponsive exposing (..)
-import PageEditor.DocumentViews.DocumentView exposing (..)
-import PageEditor.DocumentViews.StyleSheets exposing (..)
 import PageEditor.EditorPlugins.ContainerEditPlugin as ContainerEditPlugin
 import PageEditor.EditorPlugins.ImagePlugin as ImagePlugin
 import PageEditor.EditorPlugins.NewDocPlugin as NewDocPlugin
@@ -28,11 +30,9 @@ import PageEditor.EditorPlugins.SidePanels.DocumentStructView exposing (..)
 import PageEditor.EditorPlugins.TablePlugin as TablePlugin
 import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
 import PageEditor.EditorPlugins.VideoPlugin as VideoPlugin
-import PageEditor.Internals.Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageEditor.Internals.DocumentZipper exposing (..)
 import PageEditor.Internals.PersistencePlugin as PersistencePlugin
-import PageEditor.Json.DocumentDecoder exposing (..)
 import PortFunnel exposing (FunnelSpec, GenericMessage, ModuleDesc, StateAccessors)
 import PortFunnel.LocalStorage as LocalStorage
 import Task exposing (perform)

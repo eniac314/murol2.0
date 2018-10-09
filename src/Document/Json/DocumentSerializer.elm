@@ -1,8 +1,8 @@
-module PageEditor.Json.DocumentSerializer exposing (..)
+module Document.Json.DocumentSerializer exposing (..)
 
 import Array exposing (toList)
+import Document.Document exposing (..)
 import Json.Encode exposing (..)
-import PageEditor.Internals.Document exposing (..)
 import Set exposing (toList)
 
 

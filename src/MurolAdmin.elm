@@ -16,6 +16,7 @@ import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.ToolHelpers exposing (..)
+import NewsEditor.NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
 import Task exposing (perform)
 
@@ -337,8 +338,10 @@ tabView currentTool tool s =
                     ]
                 else
                     [ Border.color (rgb 0.9 0.9 0.9)
-
-                    --, moveDown 3
+                    , pointer
+                    , mouseOver
+                        [ Background.color (rgb 0.95 0.95 0.95)
+                        ]
                     ]
                )
         )

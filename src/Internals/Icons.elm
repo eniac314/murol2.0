@@ -20,22 +20,6 @@ customSvgFeatherIcon size className =
         ]
 
 
-
---customSvgFeatherIcon size  : Int -> String -> List (Svg msg) -> Int -> Html msg
---customSvgFeatherIcon size  size className size =
---    svg
---        [ class <| "feather feather-" ++ className
---        , fill "none"
---        , height (String.fromInt size)
---        , stroke "currentColor"
---        , strokeLinecap "round"
---        , strokeLinejoin "round"
---        , strokeWidth "2"
---        , viewBox "0 0 24 24"
---        , width (String.fromInt size)
---        ]
-
-
 link2 : Int -> Html msg
 link2 size =
     customSvgFeatherIcon size
@@ -468,4 +452,42 @@ home size =
         "home"
         [ Svg.path [ d "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" ] []
         , Svg.polyline [ points "9 22 9 12 15 12 15 22" ] []
+        ]
+
+
+upload : Int -> Html msg
+upload size =
+    customSvgFeatherIcon size
+        "upload"
+        [ Svg.path
+            [ d "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" ]
+            []
+        , Svg.polyline [ points "17 8 12 3 7 8" ] []
+        , Svg.line [ x1 "12", y1 "3", x2 "12", y2 "15" ] []
+        ]
+
+
+download : Int -> Html msg
+download size =
+    customSvgFeatherIcon size
+        "download"
+        [ Svg.path
+            [ d "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" ]
+            []
+        , Svg.polyline [ points "7 10 12 15 17 10" ] []
+        , Svg.line [ x1 "12", y1 "15", x2 "12", y2 "3" ] []
+        ]
+
+
+fileText : Int -> Html msg
+fileText size =
+    customSvgFeatherIcon size
+        "file-text"
+        [ Svg.path
+            [ d "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" ]
+            []
+        , Svg.polyline [ points "14 2 14 8 20 8" ] []
+        , Svg.line [ x1 "16", y1 "13", x2 "8", y2 "13" ] []
+        , Svg.line [ x1 "16", y1 "17", x2 "8", y2 "17" ] []
+        , Svg.polyline [ points "10 9 9 9 8 9" ] []
         ]

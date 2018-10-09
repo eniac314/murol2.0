@@ -1,7 +1,9 @@
-module PageEditor.DocumentViews.DocumentView exposing (..)
+module Document.DocumentViews.DocumentView exposing (..)
 
 import Array exposing (..)
 import Dict exposing (..)
+import Document.Document exposing (..)
+import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -14,8 +16,6 @@ import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as Decode
-import PageEditor.DocumentViews.StyleSheets exposing (..)
-import PageEditor.Internals.Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
 import Set exposing (..)
 

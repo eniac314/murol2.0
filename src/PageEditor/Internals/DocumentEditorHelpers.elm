@@ -1,5 +1,6 @@
 module PageEditor.Internals.DocumentEditorHelpers exposing (..)
 
+import Document.Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -12,7 +13,6 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Http exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
-import PageEditor.Internals.Document exposing (..)
 import Set exposing (empty)
 import Time exposing (..)
 

@@ -1,12 +1,12 @@
-module PageEditor.Internals.Document exposing (..)
+module Document.Document exposing (..)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
+import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
 import Html.Attributes as Attr
 import Html.Events exposing (on)
 import Json.Decode as Decode
-import PageEditor.DocumentViews.StyleSheets exposing (..)
 import Set exposing (..)
 
 
@@ -138,6 +138,20 @@ type alias Config msg =
     , zipperHandlers : Maybe (ZipperHandlers msg)
     , editMode : Bool
     , containersBkgColors : Bool
+    }
+
+
+newsEditorConfig noOp =
+    { width = 1920
+    , height = 1080
+    , mainInterfaceHeight = 0
+    , sizesDict = Dict.empty
+    , customElems = Dict.empty
+    , onLoadMsg = \_ -> noOp
+    , styleSheet = defaulStyleSheet
+    , zipperHandlers = Nothing
+    , editMode = False
+    , containersBkgColors = False
     }
 
 

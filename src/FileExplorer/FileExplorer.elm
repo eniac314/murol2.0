@@ -34,6 +34,8 @@ type alias Model msg =
     , selectedFsItem : Maybe FsItem
     , logs : List Log
     , loadingSatus : ToolLoadingSatus
+    , imageFiles : Maybe (List FsItem)
+    , docFiles : Maybe (List FsItem)
     }
 
 
@@ -105,6 +107,8 @@ init root displayMode externalMsg =
     , lastLocation = Nothing
     , selectedFsItem = Nothing
     , logs = []
+    , imageFiles = Nothing
+    , docFiles = Nothing
     , loadingSatus = ToolLoadingWaiting
     }
 
@@ -112,7 +116,11 @@ init root displayMode externalMsg =
 load model logInfo =
     case logInfo of
         LoggedIn { sessionId } ->
-            Cmd.map model.externalMsg (getFileList model.root sessionId)
+            Cmd.map model.externalMsg <|
+                Cmd.batch
+                    [ getFileList ImagesRoot sessionId
+                    , getFileList DocsRoot sessionId
+                    ]
 
         LoggedOut ->
             Cmd.none
@@ -218,10 +226,16 @@ internalUpdate config msg model =
             )
 
         SelectFsItem fsItem ->
-            ( { model | selectedFsItem = Just fsItem }
-            , Cmd.none
-            , selectedFilename model
-            )
+            if model.selectedFsItem == Just fsItem then
+                ( { model | selectedFsItem = Nothing }
+                , Cmd.none
+                , Nothing
+                )
+            else
+                ( { model | selectedFsItem = Just fsItem }
+                , Cmd.none
+                , selectedFilename model
+                )
 
         GoTo path ->
             ( { model
@@ -261,13 +275,21 @@ internalUpdate config msg model =
             ( model, Cmd.none, Nothing )
 
         SetRoot root ->
-            ( { model | root = root }
-            , case config.logInfo of
-                LoggedIn { sessionId } ->
-                    getFileList root sessionId
+            ( { model
+                | root = root
+                , mbFilesys =
+                    case root of
+                        ImagesRoot ->
+                            Maybe.withDefault [] model.imageFiles
+                                |> List.foldr (\f acc -> insert f "images" acc) Nothing
+                                |> Maybe.map initFileSys
 
-                LoggedOut ->
-                    Cmd.none
+                        DocsRoot ->
+                            Maybe.withDefault [] model.docFiles
+                                |> List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing
+                                |> Maybe.map initFileSys
+              }
+            , Cmd.none
             , Nothing
             )
 
@@ -301,18 +323,35 @@ internalUpdate config msg model =
         RefreshFilesys root res ->
             case res of
                 Ok fs ->
-                    ( { model
-                        | mbFilesys =
+                    let
+                        ( newFilesys, newImageFiles, newDocFiles ) =
                             case root of
                                 ImagesRoot ->
-                                    List.foldr (\f acc -> insert f "images" acc) Nothing fs
+                                    ( List.foldr (\f acc -> insert f "images" acc) Nothing fs
                                         |> Maybe.map initFileSys
+                                    , Just fs
+                                    , model.docFiles
+                                    )
 
                                 DocsRoot ->
-                                    List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing fs
+                                    ( List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing fs
                                         |> Maybe.map initFileSys
+                                    , model.imageFiles
+                                    , Just fs
+                                    )
+                    in
+                    ( { model
+                        | mbFilesys = newFilesys
+                        , imageFiles = newImageFiles
+                        , docFiles = newDocFiles
                         , lastLocation = Nothing
-                        , loadingSatus = ToolLoadingSuccess
+                        , loadingSatus =
+                            case ( newImageFiles, newDocFiles ) of
+                                ( Just _, Just _ ) ->
+                                    ToolLoadingSuccess
+
+                                _ ->
+                                    model.loadingSatus
                       }
                     , Cmd.none
                     , Nothing
@@ -437,7 +476,7 @@ decodeFile =
 view config model =
     Element.map model.externalMsg <|
         column
-            [ spacing 20
+            [ spacing 15
             , Font.size 16
             , Font.family
                 [ Font.monospace ]
@@ -467,22 +506,20 @@ mainInterface config model =
     row
         [ spacing 15
         , width fill
+        , Background.color (rgb 0.95 0.95 0.95)
+        , padding 5
         ]
         [ Input.button
-            (toogleButtonStyle (model.root == DocsRoot) True
-             --++ [ Background.color (rgba 0.3 0.4 0.6 0.5) ]
-            )
+            (toogleButtonStyle (model.root == DocsRoot) True)
             { onPress =
                 Just <| SetRoot DocsRoot
             , label =
                 row [ spacing 10 ]
-                    [ html <| Icons.folder iconSize
+                    [ html <| Icons.fileText iconSize
                     ]
             }
         , Input.button
-            (toogleButtonStyle (model.root == ImagesRoot) True
-             --++ [ Background.color (rgba 0.3 0.4 0.6 0.5) ]
-            )
+            (toogleButtonStyle (model.root == ImagesRoot) True)
             { onPress =
                 Just <| SetRoot ImagesRoot
             , label =
@@ -559,6 +596,7 @@ sidePanelView config model =
         imagePreviewPanel meta imgSize =
             column
                 [ width (px 300)
+                , height fill
                 , spacing 15
                 , centerX
                 ]
@@ -600,8 +638,22 @@ sidePanelView config model =
                 ]
 
         folderInfoPanel fsItem =
-            el [ Font.center ]
-                (text <| Filesize.format (computeSize fsItem))
+            let
+                folderInfo =
+                    compileFolderInfo fsItem
+            in
+            column [ spacing 15 ]
+                [ el [ Font.center ]
+                    (text <| Filesize.format folderInfo.size)
+                , el [ Font.center ]
+                    (text <|
+                        "Nbr fichiers: "
+                            ++ String.fromInt folderInfo.nbrFiles
+                    )
+                , text <|
+                    "Nbr répertoires: "
+                        ++ String.fromInt folderInfo.nbrFolders
+                ]
 
         regFilePreviewPanel meta =
             Element.none
@@ -614,6 +666,8 @@ sidePanelView config model =
         [ width (px 330)
         , padding 15
         , alignTop
+        , Background.color (rgb 0.95 0.95 0.95)
+        , height fill
         ]
         [ case model.selectedFsItem of
             Nothing ->
@@ -656,6 +710,7 @@ filesysView config model =
                     _ ->
                         noAttr
                 , Events.onClick (SelectFsItem file)
+                , onDoubleClick NoOp
                 , alignTop
                 ]
                 [ el
@@ -766,6 +821,7 @@ filesysView config model =
                         , height fill
                         , width fill
                         , alignTop
+                        , padding 15
                         ]
                         [ paragraph
                             [ spacing 5
@@ -998,14 +1054,24 @@ getFileSize fsItem =
             0
 
 
-computeSize : FsItem -> Int
-computeSize fsItem =
-    case fsItem of
-        File { fileSize } ->
-            Maybe.withDefault 0 fileSize
+compileFolderInfo : FsItem -> { nbrFiles : Int, size : Int, nbrFolders : Int }
+compileFolderInfo fsItem =
+    let
+        helper fsItem_ ({ nbrFiles, size, nbrFolders } as acc) =
+            case fsItem_ of
+                File { fileSize } ->
+                    { acc
+                        | size = Maybe.withDefault 0 fileSize + size
+                        , nbrFiles = nbrFiles + 1
+                    }
 
-        Folder _ children ->
-            List.foldr (\f acc -> acc + computeSize f) 0 children
+                Folder _ children ->
+                    List.foldr
+                        (\f acc_ -> helper f acc_)
+                        { acc | nbrFolders = acc.nbrFolders + 1 }
+                        children
+    in
+    helper fsItem { nbrFiles = 0, nbrFolders = -1, size = 0 }
 
 
 insert : FsItem -> String -> Maybe FsItem -> Maybe FsItem

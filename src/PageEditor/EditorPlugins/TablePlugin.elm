@@ -3,6 +3,8 @@ module PageEditor.EditorPlugins.TablePlugin exposing (..)
 import Array exposing (..)
 import Browser exposing (..)
 import Dict exposing (..)
+import Document.Document exposing (..)
+import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -15,8 +17,6 @@ import Element.Region as Region
 import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Internals.CommonStyleHelpers exposing (..)
-import PageEditor.DocumentViews.StyleSheets exposing (..)
-import PageEditor.Internals.Document exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 
 
