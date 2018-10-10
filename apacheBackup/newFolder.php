@@ -9,9 +9,9 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 	if (is_null($php_data)){
   	logError("json data could not be decoded");
   	exit();
-    }
+   }
 
-  if(!isset($php_data->sessionId) || !isset($php_data->root) || !isset($php_data->path)){
+  if(!isset($php_data->sessionId) || !isset($php_data->root) || !isset($php_data->folderName) || !isset($php_data->path)){
      logError("wrong input");
  	exit();
   }
@@ -44,15 +44,21 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   if(strpos($path, $baseDir) !== 0 || strpos($path, $baseDir) === false) { 
     logError("invalid path");
     exit();
+  } 
+
+  $newFolder = $path.'/'.$php_data->folderName;
+  $dest = realpath(pathinfo($newFolder)['dirname']); 
+  
+  if(strpos($dest, $baseDir) !== 0 || strpos($dest, $baseDir) === false) { 
+    logError($dest);
+    logError("invalid dest path");
+    exit();
   }
+
 
   if(file_exists($path)) { 
       
-      if(is_dir($path)){
-        deleteDir($path);
-      } else {
-        unlink($path);
-      }
+      mkdir($newFolder);
       
       $files = getDirContents($php_data->root);
       echo (json_encode($files));

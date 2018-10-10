@@ -9,9 +9,9 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 	if (is_null($php_data)){
   	logError("json data could not be decoded");
   	exit();
-    }
+   }
 
-  if(!isset($php_data->sessionId) || !isset($php_data->root) || !isset($php_data->path)){
+  if(!isset($php_data->sessionId) || !isset($php_data->root) || !isset($php_data->newName) || !isset($php_data->path)){
      logError("wrong input");
  	exit();
   }
@@ -38,21 +38,26 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   } 
 
-  $path = substr($php_data->path,strlen($php_data->root));
-  $path = realpath($baseDir . $path); 
+  $src = substr($php_data->path,strlen($php_data->root));
+  $src = realpath($baseDir . $src); 
 
-  if(strpos($path, $baseDir) !== 0 || strpos($path, $baseDir) === false) { 
-    logError("invalid path");
+  if(strpos($src, $baseDir) !== 0 || strpos($src, $baseDir) === false) { 
+    logError("invalid src path");
+    exit();
+  } 
+
+  $newName = pathinfo($src)['dirname'].'/'.$php_data->newName;
+  $dest = realpath(pathinfo($newName)['dirname']); 
+  
+  if(strpos($dest, $baseDir) !== 0 || strpos($dest, $baseDir) === false) { 
+    logError($dest);
+    logError("invalid dest path");
     exit();
   }
 
-  if(file_exists($path)) { 
+  if(file_exists($src)) { 
       
-      if(is_dir($path)){
-        deleteDir($path);
-      } else {
-        unlink($path);
-      }
+      rename($src,$newName);
       
       $files = getDirContents($php_data->root);
       echo (json_encode($files));
