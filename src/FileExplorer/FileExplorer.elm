@@ -7,6 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Filesize exposing (format)
 import Html.Attributes as HtmlAttr
@@ -156,7 +157,8 @@ type Msg
     | GoTo Path
     | SelectFsItem FsItem
     | NewFile
-    | NewFolder
+    | NewFolderInput String
+    | NewFolder FsItem
     | Delete FsItem
     | Cut FsItem
     | Paste FsItem
@@ -204,6 +206,7 @@ internalUpdate config msg model =
                             otherwise
                 , lastLocation =
                     Maybe.map extractFsItem model.mbFilesys
+                , selectedFsItem = Nothing
               }
             , Cmd.none
             , Nothing
@@ -223,9 +226,10 @@ internalUpdate config msg model =
                                     (zipToFsItem (getPath fsItem))
                                 |> Maybe.withDefault model.mbFilesys
                         , lastLocation = Nothing
+                        , selectedFsItem = Nothing
                       }
                     , Cmd.none
-                    , selectedFilename model
+                    , Nothing
                     )
 
         GoPrev ->
@@ -239,6 +243,7 @@ internalUpdate config msg model =
                             otherwise
                 , lastLocation =
                     Maybe.map extractFsItem model.mbFilesys
+                , selectedFsItem = Nothing
               }
             , Cmd.none
             , selectedFilename model
@@ -249,6 +254,7 @@ internalUpdate config msg model =
                 ( { model
                     | selectedFsItem = Nothing
                     , renameBuffer = ""
+                    , newFolderNameBuffer = ""
                   }
                 , Cmd.none
                 , Nothing
@@ -256,7 +262,8 @@ internalUpdate config msg model =
             else
                 ( { model
                     | selectedFsItem = Just fsItem
-                    , renameBuffer = ""
+                    , renameBuffer = getName fsItem
+                    , newFolderNameBuffer = ""
                   }
                 , Cmd.none
                 , selectedFilename model
@@ -272,6 +279,7 @@ internalUpdate config msg model =
                         |> Maybe.withDefault model.mbFilesys
                 , lastLocation =
                     Maybe.map extractFsItem model.mbFilesys
+                , selectedFsItem = Nothing
               }
             , Cmd.none
             , selectedFilename model
@@ -280,13 +288,38 @@ internalUpdate config msg model =
         NewFile ->
             ( model, Cmd.none, Nothing )
 
-        NewFolder ->
-            ( model, Cmd.none, Nothing )
+        NewFolderInput s ->
+            ( { model | newFolderNameBuffer = s }
+            , Cmd.none
+            , Nothing
+            )
+
+        NewFolder fsItem ->
+            ( { model
+                | selectedFsItem = Nothing
+                , lockedFsItems =
+                    fsItem :: model.lockedFsItems
+              }
+            , Cmd.batch
+                [ cmdIfLogged
+                    config.logInfo
+                    (makeNewFolder fsItem model.newFolderNameBuffer model.root)
+                , newLog
+                    AddLog
+                    ("Requête: Nouveau dossier "
+                        ++ model.newFolderNameBuffer
+                        ++ " dans "
+                        ++ getName fsItem
+                    )
+                    Nothing
+                    False
+                ]
+            , Nothing
+            )
 
         Delete fsItem ->
             ( { model
-                | lastLocation = Nothing
-                , selectedFsItem = Nothing
+                | selectedFsItem = Nothing
                 , lockedFsItems =
                     fsItem :: model.lockedFsItems
               }
@@ -304,19 +337,60 @@ internalUpdate config msg model =
             )
 
         Cut src ->
-            ( { model | cutBuffer = Just src }
+            ( { model
+                | cutBuffer = Just src
+                , lockedFsItems =
+                    src :: model.lockedFsItems
+              }
             , Cmd.none
             , Nothing
             )
 
         Paste dest ->
-            ( model, Cmd.none, Nothing )
+            case model.cutBuffer of
+                Nothing ->
+                    ( model, Cmd.none, Nothing )
+
+                Just src ->
+                    ( { model | cutBuffer = Nothing }
+                    , Cmd.batch
+                        [ cmdIfLogged
+                            config.logInfo
+                            (pasteFile src dest model.root)
+                        , newLog
+                            AddLog
+                            ("Requête: Collage de"
+                                ++ getName src
+                                ++ " dans "
+                                ++ getName dest
+                            )
+                            Nothing
+                            False
+                        ]
+                    , Nothing
+                    )
 
         RenameInput newName ->
             ( { model | renameBuffer = newName }, Cmd.none, Nothing )
 
         Rename fsItem ->
-            ( model, Cmd.none, Nothing )
+            ( { model
+                | selectedFsItem = Nothing
+                , lockedFsItems =
+                    fsItem :: model.lockedFsItems
+              }
+            , Cmd.batch
+                [ cmdIfLogged
+                    config.logInfo
+                    (renameFile fsItem model.renameBuffer model.root)
+                , newLog
+                    AddLog
+                    ("Requête: Renommage " ++ getName fsItem)
+                    Nothing
+                    False
+                ]
+            , Nothing
+            )
 
         SetRoot root ->
             ( { model
@@ -368,27 +442,48 @@ internalUpdate config msg model =
             case res of
                 Ok fs ->
                     let
-                        ( newFilesys, newImageFiles, newDocFiles ) =
+                        ( newDocFiles, newImageFiles ) =
+                            case root of
+                                ImagesRoot ->
+                                    ( model.docFiles
+                                    , Just fs
+                                    )
+
+                                DocsRoot ->
+                                    ( Just fs
+                                    , model.imageFiles
+                                    )
+
+                        ( newFilesys, currentPath ) =
                             case root of
                                 ImagesRoot ->
                                     ( List.foldr (\f acc -> insert f "images" acc) Nothing fs
                                         |> Maybe.map initFileSys
-                                    , Just fs
-                                    , model.docFiles
+                                    , Maybe.map extractFsItem model.mbFilesys
+                                        |> Maybe.map getPath
+                                        |> Maybe.withDefault [ "images" ]
                                     )
 
                                 DocsRoot ->
                                     ( List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing fs
                                         |> Maybe.map initFileSys
-                                    , model.imageFiles
-                                    , Just fs
+                                    , Maybe.map extractFsItem model.mbFilesys
+                                        |> Maybe.map getPath
+                                        |> Maybe.withDefault [ "baseDocumentaire" ]
                                     )
                     in
                     ( { model
-                        | mbFilesys = newFilesys
+                        | mbFilesys =
+                            --NOTE: tentative de remettre le zipper à la position occupée
+                            --avant le rafraichissement
+                            case Maybe.andThen (zipToFsItem currentPath) newFilesys of
+                                Just result ->
+                                    Just result
+
+                                Nothing ->
+                                    newFilesys
                         , imageFiles = newImageFiles
                         , docFiles = newDocFiles
-                        , lastLocation = Nothing
                         , loadingStatus =
                             case ( newImageFiles, newDocFiles ) of
                                 ( Just _, Just _ ) ->
@@ -462,176 +557,6 @@ selectedFilename { mbFilesys } =
     mbFilesys
         |> Maybe.andThen
             (Just << extractFsItem)
-
-
-
--------------------------------------------------------------------------------
------------------------------
--- Http and Json functions --
------------------------------
--- Get Files --
-
-
-getFileList : Root -> String -> Cmd Msg
-getFileList root sessionId =
-    let
-        body =
-            Encode.object
-                [ ( "sessionId"
-                  , Encode.string sessionId
-                  )
-                , encodeRoot root
-                ]
-                |> Http.jsonBody
-
-        request =
-            Http.post "getFiles.php" body decodeFiles
-    in
-    Http.send (RefreshFilesys Nothing "Téléchargement info fichiers" root) request
-
-
-decodeFiles : Decode.Decoder (List FsItem)
-decodeFiles =
-    Decode.list decodeFile
-
-
-decodeFile : Decode.Decoder FsItem
-decodeFile =
-    Decode.succeed
-        (\p f mbImgSize mbFs ->
-            File
-                { path =
-                    String.split "/" p
-                , name = f
-                , fileType =
-                    case mbImgSize of
-                        Nothing ->
-                            RegFile
-
-                        Just size ->
-                            ImageFile size
-                , fileSize = mbFs
-                }
-        )
-        |> Pipeline.required "path" Decode.string
-        |> Pipeline.required "name" Decode.string
-        |> Pipeline.required "imgSize"
-            (Decode.nullable <|
-                Decode.map2
-                    (\w h -> { width = w, height = h })
-                    (Decode.field "width" Decode.int)
-                    (Decode.field "height" Decode.int)
-            )
-        |> Pipeline.required "fileSize" (Decode.nullable Decode.int)
-
-
-
--- Delete File --
-
-
-deleteFile : FsItem -> Root -> String -> Cmd Msg
-deleteFile fsItem root sessionId =
-    let
-        body =
-            Encode.object
-                [ ( "sessionId"
-                  , Encode.string sessionId
-                  )
-                , encodeRoot root
-                , ( "path", encodeFsItemPath fsItem )
-                ]
-                |> Http.jsonBody
-
-        request =
-            Http.post "deleteFile.php" body decodeFiles
-    in
-    Http.send
-        (RefreshFilesys
-            (Just fsItem)
-            ("Suppression: " ++ getName fsItem)
-            root
-        )
-        request
-
-
-
--- Rename file --
-
-
-renameFile fsItem newName root sessionId =
-    let
-        body =
-            Encode.object
-                [ ( "sessionId"
-                  , Encode.string sessionId
-                  )
-                , encodeRoot root
-                , ( "newName"
-                  , Encode.string newName
-                  )
-                , ( "path", encodeFsItemPath fsItem )
-                ]
-                |> Http.jsonBody
-
-        request =
-            Http.post "renameFile.php" body decodeFiles
-    in
-    Http.send
-        (RefreshFilesys
-            (Just fsItem)
-            ("Renommage: " ++ getName fsItem)
-            root
-        )
-        request
-
-
-
--- Paste File
-
-
-pasteFile src dest root sessionId =
-    let
-        body =
-            Encode.object
-                [ ( "sessionId"
-                  , Encode.string sessionId
-                  )
-                , encodeRoot root
-                , ( "srcPath", encodeFsItemPath src )
-                , ( "destPath", encodeFsItemPath dest )
-                ]
-                |> Http.jsonBody
-
-        request =
-            Http.post "pasteFile.php" body decodeFiles
-    in
-    Http.send
-        (RefreshFilesys
-            (Just src)
-            ("Collage: " ++ getName src)
-            root
-        )
-        request
-
-
-encodeFsItemPath : FsItem -> Encode.Value
-encodeFsItemPath fsItem =
-    getPath fsItem
-        |> String.join "/"
-        |> Encode.string
-
-
-encodeRoot root =
-    case root of
-        ImagesRoot ->
-            ( "root"
-            , Encode.string "images"
-            )
-
-        DocsRoot ->
-            ( "root"
-            , Encode.string "baseDocumentaire"
-            )
 
 
 
@@ -759,7 +684,7 @@ clickablePath config model =
         fsItemView ( f, p ) =
             el
                 [ Events.onClick (GoTo p)
-                , paddingXY 2 5
+                , paddingXY 2 4
                 , pointer
                 , mouseOver
                     [ Font.color (rgba 0.3 0.4 0.6 0.5) ]
@@ -769,7 +694,7 @@ clickablePath config model =
     wrappedRow
         [ width fill
         , Background.color (rgb 1 1 1)
-        , padding 5
+        , padding 4
         , Border.rounded 5
         ]
         (Maybe.map extractFsItem model.mbFilesys
@@ -816,8 +741,6 @@ sidePanelView config model =
                         ]
                         Element.none
                     )
-                , text <|
-                    prettyName meta.name 20
                 , el [ Font.center ]
                     (text <|
                         String.fromInt imgSize.width
@@ -864,19 +787,26 @@ sidePanelView config model =
                     [ spacing 15
                     , width fill
                     ]
-                    [ Input.text
-                        (textInputStyle ++ [ width (px 195), spacing 0 ])
-                        { onChange = RenameInput
-                        , text = model.renameBuffer
-                        , placeholder =
-                            Just (Input.placeholder [] (text "Nouveau dossier"))
-                        , label =
-                            Input.labelLeft [] Element.none
-                        }
-                    , Input.button (buttonStyle True ++ [ Element.alignRight ])
+                    [ Keyed.el []
+                        ( "newFolder"
+                        , Input.text
+                            (textInputStyle ++ [ width (px 195), spacing 0 ])
+                            { onChange = NewFolderInput
+                            , text = model.newFolderNameBuffer
+                            , placeholder =
+                                Just (Input.placeholder [] (text "Nouveau dossier"))
+                            , label =
+                                Input.labelLeft [] Element.none
+                            }
+                        )
+                    , Input.button
+                        (buttonStyle (model.newFolderNameBuffer /= "")
+                            ++ [ Element.alignRight ]
+                        )
                         { onPress =
-                            if model.lastLocation /= Nothing then
-                                Just <| GoNext
+                            if model.newFolderNameBuffer /= "" then
+                                Maybe.map extractFsItem model.mbFilesys
+                                    |> Maybe.map NewFolder
                             else
                                 Nothing
                         , label =
@@ -901,7 +831,7 @@ sidePanelView config model =
                         )
                         { onPress =
                             if model.cutBuffer /= Nothing then
-                                Maybe.map Paste model.selectedFsItem
+                                Maybe.map (Paste << extractFsItem) model.mbFilesys
                             else
                                 Nothing
                         , label =
@@ -921,18 +851,27 @@ sidePanelView config model =
                     [ spacing 15
                     , width fill
                     ]
-                    [ Input.text
-                        (textInputStyle ++ [ width (px 195), spacing 0 ])
-                        { onChange = RenameInput
-                        , text = model.renameBuffer
-                        , placeholder =
-                            Maybe.map getName model.selectedFsItem
-                                |> Maybe.map text
-                                |> Maybe.map (Input.placeholder [ clip ])
-                        , label =
-                            Input.labelLeft [] Element.none
-                        }
-                    , Input.button (buttonStyle <| model.renameBuffer /= "")
+                    [ Keyed.el []
+                        ( "rename"
+                        , Input.text
+                            (textInputStyle ++ [ width (px 195), spacing 0 ])
+                            { onChange = RenameInput
+                            , text = model.renameBuffer
+                            , placeholder =
+                                Maybe.map getName model.selectedFsItem
+                                    |> Maybe.map text
+                                    |> Maybe.map (Input.placeholder [ clip ])
+                            , label =
+                                Input.labelLeft [] Element.none
+                            }
+                        )
+                    , Input.button
+                        (buttonStyle
+                            (Maybe.map getName model.selectedFsItem
+                                |> Maybe.map (\n -> n /= model.renameBuffer)
+                                |> Maybe.withDefault False
+                            )
+                        )
                         { onPress =
                             if model.renameBuffer /= "" then
                                 Maybe.map Rename model.selectedFsItem
@@ -955,9 +894,14 @@ sidePanelView config model =
                                 , text "Supprimer"
                                 ]
                         }
-                    , Input.button ((buttonStyle <| True) ++ [ Element.alignRight ])
+                    , Input.button ((buttonStyle <| (model.cutBuffer == Nothing)) ++ [ Element.alignRight ])
                         { onPress =
-                            Maybe.map Cut model.selectedFsItem
+                            case model.cutBuffer of
+                                Nothing ->
+                                    Maybe.map Cut model.selectedFsItem
+
+                                Just _ ->
+                                    Nothing
                         , label =
                             row [ spacing 10 ]
                                 [ el [] (html <| scissors iconSize)
@@ -1180,6 +1124,241 @@ logsView config model =
         , padding 15
         ]
         [ Internals.CommonHelpers.logsView model.logs config.zone ]
+
+
+
+-------------------------------------------------------------------------------
+-----------------------------
+-- Http and Json functions --
+-----------------------------
+-- Get Files --
+
+
+getFileList : Root -> String -> Cmd Msg
+getFileList root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "getFiles.php" body decodeFiles
+    in
+    Http.send (RefreshFilesys Nothing "Téléchargement info fichiers" root) request
+
+
+decodeFiles : Decode.Decoder (List FsItem)
+decodeFiles =
+    Decode.list decodeFile
+
+
+decodeFile : Decode.Decoder FsItem
+decodeFile =
+    Decode.succeed
+        (\p f mbImgSize mbFs isFolder ->
+            if isFolder then
+                Folder
+                    { defMeta
+                        | path = String.split "/" p
+                        , name = f
+                    }
+                    []
+            else
+                File
+                    { path =
+                        String.split "/" p
+                    , name = f
+                    , fileType =
+                        case mbImgSize of
+                            Nothing ->
+                                RegFile
+
+                            Just size ->
+                                ImageFile size
+                    , fileSize = mbFs
+                    }
+        )
+        |> Pipeline.required "path" Decode.string
+        |> Pipeline.required "name" Decode.string
+        |> Pipeline.required "imgSize"
+            (Decode.nullable <|
+                Decode.map2
+                    (\w h -> { width = w, height = h })
+                    (Decode.field "width" Decode.int)
+                    (Decode.field "height" Decode.int)
+            )
+        |> Pipeline.required "fileSize" (Decode.nullable Decode.int)
+        |> Pipeline.optional "isFolder" Decode.bool False
+
+
+
+--decodeFolder : Decode.Decoder FsItem
+--decodeFolder =
+--    Decode.succeed
+--        (\p f mbImgSize mbFs ->
+--            Folder
+--                { path =
+--                    String.split "/" p
+--                , name = f
+--                , fileType =
+--                    case mbImgSize of
+--                        Nothing ->
+--                            RegFile
+--                        Just size ->
+--                            ImageFile size
+--                , fileSize = mbFs
+--                }
+--        )
+--        |> Pipeline.required "path" Decode.string
+--        |> Pipeline.required "name" Decode.string
+--        |> Pipeline.required "imgSize"
+--            (Decode.nullable <|
+--                Decode.map2
+--                    (\w h -> { width = w, height = h })
+--                    (Decode.field "width" Decode.int)
+--                    (Decode.field "height" Decode.int)
+--            )
+--        |> Pipeline.required "fileSize" (Decode.nullable Decode.int)
+-- Delete File --
+
+
+deleteFile : FsItem -> Root -> String -> Cmd Msg
+deleteFile fsItem root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                , ( "path", encodeFsItemPath fsItem )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "deleteFile.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just fsItem)
+            ("Suppression: " ++ getName fsItem)
+            root
+        )
+        request
+
+
+
+-- Rename file --
+
+
+renameFile fsItem newName root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                , ( "newName"
+                  , Encode.string newName
+                  )
+                , ( "path", encodeFsItemPath fsItem )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "renameFile.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just fsItem)
+            ("Renommage: " ++ getName fsItem)
+            root
+        )
+        request
+
+
+
+-- Paste File
+
+
+pasteFile src dest root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                , ( "srcPath", encodeFsItemPath src )
+                , ( "destPath", encodeFsItemPath dest )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "pasteFile.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just src)
+            ("Collage: " ++ getName src)
+            root
+        )
+        request
+
+
+
+-- New Folder
+
+
+makeNewFolder fsItem folderName root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                , ( "path", encodeFsItemPath fsItem )
+                , ( "folderName", Encode.string folderName )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "newFolder.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just fsItem)
+            ("Création dossier: " ++ folderName)
+            root
+        )
+        request
+
+
+encodeFsItemPath : FsItem -> Encode.Value
+encodeFsItemPath fsItem =
+    getPath fsItem
+        |> String.join "/"
+        |> Encode.string
+
+
+encodeRoot root =
+    case root of
+        ImagesRoot ->
+            ( "root"
+            , Encode.string "images"
+            )
+
+        DocsRoot ->
+            ( "root"
+            , Encode.string "baseDocumentaire"
+            )
 
 
 
@@ -1450,7 +1629,7 @@ insert f rootName mbFsItem_ =
                         curr :: [] ->
                             if curr /= meta.name then
                                 Nothing
-                            else if List.member f children then
+                            else if List.any (\c -> getName c == getName f) children then
                                 Just <| Folder meta children
                             else
                                 Just <| Folder meta (f :: children)
