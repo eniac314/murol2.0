@@ -19,6 +19,7 @@ import Internals.ToolHelpers exposing (..)
 import NewsEditor.NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
 import Task exposing (perform)
+import Time exposing (Zone, here, utc)
 
 
 main : Program () Model Msg
@@ -42,6 +43,7 @@ type alias Model =
     , currentTool : Tool
     , winWidth : Int
     , winHeight : Int
+    , zone : Time.Zone
     }
 
 
@@ -76,10 +78,12 @@ init flags =
       , currentTool = AuthTool
       , winWidth = 1920
       , winHeight = 1080
+      , zone = Time.utc
       }
     , Cmd.batch
         [ pageEditorCmds
         , Task.perform CurrentViewport Dom.getViewport
+        , Task.perform SetZone Time.here
         ]
     )
 
@@ -98,6 +102,7 @@ type Msg
     | SetCurrentTool Tool
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
+    | SetZone Time.Zone
     | NoOp
 
 
@@ -195,6 +200,11 @@ update msg model =
             , Cmd.none
             )
 
+        SetZone zone ->
+            ( { model | zone = zone }
+            , Cmd.none
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -209,7 +219,7 @@ view model =
             ]
             (case model.loadingStatus of
                 WaitingForLogin ->
-                    Auth.view () model.authTool
+                    Auth.view { zone = model.zone } model.authTool
 
                 Loading ->
                     let
@@ -291,13 +301,13 @@ view model =
                             FileExplorerTool ->
                                 FileExplorer.view
                                     { maxHeight =
-                                        --model.config.height - model.config.mainInterfaceHeight
                                         model.winHeight - 35
+                                    , zone = model.zone
                                     }
                                     model.fileExplorer
 
                             AuthTool ->
-                                Auth.view () model.authTool
+                                Auth.view { zone = model.zone } model.authTool
 
                             SiteTreeTool ->
                                 Element.none

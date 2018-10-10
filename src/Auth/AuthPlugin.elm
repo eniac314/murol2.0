@@ -12,7 +12,7 @@ import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.ToolHelpers exposing (..)
-import Json.Decode as Decode exposing (..)
+import Json.Decode as Decode
 import Json.Encode as Encode exposing (..)
 import Task exposing (..)
 import Time exposing (..)
@@ -33,7 +33,8 @@ type alias Model msg =
     , logInfo : LogInfo
     , pluginMode : PluginMode
     , logs : List Log
-    , zone : Time.Zone
+
+    --, zone : Time.Zone
     , externalMsg : Msg -> msg
     }
 
@@ -45,7 +46,8 @@ init externalMsg =
     , logInfo = LoggedOut
     , pluginMode = LoginMode Initial
     , logs = []
-    , zone = Time.utc
+
+    --, zone = Time.utc
     , externalMsg = externalMsg
     }
 
@@ -66,13 +68,6 @@ getLogInfo model =
     model.logInfo
 
 
-type Status
-    = Initial
-    | Waiting
-    | Success
-    | Failure
-
-
 type PluginMode
     = SignUpMode Status
     | LoginMode Status
@@ -90,8 +85,6 @@ type Msg
     | Logout
     | ConfirmLogout (Result Http.Error Bool)
     | ChangePluginMode PluginMode
-      --| GetFiles
-      --| SetFiles (Result Http.Error (List String))
     | AddLog (Posix -> Log) Posix
     | Quit
     | NoOp
@@ -141,6 +134,7 @@ internalUpdate msg model =
                         , pluginMode = LoginMode Failure
                       }
                     , newLog
+                        AddLog
                         "Echec connexion"
                         (Just <| httpErrorToString e)
                         True
@@ -169,6 +163,7 @@ internalUpdate msg model =
                 Err e ->
                     ( { model | pluginMode = SignUpMode Failure }
                     , newLog
+                        AddLog
                         "Echec création compte"
                         (Just <| httpErrorToString e)
                         True
@@ -194,6 +189,7 @@ internalUpdate msg model =
                 Err e ->
                     ( { model | pluginMode = LogoutMode Failure }
                     , newLog
+                        AddLog
                         "Echec déconnexion"
                         (Just <| httpErrorToString e)
                         True
@@ -230,13 +226,6 @@ internalUpdate msg model =
             ( model, Cmd.none, Nothing )
 
 
-newLog : String -> Maybe String -> Bool -> Cmd Msg
-newLog message details isError =
-    Task.perform
-        (AddLog (Log message details isError))
-        Time.now
-
-
 login : Model msg -> Cmd Msg
 login model =
     let
@@ -257,7 +246,7 @@ login model =
     Http.send ConfirmLogin request
 
 
-decodeLoginResult : Decoder LogInfo
+decodeLoginResult : Decode.Decoder LogInfo
 decodeLoginResult =
     Decode.map2 (\a b -> LoggedIn { username = a, sessionId = b })
         (Decode.field "username" Decode.string)
@@ -390,7 +379,7 @@ signUpView config status model =
             column
                 [ spacing 15 ]
                 [ text "Echec inscription!"
-                , logsView model.logs model.zone
+                , logsView model.logs config.zone
                 , row [ spacing 15 ]
                     [ Input.button (buttonStyle True)
                         { onPress =
@@ -494,7 +483,7 @@ loginView config status model =
             column
                 [ spacing 15 ]
                 [ text "Echec Connexion!"
-                , logsView model.logs model.zone
+                , logsView model.logs config.zone
                 , row [ spacing 15 ]
                     [ Input.button (buttonStyle True)
                         { onPress =
@@ -566,7 +555,7 @@ logoutView config status model =
             column
                 [ spacing 15 ]
                 [ text "Echec déconnexion!"
-                , logsView model.logs model.zone
+                , logsView model.logs config.zone
                 , row [ spacing 15 ]
                     [ Input.button (buttonStyle True)
                         { onPress =
@@ -600,51 +589,3 @@ logoutView config status model =
             Failure ->
                 failureView
         ]
-
-
-logsView : List Log -> Time.Zone -> Element Msg
-logsView logs zone =
-    let
-        formatTime =
-            String.fromInt
-                >> String.padLeft 2 '0'
-
-        logView { message, mbDetails, isError, timeStamp } =
-            column
-                [ spacing 5
-                , width (maximum 500 fill)
-                ]
-                [ row [ spacing 15 ]
-                    [ el [ Font.color (rgb 0.7 0.7 0.7) ]
-                        (text <|
-                            formatTime (Time.toHour zone timeStamp)
-                                ++ ":"
-                                ++ formatTime (Time.toMinute zone timeStamp)
-                        )
-                    , el
-                        [ if isError then
-                            Font.color (rgb 1 0 0)
-                          else
-                            noAttr
-                        ]
-                        (text message)
-                    ]
-                , case mbDetails of
-                    Nothing ->
-                        Element.none
-
-                    Just details ->
-                        paragraph
-                            [ paddingEach
-                                { top = 0
-                                , bottom = 0
-                                , left = 20
-                                , right = 0
-                                }
-                            , Font.size 12
-                            ]
-                            [ text details ]
-                ]
-    in
-    column [ spacing 15 ]
-        (List.map logView logs)

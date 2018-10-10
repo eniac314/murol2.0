@@ -15,7 +15,7 @@ type ToolResult a
     | ToolData a
 
 
-type ToolLoadingSatus
+type ToolLoadingStatus
     = ToolLoadingWaiting
     | ToolLoadingSuccess
     | ToolLoadingFailure String
@@ -25,7 +25,7 @@ toolLoadingView s model =
     row
         [ spacing 15 ]
         [ text s
-        , case model.loadingSatus of
+        , case model.loadingStatus of
             ToolLoadingWaiting ->
                 el
                     [ Font.color (rgb 1 (195 / 255) 0)

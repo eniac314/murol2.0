@@ -491,3 +491,17 @@ fileText size =
         , Svg.line [ x1 "16", y1 "17", x2 "8", y2 "17" ] []
         , Svg.polyline [ points "10 9 9 9 8 9" ] []
         ]
+
+
+scissors : Int -> Html msg
+scissors size =
+    customSvgFeatherIcon size
+        "scissors"
+        [ Svg.circle
+            [ cx "6", cy "6", r "3" ]
+            []
+        , Svg.circle [ cx "6", cy "18", r "3" ] []
+        , Svg.line [ x1 "20", y1 "4", x2 "8.12", y2 "15.88" ] []
+        , Svg.line [ x1 "14.47", y1 "14.48", x2 "20", y2 "20" ] []
+        , Svg.line [ x1 "8.12", y1 "8.12", x2 "12", y2 "12" ] []
+        ]

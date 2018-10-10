@@ -19,6 +19,7 @@ import Internals.ToolHelpers exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import List.Extra exposing (remove)
 import String.Extra exposing (..)
 import Task exposing (..)
 import Time exposing (..)
@@ -26,16 +27,20 @@ import Time exposing (..)
 
 type alias Model msg =
     { renameBuffer : String
+    , newFolderNameBuffer : String
     , root : Root
-    , displayMode : DisplayMode
+    , mode : Mode
+    , mainPanelDisplay : MainPanelDisplay
     , externalMsg : Msg -> msg
     , mbFilesys : Maybe Filesys
     , lastLocation : Maybe FsItem
     , selectedFsItem : Maybe FsItem
+    , cutBuffer : Maybe FsItem
     , logs : List Log
-    , loadingSatus : ToolLoadingSatus
+    , loadingStatus : ToolLoadingStatus
     , imageFiles : Maybe (List FsItem)
     , docFiles : Maybe (List FsItem)
+    , lockedFsItems : List FsItem
     }
 
 
@@ -50,9 +55,15 @@ type Root
     | DocsRoot
 
 
-type DisplayMode
+type Mode
     = ReadOnly
     | ReadWrite
+
+
+type MainPanelDisplay
+    = FilesysDisplay
+    | UploadDisplay
+    | LogsDisplay
 
 
 type FsItem
@@ -98,18 +109,22 @@ type alias Context =
     }
 
 
-init root displayMode externalMsg =
+init root mode externalMsg =
     { renameBuffer = ""
+    , newFolderNameBuffer = ""
     , root = root
-    , displayMode = displayMode
+    , mode = mode
+    , mainPanelDisplay = FilesysDisplay
     , externalMsg = externalMsg
     , mbFilesys = Nothing
     , lastLocation = Nothing
     , selectedFsItem = Nothing
+    , cutBuffer = Nothing
     , logs = []
     , imageFiles = Nothing
     , docFiles = Nothing
-    , loadingSatus = ToolLoadingWaiting
+    , loadingStatus = ToolLoadingWaiting
+    , lockedFsItems = []
     }
 
 
@@ -127,7 +142,7 @@ load model logInfo =
 
 
 loadingStatus model =
-    model.loadingSatus
+    model.loadingStatus
 
 
 loadingView model =
@@ -142,13 +157,17 @@ type Msg
     | SelectFsItem FsItem
     | NewFile
     | NewFolder
-    | Delete
-    | Rename String
+    | Delete FsItem
+    | Cut FsItem
+    | Paste FsItem
+    | RenameInput String
+    | Rename FsItem
     | Refresh
     | SetRoot Root
     | CheckLogInfo Time.Posix
-    | RefreshFilesys Root (Result Http.Error (List FsItem))
+    | RefreshFilesys (Maybe FsItem) String Root (Result Http.Error (List FsItem))
     | AddLog (Posix -> Log) Posix
+    | ToogleLogsView
     | NoOp
 
 
@@ -227,12 +246,18 @@ internalUpdate config msg model =
 
         SelectFsItem fsItem ->
             if model.selectedFsItem == Just fsItem then
-                ( { model | selectedFsItem = Nothing }
+                ( { model
+                    | selectedFsItem = Nothing
+                    , renameBuffer = ""
+                  }
                 , Cmd.none
                 , Nothing
                 )
             else
-                ( { model | selectedFsItem = Just fsItem }
+                ( { model
+                    | selectedFsItem = Just fsItem
+                    , renameBuffer = ""
+                  }
                 , Cmd.none
                 , selectedFilename model
                 )
@@ -258,20 +283,39 @@ internalUpdate config msg model =
         NewFolder ->
             ( model, Cmd.none, Nothing )
 
-        Delete ->
+        Delete fsItem ->
             ( { model
-                | mbFilesys =
-                    Maybe.map
-                        delete
-                        model.mbFilesys
-                        |> Maybe.withDefault model.mbFilesys
-                , lastLocation = Nothing
+                | lastLocation = Nothing
+                , selectedFsItem = Nothing
+                , lockedFsItems =
+                    fsItem :: model.lockedFsItems
               }
-            , Cmd.none
-            , selectedFilename model
+            , Cmd.batch
+                [ cmdIfLogged
+                    config.logInfo
+                    (deleteFile fsItem model.root)
+                , newLog
+                    AddLog
+                    ("Requête: Suppression " ++ getName fsItem)
+                    Nothing
+                    False
+                ]
+            , Nothing
             )
 
-        Rename newName ->
+        Cut src ->
+            ( { model | cutBuffer = Just src }
+            , Cmd.none
+            , Nothing
+            )
+
+        Paste dest ->
+            ( model, Cmd.none, Nothing )
+
+        RenameInput newName ->
+            ( { model | renameBuffer = newName }, Cmd.none, Nothing )
+
+        Rename fsItem ->
             ( model, Cmd.none, Nothing )
 
         SetRoot root ->
@@ -320,7 +364,7 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        RefreshFilesys root res ->
+        RefreshFilesys mbToUnlock log root res ->
             case res of
                 Ok fs ->
                     let
@@ -345,21 +389,41 @@ internalUpdate config msg model =
                         , imageFiles = newImageFiles
                         , docFiles = newDocFiles
                         , lastLocation = Nothing
-                        , loadingSatus =
+                        , loadingStatus =
                             case ( newImageFiles, newDocFiles ) of
                                 ( Just _, Just _ ) ->
                                     ToolLoadingSuccess
 
                                 _ ->
-                                    model.loadingSatus
+                                    model.loadingStatus
+                        , lockedFsItems =
+                            Maybe.map (\f -> List.Extra.remove f model.lockedFsItems) mbToUnlock
+                                |> Maybe.withDefault model.lockedFsItems
                       }
-                    , Cmd.none
+                    , newLog
+                        AddLog
+                        log
+                        Nothing
+                        False
                     , Nothing
                     )
 
                 Err e ->
-                    ( { model | loadingSatus = ToolLoadingFailure (httpErrorToString e) }
-                    , Cmd.none
+                    ( { model
+                        | loadingStatus =
+                            if model.loadingStatus == ToolLoadingWaiting then
+                                ToolLoadingFailure (httpErrorToString e)
+                            else
+                                model.loadingStatus
+                        , lockedFsItems =
+                            Maybe.map (\f -> List.Extra.remove f model.lockedFsItems) mbToUnlock
+                                |> Maybe.withDefault model.lockedFsItems
+                      }
+                    , newLog
+                        AddLog
+                        "Echec requête: "
+                        (Just <| httpErrorToString e)
+                        True
                     , Nothing
                     )
 
@@ -369,15 +433,28 @@ internalUpdate config msg model =
             , Nothing
             )
 
+        ToogleLogsView ->
+            let
+                mainPanelDisplay =
+                    case model.mainPanelDisplay of
+                        UploadDisplay ->
+                            UploadDisplay
+
+                        FilesysDisplay ->
+                            LogsDisplay
+
+                        LogsDisplay ->
+                            FilesysDisplay
+            in
+            ( { model
+                | mainPanelDisplay = mainPanelDisplay
+              }
+            , Cmd.none
+            , Nothing
+            )
+
         NoOp ->
             ( model, Cmd.none, Nothing )
-
-
-newLog : String -> Maybe String -> Bool -> Cmd Msg
-newLog message details isError =
-    Task.perform
-        (AddLog (Log message details isError))
-        Time.now
 
 
 selectedFilename : Model msg -> Maybe FsItem
@@ -392,6 +469,7 @@ selectedFilename { mbFilesys } =
 -----------------------------
 -- Http and Json functions --
 -----------------------------
+-- Get Files --
 
 
 getFileList : Root -> String -> Cmd Msg
@@ -402,41 +480,22 @@ getFileList root sessionId =
                 [ ( "sessionId"
                   , Encode.string sessionId
                   )
-                , case root of
-                    ImagesRoot ->
-                        ( "root"
-                        , Encode.string "images"
-                        )
-
-                    DocsRoot ->
-                        ( "root"
-                        , Encode.string "baseDocumentaire"
-                        )
+                , encodeRoot root
                 ]
                 |> Http.jsonBody
 
-        decoder =
-            case root of
-                ImagesRoot ->
-                    decodeImages
-
-                DocsRoot ->
-                    decodeDocs
-
         request =
-            Http.post "getFiles.php" body decodeImages
+            Http.post "getFiles.php" body decodeFiles
     in
-    Http.send (RefreshFilesys root) request
+    Http.send (RefreshFilesys Nothing "Téléchargement info fichiers" root) request
 
 
-decodeImages =
+decodeFiles : Decode.Decoder (List FsItem)
+decodeFiles =
     Decode.list decodeFile
 
 
-decodeDocs =
-    Decode.list decodeFile
-
-
+decodeFile : Decode.Decoder FsItem
 decodeFile =
     Decode.succeed
         (\p f mbImgSize mbFs ->
@@ -467,6 +526,115 @@ decodeFile =
 
 
 
+-- Delete File --
+
+
+deleteFile : FsItem -> Root -> String -> Cmd Msg
+deleteFile fsItem root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                , ( "path", encodeFsItemPath fsItem )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "deleteFile.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just fsItem)
+            ("Suppression: " ++ getName fsItem)
+            root
+        )
+        request
+
+
+
+-- Rename file --
+
+
+renameFile fsItem newName root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                , ( "newName"
+                  , Encode.string newName
+                  )
+                , ( "path", encodeFsItemPath fsItem )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "renameFile.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just fsItem)
+            ("Renommage: " ++ getName fsItem)
+            root
+        )
+        request
+
+
+
+-- Paste File
+
+
+pasteFile src dest root sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , encodeRoot root
+                , ( "srcPath", encodeFsItemPath src )
+                , ( "destPath", encodeFsItemPath dest )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "pasteFile.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just src)
+            ("Collage: " ++ getName src)
+            root
+        )
+        request
+
+
+encodeFsItemPath : FsItem -> Encode.Value
+encodeFsItemPath fsItem =
+    getPath fsItem
+        |> String.join "/"
+        |> Encode.string
+
+
+encodeRoot root =
+    case root of
+        ImagesRoot ->
+            ( "root"
+            , Encode.string "images"
+            )
+
+        DocsRoot ->
+            ( "root"
+            , Encode.string "baseDocumentaire"
+            )
+
+
+
 -------------------------------------------------------------------------------
 --------------------
 -- View functions --
@@ -493,7 +661,15 @@ view config model =
                 , height fill
                 ]
                 [ sidePanelView config model
-                , filesysView config model
+                , case model.mainPanelDisplay of
+                    FilesysDisplay ->
+                        filesysView config model
+
+                    LogsDisplay ->
+                        logsView config model
+
+                    UploadDisplay ->
+                        Element.none
                 ]
             ]
 
@@ -507,7 +683,7 @@ mainInterface config model =
         [ spacing 15
         , width fill
         , Background.color (rgb 0.95 0.95 0.95)
-        , padding 5
+        , paddingXY 15 10
         ]
         [ Input.button
             (toogleButtonStyle (model.root == DocsRoot) True)
@@ -555,6 +731,18 @@ mainInterface config model =
                     ]
             }
         , clickablePath config model
+        , Input.button
+            (toogleButtonStyle
+                (model.mainPanelDisplay == LogsDisplay)
+                (model.mainPanelDisplay /= UploadDisplay)
+            )
+            { onPress =
+                Just <| ToogleLogsView
+            , label =
+                row [ spacing 10 ]
+                    [ html <| Icons.list iconSize
+                    ]
+            }
         ]
 
 
@@ -579,7 +767,11 @@ clickablePath config model =
                 (text f)
     in
     wrappedRow
-        [ width fill ]
+        [ width fill
+        , Background.color (rgb 1 1 1)
+        , padding 5
+        , Border.rounded 5
+        ]
         (Maybe.map extractFsItem model.mbFilesys
             |> Maybe.map getPath
             |> Maybe.withDefault []
@@ -593,18 +785,23 @@ clickablePath config model =
 
 sidePanelView config model =
     let
+        iconSize =
+            22
+
         imagePreviewPanel meta imgSize =
             column
                 [ width (px 300)
                 , height fill
                 , spacing 15
                 , centerX
+                , Font.family
+                    [ Font.typeface "Arial" ]
                 ]
                 [ el
                     [ width (px 250)
                     , height (px 250)
                     , Background.color
-                        (rgb 0.95 0.95 0.95)
+                        (rgb 0.9 0.9 0.9)
                     , Border.rounded 5
                     , padding 0
                     , spacing 0
@@ -651,7 +848,7 @@ sidePanelView config model =
                             ++ String.fromInt folderInfo.nbrFiles
                     )
                 , text <|
-                    "Nbr répertoires: "
+                    "Nbr dossiers: "
                         ++ String.fromInt folderInfo.nbrFolders
                 ]
 
@@ -659,8 +856,116 @@ sidePanelView config model =
             Element.none
 
         noSelectionControlsPanel =
-            column []
-                [ text "controls coming soon!" ]
+            column
+                [ spacing 15
+                , width fill
+                ]
+                [ row
+                    [ spacing 15
+                    , width fill
+                    ]
+                    [ Input.text
+                        (textInputStyle ++ [ width (px 195), spacing 0 ])
+                        { onChange = RenameInput
+                        , text = model.renameBuffer
+                        , placeholder =
+                            Just (Input.placeholder [] (text "Nouveau dossier"))
+                        , label =
+                            Input.labelLeft [] Element.none
+                        }
+                    , Input.button (buttonStyle True ++ [ Element.alignRight ])
+                        { onPress =
+                            if model.lastLocation /= Nothing then
+                                Just <| GoNext
+                            else
+                                Nothing
+                        , label =
+                            row [ spacing 10 ]
+                                [ html <| Icons.folderPlus iconSize
+                                ]
+                        }
+                    ]
+                , row [ width fill ]
+                    [ Input.button (buttonStyle True ++ [ Element.alignLeft ])
+                        { onPress =
+                            Nothing
+                        , label =
+                            row [ spacing 10 ]
+                                [ el [] (html <| Icons.upload iconSize)
+                                , text <| "Mettre en ligne"
+                                ]
+                        }
+                    , Input.button
+                        ((buttonStyle <| model.cutBuffer /= Nothing)
+                            ++ [ Element.alignRight ]
+                        )
+                        { onPress =
+                            if model.cutBuffer /= Nothing then
+                                Maybe.map Paste model.selectedFsItem
+                            else
+                                Nothing
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Coller"
+                                ]
+                        }
+                    ]
+                ]
+
+        selectionControlsPanel =
+            column
+                [ spacing 15
+                , width fill
+                ]
+                [ row
+                    [ spacing 15
+                    , width fill
+                    ]
+                    [ Input.text
+                        (textInputStyle ++ [ width (px 195), spacing 0 ])
+                        { onChange = RenameInput
+                        , text = model.renameBuffer
+                        , placeholder =
+                            Maybe.map getName model.selectedFsItem
+                                |> Maybe.map text
+                                |> Maybe.map (Input.placeholder [ clip ])
+                        , label =
+                            Input.labelLeft [] Element.none
+                        }
+                    , Input.button (buttonStyle <| model.renameBuffer /= "")
+                        { onPress =
+                            if model.renameBuffer /= "" then
+                                Maybe.map Rename model.selectedFsItem
+                            else
+                                Nothing
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Renommer"
+                                ]
+                        }
+                    ]
+                , row
+                    [ width fill ]
+                    [ Input.button ((buttonStyle <| True) ++ [ Element.alignLeft ])
+                        { onPress =
+                            Maybe.map Delete model.selectedFsItem
+                        , label =
+                            row [ spacing 10 ]
+                                [ el [] (html <| xSquare iconSize)
+                                , text "Supprimer"
+                                ]
+                        }
+                    , Input.button ((buttonStyle <| True) ++ [ Element.alignRight ])
+                        { onPress =
+                            Maybe.map Cut model.selectedFsItem
+                        , label =
+                            row [ spacing 10 ]
+                                [ el [] (html <| scissors iconSize)
+                                , text "Couper"
+                                ]
+                        }
+                    ]
+                ]
     in
     column
         [ width (px 330)
@@ -668,33 +973,39 @@ sidePanelView config model =
         , alignTop
         , Background.color (rgb 0.95 0.95 0.95)
         , height fill
+        , spacing 15
         ]
-        [ case model.selectedFsItem of
+        (case model.selectedFsItem of
             Nothing ->
-                noSelectionControlsPanel
+                [ noSelectionControlsPanel ]
 
             Just fsItem ->
                 case fsItem of
                     Folder meta _ ->
-                        folderInfoPanel fsItem
+                        [ selectionControlsPanel
+                        , folderInfoPanel fsItem
+                        ]
 
                     File meta ->
                         case meta.fileType of
                             ImageFile imgSize ->
-                                imagePreviewPanel meta imgSize
+                                [ selectionControlsPanel
+                                , imagePreviewPanel meta imgSize
+                                ]
 
                             RegFile ->
-                                regFilePreviewPanel meta
-        ]
+                                [ selectionControlsPanel
+                                , regFilePreviewPanel meta
+                                ]
+        )
 
 
 filesysView config model =
     let
         fileView file { name, path, fileType } =
             column
-                [ pointer
-                , padding 7
-                , mouseOver
+                ([ padding 7
+                 , mouseOver
                     (case Maybe.map (\fsItem -> getPath fsItem == path) model.selectedFsItem of
                         Just True ->
                             []
@@ -702,17 +1013,24 @@ filesysView config model =
                         _ ->
                             [ Background.color (rgba 0.3 0.4 0.6 0.3) ]
                     )
-                , Border.rounded 5
-                , case Maybe.map (\fsItem -> getPath fsItem == path) model.selectedFsItem of
+                 , Border.rounded 5
+                 , case Maybe.map (\fsItem -> getPath fsItem == path) model.selectedFsItem of
                     Just True ->
                         Background.color (rgba 0.3 0.4 0.6 0.5)
 
                     _ ->
                         noAttr
-                , Events.onClick (SelectFsItem file)
-                , onDoubleClick NoOp
-                , alignTop
-                ]
+                 , onDoubleClick NoOp
+                 , alignTop
+                 ]
+                    ++ (if List.member file model.lockedFsItems then
+                            [ alpha 0.5 ]
+                        else
+                            [ pointer
+                            , Events.onClick (SelectFsItem file)
+                            ]
+                       )
+                )
                 [ el
                     [ width (px 80)
                     , height (px 80)
@@ -759,10 +1077,9 @@ filesysView config model =
 
         folderView folder { name, path } =
             column
-                [ padding 7
-                , pointer
-                , Border.rounded 5
-                , mouseOver
+                ([ padding 7
+                 , Border.rounded 5
+                 , mouseOver
                     (case Maybe.map (\fsItem -> getPath fsItem == path) model.selectedFsItem of
                         Just True ->
                             []
@@ -770,17 +1087,26 @@ filesysView config model =
                         _ ->
                             [ Background.color (rgba 0.3 0.4 0.6 0.3) ]
                     )
-                , htmlAttribute <| HtmlAttr.style "transition" "0.1s"
-                , Events.onClick (SelectFsItem folder)
-                , onDoubleClick (GoTo path)
-                , alignTop
-                , case Maybe.map (\fsItem -> getPath fsItem == path) model.selectedFsItem of
+                 , htmlAttribute <| HtmlAttr.style "transition" "0.1s"
+                 , alignTop
+                 , case Maybe.map (\fsItem -> getPath fsItem == path) model.selectedFsItem of
                     Just True ->
                         Background.color (rgba 0.3 0.4 0.6 0.5)
 
                     _ ->
                         noAttr
-                ]
+                 ]
+                    ++ (if List.member folder model.lockedFsItems then
+                            [ alpha 0.5
+                            , onDoubleClick NoOp
+                            ]
+                        else
+                            [ pointer
+                            , Events.onClick (SelectFsItem folder)
+                            , onDoubleClick (GoTo path)
+                            ]
+                       )
+                )
                 [ el
                     [ width (px 80)
                     , height (px 80)
@@ -843,6 +1169,17 @@ filesysView config model =
                                 |> List.map contentView
                             )
                         ]
+
+
+logsView config model =
+    column
+        [ scrollbarY
+        , height fill
+        , width fill
+        , alignTop
+        , padding 15
+        ]
+        [ Internals.CommonHelpers.logsView model.logs config.zone ]
 
 
 
@@ -1160,6 +1497,15 @@ insert f rootName mbFsItem_ =
 ---------------------------
 -- Misc helper functions --
 ---------------------------
+
+
+cmdIfLogged logInfo cmd =
+    case logInfo of
+        LoggedIn { sessionId } ->
+            cmd sessionId
+
+        _ ->
+            Cmd.none
 
 
 break : (a -> Bool) -> List a -> ( List a, List a )

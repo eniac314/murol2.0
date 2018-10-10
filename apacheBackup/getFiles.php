@@ -28,7 +28,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     if($php_data->root == 'images'){
 
       $images = 
-  		getDirContents('images');
+  		  getDirContents('images');
       
       echo (json_encode($images));
       exit();
@@ -39,47 +39,14 @@ if(getenv('REQUEST_METHOD') == 'POST') {
      	
      	echo (json_encode($docs));
      	exit();
+    } else {
+      logError("invalid root");
+      exit();
     }
 
 } else {
   logError("invalid request");
 }
-
-function getDirContents($dir, &$results = array()){
-    $files = scandir($dir);
-
-    foreach($files as $key => $value){
-        $path = realpath($dir.DIRECTORY_SEPARATOR.$value);
-        if(!is_dir($path)) {
-            $name = $value;
-            $relativePath = substr($path, 1 + strlen(getcwd()), strlen($path) - 1 - strlen(getcwd()));
-            
-            if (exif_imagetype($path)) {
-                $imgSize = getimagesize($path);
-                
-                $size = array( 'width' => $imgSize[0]
-                             , 'height' => $imgSize[1]
-                             );
-		    } else {
-				$size =	NULL;
-			};
-            
-            $fileSize = filesize($path);
-            $fileSize = ($fileSize == false)? NULL: $fileSize;
-
-            $results[] = 
-            	array( 'name' => $name
-            	     , 'path' => $relativePath
-            	     , 'imgSize' => $size
-            	     , 'fileSize' => $fileSize		
-            	    );
-        } else if($value != "." && $value != "..") {
-            getDirContents($path, $results);
-        }
-    }
-
-    return $results;
-    }
 
 ?>
 
