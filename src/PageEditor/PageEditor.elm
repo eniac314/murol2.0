@@ -1132,7 +1132,7 @@ view config model =
                         documentView model
 
                     Just plugin ->
-                        pluginView model plugin
+                        pluginView config model plugin
                 ]
             ]
 
@@ -1174,14 +1174,20 @@ documentView model =
 -------------------------------
 -- Plugins views loading code--
 -------------------------------
+--pluginView : Model msg -> EditorPlugin -> Element Msg
 
 
-pluginView : Model msg -> EditorPlugin -> Element Msg
-pluginView model plugin =
+pluginView config model plugin =
     case plugin of
         ImagePlugin ->
             ImagePlugin.view
-                { picListing = [], externalMsg = ImagePluginMsg }
+                { picListing = []
+                , externalMsg = ImagePluginMsg
+                , fileExplorer = config.fileExplorer
+                , fileExplorerView = config.fileExplorerView
+                , zone = config.zone
+                , logInfo = config.logInfo
+                }
                 model.imagePlugin
 
         TablePlugin ->

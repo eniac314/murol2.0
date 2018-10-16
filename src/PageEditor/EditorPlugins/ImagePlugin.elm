@@ -569,6 +569,18 @@ imageAttributeEditorView config model =
         ]
 
 
+
+--imagePickerView config model =
+--    config.fileExplorerView
+--        { maxHeight =
+--            600
+--        , zone = config.zone
+--        , logInfo = config.logInfo
+--        }
+--        config.fileExplorer
+--|> Element.map model.externalMsg
+
+
 imagePickerView config model =
     column
         [ spacing 15

@@ -76,8 +76,9 @@ type Root
 
 
 type Mode
-    = ReadOnly
-    | ReadWrite
+    = ReadOnly Root
+    | ReadWrite Root
+    | Full
 
 
 type MainPanelDisplay
@@ -207,12 +208,17 @@ loadingView model =
 
 
 type Msg
-    = GoHome
+    = ----------------
+      -- Navigation --
+      ----------------
+      GoHome
     | GoNext
     | GoPrev
     | GoTo Path
     | SelectFsItem FsItem
-    | NewFile
+      ------------------------------
+      -- Filesys modyfing Actions --
+      ------------------------------
     | NewFolderInput String
     | NewFolder FsItem
     | Delete FsItem
@@ -220,18 +226,15 @@ type Msg
     | Paste FsItem
     | RenameInput String
     | Rename FsItem
-    | Refresh
-    | SetRoot Root
-    | CheckLogInfo Time.Posix
+      ------------------
+      -- Bulk Uploads --
+      ------------------
     | RefreshFilesys (Maybe FsItem) String Root (Result Http.Error (List FsItem))
     | FilesToUpload (List FileToUpload)
     | UploadFiles
-    | AddLog (Posix -> Log) Posix
-    | SetImageUploadType UploadType
-    | ToogleLogsView
     | ToogleUploadView
-    | Debug String
-    | NoOp
+    | SetImageUploadType UploadType
+    | UploadImage FsItem
       ---------------------
       -- ImageController --
       ---------------------
@@ -244,7 +247,17 @@ type Msg
     | SetResize
     | SetFilename String
     | ResetImageController
-    | UploadImage FsItem
+      ----------
+      -- Logs --
+      ----------
+    | AddLog (Posix -> Log) Posix
+    | ToogleLogsView
+      ----------
+      -- Misc --
+      ----------
+    | SetRoot Root
+    | Debug String
+    | NoOp
 
 
 
@@ -364,11 +377,8 @@ internalUpdate config msg model =
                 , selectedFsItem = Nothing
               }
             , Cmd.none
-            , selectedFilename model
+            , Nothing
             )
-
-        NewFile ->
-            ( model, Cmd.none, Nothing )
 
         NewFolderInput s ->
             ( { model | newFolderNameBuffer = s }
@@ -493,33 +503,6 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        CheckLogInfo _ ->
-            case config.logInfo of
-                LoggedOut ->
-                    ( { model | mbFilesys = Nothing }, Cmd.none, Nothing )
-
-                LoggedIn { sessionId } ->
-                    case model.mbFilesys of
-                        Nothing ->
-                            ( model
-                            , getFileList model.root sessionId
-                            , Nothing
-                            )
-
-                        _ ->
-                            ( model, Cmd.none, Nothing )
-
-        Refresh ->
-            ( model
-            , case config.logInfo of
-                LoggedIn { sessionId } ->
-                    getFileList model.root sessionId
-
-                LoggedOut ->
-                    Cmd.none
-            , Nothing
-            )
-
         RefreshFilesys mbToUnlock log root res ->
             case res of
                 Ok fs ->
@@ -566,6 +549,7 @@ internalUpdate config msg model =
                                     newFilesys
                         , imageFiles = newImageFiles
                         , docFiles = newDocFiles
+                        , root = root
                         , loadingStatus =
                             case ( newImageFiles, newDocFiles ) of
                                 ( Just _, Just _ ) ->
@@ -934,24 +918,30 @@ mainInterface config model =
         , Background.color (rgb 0.95 0.95 0.95)
         , paddingXY 15 10
         ]
-        [ Input.button
-            (toogleButtonStyle (model.root == DocsRoot) True)
-            { onPress =
-                Just <| SetRoot DocsRoot
-            , label =
-                row [ spacing 10 ]
-                    [ html <| Icons.fileText iconSize
-                    ]
-            }
-        , Input.button
-            (toogleButtonStyle (model.root == ImagesRoot) True)
-            { onPress =
-                Just <| SetRoot ImagesRoot
-            , label =
-                row [ spacing 10 ]
-                    [ html <| Icons.imageIcon iconSize
-                    ]
-            }
+        [ if model.mode == Full then
+            Input.button
+                (toogleButtonStyle (model.root == DocsRoot) True)
+                { onPress =
+                    Just <| SetRoot DocsRoot
+                , label =
+                    row [ spacing 10 ]
+                        [ html <| Icons.fileText iconSize
+                        ]
+                }
+          else
+            Element.none
+        , if model.mode == Full then
+            Input.button
+                (toogleButtonStyle (model.root == ImagesRoot) True)
+                { onPress =
+                    Just <| SetRoot ImagesRoot
+                , label =
+                    row [ spacing 10 ]
+                        [ html <| Icons.imageIcon iconSize
+                        ]
+                }
+          else
+            Element.none
         , Input.button (buttonStyle True)
             { onPress =
                 Just <| GoPrev
@@ -980,18 +970,23 @@ mainInterface config model =
                     ]
             }
         , clickablePath config model
-        , Input.button
-            (toogleButtonStyle
-                (model.mainPanelDisplay == LogsDisplay)
-                (model.mainPanelDisplay /= UploadDisplay)
-            )
-            { onPress =
-                Just <| ToogleLogsView
-            , label =
-                row [ spacing 10 ]
-                    [ html <| Icons.list iconSize
-                    ]
-            }
+        , case model.mode of
+            ReadOnly _ ->
+                Element.none
+
+            _ ->
+                Input.button
+                    (toogleButtonStyle
+                        (model.mainPanelDisplay == LogsDisplay)
+                        (model.mainPanelDisplay /= UploadDisplay)
+                    )
+                    { onPress =
+                        Just <| ToogleLogsView
+                    , label =
+                        row [ spacing 10 ]
+                            [ html <| Icons.list iconSize
+                            ]
+                    }
         ]
 
 
@@ -1107,63 +1102,74 @@ sidePanelView config model =
                 [ spacing 15
                 , width fill
                 ]
-                [ row
-                    [ spacing 15
-                    , width fill
-                    ]
-                    [ Keyed.el []
-                        ( "newFolder"
-                        , Input.text
-                            (textInputStyle ++ [ width (px 195), spacing 0 ])
-                            { onChange = NewFolderInput
-                            , text = model.newFolderNameBuffer
-                            , placeholder =
-                                Just (Input.placeholder [] (text "Nouveau dossier"))
+                [ if model.mode == Full then
+                    row
+                        [ spacing 15
+                        , width fill
+                        ]
+                        [ Keyed.el []
+                            ( "newFolder"
+                            , Input.text
+                                (textInputStyle ++ [ width (px 195), spacing 0 ])
+                                { onChange = NewFolderInput
+                                , text = model.newFolderNameBuffer
+                                , placeholder =
+                                    Just (Input.placeholder [] (text "Nouveau dossier"))
+                                , label =
+                                    Input.labelLeft [] Element.none
+                                }
+                            )
+                        , Input.button
+                            (buttonStyle (model.newFolderNameBuffer /= "")
+                                ++ [ Element.alignRight ]
+                            )
+                            { onPress =
+                                if model.newFolderNameBuffer /= "" then
+                                    Maybe.map extractFsItem model.mbFilesys
+                                        |> Maybe.map NewFolder
+                                else
+                                    Nothing
                             , label =
-                                Input.labelLeft [] Element.none
+                                row [ spacing 10 ]
+                                    [ html <| Icons.folderPlus iconSize
+                                    ]
                             }
-                        )
-                    , Input.button
-                        (buttonStyle (model.newFolderNameBuffer /= "")
-                            ++ [ Element.alignRight ]
-                        )
-                        { onPress =
-                            if model.newFolderNameBuffer /= "" then
-                                Maybe.map extractFsItem model.mbFilesys
-                                    |> Maybe.map NewFolder
-                            else
-                                Nothing
-                        , label =
-                            row [ spacing 10 ]
-                                [ html <| Icons.folderPlus iconSize
-                                ]
-                        }
-                    ]
-                , row [ width fill ]
-                    [ Input.button (buttonStyle True ++ [ Element.alignLeft ])
-                        { onPress =
-                            Just ToogleUploadView
-                        , label =
-                            row [ spacing 10 ]
-                                [ el [] (html <| Icons.upload iconSize)
-                                , text <| "Mettre en ligne"
-                                ]
-                        }
-                    , Input.button
-                        ((buttonStyle <| model.cutBuffer /= Nothing)
-                            ++ [ Element.alignRight ]
-                        )
-                        { onPress =
-                            if model.cutBuffer /= Nothing then
-                                Maybe.map (Paste << extractFsItem) model.mbFilesys
-                            else
-                                Nothing
-                        , label =
-                            row [ spacing 10 ]
-                                [ text "Coller"
-                                ]
-                        }
-                    ]
+                        ]
+                  else
+                    Element.none
+                , case model.mode of
+                    ReadOnly _ ->
+                        Element.none
+
+                    _ ->
+                        row [ width fill ]
+                            [ Input.button (buttonStyle True ++ [ Element.alignLeft ])
+                                { onPress =
+                                    Just ToogleUploadView
+                                , label =
+                                    row [ spacing 10 ]
+                                        [ el [] (html <| Icons.upload iconSize)
+                                        , text <| "Mettre en ligne"
+                                        ]
+                                }
+                            , if model.mode == Full then
+                                Input.button
+                                    ((buttonStyle <| model.cutBuffer /= Nothing)
+                                        ++ [ Element.alignRight ]
+                                    )
+                                    { onPress =
+                                        if model.cutBuffer /= Nothing then
+                                            Maybe.map (Paste << extractFsItem) model.mbFilesys
+                                        else
+                                            Nothing
+                                    , label =
+                                        row [ spacing 10 ]
+                                            [ text "Coller"
+                                            ]
+                                    }
+                              else
+                                Element.none
+                            ]
                 ]
 
         selectionControlsPanel =
@@ -1171,68 +1177,78 @@ sidePanelView config model =
                 [ spacing 15
                 , width fill
                 ]
-                [ row
-                    [ spacing 15
-                    , width fill
-                    ]
-                    [ Keyed.el []
-                        ( "rename"
-                        , Input.text
-                            (textInputStyle ++ [ width (px 195), spacing 0 ])
-                            { onChange = RenameInput
-                            , text = model.renameBuffer
-                            , placeholder =
-                                Maybe.map getName model.selectedFsItem
-                                    |> Maybe.map text
-                                    |> Maybe.map (Input.placeholder [ clip ])
-                            , label =
-                                Input.labelLeft [] Element.none
-                            }
-                        )
-                    , Input.button
-                        (buttonStyle
-                            (Maybe.map getName model.selectedFsItem
-                                |> Maybe.map (\n -> n /= model.renameBuffer)
-                                |> Maybe.withDefault False
-                            )
-                        )
-                        { onPress =
-                            if model.renameBuffer /= "" then
-                                Maybe.map Rename model.selectedFsItem
-                            else
-                                Nothing
-                        , label =
-                            row [ spacing 10 ]
-                                [ text "Renommer"
-                                ]
-                        }
-                    ]
-                , row
-                    [ width fill ]
-                    [ Input.button ((buttonStyle <| True) ++ [ Element.alignLeft ])
-                        { onPress =
-                            Maybe.map Delete model.selectedFsItem
-                        , label =
-                            row [ spacing 10 ]
-                                [ el [] (html <| xSquare iconSize)
-                                , text "Supprimer"
-                                ]
-                        }
-                    , Input.button ((buttonStyle <| (model.cutBuffer == Nothing)) ++ [ Element.alignRight ])
-                        { onPress =
-                            case model.cutBuffer of
-                                Nothing ->
-                                    Maybe.map Cut model.selectedFsItem
+                [ case model.mode of
+                    ReadOnly _ ->
+                        Maybe.map getName model.selectedFsItem
+                            |> Maybe.map (\s -> paragraph [] [ text s ])
+                            |> Maybe.withDefault Element.none
 
-                                Just _ ->
-                                    Nothing
-                        , label =
-                            row [ spacing 10 ]
-                                [ el [] (html <| scissors iconSize)
-                                , text "Couper"
-                                ]
-                        }
-                    ]
+                    _ ->
+                        row
+                            [ spacing 15
+                            , width fill
+                            ]
+                            [ Keyed.el []
+                                ( "rename"
+                                , Input.text
+                                    (textInputStyle ++ [ width (px 195), spacing 0 ])
+                                    { onChange = RenameInput
+                                    , text = model.renameBuffer
+                                    , placeholder =
+                                        Maybe.map getName model.selectedFsItem
+                                            |> Maybe.map text
+                                            |> Maybe.map (Input.placeholder [ clip ])
+                                    , label =
+                                        Input.labelLeft [] Element.none
+                                    }
+                                )
+                            , Input.button
+                                (buttonStyle
+                                    (Maybe.map getName model.selectedFsItem
+                                        |> Maybe.map (\n -> n /= model.renameBuffer)
+                                        |> Maybe.withDefault False
+                                    )
+                                )
+                                { onPress =
+                                    if model.renameBuffer /= "" then
+                                        Maybe.map Rename model.selectedFsItem
+                                    else
+                                        Nothing
+                                , label =
+                                    row [ spacing 10 ]
+                                        [ text "Renommer"
+                                        ]
+                                }
+                            ]
+                , if model.mode == Full then
+                    row
+                        [ width fill ]
+                        [ Input.button ((buttonStyle <| True) ++ [ Element.alignLeft ])
+                            { onPress =
+                                Maybe.map Delete model.selectedFsItem
+                            , label =
+                                row [ spacing 10 ]
+                                    [ el [] (html <| xSquare iconSize)
+                                    , text "Supprimer"
+                                    ]
+                            }
+                        , Input.button ((buttonStyle <| (model.cutBuffer == Nothing)) ++ [ Element.alignRight ])
+                            { onPress =
+                                case model.cutBuffer of
+                                    Nothing ->
+                                        Maybe.map Cut model.selectedFsItem
+
+                                    Just _ ->
+                                        Nothing
+                            , label =
+                                row [ spacing 10 ]
+                                    [ el [] (html <| scissors iconSize)
+                                    , text "Couper"
+                                    ]
+                            }
+                        ]
+                  else
+                    Element.none
                 ]
     in
     column

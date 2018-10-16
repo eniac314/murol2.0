@@ -62,7 +62,7 @@ init flags =
         newFileExplorer =
             FileExplorer.init
                 FileExplorer.ImagesRoot
-                FileExplorer.ReadOnly
+                FileExplorer.Full
                 FileExplorerMsg
 
         ( newPageEditor, pageEditorCmds ) =
@@ -295,6 +295,9 @@ view model =
                             PageEditorTool ->
                                 PageEditor.view
                                     { logInfo = Auth.getLogInfo model.authTool
+                                    , fileExplorer = model.fileExplorer
+                                    , fileExplorerView = FileExplorer.view
+                                    , zone = model.zone
                                     }
                                     model.pageEditor
 
