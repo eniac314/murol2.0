@@ -1,6 +1,7 @@
 port module FileExplorer.FileExplorer exposing (..)
 
 import Auth.AuthPlugin exposing (LogInfo(..))
+import Dict exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -10,8 +11,9 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Filesize exposing (format)
+import Html as Html
 import Html.Attributes as HtmlAttr
-import Html.Events exposing (preventDefaultOn)
+import Html.Events as HtmlEvents exposing (preventDefaultOn)
 import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
@@ -42,12 +44,29 @@ type alias Model msg =
     , imageFiles : Maybe (List FsItem)
     , docFiles : Maybe (List FsItem)
     , lockedFsItems : List FsItem
+    , canUpload : Bool
+    , needToUpload : Bool
+    , filesToUpload : List FileToUpload
+    , imageUploadType : UploadType
+    , debug : String
+    , mbOriImageWidth : Maybe Int
+    , mbOriImageHeight : Maybe Int
+    , mbOriFileSize : Maybe Int
+    , desiredWidth : Maybe Int
+    , desiredHeight : Maybe Int
+    , desiredFilename : Maybe String
+    , desiredRotationAngle : Int
+    , sliderValue : Float
+    , needToResize : Bool
+    , needToRotate : Bool
+    , canResize : Bool
+    , mbImageFromFile : Maybe ImageFromFile
+    , imageControllerMode : ImageControllerMode
     }
 
 
 subscriptions model =
     Sub.map model.externalMsg <|
-        --Sub.batch [ Time.every 1000 CheckLogInfo ]
         Sub.batch []
 
 
@@ -110,6 +129,15 @@ type alias Context =
     }
 
 
+type alias ImageFromFile =
+    { contents : String
+    , filename : String
+    , width : Int
+    , height : Int
+    , filesize : Int
+    }
+
+
 init root mode externalMsg =
     { renameBuffer = ""
     , newFolderNameBuffer = ""
@@ -126,7 +154,35 @@ init root mode externalMsg =
     , docFiles = Nothing
     , loadingStatus = ToolLoadingWaiting
     , lockedFsItems = []
+    , canUpload = False
+    , needToUpload = False
+    , filesToUpload = []
+    , imageUploadType = RegUpload
+    , debug = ""
+    , mbOriImageWidth = Nothing
+    , mbOriImageHeight = Nothing
+    , mbOriFileSize = Nothing
+    , desiredWidth = Nothing
+    , desiredHeight = Nothing
+    , desiredFilename = Nothing
+    , desiredRotationAngle = 0
+    , sliderValue = 100
+    , needToResize = False
+    , needToRotate = False
+    , canResize = False
+    , mbImageFromFile = Nothing
+    , imageControllerMode = FileReader
     }
+
+
+type UploadType
+    = BulkUpload
+    | RegUpload
+
+
+type ImageControllerMode
+    = FileReader
+    | Editor
 
 
 load model logInfo =
@@ -168,9 +224,27 @@ type Msg
     | SetRoot Root
     | CheckLogInfo Time.Posix
     | RefreshFilesys (Maybe FsItem) String Root (Result Http.Error (List FsItem))
+    | FilesToUpload (List FileToUpload)
+    | UploadFiles
     | AddLog (Posix -> Log) Posix
+    | SetImageUploadType UploadType
     | ToogleLogsView
+    | ToogleUploadView
+    | Debug String
     | NoOp
+      ---------------------
+      -- ImageController --
+      ---------------------
+    | FileRead ImageFromFile
+    | ImageRead ImageFromFile
+    | UploadResult (Result Error ())
+    | RotateRight
+    | RotateLeft
+    | Resize Float
+    | SetResize
+    | SetFilename String
+    | ResetImageController
+    | UploadImage FsItem
 
 
 
@@ -260,14 +334,22 @@ internalUpdate config msg model =
                 , Nothing
                 )
             else
-                ( { model
-                    | selectedFsItem = Just fsItem
-                    , renameBuffer = getName fsItem
-                    , newFolderNameBuffer = ""
-                  }
-                , Cmd.none
-                , selectedFilename model
-                )
+                case Maybe.map extractFsItem model.mbFilesys of
+                    Just (Folder meta children) ->
+                        if List.member fsItem children then
+                            ( { model
+                                | selectedFsItem = Just fsItem
+                                , renameBuffer = getName fsItem
+                                , newFolderNameBuffer = ""
+                              }
+                            , Cmd.none
+                            , selectedFilename model
+                            )
+                        else
+                            ( model, Cmd.none, Nothing )
+
+                    _ ->
+                        ( model, Cmd.none, Nothing )
 
         GoTo path ->
             ( { model
@@ -522,6 +604,43 @@ internalUpdate config msg model =
                     , Nothing
                     )
 
+        SetImageUploadType ut ->
+            ( { model
+                | imageUploadType = ut
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        FilesToUpload files ->
+            let
+                uploadDone =
+                    List.all identity (List.map .success files)
+            in
+            ( { model
+                | filesToUpload = files
+                , canUpload = True
+                , needToUpload =
+                    if uploadDone then
+                        False
+                    else
+                        model.needToUpload
+              }
+            , if uploadDone then
+                cmdIfLogged
+                    config.logInfo
+                    (getFileList model.root)
+              else
+                Cmd.none
+            , Nothing
+            )
+
+        UploadFiles ->
+            ( { model | needToUpload = True }
+            , Cmd.none
+            , Nothing
+            )
+
         AddLog l t ->
             ( { model | logs = l t :: model.logs }
             , Cmd.none
@@ -548,8 +667,213 @@ internalUpdate config msg model =
             , Nothing
             )
 
+        ToogleUploadView ->
+            let
+                mainPanelDisplay =
+                    case model.mainPanelDisplay of
+                        UploadDisplay ->
+                            FilesysDisplay
+
+                        FilesysDisplay ->
+                            UploadDisplay
+
+                        LogsDisplay ->
+                            FilesysDisplay
+            in
+            ( { model
+                | mainPanelDisplay = mainPanelDisplay
+                , canUpload = False
+                , needToUpload = False
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        Debug s ->
+            ( { model | debug = s }
+            , Cmd.none
+            , Nothing
+            )
+
         NoOp ->
             ( model, Cmd.none, Nothing )
+
+        ---------------------
+        -- ImageController --
+        ---------------------
+        FileRead data ->
+            let
+                newImage =
+                    { contents = data.contents
+                    , filename = data.filename
+                    , width = data.width
+                    , height = data.height
+                    , filesize = data.filesize
+                    }
+            in
+            ( { model
+                | mbImageFromFile = Just newImage
+                , imageControllerMode = Editor
+                , mbOriImageWidth = Just data.width
+                , mbOriImageHeight = Just data.height
+                , mbOriFileSize = Just data.filesize
+                , needToResize = False
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        ImageRead data ->
+            let
+                newImage =
+                    { contents = data.contents
+                    , filename = data.filename
+                    , width = data.width
+                    , height = data.height
+                    , filesize = data.filesize
+                    }
+            in
+            ( { model
+                | mbImageFromFile = Just newImage
+                , imageControllerMode = Editor
+                , needToResize = False
+                , needToRotate = False
+                , canResize = False
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        UploadResult (Ok ()) ->
+            ( model
+            , Cmd.none
+            , Nothing
+            )
+
+        UploadResult (Err e) ->
+            ( model
+            , Cmd.none
+            , Nothing
+            )
+
+        RotateRight ->
+            ( { model
+                | desiredRotationAngle =
+                    modBy 360 (90 + model.desiredRotationAngle)
+                , needToRotate = True
+                , mbOriImageWidth = model.mbOriImageHeight
+                , mbOriImageHeight = model.mbOriImageWidth
+                , desiredWidth = model.desiredHeight
+                , desiredHeight = model.desiredWidth
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        RotateLeft ->
+            ( { model
+                | desiredRotationAngle =
+                    modBy 360 (model.desiredRotationAngle - 90)
+                , needToRotate = True
+                , mbOriImageWidth = model.mbOriImageHeight
+                , mbOriImageHeight = model.mbOriImageWidth
+                , desiredWidth = model.desiredHeight
+                , desiredHeight = model.desiredWidth
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        Resize n ->
+            case ( model.mbOriImageWidth, model.mbOriImageHeight ) of
+                ( Just oriW, Just oriH ) ->
+                    let
+                        ratio =
+                            toFloat oriW / toFloat oriH
+
+                        desiredWidth =
+                            toFloat oriW * n / 100
+
+                        desiredHeight =
+                            desiredWidth / ratio
+                    in
+                    ( { model
+                        | sliderValue = n
+                        , desiredWidth =
+                            Just <| round desiredWidth
+                        , desiredHeight =
+                            Just <| round desiredHeight
+                        , canResize = True
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model, Cmd.none, Nothing )
+
+        SetResize ->
+            ( { model | needToResize = True }, Cmd.none, Nothing )
+
+        SetFilename filename ->
+            ( { model | desiredFilename = Just filename }
+            , Cmd.none
+            , Nothing
+            )
+
+        ResetImageController ->
+            ( { model
+                | imageControllerMode = FileReader
+                , mbOriImageWidth = Nothing
+                , mbOriImageHeight = Nothing
+                , mbOriFileSize = Nothing
+                , desiredWidth = Nothing
+                , desiredHeight = Nothing
+                , desiredRotationAngle = 0
+                , sliderValue = 100
+                , needToResize = False
+                , needToRotate = False
+                , canResize = False
+                , mbImageFromFile = Nothing
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        UploadImage fsItem ->
+            case model.mbImageFromFile of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Just { filename, contents } ->
+                    ( { model
+                        | imageControllerMode = FileReader
+                        , mbOriImageWidth = Nothing
+                        , mbOriImageHeight = Nothing
+                        , mbOriFileSize = Nothing
+                        , desiredWidth = Nothing
+                        , desiredHeight = Nothing
+                        , desiredFilename = Nothing
+                        , desiredRotationAngle = 0
+                        , sliderValue = 100
+                        , needToResize = False
+                        , needToRotate = False
+                        , canResize = False
+                        , mbImageFromFile = Nothing
+                        , mainPanelDisplay = FilesysDisplay
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (uploadImage
+                            fsItem
+                            (Maybe.withDefault filename model.desiredFilename)
+                            contents
+                        )
+                    , Nothing
+                    )
 
 
 selectedFilename : Model msg -> Maybe FsItem
@@ -594,7 +918,7 @@ view config model =
                         logsView config model
 
                     UploadDisplay ->
-                        Element.none
+                        uploadView config model
                 ]
             ]
 
@@ -818,7 +1142,7 @@ sidePanelView config model =
                 , row [ width fill ]
                     [ Input.button (buttonStyle True ++ [ Element.alignLeft ])
                         { onPress =
-                            Nothing
+                            Just ToogleUploadView
                         , label =
                             row [ spacing 10 ]
                                 [ el [] (html <| Icons.upload iconSize)
@@ -919,28 +1243,33 @@ sidePanelView config model =
         , height fill
         , spacing 15
         ]
-        (case model.selectedFsItem of
-            Nothing ->
-                [ noSelectionControlsPanel ]
+        (case model.mainPanelDisplay of
+            UploadDisplay ->
+                []
 
-            Just fsItem ->
-                case fsItem of
-                    Folder meta _ ->
-                        [ selectionControlsPanel
-                        , folderInfoPanel fsItem
-                        ]
+            _ ->
+                case model.selectedFsItem of
+                    Nothing ->
+                        [ noSelectionControlsPanel ]
 
-                    File meta ->
-                        case meta.fileType of
-                            ImageFile imgSize ->
+                    Just fsItem ->
+                        case fsItem of
+                            Folder meta _ ->
                                 [ selectionControlsPanel
-                                , imagePreviewPanel meta imgSize
+                                , folderInfoPanel fsItem
                                 ]
 
-                            RegFile ->
-                                [ selectionControlsPanel
-                                , regFilePreviewPanel meta
-                                ]
+                            File meta ->
+                                case meta.fileType of
+                                    ImageFile imgSize ->
+                                        [ selectionControlsPanel
+                                        , imagePreviewPanel meta imgSize
+                                        ]
+
+                                    RegFile ->
+                                        [ selectionControlsPanel
+                                        , regFilePreviewPanel meta
+                                        ]
         )
 
 
@@ -1126,6 +1455,470 @@ logsView config model =
         [ Internals.CommonHelpers.logsView model.logs config.zone ]
 
 
+uploadView config model =
+    let
+        imagesUploadView =
+            column
+                [ spacing 15 ]
+                [ Input.radioRow
+                    [ spacing 15 ]
+                    { onChange =
+                        SetImageUploadType
+                    , options =
+                        [ Input.option
+                            BulkUpload
+                            (text "Chargement simple")
+                        , Input.option
+                            RegUpload
+                            (text "Modifier et charger")
+                        ]
+                    , selected =
+                        Just model.imageUploadType
+                    , label = Input.labelLeft [] Element.none
+                    }
+                , case model.imageUploadType of
+                    BulkUpload ->
+                        column
+                            [ spacing 15 ]
+                            [ text "Mettre des images en ligne"
+                            , bulkUploadView
+                            ]
+
+                    RegUpload ->
+                        imageControllerView model model.imageControllerMode
+                ]
+
+        bulkUploadView =
+            column
+                [ spacing 15 ]
+                [ uploadControllerView
+                , if model.canUpload then
+                    column
+                        [ spacing 10 ]
+                        (List.map fileUploadStatusView model.filesToUpload
+                            ++ [ row
+                                    [ spacing 10 ]
+                                    [ Input.button
+                                        (buttonStyle <| True)
+                                        { onPress =
+                                            Just ToogleUploadView
+                                        , label =
+                                            row [ spacing 10 ]
+                                                [ text "Retour"
+                                                ]
+                                        }
+                                    , Input.button
+                                        (buttonStyle <| True)
+                                        { onPress =
+                                            Just UploadFiles
+                                        , label =
+                                            row [ spacing 10 ]
+                                                [ text "Envoyer"
+                                                ]
+                                        }
+                                    ]
+                               ]
+                        )
+                  else
+                    Input.button
+                        (buttonStyle <| True)
+                        { onPress =
+                            Just ToogleUploadView
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Retour"
+                                ]
+                        }
+                ]
+
+        uploadControllerView =
+            uploadController
+                ([ HtmlEvents.on
+                    "filesInput"
+                    (decodeFilesToUpload FilesToUpload)
+                 , HtmlEvents.on
+                    "uploadProgress"
+                    (decodeFilesToUpload FilesToUpload)
+                 , if model.canUpload then
+                    HtmlAttr.hidden True
+                   else
+                    noHtmlAttr
+                 , Maybe.map extractFsItem model.mbFilesys
+                    |> Maybe.andThen (List.tail << getPath)
+                    |> Maybe.map (String.join "/")
+                    |> Maybe.withDefault ""
+                    |> (\p ->
+                            HtmlAttr.property "uploadPath"
+                                (Encode.string (p ++ "/"))
+                       )
+                 , case model.root of
+                    ImagesRoot ->
+                        HtmlAttr.property "uploadScript"
+                            (Encode.string "uploadPic.php")
+
+                    DocsRoot ->
+                        HtmlAttr.property "uploadScript"
+                            (Encode.string "uploadDoc.php")
+                 ]
+                    ++ [ if model.needToUpload then
+                            case config.logInfo of
+                                LoggedOut ->
+                                    noHtmlAttr
+
+                                LoggedIn { sessionId } ->
+                                    HtmlAttr.property "sendFiles"
+                                        (Encode.string sessionId)
+                         else
+                            noHtmlAttr
+
+                       --HtmlAttr.property "sendFiles"
+                       --(Encode.string "")
+                       ]
+                )
+
+        fileUploadStatusView { filename, loaded, total, success } =
+            row
+                [ spacing 15 ]
+                [ el [] (text filename)
+                , el []
+                    (if total /= 0 then
+                        text <|
+                            (String.fromInt
+                                (round <| 100 * loaded / total)
+                                ++ "%"
+                                ++ " "
+                                ++ (if success then
+                                        "ok"
+                                    else
+                                        "erreur"
+                                   )
+                            )
+                     else
+                        text "pret"
+                    )
+
+                --, el [] (text <| String.fromFloat total)
+                ]
+    in
+    column
+        [ scrollbarY
+        , height fill
+        , width fill
+        , alignTop
+        , padding 15
+        , Font.family
+            [ Font.typeface "Arial" ]
+        ]
+        [ case model.root of
+            ImagesRoot ->
+                imagesUploadView
+
+            DocsRoot ->
+                column
+                    [ spacing 15 ]
+                    [ text "Mettre des documents en ligne: "
+                    , bulkUploadView
+                    ]
+        ]
+
+
+uploadController attributes =
+    el
+        []
+        (html <|
+            Html.node "uploads-controller"
+                attributes
+                [ Html.input
+                    [ HtmlAttr.type_ "file"
+                    , HtmlAttr.attribute "multiple" "multiple"
+                    ]
+                    []
+                ]
+        )
+
+
+type alias FileToUpload =
+    { filename : String
+    , loaded : Float
+    , total : Float
+    , success : Bool
+    }
+
+
+imageControllerView model imgContMode =
+    column
+        [ spacing 15
+        , Font.size 16
+        , padding 15
+        , alignTop
+        ]
+        [ case imgContMode of
+            FileReader ->
+                fileReaderView model
+
+            Editor ->
+                editView model
+        , imageController
+            ([ HtmlEvents.on "fileRead" (decodeImageData FileRead)
+             , HtmlEvents.on "imageRead" (decodeImageData ImageRead)
+             , if imgContMode /= FileReader then
+                HtmlAttr.hidden True
+               else
+                noHtmlAttr
+             , if model.needToRotate then
+                HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
+               else
+                noHtmlAttr
+             ]
+                ++ (if model.needToResize then
+                        [ (if model.desiredRotationAngle == 90 || model.desiredRotationAngle == 270 then
+                            model.desiredWidth
+                           else
+                            model.desiredHeight
+                          )
+                            |> Maybe.map (\h -> Encode.int h)
+                            |> Maybe.map (\val -> HtmlAttr.property "desiredSize" val)
+                            |> Maybe.withDefault noHtmlAttr
+                        ]
+                    else
+                        []
+                   )
+            )
+        , case imgContMode of
+            FileReader ->
+                Input.button
+                    (buttonStyle True)
+                    { onPress = Just ToogleUploadView
+                    , label = text "Retour"
+                    }
+
+            Editor ->
+                Element.none
+        ]
+
+
+fileReaderView model =
+    column
+        [ spacing 15 ]
+        [ row
+            [ spacing 15 ]
+            [ el [] (text "Charger une image depuis votre PC: ")
+            ]
+        ]
+
+
+imageController attributes =
+    --Keyed.el []
+    --    ( "test"
+    --      --String.fromInt <| List.length attributes
+    el []
+        (html <|
+            Html.node "image-controller"
+                attributes
+                [ Html.input
+                    [ HtmlAttr.type_ "file"
+                    ]
+                    []
+                ]
+        )
+
+
+editView model =
+    let
+        iconSize =
+            18
+    in
+    case ( model.mbImageFromFile, model.mbOriImageWidth, model.mbOriImageHeight ) of
+        ( Just f, Just oriW, Just oriH ) ->
+            column
+                [ spacing 15 ]
+                [ row
+                    [ spacing 15 ]
+                    [ row
+                        [ spacing 10
+                        , width (px 500)
+                        ]
+                        [ Input.text textInputStyle
+                            { onChange =
+                                SetFilename
+                            , text =
+                                Maybe.withDefault f.filename model.desiredFilename
+                            , placeholder = Nothing
+                            , label =
+                                Input.labelLeft [ centerY ]
+                                    (el [ width (px 110) ] (text "Nom de fichier: "))
+                            }
+                        ]
+                    , Input.button (buttonStyle True)
+                        { onPress = Just RotateLeft
+                        , label = el [] (html <| rotateCcw iconSize)
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress = Just RotateRight
+                        , label = el [] (html <| rotateCw iconSize)
+                        }
+
+                    -- text "Nom de fichier: "
+                    --, text f.filename
+                    ]
+                , row
+                    [ spacing 15 ]
+                    [ row
+                        [ spacing 10
+                        , width (px 500)
+                        ]
+                        [ el [ width (px 110) ] (text "Dimensions: ")
+                        , Input.slider
+                            [ Element.height (Element.px 30)
+                            , Element.width (px 250)
+
+                            -- Here is where we're creating/styling the "track"
+                            , Element.behindContent
+                                (Element.el
+                                    [ Element.width fill
+                                    , Element.height (Element.px 2)
+                                    , Element.centerY
+                                    , Background.color (rgb 0.9 0.9 0.9)
+                                    , Border.rounded 2
+                                    ]
+                                    Element.none
+                                )
+                            ]
+                            { onChange = Resize
+                            , label = Input.labelLeft [ centerY ] Element.none
+                            , min = 0
+                            , max = 100
+                            , step = Just 1
+                            , value = model.sliderValue
+                            , thumb =
+                                Input.defaultThumb
+                            }
+                        , el [ width (px 100) ]
+                            (text <|
+                                (model.desiredWidth
+                                    |> Maybe.map String.fromInt
+                                    |> Maybe.withDefault (String.fromInt oriW)
+                                )
+                                    ++ "x"
+                                    ++ (model.desiredHeight
+                                            |> Maybe.map String.fromInt
+                                            |> Maybe.withDefault (String.fromInt oriH)
+                                       )
+                            )
+                        ]
+                    , Input.button (buttonStyle model.canResize)
+                        { onPress =
+                            if model.canResize then
+                                Just SetResize
+                            else
+                                Nothing
+                        , label = text "Redimensionner"
+                        }
+                    ]
+                , row
+                    [ spacing 15 ]
+                    [ row
+                        [ spacing 5 ]
+                        [ el [] (text "Taille originale: ")
+                        , el []
+                            (text
+                                (model.mbOriFileSize
+                                    |> Maybe.map String.fromInt
+                                    |> Maybe.map (\s -> s ++ " kb")
+                                    |> Maybe.withDefault "0 kb"
+                                )
+                            )
+                        ]
+                    , row
+                        [ spacing 5 ]
+                        [ el [] (text "Taille actuelle: ")
+                        , el []
+                            (text
+                                (model.mbImageFromFile
+                                    |> Maybe.map .filesize
+                                    |> Maybe.map String.fromInt
+                                    |> Maybe.map (\s -> s ++ " kb")
+                                    |> Maybe.withDefault "0 kb"
+                                )
+                            )
+                        ]
+                    ]
+                , row
+                    [ spacing 15 ]
+                    [ Input.button (buttonStyle True)
+                        { onPress = Just ResetImageController
+                        , label = text "Nouveau fichier"
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress = Just ToogleUploadView
+                        , label = text "Retour"
+                        }
+                    , Input.button (buttonStyle True)
+                        { onPress =
+                            Maybe.map extractFsItem model.mbFilesys
+                                |> Maybe.map UploadImage
+                        , label = text "Valider et envoyer"
+                        }
+                    ]
+                , text "Aperçu: "
+                , el
+                    [ width (maximum 650 fill)
+                    , height (maximum 550 fill)
+                    , scrollbars
+                    ]
+                    (image
+                        [ centerY
+                        , centerX
+                        ]
+                        { src = f.contents
+                        , description = f.filename
+                        }
+                    )
+                ]
+
+        _ ->
+            text "no file data"
+
+
+decodeFilesToUpload msg =
+    Decode.at [ "target", "fileDict" ]
+        (Decode.dict
+            (Decode.succeed FileToUpload
+                |> Pipeline.required "filename" Decode.string
+                |> Pipeline.optional "loaded" Decode.float 0
+                |> Pipeline.optional "total" Decode.float 0
+                |> Pipeline.optional "success"
+                    (Decode.oneOf
+                        [ Decode.field "message" Decode.string
+                            |> Decode.map (\_ -> True)
+                        , Decode.field "serverError" Decode.string
+                            |> Decode.map (\_ -> False)
+                        ]
+                    )
+                    False
+            )
+            |> Decode.map Dict.values
+            |> Decode.map msg
+        )
+
+
+decodeDebug =
+    Decode.succeed "debugger called"
+        |> Decode.map Debug
+
+
+decodeImageData msg =
+    Decode.at [ "target", "fileData" ]
+        (Decode.map5 ImageFromFile
+            (Decode.field "contents" Decode.string)
+            (Decode.field "filename" Decode.string)
+            (Decode.field "width" Decode.int)
+            (Decode.field "height" Decode.int)
+            (Decode.field "filesize" Decode.int)
+            |> Decode.map msg
+        )
+
+
 
 -------------------------------------------------------------------------------
 -----------------------------
@@ -1194,37 +1987,6 @@ decodeFile =
             )
         |> Pipeline.required "fileSize" (Decode.nullable Decode.int)
         |> Pipeline.optional "isFolder" Decode.bool False
-
-
-
---decodeFolder : Decode.Decoder FsItem
---decodeFolder =
---    Decode.succeed
---        (\p f mbImgSize mbFs ->
---            Folder
---                { path =
---                    String.split "/" p
---                , name = f
---                , fileType =
---                    case mbImgSize of
---                        Nothing ->
---                            RegFile
---                        Just size ->
---                            ImageFile size
---                , fileSize = mbFs
---                }
---        )
---        |> Pipeline.required "path" Decode.string
---        |> Pipeline.required "name" Decode.string
---        |> Pipeline.required "imgSize"
---            (Decode.nullable <|
---                Decode.map2
---                    (\w h -> { width = w, height = h })
---                    (Decode.field "width" Decode.int)
---                    (Decode.field "height" Decode.int)
---            )
---        |> Pipeline.required "fileSize" (Decode.nullable Decode.int)
--- Delete File --
 
 
 deleteFile : FsItem -> Root -> String -> Cmd Msg
@@ -1359,6 +2121,45 @@ encodeRoot root =
             ( "root"
             , Encode.string "baseDocumentaire"
             )
+
+
+
+-- upload image
+
+
+uploadImage fsItem filename contents sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , ( "filename", Encode.string filename )
+                , ( "uploadPath"
+                  , getPath fsItem
+                        |> List.tail
+                        |> Maybe.map (String.join "/")
+                        |> Maybe.map
+                            (\p ->
+                                p ++ "/"
+                            )
+                        |> Maybe.withDefault ""
+                        |> Encode.string
+                  )
+                , ( "contents", Encode.string contents )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "uploadBase64Pic.php" body decodeFiles
+    in
+    Http.send
+        (RefreshFilesys
+            (Just fsItem)
+            ("Mise en ligne image base64: " ++ filename)
+            ImagesRoot
+        )
+        request
 
 
 

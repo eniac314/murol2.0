@@ -303,6 +303,7 @@ view model =
                                     { maxHeight =
                                         model.winHeight - 35
                                     , zone = model.zone
+                                    , logInfo = Auth.getLogInfo model.authTool
                                     }
                                     model.fileExplorer
 

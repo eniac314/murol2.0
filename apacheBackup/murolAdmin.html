@@ -26,173 +26,272 @@
     var modules = ['LocalStorage'];
 
     PortFunnel.subscribe(app, {modules: modules});
-
+    
+    /////////////////////////////////////////////////////////////////
+    
     customElements.define('custom-textarea', class extends HTMLElement {
     
-	    constructor(){
-	      super();
-	      
-	    }
-	    
-	    get selection(){
-	    	return this._currentSelection || "no selection";	
-	    }
+      constructor(){
+        super();
+        
+      }
+      
+      get selection(){
+        return this._currentSelection || "no selection";  
+      }
 
-        get cols(){
-        	return this._cols || "0";
+      get cols(){
+        return this._cols || "0";
+      }
+
+      set selection(offset){
+        if(offset !== null) {
+          this._textarea = this.querySelector('textarea');
+          this._textarea.focus();
+          this._textarea.setSelectionRange(offset.start,offset.stop);
         }
+      }
 
-        set selection(offset){
-        	if(offset !== null) {
-	        	this._textarea = this.querySelector('textarea');
-	        	this._textarea.focus();
-	        	this._textarea.setSelectionRange(offset.start,offset.stop);
-	        }
-        }
-
-	    connectedCallback() {
-	    	this._textarea = this.querySelector('textarea');
+      connectedCallback() {
+        this._textarea = this.querySelector('textarea');
             
-	    	this._textarea.addEventListener('click', (event) => {
+        this._textarea.addEventListener('click', (event) => {
             
-            var start = this._textarea.selectionStart;
-	    	var finish = this._textarea.selectionEnd;
-	    	var sel = this._textarea.value.substring(start, finish);
+          var start = this._textarea.selectionStart;
+          var finish = this._textarea.selectionEnd;
+          var sel = this._textarea.value.substring(start, finish);
 
-            this._currentSelection = 
+           this._currentSelection = 
                { start: start, 
                  finish: finish,
                  sel: sel
                };
 
-	    	this.dispatchEvent(new CustomEvent('Selection'));
-	    	}); 
-	    
-	    }
+          this.dispatchEvent(new CustomEvent('Selection'));
+        }); 
+      
+      }
     });
 
-    customElements.define('image-controller', class extends HTMLElement {
+    /////////////////////////////////////////////////////////////////
 
-      get fileData(){
-        return this._fileData || "???";
+    customElements.define('uploads-controller', class extends HTMLElement {
+      
+      get fileDict(){
+        return this._fileDict || {};
       }
 
-      set desiredSize(maxHeight){
-        if (maxHeight != null && this._original != null) {
-          this._maxHeight = maxHeight;
-          // resize(this._original.contents, maxHeight, this._original.filename, this);
-          transform(this._original.contents,this._original.filename, this);
-        }
+      set uploadPath(path){
+        this._uploadPath = path;
       }
-    
-      set rotationAngle(rAngle){
-        // console.log("test");
-        if (rAngle != null && this._original != null){
-          this._rAngle = rAngle;
-          // rotateImage(this._original.contents, rAngle, this._original.filename, this);
-          transform(this._original.contents,this._original.filename, this);
-        }
+
+      set uploadScript(scriptName){
+        this._uploadScript = scriptName;
       }
-    
+
+      set sendFiles(sessionId){
+        if(sessionId !== "" && this._uploadPath !== null && this._uploadScript !== null) {
+          for (var filename in this._fileDict){
+            sendFile(this._fileDict[filename]['file'],sessionId, this);
+          }
+          // this.dispatchEvent(new CustomEvent('uploadDone'));
+        } 
+      }
 
       connectedCallback() {
-      
+
+        console.log("connectedCallback")
+    
         this._input = this.querySelector('input');
-        
+
         this._input.addEventListener('change', (event) => {
+          
+        this._fileDict = {};
+        var files = this._input.files;
         
-          var file = this._input.files[0];
-          var reader = new FileReader();
-          
-          
-
-          reader.onload = ((event) => {
-            
-            var base64encoded = event.target.result;
-            
-            var image = new Image();
-
-            image.onload = () => {
-
-              var fileData = {
-                contents: base64encoded,
-                filename: file.name,
-                width: image.width,
-                height: image.height,
-                filesize: fileSize(base64encoded)
-              };
-              
-              this._fileData = fileData;
-              this._original = fileData;
-              this._maxHeight = image.height;
-              this._rAngle = 0;
-
-              this.dispatchEvent(new CustomEvent('fileRead'));
+        for (var i = 0; i < files.length; i++){
+          var fileEntry = 
+            { "file" : files[i]
+            , "filename" : files[i].name
+            , "loaded" : null
+            , "total" : null
+            , "success" : null
             };
 
-            image.src = base64encoded;
-
+          this._fileDict[files[i].name] = fileEntry; 
+          
+        }
             
-          });
-
-          reader.readAsDataURL(file);
-   
+          
+        this.dispatchEvent(new CustomEvent('filesInput'));       
+ 
         });
       }
+
     });
 
-    function fileSize(src){
-      var stringLength = src.length - 'data:image/jpeg;base64,'.length;
+    sendFile = function (file, sessionId, caller) {
+      var formData = new FormData();
+      var request = new XMLHttpRequest();
+   
+      formData.set('file', file);
+      formData.set('sessionId',sessionId);
+      formData.set('uploadPath', caller._uploadPath);      
 
-      var sizeInBytes = 4 * Math.ceil((stringLength / 3))*0.5624896334383812;
-      var sizeInKb=sizeInBytes/1024;
-      return Math.round(sizeInKb);
+      request.upload.addEventListener('progress', (event) => {
+
+        if (event.lengthComputable) {
+
+          // const progress = event.loaded / event.total * 100;
+          caller._fileDict[file.name].loaded = event.loaded;
+          caller._fileDict[file.name].total = event.total;          
+          caller.dispatchEvent(new CustomEvent('uploadProgress'));
+        }
+      
+      });
+
+      request.onload = function () {
+        if (request.readyState === request.DONE) {
+          if (request.status === 200) {
+              caller._fileDict[file.name].success = request.response;
+              caller.dispatchEvent(new CustomEvent('uploadProgress'));
+              // console.log(request.response);
+              // console.log(request.responseText);
+          }
+        }
+      };
+
+      request.open("POST", caller._uploadScript);
+      request.responseType = 'json';
+
+      request.send(formData);
+    };
+
+  ///////////////////////////////////////////////////////////////////
+
+   
+
+  customElements.define('image-controller', class extends HTMLElement {
+
+    get fileData(){
+      return this._fileData || "???";
     }
 
-    function resize(src, max_height, filename, caller){
+    set desiredSize(maxHeight){
+      if (maxHeight != null && this._original != null) {
+        this._maxHeight = maxHeight;
+        // resize(this._original.contents, maxHeight, this._original.filename, this);
+        transform(this._original.contents,this._original.filename, this);
+      }
+    }
     
-      var image = new Image();
-      image.onload = function(){
-        var canvas = document.createElement('canvas');
+    set rotationAngle(rAngle){
+      // console.log("test");
+      if (rAngle != null && this._original != null){
+        this._rAngle = rAngle;
+        // rotateImage(this._original.contents, rAngle, this._original.filename, this);
+        transform(this._original.contents,this._original.filename, this);
+      }
+    }
+
+    connectedCallback() {
+    
+      this._input = this.querySelector('input');
+      
+      this._input.addEventListener('change', (event) => {
+      
+        var file = this._input.files[0];
+        var reader = new FileReader();
+        
+        
+
+        reader.onload = ((event) => {
+          
+          var base64encoded = event.target.result;
+          
+          var image = new Image();
+
+          image.onload = () => {
+
+            var fileData = {
+              contents: base64encoded,
+              filename: file.name,
+              width: image.width,
+              height: image.height,
+              filesize: fileSize(base64encoded)
+            };
+            
+            this._fileData = fileData;
+            this._original = fileData;
+            this._maxHeight = image.height;
+            this._rAngle = 0;
+
+            this.dispatchEvent(new CustomEvent('fileRead'));
+          };
+
+          image.src = base64encoded;
+
+          
+        });
+
+        reader.readAsDataURL(file);
+   
+      });
+    }
+  });
+
+  function fileSize(src){
+    var stringLength = src.length - 'data:image/jpeg;base64,'.length;
+
+    var sizeInBytes = 4 * Math.ceil((stringLength / 3))*0.5624896334383812;
+    var sizeInKb=sizeInBytes/1024;
+    return Math.round(sizeInKb);
+  }
+
+  function resize(src, max_height, filename, caller){
+  
+    var image = new Image();
+    image.onload = function(){
+      var canvas = document.createElement('canvas');
+      if(image.height > max_height) {
+        image.width *= max_height / image.height;
+        image.height = max_height;
+      }
+  
         if(image.height > max_height) {
           image.width *= max_height / image.height;
-          image.height = max_height;
+          image.height = max_height; 
         }
-   
-          if(image.height > max_height) {
-            image.width *= max_height / image.height;
-            image.height = max_height; 
-          }
-       
+     
 
-        var ctx = canvas.getContext("2d");
-        
-        canvas.width = image.width;
-        canvas.height = image.height;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(image, 0, 0, image.width, image.height);
-        var data = canvas.toDataURL("image/jpeg");  
-
-        var fileData = {
-                contents: data,
-                filename: filename,
-                width: image.width,
-                height: image.height,
-                filesize: fileSize(data)
-              };
-              
-        caller._fileData = fileData;
-        
-        rotateImage(fileData.contents, caller._rAngle, caller._original.filename, caller);
-
-        
-      };
+      var ctx = canvas.getContext("2d");
       
-      image.src = src;
-      }
+      canvas.width = image.width;
+      canvas.height = image.height;
 
-    function rotateImage(src, rAngle, filename, caller){
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+      var data = canvas.toDataURL("image/jpeg");  
+
+      var fileData = {
+              contents: data,
+              filename: filename,
+              width: image.width,
+              height: image.height,
+              filesize: fileSize(data)
+            };
+            
+      caller._fileData = fileData;
+      
+      rotateImage(fileData.contents, caller._rAngle, caller._original.filename, caller);
+
+      
+    };
+    
+    image.src = src;
+    }
+
+  function rotateImage(src, rAngle, filename, caller){
       var image = new Image();
       
       image.onload = function(){
