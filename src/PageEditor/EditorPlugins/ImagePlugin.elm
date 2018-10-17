@@ -36,28 +36,6 @@ type alias Model msg =
     , alignment : Alignment
     , mbImageMeta : Maybe ImageMeta
     , imageAttrs : List DocAttribute
-
-    ---------------------------
-    -- Internal Image Picker --
-    ---------------------------
-    , selectedImage : Maybe ( String, ( Int, Int ) )
-
-    ---------------------------------------
-    -- Image Controller (load and resize)--
-    ---------------------------------------
-    , id : String
-    , mbOriImageWidth : Maybe Int
-    , mbOriImageHeight : Maybe Int
-    , mbOriFileSize : Maybe Int
-    , desiredWidth : Maybe Int
-    , desiredHeight : Maybe Int
-    , desiredFilename : Maybe String
-    , desiredRotationAngle : Int
-    , sliderValue : Float
-    , needToResize : Bool
-    , needToRotate : Bool
-    , canResize : Bool
-    , mbImageFromFile : Maybe ImageFromFile
     }
 
 
@@ -73,12 +51,6 @@ type alias ImageFromFile =
 type Mode
     = ImageAttributeEditor
     | ImagePicker
-    | ImageController ImageControllerMode
-
-
-type ImageControllerMode
-    = FileReader
-    | Editor
 
 
 type Msg
@@ -87,27 +59,7 @@ type Msg
       ---------------------------
       SetAlignment Alignment
     | SetCaption String
-      ------------------
-      -- Image Picker --
-      ------------------
-    | SelectImage ( String, ( Int, Int ) )
-    | ConfirmSelected
-      ---------------------
-      -- ImageController --
-      ---------------------
-    | FileRead ImageFromFile
-    | ImageRead ImageFromFile
-    | UploadResult (Result Error ())
-    | RotateRight
-    | RotateLeft
-    | Resize Float
-    | SetResize
-    | SetFilename String
-    | ResetImageController
-    | ConfirmNewImage
-      ----------
-      -- Misc --
-      ----------
+    | SelectImage { src : String, width : Int, height : Int }
     | ChangeMode Mode
     | SaveAndQuit
     | Quit
@@ -143,33 +95,9 @@ init mbInput externalMsg =
       , imageAttrs =
             Maybe.map Tuple.second mbInput
                 |> Maybe.withDefault []
-
-      ---------------------------
-      -- Internal Image Picker --
-      ---------------------------
-      , selectedImage = Nothing
-
-      ---------------------------------------
-      -- Image Controller (load and resize)--
-      ---------------------------------------
-      , id = "InputId"
-      , mbOriImageWidth = Nothing
-      , mbOriImageHeight = Nothing
-      , mbOriFileSize = Nothing
-      , desiredWidth = Nothing
-      , desiredHeight = Nothing
-      , desiredFilename = Nothing
-      , desiredRotationAngle = 0
-      , sliderValue = 100
-      , needToResize = False
-      , needToRotate = False
-      , canResize = False
-      , mbImageFromFile = Nothing
       }
     , Cmd.map externalMsg <|
         Cmd.none
-      --Cmd.batch
-      --[ FileExplorer.setToReadWrite config.fileExplorer ]
     )
 
 
@@ -190,37 +118,9 @@ open config mbInput externalMsg =
       , imageAttrs =
             Maybe.map Tuple.second mbInput
                 |> Maybe.withDefault []
-
-      ---------------------------
-      -- Internal Image Picker --
-      ---------------------------
-      , selectedImage = Nothing
-
-      ---------------------------------------
-      -- Image Controller (load and resize)--
-      ---------------------------------------
-      , id = "InputId"
-      , mbOriImageWidth = Nothing
-      , mbOriImageHeight = Nothing
-      , mbOriFileSize = Nothing
-      , desiredWidth = Nothing
-      , desiredHeight = Nothing
-      , desiredFilename = Nothing
-      , desiredRotationAngle = 0
-      , sliderValue = 100
-      , needToResize = False
-      , needToRotate = False
-      , canResize = False
-      , mbImageFromFile = Nothing
       }
-    , --Cmd.none
-      Cmd.batch
-        [ FileExplorer.setToImgReadWrite config.fileExplorer ]
+    , Cmd.none
     )
-
-
-
---update : Msg -> Model msg -> ( Model msg, Cmd msg, Maybe (EditorPluginResult ( ImageMeta, List DocAttribute )) )
 
 
 update config msg model =
@@ -240,223 +140,28 @@ update config msg model =
             , Nothing
             )
 
-        ------------------
-        -- Image Picker --
-        ------------------
-        SelectImage data ->
-            ( { model | selectedImage = Just data }
-            , Cmd.none
-            , Nothing
-            )
-
-        ConfirmSelected ->
-            case model.selectedImage of
-                Nothing ->
-                    ( model
-                    , Cmd.none
-                    , Nothing
-                    )
-
-                Just ( url, ( width, height ) ) ->
-                    let
-                        newImageMeta =
-                            { src = UrlSrc ("images/" ++ url)
-                            , caption =
-                                model.mbCaption
-                            , size =
-                                { imgWidth = width
-                                , imgHeight = height
-                                }
-                            }
-                    in
-                    ( { model
-                        | mbImageMeta = Just newImageMeta
-                        , mode = ImageAttributeEditor
-                      }
-                    , Cmd.none
-                    , Nothing
-                    )
-
-        ---------------------
-        -- ImageController --
-        ---------------------
-        FileRead data ->
-            let
-                newImage =
-                    { contents = data.contents
-                    , filename = data.filename
-                    , width = data.width
-                    , height = data.height
-                    , filesize = data.filesize
-                    }
-            in
-            ( { model
-                | mbImageFromFile = Just newImage
-                , mode = ImageController Editor
-                , mbOriImageWidth = Just data.width
-                , mbOriImageHeight = Just data.height
-                , mbOriFileSize = Just data.filesize
-                , needToResize = False
-              }
-            , Cmd.none
-            , Nothing
-            )
-
-        ImageRead data ->
-            let
-                newImage =
-                    { contents = data.contents
-                    , filename = data.filename
-                    , width = data.width
-                    , height = data.height
-                    , filesize = data.filesize
-                    }
-            in
-            ( { model
-                | mbImageFromFile = Just newImage
-                , mode = ImageController Editor
-                , needToResize = False
-                , needToRotate = False
-                , canResize = False
-              }
-            , Cmd.none
-            , Nothing
-            )
-
-        UploadResult (Ok ()) ->
-            ( model
-            , Cmd.none
-            , Nothing
-            )
-
-        UploadResult (Err e) ->
-            ( model
-            , Cmd.none
-            , Nothing
-            )
-
-        RotateRight ->
-            ( { model
-                | desiredRotationAngle =
-                    modBy 360 (90 + model.desiredRotationAngle)
-                , needToRotate = True
-                , mbOriImageWidth = model.mbOriImageHeight
-                , mbOriImageHeight = model.mbOriImageWidth
-                , desiredWidth = model.desiredHeight
-                , desiredHeight = model.desiredWidth
-              }
-            , Cmd.none
-            , Nothing
-            )
-
-        RotateLeft ->
-            ( { model
-                | desiredRotationAngle =
-                    modBy 360 (model.desiredRotationAngle - 90)
-                , needToRotate = True
-                , mbOriImageWidth = model.mbOriImageHeight
-                , mbOriImageHeight = model.mbOriImageWidth
-                , desiredWidth = model.desiredHeight
-                , desiredHeight = model.desiredWidth
-              }
-            , Cmd.none
-            , Nothing
-            )
-
-        Resize n ->
-            case ( model.mbOriImageWidth, model.mbOriImageHeight ) of
-                ( Just oriW, Just oriH ) ->
-                    let
-                        ratio =
-                            toFloat oriW / toFloat oriH
-
-                        desiredWidth =
-                            toFloat oriW * n / 100
-
-                        desiredHeight =
-                            desiredWidth / ratio
-                    in
-                    ( { model
-                        | sliderValue = n
-                        , desiredWidth =
-                            Just <| round desiredWidth
-                        , desiredHeight =
-                            Just <| round desiredHeight
-                        , canResize = True
-                      }
-                    , Cmd.none
-                    , Nothing
-                    )
-
-                _ ->
-                    ( model, Cmd.none, Nothing )
-
-        SetResize ->
-            ( { model | needToResize = True }, Cmd.none, Nothing )
-
-        SetFilename filename ->
-            ( { model | desiredFilename = Just filename }
-            , Cmd.none
-            , Nothing
-            )
-
-        ResetImageController ->
-            ( { model
-                | mode = ImageController FileReader
-                , mbOriImageWidth = Nothing
-                , mbOriImageHeight = Nothing
-                , mbOriFileSize = Nothing
-                , desiredWidth = Nothing
-                , desiredHeight = Nothing
-                , desiredRotationAngle = 0
-                , sliderValue = 100
-                , needToResize = False
-                , needToRotate = False
-                , canResize = False
-                , mbImageFromFile = Nothing
-              }
-            , Cmd.none
-            , Nothing
-            )
-
-        ConfirmNewImage ->
-            case model.mbImageFromFile of
-                Nothing ->
-                    ( model, Cmd.none, Nothing )
-
-                Just { contents, filename, width, height } ->
-                    let
-                        newImageMeta =
-                            { src = Inline filename contents
-                            , caption = model.mbCaption
-                            , size =
-                                { imgWidth = width
-                                , imgHeight = height
-                                }
-                            }
-                    in
-                    ( { model
-                        | mode = ImageAttributeEditor
-                        , mbImageMeta = Just newImageMeta
-                        , mbOriImageWidth = Nothing
-                        , mbOriImageHeight = Nothing
-                        , mbOriFileSize = Nothing
-                        , desiredWidth = Nothing
-                        , desiredHeight = Nothing
-                        , desiredRotationAngle = 0
-                        , sliderValue = 100
-                        , needToResize = False
-                        , needToRotate = False
-                        , canResize = False
-                        , mbImageFromFile = Nothing
-                      }
-                    , Cmd.none
-                    , Nothing
-                    )
-
         ----------
         -- Misc --
         ----------
+        SelectImage { src, width, height } ->
+            let
+                newImageMeta =
+                    { src = UrlSrc src
+                    , caption = model.mbCaption
+                    , size =
+                        { imgWidth = width
+                        , imgHeight = height
+                        }
+                    }
+            in
+            ( { model
+                | mode = ImageAttributeEditor
+                , mbImageMeta = Just newImageMeta
+              }
+            , Cmd.none
+            , Nothing
+            )
+
         ChangeMode mode ->
             ( { model | mode = mode }
             , Cmd.none
@@ -489,9 +194,6 @@ update config msg model =
 
 
 view config model =
-    --layout
-    --    []
-    --<|
     column
         [ height fill
         , width fill
@@ -504,10 +206,6 @@ view config model =
 
             ImagePicker ->
                 imagePickerView config model
-
-            ImageController imgContMode ->
-                Element.map model.externalMsg <|
-                    imageControllerView model imgContMode
         ]
 
 
@@ -568,7 +266,7 @@ imageAttributeEditorView config model =
             ]
         , el
             [ width (maximum 650 fill)
-            , height (maximum 550 fill)
+            , height (maximum 525 fill)
             , scrollbars
             ]
             (image
@@ -607,337 +305,40 @@ imageAttributeEditorView config model =
 
 
 imagePickerView config model =
-    config.fileExplorerView
-        { maxHeight =
-            config.maxHeight
-        , zone = config.zone
-        , logInfo = config.logInfo
-        }
-        config.fileExplorer
-
-
-
---|> Element.map model.externalMsg
---imagePickerView config model =
---    column
---        [ spacing 15
---        , Font.size 16
---        , padding 15
---        , alignTop
---        ]
---        [ row [ width fill ]
---            [ text "Choisir image existante: "
---            , Maybe.map
---                (\( url, ( w, h ) ) ->
---                    el [ Element.alignRight ]
---                        (text <|
---                            String.fromInt w
---                                ++ "x"
---                                ++ String.fromInt h
---                        )
---                )
---                model.selectedImage
---                |> Maybe.withDefault Element.none
---            ]
---        , row
---            [ spacing 15
---            ]
---            [ column
---                [ width (px 200)
---                , height (px 300)
---                , Border.width 1
---                , Border.color (rgb 0.8 0.8 0.8)
---                , scrollbarY
---                , Background.color (rgb 1 1 1)
---                ]
---                (List.map (entryView model.selectedImage SelectImage) dummyImageList)
---            , el
---                [ width (px 350)
---                , height (px 300)
---                , Border.width 1
---                , Border.color (rgb 0.8 0.8 0.8)
---                , Background.color (rgb 1 1 1)
---                , case model.selectedImage of
---                    Nothing ->
---                        noAttr
---                    Just ( url, ( w, h ) ) ->
---                        Background.uncropped ("images/" ++ url)
---                ]
---                Element.none
---            ]
---        , row
---            [ spacing 15
---            ]
---            [ Input.button (buttonStyle True)
---                { onPress = Just (ChangeMode (ImageController FileReader))
---                , label = text "Charger une nouvelle image"
---                }
---            , Input.button
---                (buttonStyle True)
---                { onPress = Just (ChangeMode ImageAttributeEditor)
---                , label = text "Retour"
---                }
---            , Input.button (buttonStyle True)
---                { onPress = Just ConfirmSelected
---                , label = text "Valider"
---                }
---            ]
---        ]
---------------------
---entryView : Maybe ( String, ( Int, Int ) ) -> (String -> Msg) -> ( String, ( Int, Int ) ) -> Element.Element Msg
-
-
-entryView mbSel msg (( url, ( w, h ) ) as e) =
-    el
-        [ Events.onClick (msg e)
-        , pointer
-        , mouseOver
-            [ Font.color (rgb 1 1 1)
-            , Background.color (rgb 0.7 0.7 0.7)
+    column
+        [ height fill
+        , paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
+            }
+        ]
+        [ FileExplorer.view
+            { maxHeight =
+                config.maxHeight - 50
+            , zone = config.zone
+            , logInfo = config.logInfo
+            , mode = FileExplorer.ReadWrite FileExplorer.ImagesRoot
+            }
+            config.fileExplorer
+        , row
+            [ spacing 15
+            , paddingXY 15 0
             ]
-        , case mbSel of
-            Just sel ->
-                if sel == e then
-                    Background.color (rgb 0.8 0.8 0.8)
-                else
-                    Background.color (rgb 1 1 1)
-
-            _ ->
-                Background.color (rgb 1 1 1)
-        , width fill
-        , paddingXY 15 5
-        ]
-        (text url)
-
-
-imageControllerView model imgContMode =
-    column
-        [ spacing 15
-        , Font.size 16
-        , padding 15
-        , alignTop
-        ]
-        [ case imgContMode of
-            FileReader ->
-                fileReaderView model
-
-            Editor ->
-                editView model
-        , imageController
-            ([ HtmlAttr.style "id" model.id
-             , HtmlEvents.on "fileRead" (decodeImageData FileRead)
-             , HtmlEvents.on "imageRead" (decodeImageData ImageRead)
-             , if imgContMode /= FileReader then
-                HtmlAttr.hidden True
-               else
-                noHtmlAttr
-             , if model.needToRotate then
-                HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
-               else
-                noHtmlAttr
-             ]
-                ++ (if model.needToResize then
-                        [ (if model.desiredRotationAngle == 90 || model.desiredRotationAngle == 270 then
-                            model.desiredWidth
-                           else
-                            model.desiredHeight
-                          )
-                            |> Maybe.map (\h -> Encode.int h)
-                            |> Maybe.map (\val -> HtmlAttr.property "desiredSize" val)
-                            |> Maybe.withDefault noHtmlAttr
-                        ]
-                    else
-                        []
-                   )
-            )
-        , case imgContMode of
-            FileReader ->
-                Input.button
-                    (buttonStyle True)
-                    { onPress = Just (ChangeMode ImageAttributeEditor)
-                    , label = text "Retour"
-                    }
-
-            Editor ->
-                Element.none
-        ]
-
-
-fileReaderView model =
-    column
-        [ spacing 15 ]
-        [ row
-            [ spacing 15 ]
-            [ el [] (text "Charger une image depuis votre PC: ")
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just (model.externalMsg <| ChangeMode ImageAttributeEditor)
+                , label = text "Retour"
+                }
+            , Input.button (buttonStyle (FileExplorer.getSelectedImage config.fileExplorer /= Nothing))
+                { onPress =
+                    FileExplorer.getSelectedImage config.fileExplorer
+                        |> Maybe.map (model.externalMsg << SelectImage)
+                , label = text "Valider"
+                }
             ]
         ]
-
-
-imageController attributes =
-    --Keyed.el []
-    --    ( "test"
-    --      --String.fromInt <| List.length attributes
-    el []
-        (html <|
-            Html.node "image-controller"
-                attributes
-                [ Html.input
-                    [ HtmlAttr.type_ "file"
-                    ]
-                    []
-                ]
-        )
-
-
-editView model =
-    case ( model.mbImageFromFile, model.mbOriImageWidth, model.mbOriImageHeight ) of
-        ( Just f, Just oriW, Just oriH ) ->
-            column
-                [ spacing 15 ]
-                [ row
-                    [ spacing 15 ]
-                    [ row
-                        [ spacing 10
-                        , width (px 500)
-                        ]
-                        [ Input.text textInputStyle
-                            { onChange =
-                                SetFilename
-                            , text =
-                                Maybe.withDefault f.filename model.desiredFilename
-                            , placeholder = Nothing
-                            , label =
-                                Input.labelLeft [ centerY ]
-                                    (el [ width (px 110) ] (text "Nom de fichier: "))
-                            }
-                        ]
-                    , Input.button (buttonStyle True)
-                        { onPress = Just RotateLeft
-                        , label = el [] (html <| rotateCcw iconSize)
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just RotateRight
-                        , label = el [] (html <| rotateCw iconSize)
-                        }
-
-                    -- text "Nom de fichier: "
-                    --, text f.filename
-                    ]
-                , row
-                    [ spacing 15 ]
-                    [ row
-                        [ spacing 10
-                        , width (px 500)
-                        ]
-                        [ el [ width (px 110) ] (text "Dimensions: ")
-                        , Input.slider
-                            [ Element.height (Element.px 30)
-                            , Element.width (px 250)
-
-                            -- Here is where we're creating/styling the "track"
-                            , Element.behindContent
-                                (Element.el
-                                    [ Element.width fill
-                                    , Element.height (Element.px 2)
-                                    , Element.centerY
-                                    , Background.color (rgb 0.9 0.9 0.9)
-                                    , Border.rounded 2
-                                    ]
-                                    Element.none
-                                )
-                            ]
-                            { onChange = Resize
-                            , label = Input.labelLeft [ centerY ] Element.none
-                            , min = 0
-                            , max = 100
-                            , step = Just 1
-                            , value = model.sliderValue
-                            , thumb =
-                                Input.defaultThumb
-                            }
-                        , el [ width (px 100) ]
-                            (text <|
-                                (model.desiredWidth
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.withDefault (String.fromInt oriW)
-                                )
-                                    ++ "x"
-                                    ++ (model.desiredHeight
-                                            |> Maybe.map String.fromInt
-                                            |> Maybe.withDefault (String.fromInt oriH)
-                                       )
-                            )
-                        ]
-                    , Input.button (buttonStyle model.canResize)
-                        { onPress =
-                            if model.canResize then
-                                Just SetResize
-                            else
-                                Nothing
-                        , label = text "Redimensionner"
-                        }
-                    ]
-                , row
-                    [ spacing 15 ]
-                    [ row
-                        [ spacing 5 ]
-                        [ el [] (text "Taille originale: ")
-                        , el []
-                            (text
-                                (model.mbOriFileSize
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.map (\s -> s ++ " kb")
-                                    |> Maybe.withDefault "0 kb"
-                                )
-                            )
-                        ]
-                    , row
-                        [ spacing 5 ]
-                        [ el [] (text "Taille actuelle: ")
-                        , el []
-                            (text
-                                (model.mbImageFromFile
-                                    |> Maybe.map .filesize
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.map (\s -> s ++ " kb")
-                                    |> Maybe.withDefault "0 kb"
-                                )
-                            )
-                        ]
-                    ]
-                , row
-                    [ spacing 15 ]
-                    [ Input.button (buttonStyle True)
-                        { onPress = Just ResetImageController
-                        , label = text "Nouveau fichier"
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just (ChangeMode ImagePicker)
-                        , label = text "Retour"
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just ConfirmNewImage
-                        , label = text "Valider"
-                        }
-                    ]
-                , text "Aperçu: "
-                , el
-                    [ width (maximum 650 fill)
-                    , height (maximum 550 fill)
-                    , scrollbars
-                    ]
-                    (image
-                        [ centerY
-                        , centerX
-                        ]
-                        { src = f.contents
-                        , description = f.filename
-                        }
-                    )
-                ]
-
-        _ ->
-            text "no file data"
 
 
 subscriptions model =

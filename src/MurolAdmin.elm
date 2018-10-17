@@ -129,7 +129,8 @@ update msg model =
             let
                 ( newFileExplorer, fileExplorerCmds, mbEditorPluginResult ) =
                     FileExplorer.update
-                        { logInfo = Auth.getLogInfo model.authTool }
+                        { logInfo = Auth.getLogInfo model.authTool
+                        }
                         fileExplorerMsg
                         model.fileExplorer
             in
@@ -186,10 +187,11 @@ update msg model =
 
         SetCurrentTool t ->
             ( { model | currentTool = t }
-            , if t == FileExplorerTool then
-                FileExplorer.setToFull model.fileExplorer
-              else
-                Cmd.none
+              --, if t == FileExplorerTool then
+              --    FileExplorer.setToFull model.fileExplorer
+              --  else
+              --    Cmd.none
+            , Cmd.none
             )
 
         CurrentViewport vp ->
@@ -308,7 +310,6 @@ view model =
                                 PageEditor.view
                                     { logInfo = Auth.getLogInfo model.authTool
                                     , fileExplorer = model.fileExplorer
-                                    , fileExplorerView = FileExplorer.view
                                     , zone = model.zone
                                     }
                                     model.pageEditor
@@ -319,6 +320,7 @@ view model =
                                         model.winHeight - 35
                                     , zone = model.zone
                                     , logInfo = Auth.getLogInfo model.authTool
+                                    , mode = FileExplorer.Full
                                     }
                                     model.fileExplorer
 

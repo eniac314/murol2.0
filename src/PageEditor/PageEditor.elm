@@ -1244,7 +1244,6 @@ pluginView config model plugin =
                 { picListing = []
                 , externalMsg = ImagePluginMsg
                 , fileExplorer = config.fileExplorer
-                , fileExplorerView = config.fileExplorerView
                 , zone = config.zone
                 , maxHeight = model.config.height - model.config.mainInterfaceHeight - 35
                 , logInfo = config.logInfo

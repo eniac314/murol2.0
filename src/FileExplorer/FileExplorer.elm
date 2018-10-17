@@ -32,10 +32,12 @@ type alias Model msg =
     { renameBuffer : String
     , newFolderNameBuffer : String
     , root : Root
-    , mode : Mode
+
+    --, mode : Mode
     , mainPanelDisplay : MainPanelDisplay
     , externalMsg : Msg -> msg
-    , mbFilesys : Maybe Filesys
+    , mbIFilesys : Maybe Filesys
+    , mbDFilesys : Maybe Filesys
     , lastLocation : Maybe FsItem
     , selectedFsItem : Maybe FsItem
     , cutBuffer : Maybe FsItem
@@ -81,7 +83,7 @@ type Mode
     | Full
 
 
-modeRoot mode =
+modeRoot mode root =
     case mode of
         ReadOnly m ->
             m
@@ -90,7 +92,7 @@ modeRoot mode =
             m
 
         Full ->
-            ImagesRoot
+            root
 
 
 type MainPanelDisplay
@@ -155,10 +157,12 @@ init root mode externalMsg =
     { renameBuffer = ""
     , newFolderNameBuffer = ""
     , root = root
-    , mode = mode
+
+    --, mode = mode
     , mainPanelDisplay = FilesysDisplay
     , externalMsg = externalMsg
-    , mbFilesys = Nothing
+    , mbIFilesys = Nothing
+    , mbDFilesys = Nothing
     , lastLocation = Nothing
     , selectedFsItem = Nothing
     , cutBuffer = Nothing
@@ -223,26 +227,26 @@ type Msg
     = ----------------
       -- Navigation --
       ----------------
-      GoHome
-    | GoNext
-    | GoPrev
-    | GoTo Path
-    | SelectFsItem FsItem
+      GoHome Mode
+    | GoNext Mode
+    | GoPrev Mode
+    | GoTo Mode Path
+    | SelectFsItem Mode FsItem
       ------------------------------
       -- Filesys modyfing Actions --
       ------------------------------
     | NewFolderInput String
-    | NewFolder FsItem
-    | Delete FsItem
+    | NewFolder Mode FsItem
+    | Delete Mode FsItem
     | Cut FsItem
-    | Paste FsItem
+    | Paste Mode FsItem
     | RenameInput String
-    | Rename FsItem
+    | Rename Mode FsItem
       ------------------
       -- Bulk Uploads --
       ------------------
     | RefreshFilesys (Maybe FsItem) String Root (Result Http.Error (List FsItem))
-    | FilesToUpload (List FileToUpload)
+    | FilesToUpload Mode (List FileToUpload)
     | UploadFiles
     | ToogleUploadView
     | SetImageUploadType UploadType
@@ -267,7 +271,6 @@ type Msg
       ----------
       -- Misc --
       ----------
-    | SetMode Mode
     | SetRoot Root
     | Debug String
     | NoOp
@@ -280,24 +283,23 @@ type Msg
 ------------
 
 
-setImageRootCmd : Model msg -> Cmd msg
-setImageRootCmd model =
-    Task.perform (\_ -> model.externalMsg (SetRoot ImagesRoot)) (succeed ())
+getSelectedImage : Model msg -> Maybe { src : String, width : Int, height : Int }
+getSelectedImage model =
+    case model.selectedFsItem of
+        Just (File { path, name, fileType, fileSize }) ->
+            case fileType of
+                ImageFile { width, height } ->
+                    Just
+                        { src = String.join "/" path
+                        , width = width
+                        , height = height
+                        }
 
+                _ ->
+                    Nothing
 
-setDocRootCmd : Model msg -> Cmd msg
-setDocRootCmd model =
-    Task.perform (\_ -> model.externalMsg (SetRoot DocsRoot)) (succeed ())
-
-
-setToImgReadWrite : Model msg -> Cmd msg
-setToImgReadWrite model =
-    Task.perform (\_ -> model.externalMsg (SetMode (ReadWrite ImagesRoot))) (succeed ())
-
-
-setToFull : Model msg -> Cmd msg
-setToFull model =
-    Task.perform (\_ -> model.externalMsg (SetMode Full)) (succeed ())
+        _ ->
+            Nothing
 
 
 update config msg model =
@@ -308,68 +310,119 @@ update config msg model =
     ( newModel, Cmd.map model.externalMsg cmds, mbPluginAction )
 
 
+updateFilesys mode model f =
+    case mode of
+        Full ->
+            case model.root of
+                ImagesRoot ->
+                    { model | mbIFilesys = f model.mbIFilesys }
+
+                DocsRoot ->
+                    { model | mbDFilesys = f model.mbDFilesys }
+
+        mode_ ->
+            case modeRoot mode_ model.root of
+                ImagesRoot ->
+                    { model | mbIFilesys = f model.mbIFilesys }
+
+                DocsRoot ->
+                    { model | mbDFilesys = f model.mbDFilesys }
+
+
+getCurrentFilesys mode model =
+    case mode of
+        Full ->
+            case model.root of
+                ImagesRoot ->
+                    model.mbIFilesys
+
+                DocsRoot ->
+                    model.mbDFilesys
+
+        mode_ ->
+            case modeRoot mode_ model.root of
+                ImagesRoot ->
+                    model.mbIFilesys
+
+                DocsRoot ->
+                    model.mbDFilesys
+
+
 internalUpdate config msg model =
     case msg of
-        GoHome ->
-            ( { model
-                | mbFilesys =
-                    let
-                        newFilesys =
-                            model.mbFilesys
-                                |> Maybe.map rewindFilesys
-                    in
-                    case newFilesys of
-                        Nothing ->
-                            model.mbFilesys
+        GoHome mode ->
+            let
+                f =
+                    \mbFs ->
+                        case Maybe.map rewindFilesys mbFs of
+                            Nothing ->
+                                mbFs
 
-                        otherwise ->
-                            otherwise
-                , lastLocation =
-                    Maybe.map extractFsItem model.mbFilesys
-                , selectedFsItem = Nothing
-              }
+                            otherwise ->
+                                otherwise
+
+                newModel =
+                    { model
+                        | lastLocation =
+                            Maybe.map extractFsItem (getCurrentFilesys mode model)
+                        , selectedFsItem = Nothing
+                    }
+            in
+            ( updateFilesys mode newModel f
             , Cmd.none
             , Nothing
             )
 
-        GoNext ->
+        GoNext mode ->
             case model.lastLocation of
                 Nothing ->
                     ( model, Cmd.none, Nothing )
 
                 Just fsItem ->
-                    ( { model
-                        | mbFilesys =
-                            model.mbFilesys
-                                |> Maybe.map rewindFilesys
-                                |> Maybe.map
-                                    (zipToFsItem (getPath fsItem))
-                                |> Maybe.withDefault model.mbFilesys
-                        , lastLocation = Nothing
-                        , selectedFsItem = Nothing
-                      }
+                    let
+                        f =
+                            \mbFs ->
+                                Maybe.map rewindFilesys mbFs
+                                    |> Maybe.map
+                                        (zipToFsItem (getPath fsItem))
+                                    |> Maybe.withDefault mbFs
+
+                        newModel =
+                            { model
+                                | lastLocation = Nothing
+                                , selectedFsItem = Nothing
+                            }
+                    in
+                    ( updateFilesys mode newModel f
                     , Cmd.none
                     , Nothing
                     )
 
-        GoPrev ->
-            ( { model
-                | mbFilesys =
-                    case Maybe.andThen zipUpFilesys model.mbFilesys of
-                        Nothing ->
-                            model.mbFilesys
+        GoPrev mode ->
+            let
+                f =
+                    \mbFs ->
+                        case Maybe.andThen zipUpFilesys mbFs of
+                            Nothing ->
+                                mbFs
 
-                        otherwise ->
-                            otherwise
-                , lastLocation =
-                    Maybe.map extractFsItem model.mbFilesys
-                , selectedFsItem = Nothing
-              }
+                            otherwise ->
+                                otherwise
+
+                newModel =
+                    { model
+                        | lastLocation =
+                            getCurrentFilesys mode model
+                                |> Maybe.map extractFsItem
+                        , selectedFsItem = Nothing
+                    }
+            in
+            ( updateFilesys mode newModel f
             , Cmd.none
-            , selectedFilename model
+            , Nothing
             )
 
-        SelectFsItem fsItem ->
+        SelectFsItem mode fsItem ->
             if model.selectedFsItem == Just fsItem then
                 ( { model
                     | selectedFsItem = Nothing
@@ -380,7 +433,7 @@ internalUpdate config msg model =
                 , Nothing
                 )
             else
-                case Maybe.map extractFsItem model.mbFilesys of
+                case Maybe.map extractFsItem (getCurrentFilesys mode model) of
                     Just (Folder meta children) ->
                         if List.member fsItem children then
                             ( { model
@@ -389,7 +442,7 @@ internalUpdate config msg model =
                                 , newFolderNameBuffer = ""
                               }
                             , Cmd.none
-                            , selectedFilename model
+                            , Nothing
                             )
                         else
                             ( model, Cmd.none, Nothing )
@@ -397,18 +450,24 @@ internalUpdate config msg model =
                     _ ->
                         ( model, Cmd.none, Nothing )
 
-        GoTo path ->
-            ( { model
-                | mbFilesys =
-                    model.mbFilesys
-                        |> Maybe.map rewindFilesys
-                        |> Maybe.map
-                            (zipToFsItem path)
-                        |> Maybe.withDefault model.mbFilesys
-                , lastLocation =
-                    Maybe.map extractFsItem model.mbFilesys
-                , selectedFsItem = Nothing
-              }
+        GoTo mode path ->
+            let
+                f =
+                    \mbFs ->
+                        Maybe.map rewindFilesys mbFs
+                            |> Maybe.map
+                                (zipToFsItem path)
+                            |> Maybe.withDefault mbFs
+
+                newModel =
+                    { model
+                        | lastLocation =
+                            getCurrentFilesys mode model
+                                |> Maybe.map extractFsItem
+                        , selectedFsItem = Nothing
+                    }
+            in
+            ( updateFilesys mode newModel f
             , Cmd.none
             , Nothing
             )
@@ -419,7 +478,7 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        NewFolder fsItem ->
+        NewFolder mode fsItem ->
             ( { model
                 | selectedFsItem = Nothing
                 , lockedFsItems =
@@ -428,7 +487,10 @@ internalUpdate config msg model =
             , Cmd.batch
                 [ cmdIfLogged
                     config.logInfo
-                    (makeNewFolder fsItem model.newFolderNameBuffer model.root)
+                    (makeNewFolder fsItem
+                        model.newFolderNameBuffer
+                        (modeRoot mode model.root)
+                    )
                 , newLog
                     AddLog
                     ("Requête: Nouveau dossier "
@@ -442,7 +504,7 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        Delete fsItem ->
+        Delete mode fsItem ->
             ( { model
                 | selectedFsItem = Nothing
                 , lockedFsItems =
@@ -451,7 +513,7 @@ internalUpdate config msg model =
             , Cmd.batch
                 [ cmdIfLogged
                     config.logInfo
-                    (deleteFile fsItem model.root)
+                    (deleteFile fsItem (modeRoot mode model.root))
                 , newLog
                     AddLog
                     ("Requête: Suppression " ++ getName fsItem)
@@ -471,7 +533,7 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        Paste dest ->
+        Paste mode dest ->
             case model.cutBuffer of
                 Nothing ->
                     ( model, Cmd.none, Nothing )
@@ -481,7 +543,7 @@ internalUpdate config msg model =
                     , Cmd.batch
                         [ cmdIfLogged
                             config.logInfo
-                            (pasteFile src dest model.root)
+                            (pasteFile src dest (modeRoot mode model.root))
                         , newLog
                             AddLog
                             ("Requête: Collage de"
@@ -496,9 +558,12 @@ internalUpdate config msg model =
                     )
 
         RenameInput newName ->
-            ( { model | renameBuffer = newName }, Cmd.none, Nothing )
+            ( { model | renameBuffer = newName }
+            , Cmd.none
+            , Nothing
+            )
 
-        Rename fsItem ->
+        Rename mode fsItem ->
             ( { model
                 | selectedFsItem = Nothing
                 , lockedFsItems =
@@ -507,7 +572,7 @@ internalUpdate config msg model =
             , Cmd.batch
                 [ cmdIfLogged
                     config.logInfo
-                    (renameFile fsItem model.renameBuffer model.root)
+                    (renameFile fsItem model.renameBuffer (modeRoot mode model.root))
                 , newLog
                     AddLog
                     ("Requête: Renommage " ++ getName fsItem)
@@ -520,36 +585,6 @@ internalUpdate config msg model =
         SetRoot root ->
             ( { model
                 | root = root
-                , mbFilesys =
-                    case root of
-                        ImagesRoot ->
-                            Maybe.withDefault [] model.imageFiles
-                                |> List.foldr (\f acc -> insert f "images" acc) Nothing
-                                |> Maybe.map initFileSys
-
-                        DocsRoot ->
-                            Maybe.withDefault [] model.docFiles
-                                |> List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing
-                                |> Maybe.map initFileSys
-              }
-            , Cmd.none
-            , Nothing
-            )
-
-        SetMode mode ->
-            ( { model
-                | mode = mode
-                , mbFilesys =
-                    case modeRoot mode of
-                        ImagesRoot ->
-                            Maybe.withDefault [] model.imageFiles
-                                |> List.foldr (\f acc -> insert f "images" acc) Nothing
-                                |> Maybe.map initFileSys
-
-                        DocsRoot ->
-                            Maybe.withDefault [] model.docFiles
-                                |> List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing
-                                |> Maybe.map initFileSys
               }
             , Cmd.none
             , Nothing
@@ -576,7 +611,7 @@ internalUpdate config msg model =
                                 ImagesRoot ->
                                     ( List.foldr (\f acc -> insert f "images" acc) Nothing fs
                                         |> Maybe.map initFileSys
-                                    , Maybe.map extractFsItem model.mbFilesys
+                                    , Maybe.map extractFsItem model.mbIFilesys
                                         |> Maybe.map getPath
                                         |> Maybe.withDefault [ "images" ]
                                     )
@@ -584,21 +619,38 @@ internalUpdate config msg model =
                                 DocsRoot ->
                                     ( List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing fs
                                         |> Maybe.map initFileSys
-                                    , Maybe.map extractFsItem model.mbFilesys
+                                    , Maybe.map extractFsItem model.mbDFilesys
                                         |> Maybe.map getPath
                                         |> Maybe.withDefault [ "baseDocumentaire" ]
                                     )
-                    in
-                    ( { model
-                        | mbFilesys =
+
+                        ( mbIFilesys, mbDFilesys ) =
                             --NOTE: tentative de remettre le zipper à la position occupée
                             --avant le rafraichissement
-                            case Maybe.andThen (zipToFsItem currentPath) newFilesys of
-                                Just result ->
-                                    Just result
+                            case root of
+                                ImagesRoot ->
+                                    ( case Maybe.andThen (zipToFsItem currentPath) newFilesys of
+                                        Just result ->
+                                            Just result
 
-                                Nothing ->
-                                    newFilesys
+                                        Nothing ->
+                                            newFilesys
+                                    , model.mbDFilesys
+                                    )
+
+                                DocsRoot ->
+                                    ( model.mbIFilesys
+                                    , case Maybe.andThen (zipToFsItem currentPath) newFilesys of
+                                        Just result ->
+                                            Just result
+
+                                        Nothing ->
+                                            newFilesys
+                                    )
+                    in
+                    ( { model
+                        | mbIFilesys = mbIFilesys
+                        , mbDFilesys = mbDFilesys
                         , imageFiles = newImageFiles
                         , docFiles = newDocFiles
                         , root = root
@@ -648,7 +700,7 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        FilesToUpload files ->
+        FilesToUpload mode files ->
             let
                 uploadDone =
                     List.all identity (List.map .success files)
@@ -665,7 +717,7 @@ internalUpdate config msg model =
             , if uploadDone then
                 cmdIfLogged
                     config.logInfo
-                    (getFileList model.root)
+                    (getFileList (modeRoot mode model.root))
               else
                 Cmd.none
             , Nothing
@@ -912,21 +964,19 @@ internalUpdate config msg model =
                     )
 
 
-selectedFilename : Model msg -> Maybe FsItem
-selectedFilename { mbFilesys } =
-    mbFilesys
-        |> Maybe.andThen
-            (Just << extractFsItem)
 
-
-
+--selectedFilename : Model msg -> Maybe FsItem
+--selectedFilename { mbFilesys } =
+--    mbFilesys
+--        |> Maybe.andThen
+--            (Just << extractFsItem)
 -------------------------------------------------------------------------------
 --------------------
 -- View functions --
 --------------------
 
 
-view : { maxHeight : Int, zone : Time.Zone, logInfo : LogInfo } -> Model msg -> Element msg
+view : { maxHeight : Int, zone : Time.Zone, logInfo : LogInfo, mode : Mode } -> Model msg -> Element msg
 view config model =
     Element.map model.externalMsg <|
         column
@@ -971,7 +1021,7 @@ mainInterface config model =
         , Background.color (rgb 0.95 0.95 0.95)
         , paddingXY 15 10
         ]
-        [ if model.mode == Full then
+        [ if config.mode == Full then
             Input.button
                 (toogleButtonStyle (model.root == DocsRoot) True)
                 { onPress =
@@ -983,7 +1033,7 @@ mainInterface config model =
                 }
           else
             Element.none
-        , if model.mode == Full then
+        , if config.mode == Full then
             Input.button
                 (toogleButtonStyle (model.root == ImagesRoot) True)
                 { onPress =
@@ -997,7 +1047,7 @@ mainInterface config model =
             Element.none
         , Input.button (buttonStyle True)
             { onPress =
-                Just <| GoPrev
+                Just <| GoPrev config.mode
             , label =
                 row [ spacing 10 ]
                     [ html <| Icons.chevronLeft iconSize
@@ -1006,7 +1056,7 @@ mainInterface config model =
         , Input.button (buttonStyle (model.lastLocation /= Nothing))
             { onPress =
                 if model.lastLocation /= Nothing then
-                    Just <| GoNext
+                    Just <| GoNext config.mode
                 else
                     Nothing
             , label =
@@ -1016,14 +1066,14 @@ mainInterface config model =
             }
         , Input.button (buttonStyle True)
             { onPress =
-                Just <| GoHome
+                Just <| GoHome config.mode
             , label =
                 row [ spacing 10 ]
                     [ html <| Icons.home iconSize
                     ]
             }
         , clickablePath config model
-        , case model.mode of
+        , case config.mode of
             ReadOnly _ ->
                 Element.none
 
@@ -1055,7 +1105,7 @@ clickablePath config model =
 
         fsItemView ( f, p ) =
             el
-                [ Events.onClick (GoTo p)
+                [ Events.onClick (GoTo config.mode p)
                 , paddingXY 2 4
                 , pointer
                 , mouseOver
@@ -1069,7 +1119,7 @@ clickablePath config model =
         , padding 4
         , Border.rounded 5
         ]
-        (Maybe.map extractFsItem model.mbFilesys
+        (Maybe.map extractFsItem (getCurrentFilesys config.mode model)
             |> Maybe.map getPath
             |> Maybe.withDefault []
             |> List.reverse
@@ -1155,7 +1205,7 @@ sidePanelView config model =
                 [ spacing 15
                 , width fill
                 ]
-                [ if model.mode == Full then
+                [ if config.mode == Full then
                     row
                         [ spacing 15
                         , width fill
@@ -1178,8 +1228,8 @@ sidePanelView config model =
                             )
                             { onPress =
                                 if model.newFolderNameBuffer /= "" then
-                                    Maybe.map extractFsItem model.mbFilesys
-                                        |> Maybe.map NewFolder
+                                    Maybe.map extractFsItem (getCurrentFilesys config.mode model)
+                                        |> Maybe.map (NewFolder config.mode)
                                 else
                                     Nothing
                             , label =
@@ -1190,7 +1240,7 @@ sidePanelView config model =
                         ]
                   else
                     Element.none
-                , case model.mode of
+                , case config.mode of
                     ReadOnly _ ->
                         Element.none
 
@@ -1205,14 +1255,15 @@ sidePanelView config model =
                                         , text <| "Mettre en ligne"
                                         ]
                                 }
-                            , if model.mode == Full then
+                            , if config.mode == Full then
                                 Input.button
                                     ((buttonStyle <| model.cutBuffer /= Nothing)
                                         ++ [ Element.alignRight ]
                                     )
                                     { onPress =
                                         if model.cutBuffer /= Nothing then
-                                            Maybe.map (Paste << extractFsItem) model.mbFilesys
+                                            Maybe.map (Paste config.mode << extractFsItem)
+                                                (getCurrentFilesys config.mode model)
                                         else
                                             Nothing
                                     , label =
@@ -1230,7 +1281,7 @@ sidePanelView config model =
                 [ spacing 15
                 , width fill
                 ]
-                [ case model.mode of
+                [ case config.mode of
                     ReadOnly _ ->
                         Maybe.map getName model.selectedFsItem
                             |> Maybe.map (\s -> paragraph [] [ text s ])
@@ -1264,7 +1315,7 @@ sidePanelView config model =
                                 )
                                 { onPress =
                                     if model.renameBuffer /= "" then
-                                        Maybe.map Rename model.selectedFsItem
+                                        Maybe.map (Rename config.mode) model.selectedFsItem
                                     else
                                         Nothing
                                 , label =
@@ -1273,12 +1324,12 @@ sidePanelView config model =
                                         ]
                                 }
                             ]
-                , if model.mode == Full then
+                , if config.mode == Full then
                     row
                         [ width fill ]
                         [ Input.button ((buttonStyle <| True) ++ [ Element.alignLeft ])
                             { onPress =
-                                Maybe.map Delete model.selectedFsItem
+                                Maybe.map (Delete config.mode) model.selectedFsItem
                             , label =
                                 row [ spacing 10 ]
                                     [ el [] (html <| xSquare iconSize)
@@ -1369,7 +1420,7 @@ filesysView config model =
                             [ alpha 0.5 ]
                         else
                             [ pointer
-                            , Events.onClick (SelectFsItem file)
+                            , Events.onClick (SelectFsItem config.mode file)
                             ]
                        )
                 )
@@ -1444,8 +1495,8 @@ filesysView config model =
                             ]
                         else
                             [ pointer
-                            , Events.onClick (SelectFsItem folder)
-                            , onDoubleClick (GoTo path)
+                            , Events.onClick (SelectFsItem config.mode folder)
+                            , onDoubleClick (GoTo config.mode path)
                             ]
                        )
                 )
@@ -1474,7 +1525,7 @@ filesysView config model =
                 Folder meta _ ->
                     folderView fsItem meta
     in
-    case model.mbFilesys of
+    case getCurrentFilesys config.mode model of
         Nothing ->
             el [ alignTop ] (text "Erreur système de fichier")
 
@@ -1554,7 +1605,7 @@ uploadView config model =
                             ]
 
                     RegUpload ->
-                        imageControllerView model model.imageControllerMode
+                        imageControllerView config model model.imageControllerMode
                 ]
 
         bulkUploadView =
@@ -1604,15 +1655,15 @@ uploadView config model =
             uploadController
                 ([ HtmlEvents.on
                     "filesInput"
-                    (decodeFilesToUpload FilesToUpload)
+                    (decodeFilesToUpload (FilesToUpload config.mode))
                  , HtmlEvents.on
                     "uploadProgress"
-                    (decodeFilesToUpload FilesToUpload)
+                    (decodeFilesToUpload (FilesToUpload config.mode))
                  , if model.canUpload then
                     HtmlAttr.hidden True
                    else
                     noHtmlAttr
-                 , Maybe.map extractFsItem model.mbFilesys
+                 , Maybe.map extractFsItem (getCurrentFilesys config.mode model)
                     |> Maybe.andThen (List.tail << getPath)
                     |> Maybe.map (String.join "/")
                     |> Maybe.withDefault ""
@@ -1620,7 +1671,7 @@ uploadView config model =
                             HtmlAttr.property "uploadPath"
                                 (Encode.string (p ++ "/"))
                        )
-                 , case model.root of
+                 , case modeRoot config.mode model.root of
                     ImagesRoot ->
                         HtmlAttr.property "uploadScript"
                             (Encode.string "uploadPic.php")
@@ -1639,9 +1690,6 @@ uploadView config model =
                                         (Encode.string sessionId)
                          else
                             noHtmlAttr
-
-                       --HtmlAttr.property "sendFiles"
-                       --(Encode.string "")
                        ]
                 )
 
@@ -1714,7 +1762,7 @@ type alias FileToUpload =
     }
 
 
-imageControllerView model imgContMode =
+imageControllerView config model imgContMode =
     column
         [ spacing 15
         , Font.size 16
@@ -1726,7 +1774,7 @@ imageControllerView model imgContMode =
                 fileReaderView model
 
             Editor ->
-                editView model
+                editView config model
         , imageController
             ([ HtmlEvents.on "fileRead" (decodeImageData FileRead)
              , HtmlEvents.on "imageRead" (decodeImageData ImageRead)
@@ -1792,7 +1840,7 @@ imageController attributes =
         )
 
 
-editView model =
+editView config model =
     let
         iconSize =
             18
@@ -1924,7 +1972,7 @@ editView model =
                         }
                     , Input.button (buttonStyle True)
                         { onPress =
-                            Maybe.map extractFsItem model.mbFilesys
+                            Maybe.map extractFsItem (getCurrentFilesys config.mode model)
                                 |> Maybe.map UploadImage
                         , label = text "Valider et envoyer"
                         }
@@ -2262,7 +2310,7 @@ fsItemToElement model config fsItem =
                             [ Font.bold
                             , iEv
                                 Events.onClick
-                                (GoTo path)
+                                (GoTo config.mode path)
                             ]
                             (text name)
                         , el
@@ -2283,7 +2331,7 @@ fsItemToElement model config fsItem =
                             , Font.color (rgba 0 0 1 0.5)
                             , iEv
                                 Events.onClick
-                                (GoTo path)
+                                (GoTo config.mode path)
                             ]
                             (text name)
                         , el
