@@ -81,6 +81,18 @@ type Mode
     | Full
 
 
+modeRoot mode =
+    case mode of
+        ReadOnly m ->
+            m
+
+        ReadWrite m ->
+            m
+
+        Full ->
+            ImagesRoot
+
+
 type MainPanelDisplay
     = FilesysDisplay
     | UploadDisplay
@@ -255,6 +267,7 @@ type Msg
       ----------
       -- Misc --
       ----------
+    | SetMode Mode
     | SetRoot Root
     | Debug String
     | NoOp
@@ -265,6 +278,26 @@ type Msg
 ------------
 -- Update --
 ------------
+
+
+setImageRootCmd : Model msg -> Cmd msg
+setImageRootCmd model =
+    Task.perform (\_ -> model.externalMsg (SetRoot ImagesRoot)) (succeed ())
+
+
+setDocRootCmd : Model msg -> Cmd msg
+setDocRootCmd model =
+    Task.perform (\_ -> model.externalMsg (SetRoot DocsRoot)) (succeed ())
+
+
+setToImgReadWrite : Model msg -> Cmd msg
+setToImgReadWrite model =
+    Task.perform (\_ -> model.externalMsg (SetMode (ReadWrite ImagesRoot))) (succeed ())
+
+
+setToFull : Model msg -> Cmd msg
+setToFull model =
+    Task.perform (\_ -> model.externalMsg (SetMode Full)) (succeed ())
 
 
 update config msg model =
@@ -489,6 +522,25 @@ internalUpdate config msg model =
                 | root = root
                 , mbFilesys =
                     case root of
+                        ImagesRoot ->
+                            Maybe.withDefault [] model.imageFiles
+                                |> List.foldr (\f acc -> insert f "images" acc) Nothing
+                                |> Maybe.map initFileSys
+
+                        DocsRoot ->
+                            Maybe.withDefault [] model.docFiles
+                                |> List.foldr (\f acc -> insert f "baseDocumentaire" acc) Nothing
+                                |> Maybe.map initFileSys
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        SetMode mode ->
+            ( { model
+                | mode = mode
+                , mbFilesys =
+                    case modeRoot mode of
                         ImagesRoot ->
                             Maybe.withDefault [] model.imageFiles
                                 |> List.foldr (\f acc -> insert f "images" acc) Nothing
@@ -874,6 +926,7 @@ selectedFilename { mbFilesys } =
 --------------------
 
 
+view : { maxHeight : Int, zone : Time.Zone, logInfo : LogInfo } -> Model msg -> Element msg
 view config model =
     Element.map model.externalMsg <|
         column

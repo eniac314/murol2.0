@@ -175,14 +175,22 @@ update msg model =
         PageEditorMsg pageEditorMsg ->
             let
                 ( newPageEditor, pageEditorCmds, mbToolResult ) =
-                    PageEditor.update pageEditorMsg model.pageEditor
+                    PageEditor.update
+                        { fileExplorer = model.fileExplorer }
+                        pageEditorMsg
+                        model.pageEditor
             in
             ( { model | pageEditor = newPageEditor }
             , pageEditorCmds
             )
 
         SetCurrentTool t ->
-            ( { model | currentTool = t }, Cmd.none )
+            ( { model | currentTool = t }
+            , if t == FileExplorerTool then
+                FileExplorer.setToFull model.fileExplorer
+              else
+                Cmd.none
+            )
 
         CurrentViewport vp ->
             ( { model
@@ -207,6 +215,10 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+
+--view : Model ->
 
 
 view model =

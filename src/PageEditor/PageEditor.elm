@@ -36,6 +36,7 @@ import PageEditor.Internals.PersistencePlugin as PersistencePlugin
 import PortFunnel exposing (FunnelSpec, GenericMessage, ModuleDesc, StateAccessors)
 import PortFunnel.LocalStorage as LocalStorage
 import Task exposing (perform)
+import Time exposing (Zone)
 import Yajson exposing (..)
 import Yajson.Stringify exposing (..)
 
@@ -70,7 +71,7 @@ type
 type alias AppFunnel substate message response msg =
     -- exists only to shorten Funnel type definition
     -- could be used to add other constructors to the Funnel type
-    FunnelSpec FunnelState substate message response (Model msg) Msg
+    FunnelSpec FunnelState substate message response (Model msg) msg
 
 
 funnels : Dict String (Funnel msg)
@@ -110,7 +111,7 @@ storageAccessors =
     StateAccessors .storage (\substate state -> { state | storage = substate })
 
 
-storageHandler : LocalStorage.Response -> FunnelState -> Model msg -> ( Model msg, Cmd Msg )
+storageHandler : LocalStorage.Response -> FunnelState -> Model msg -> ( Model msg, Cmd msg )
 storageHandler response state mdl =
     let
         model =
@@ -149,10 +150,10 @@ type alias Model msg =
     , localStorageKeys : List String
     , jsonBuffer : String
     , currentPlugin : Maybe EditorPlugin
-    , tablePlugin : TablePlugin.Model Msg
-    , textBlockPlugin : TextBlockPlugin.Model Msg
-    , imagePlugin : ImagePlugin.Model Msg
-    , videoPlugin : VideoPlugin.Model Msg
+    , tablePlugin : TablePlugin.Model msg
+    , textBlockPlugin : TextBlockPlugin.Model msg
+    , imagePlugin : ImagePlugin.Model msg
+    , videoPlugin : VideoPlugin.Model msg
     , externalMsg : Msg -> msg
     }
 
@@ -236,26 +237,31 @@ undoCacheDepth =
     4
 
 
-init : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd msg )
-init mbDoc externalMsg =
-    let
-        ( newPageEditor, pageEditorCmds ) =
-            reset mbDoc externalMsg
-    in
-    ( newPageEditor, Cmd.map externalMsg <| pageEditorCmds )
+
+--init : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd msg )
+--init mbDoc externalMsg =
+--    let
+--        ( newPageEditor, pageEditorCmds ) =
+--            reset mbDoc externalMsg
+--    in
+--    ( newPageEditor, Cmd.map externalMsg <| pageEditorCmds )
 
 
-reset : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd Msg )
+init =
+    reset
+
+
+reset : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd msg )
 reset mbDoc externalMsg =
     let
         ( doc_, idsToTrack ) =
             setSizeTrackedDocUids (Maybe.withDefault emptyDoc mbDoc)
 
         ( newTextBlockPlugin, textBlockPluginCmds ) =
-            TextBlockPlugin.init [] Nothing TextBlockPluginMsg
+            TextBlockPlugin.init [] Nothing (externalMsg << TextBlockPluginMsg)
 
         ( newImagePlugin, imagePluginCmds ) =
-            ImagePlugin.init Nothing ImagePluginMsg
+            ImagePlugin.init Nothing (externalMsg << ImagePluginMsg)
 
         handlers =
             { containerClickHandler = SelectDoc
@@ -300,16 +306,18 @@ reset mbDoc externalMsg =
       , localStorageKeys = []
       , jsonBuffer = ""
       , currentPlugin = Nothing
-      , tablePlugin = TablePlugin.init Nothing TablePluginMsg
+      , tablePlugin = TablePlugin.init Nothing (externalMsg << TablePluginMsg)
       , textBlockPlugin = newTextBlockPlugin
       , imagePlugin = newImagePlugin
-      , videoPlugin = VideoPlugin.init Nothing VideoPluginMsg
+      , videoPlugin = VideoPlugin.init Nothing (externalMsg << VideoPluginMsg)
       , externalMsg = externalMsg
       }
     , Cmd.batch
-        [ Task.perform CurrentViewport Dom.getViewport
-        , Task.attempt MainInterfaceViewport
-            (Dom.getViewportOf "mainInterface")
+        [ Cmd.map externalMsg <|
+            Task.perform CurrentViewport Dom.getViewport
+        , Cmd.map externalMsg <|
+            Task.attempt MainInterfaceViewport
+                (Dom.getViewportOf "mainInterface")
         , textBlockPluginCmds
         , imagePluginCmds
         , LocalStorage.send
@@ -320,16 +328,19 @@ reset mbDoc externalMsg =
     )
 
 
-update msg model =
+update config msg model =
     let
         ( newModel, cmds ) =
-            internalUpdate msg model
+            internalUpdate config msg model
     in
-    ( newModel, Cmd.map model.externalMsg cmds, Nothing )
+    ( newModel, cmds, Nothing )
 
 
-internalUpdate : Msg -> Model msg -> ( Model msg, Cmd Msg )
-internalUpdate msg model =
+
+--internalUpdate : Msg -> Model msg -> ( Model msg, Cmd msg )
+
+
+internalUpdate config msg model =
     case msg of
         ----------------------------------------------
         -- Dom manipulation && Dom events processing--
@@ -409,15 +420,17 @@ internalUpdate msg model =
                 , Task.attempt MainInterfaceViewport
                     (Dom.getViewportOf "mainInterface")
                 ]
+                |> Cmd.map model.externalMsg
             )
 
         RefreshSizes ->
             ( model
             , updateSizes model.config
+                |> Cmd.map model.externalMsg
             )
 
         JumpTo id ->
-            ( model, scrollTo id )
+            ( model, Cmd.map model.externalMsg <| scrollTo id )
 
         KeyDown s ->
             if s == "Control" then
@@ -445,8 +458,7 @@ internalUpdate msg model =
                     ( { model
                         | document = newDocument
                       }
-                    , Cmd.batch
-                        []
+                    , Cmd.none
                     )
 
         ZipToUid uid ->
@@ -460,6 +472,7 @@ internalUpdate msg model =
                       }
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc newDocument) ]
+                        |> Cmd.map model.externalMsg
                     )
 
         Rewind ->
@@ -480,6 +493,7 @@ internalUpdate msg model =
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc newDoc)
                         ]
+                        |> Cmd.map model.externalMsg
                     )
 
         SwapRight ->
@@ -492,13 +506,16 @@ internalUpdate msg model =
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc newDoc)
                         ]
+                        |> Cmd.map model.externalMsg
                     )
 
         EditCell ->
-            openPlugin model
+            openPlugin config model
 
         EditContainer ->
-            ( { model | currentPlugin = Just ContainerEditPlugin }, Cmd.none )
+            ( { model | currentPlugin = Just ContainerEditPlugin }
+            , Cmd.none
+            )
 
         SwapContainerType containerLabel ->
             case extractDoc model.document of
@@ -544,6 +561,7 @@ internalUpdate msg model =
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc newDoc)
                         ]
+                        |> Cmd.map model.externalMsg
                     )
 
         AddNewRight ->
@@ -559,6 +577,7 @@ internalUpdate msg model =
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc newDoc)
                         ]
+                        |> Cmd.map model.externalMsg
                     )
 
         CreateNewContainer containerLabel ->
@@ -576,7 +595,7 @@ internalUpdate msg model =
             let
                 ( newModel, cmd ) =
                     { model | currentPlugin = Just plugin }
-                        |> openNewPlugin
+                        |> openNewPlugin config
             in
             ( { newModel | nextUid = model.nextUid + 1 }
             , Cmd.batch
@@ -659,6 +678,7 @@ internalUpdate msg model =
                         , undoCache = xs
                       }
                     , updateSizes model.config
+                        |> Cmd.map model.externalMsg
                     )
 
         --------------
@@ -681,7 +701,7 @@ internalUpdate msg model =
 
         SetPreviewMode pm ->
             let
-                config =
+                config_ =
                     model.config
 
                 newWidth =
@@ -699,21 +719,22 @@ internalUpdate msg model =
                             480
 
                 newConfig =
-                    { config | width = newWidth }
+                    { config_ | width = newWidth }
             in
             ( { model | previewMode = pm, config = newConfig }
             , updateSizes newConfig
+                |> Cmd.map model.externalMsg
             )
 
         ToogleCountainersColors ->
             let
-                config =
+                config_ =
                     model.config
 
                 newConfig =
-                    { config
+                    { config_
                         | containersBkgColors =
-                            not config.containersBkgColors
+                            not config_.containersBkgColors
                     }
             in
             ( { model | config = newConfig }, Cmd.none )
@@ -732,8 +753,7 @@ internalUpdate msg model =
             case mbEditorPluginResult of
                 Nothing ->
                     ( { model | tablePlugin = newTablePlugin }
-                    , Cmd.batch
-                        []
+                    , Cmd.none
                     )
 
                 Just EditorPluginQuit ->
@@ -743,6 +763,7 @@ internalUpdate msg model =
                       }
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                        |> Cmd.map model.externalMsg
                     )
 
                 Just (EditorPluginData tm) ->
@@ -763,6 +784,7 @@ internalUpdate msg model =
                       }
                     , Cmd.batch
                         [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                        |> Cmd.map model.externalMsg
                     )
 
         TextBlockPluginMsg textBlockMsg ->
@@ -784,7 +806,9 @@ internalUpdate msg model =
                         , currentPlugin = Nothing
                       }
                     , Cmd.batch
-                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
                         , textBlockPluginCmds
                         ]
                     )
@@ -806,7 +830,9 @@ internalUpdate msg model =
                         , currentPlugin = Nothing
                       }
                     , Cmd.batch
-                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
                         , textBlockPluginCmds
                         ]
                     )
@@ -814,7 +840,7 @@ internalUpdate msg model =
         ImagePluginMsg imgPlugMsg ->
             let
                 ( newImagePlugin, imagePluginCmds, mbEditorPluginResult ) =
-                    ImagePlugin.update imgPlugMsg model.imagePlugin
+                    ImagePlugin.update config imgPlugMsg model.imagePlugin
             in
             case mbEditorPluginResult of
                 Nothing ->
@@ -828,7 +854,9 @@ internalUpdate msg model =
                         , currentPlugin = Nothing
                       }
                     , Cmd.batch
-                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
                         , imagePluginCmds
                         ]
                     )
@@ -850,7 +878,9 @@ internalUpdate msg model =
                         , currentPlugin = Nothing
                       }
                     , Cmd.batch
-                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
                         , imagePluginCmds
                         ]
                     )
@@ -869,7 +899,9 @@ internalUpdate msg model =
                         | videoPlugin = newVideoPlugin
                         , currentPlugin = Nothing
                       }
-                    , scrollTo <| getHtmlId (extractDoc model.document)
+                    , Cmd.map model.externalMsg <|
+                        scrollTo <|
+                            getHtmlId (extractDoc model.document)
                     )
 
                 Just (EditorPluginData ( videoMeta, attrs )) ->
@@ -889,7 +921,9 @@ internalUpdate msg model =
                         , currentPlugin = Nothing
                       }
                     , Cmd.batch
-                        [ scrollTo <| getHtmlId (extractDoc model.document)
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
                         ]
                     )
 
@@ -962,6 +996,7 @@ internalUpdate msg model =
                 cmdPort
                 (LocalStorage.get model.localStorageKey)
                 model.funnelState.storage
+                |> Cmd.map model.externalMsg
             )
 
         PutInLocalStorage ->
@@ -976,6 +1011,7 @@ internalUpdate msg model =
                     model.funnelState.storage
                 , after 500 Millisecond ListKeys
                 ]
+                |> Cmd.map model.externalMsg
             )
 
         RemoveFromLocalStorage ->
@@ -990,6 +1026,7 @@ internalUpdate msg model =
                     model.funnelState.storage
                 , after 500 Millisecond ListKeys
                 ]
+                |> Cmd.map model.externalMsg
             )
 
         ClearLocalStorage ->
@@ -1001,6 +1038,7 @@ internalUpdate msg model =
                     model.funnelState.storage
                 , after 500 Millisecond ListKeys
                 ]
+                |> Cmd.map model.externalMsg
             )
 
         ListKeys ->
@@ -1009,6 +1047,7 @@ internalUpdate msg model =
                 cmdPort
                 (LocalStorage.listKeys "")
                 model.funnelState.storage
+                |> Cmd.map model.externalMsg
             )
 
         Process val ->
@@ -1074,67 +1113,80 @@ internalUpdate msg model =
 -- View funcions --
 -------------------
 --view : Model -> Browser.Document Msg
+--view :
+--    { logInfo : LogInfo
+--    --, fileExplorer = FileExplorer.Model
+--    --, fileExplorerView = ()
+--    , zone : Time.Zone
+--    }
+--    -> Model msg
+--    -> Element msg
 
 
 view config model =
-    Element.map model.externalMsg <|
-        column
-            ([ width fill
-             , height (maximum (model.config.height - 35) fill)
+    column
+        ([ width fill
+         , height (maximum (model.config.height - 35) fill)
 
-             --, Background.color (rgba 1 0.5 0.3 0.4)
-             ]
-                --++ (if model.currentPlugin == Nothing && model.controlDown then
-                --        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
-                --    else
-                --        []
-                --   )
-                ++ (if model.menuClicked then
-                        [ onClick MenuClickOff ]
-                    else
-                        []
-                   )
-            )
-            [ mainInterface
-                { clicked = model.menuClicked
-                , currentFocus = model.menuFocused
-                , isInPlugin = model.currentPlugin /= Nothing
-                , clipboardEmpty = model.clipboard == Nothing
-                , undoCacheEmpty = model.undoCache == []
-                , selectionIsRoot = zipUp model.document == Nothing
-                , selectionIsContainer = isContainer (extractDoc model.document)
-                , previewMode = model.previewMode
-                , containersBkgColors = model.config.containersBkgColors
-                , logInfo = config.logInfo
-                }
-            , row
-                [ width fill
+         --, Background.color (rgba 1 0.5 0.3 0.4)
+         ]
+            --++ (if model.currentPlugin == Nothing && model.controlDown then
+            --        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
+            --    else
+            --        []
+            --   )
+            ++ (if model.menuClicked then
+                    [ onClick (model.externalMsg MenuClickOff) ]
+                else
+                    []
+               )
+        )
+        [ mainInterface
+            { clicked = model.menuClicked
+            , currentFocus = model.menuFocused
+            , isInPlugin = model.currentPlugin /= Nothing
+            , clipboardEmpty = model.clipboard == Nothing
+            , undoCacheEmpty = model.undoCache == []
+            , selectionIsRoot = zipUp model.document == Nothing
+            , selectionIsContainer = isContainer (extractDoc model.document)
+            , previewMode = model.previewMode
+            , containersBkgColors = model.config.containersBkgColors
+            , logInfo = config.logInfo
+            }
+            |> Element.map
+                model.externalMsg
+        , row
+            [ width fill
 
-                --NOTE: trick to make the columns scrollable
-                , clip
-                , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+            --NOTE: trick to make the columns scrollable
+            , clip
+            , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
 
-                --NOTE: works too
-                --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
-                , height fill
-                ]
-                [ documentStructView
-                    { zipToUidCmd = ZipToUid
-                    , containersColors = model.config.containersBkgColors
-                    , isActive = model.currentPlugin == Nothing
-                    }
-                    (extractDoc model.document
-                        |> getUid
-                    )
-                    (extractDoc <| rewind model.document)
-                , case model.currentPlugin of
-                    Nothing ->
-                        documentView model
-
-                    Just plugin ->
-                        pluginView config model plugin
-                ]
+            --NOTE: works too
+            --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
+            , height fill
             ]
+            [ documentStructView
+                { zipToUidCmd = ZipToUid
+                , containersColors = model.config.containersBkgColors
+                , isActive = model.currentPlugin == Nothing
+                }
+                (extractDoc model.document
+                    |> getUid
+                )
+                (extractDoc <| rewind model.document)
+                |> Element.map
+                    model.externalMsg
+            , case model.currentPlugin of
+                Nothing ->
+                    documentView model
+                        |> Element.map
+                            model.externalMsg
+
+                Just plugin ->
+                    pluginView config model plugin
+            ]
+        ]
 
 
 documentView : Model msg -> Element Msg
@@ -1174,7 +1226,15 @@ documentView model =
 -------------------------------
 -- Plugins views loading code--
 -------------------------------
---pluginView : Model msg -> EditorPlugin -> Element Msg
+--pluginView :
+--    { logInfo : LogInfo
+--    , fileExplorer = FileExplorer.Model
+--    , fileExplorerView = ()
+--    , zone : Time.Zone
+--    }
+--    -> Model msg
+--    -> EditorPlugin
+--    -> Element msg
 
 
 pluginView config model plugin =
@@ -1186,6 +1246,7 @@ pluginView config model plugin =
                 , fileExplorer = config.fileExplorer
                 , fileExplorerView = config.fileExplorerView
                 , zone = config.zone
+                , maxHeight = model.config.height - model.config.mainInterfaceHeight - 35
                 , logInfo = config.logInfo
                 }
                 model.imagePlugin
@@ -1201,9 +1262,9 @@ pluginView config model plugin =
 
         NewDocPlugin ->
             NewDocPlugin.view
-                { createNewCell = CreateNewCell
-                , createNewContainer = CreateNewContainer
-                , goBack = SetEditorPlugin Nothing
+                { createNewCell = model.externalMsg << CreateNewCell
+                , createNewContainer = model.externalMsg << CreateNewContainer
+                , goBack = model.externalMsg <| SetEditorPlugin Nothing
                 , nextUid = model.nextUid
                 }
 
@@ -1212,8 +1273,8 @@ pluginView config model plugin =
                 Container cv _ ->
                     ContainerEditPlugin.view
                         { currentContainer = cv.containerLabel
-                        , swapContainerType = SwapContainerType
-                        , goBack = SetEditorPlugin Nothing
+                        , swapContainerType = model.externalMsg << SwapContainerType
+                        , goBack = model.externalMsg <| SetEditorPlugin Nothing
                         }
 
                 _ ->
@@ -1226,33 +1287,39 @@ pluginView config model plugin =
 
         --|> Element.map VideoPluginMsg
         PersistencePlugin ->
-            PersistencePlugin.view
-                { localStorageKeys = model.localStorageKeys
-                , localStorageKey = model.localStorageKey
-                , localStorageValue = model.localStorageValue
-                , jsonBuffer = model.jsonBuffer
-                , setLocalStorageValue = SetLocalStorageValue
-                , setLocalStorageKey = SetLocalStorageKey
-                , setJsonBuffer = SetJsonBuffer
-                , getFromLocalStorage = GetFromLocalStorage
-                , putInLocalStorage = PutInLocalStorage
-                , loadDocument = LoadDocument
-                , removeFromLocalStorage = RemoveFromLocalStorage
-                , clearLocalStorage = ClearLocalStorage
-                , setEditorPlugin = SetEditorPlugin
-                , document = extractDoc (rewind model.document)
-                , noOp = NoOp
-                }
+            Element.map model.externalMsg <|
+                PersistencePlugin.view
+                    { localStorageKeys = model.localStorageKeys
+                    , localStorageKey = model.localStorageKey
+                    , localStorageValue = model.localStorageValue
+                    , jsonBuffer = model.jsonBuffer
+                    , setLocalStorageValue = SetLocalStorageValue
+                    , setLocalStorageKey = SetLocalStorageKey
+                    , setJsonBuffer = SetJsonBuffer
+                    , getFromLocalStorage = GetFromLocalStorage
+                    , putInLocalStorage = PutInLocalStorage
+                    , loadDocument = LoadDocument
+                    , removeFromLocalStorage = RemoveFromLocalStorage
+                    , clearLocalStorage = ClearLocalStorage
+                    , setEditorPlugin = SetEditorPlugin
+                    , document = extractDoc (rewind model.document)
+                    , noOp = NoOp
+                    }
 
 
-openNewPlugin : Model msg -> ( Model msg, Cmd Msg )
-openNewPlugin model =
+
+--openNewPlugin : Model msg -> ( Model msg, Cmd msg )
+
+
+openNewPlugin config model =
     -- NOTE: reset corresponding plugin when the selection is an empty cell
     -- then open the plugin
     case model.currentPlugin of
         Just TablePlugin ->
             ( { model
-                | tablePlugin = TablePlugin.init Nothing TablePluginMsg
+                | tablePlugin =
+                    TablePlugin.init Nothing
+                        (model.externalMsg << TablePluginMsg)
               }
             , Cmd.none
             )
@@ -1260,7 +1327,9 @@ openNewPlugin model =
         Just TextBlockPlugin ->
             let
                 ( newTextBlockPlugin, textBlockPluginCmds ) =
-                    TextBlockPlugin.init [] Nothing TextBlockPluginMsg
+                    TextBlockPlugin.init []
+                        Nothing
+                        (model.externalMsg << TextBlockPluginMsg)
             in
             ( { model
                 | textBlockPlugin = newTextBlockPlugin
@@ -1272,7 +1341,9 @@ openNewPlugin model =
         Just ImagePlugin ->
             let
                 ( newImagePlugin, imagePluginCmds ) =
-                    ImagePlugin.init Nothing ImagePluginMsg
+                    ImagePlugin.open config
+                        Nothing
+                        (model.externalMsg << ImagePluginMsg)
             in
             ( { model
                 | imagePlugin = newImagePlugin
@@ -1283,7 +1354,8 @@ openNewPlugin model =
         Just VideoPlugin ->
             let
                 newVideoPlugin =
-                    VideoPlugin.init Nothing VideoPluginMsg
+                    VideoPlugin.init Nothing
+                        (model.externalMsg << VideoPluginMsg)
             in
             ( { model
                 | videoPlugin = newVideoPlugin
@@ -1295,8 +1367,11 @@ openNewPlugin model =
             ( model, Cmd.none )
 
 
-openPlugin : Model msg -> ( Model msg, Cmd Msg )
-openPlugin model =
+
+--openPlugin : Model msg -> ( Model msg, Cmd msg )
+
+
+openPlugin config model =
     -- NOTE: open the plugin corresponding to the current selection
     -- and initializes it with selection content
     case extractDoc model.document of
@@ -1306,7 +1381,9 @@ openPlugin model =
                     ( { model
                         | currentPlugin = Just TablePlugin
                         , tablePlugin =
-                            TablePlugin.init (Just tm) TablePluginMsg
+                            TablePlugin.init
+                                (Just tm)
+                                (model.externalMsg << TablePluginMsg)
                       }
                     , Cmd.none
                     )
@@ -1316,7 +1393,7 @@ openPlugin model =
                         ( newTextBlockPlugin, textBlockPluginCmds ) =
                             TextBlockPlugin.init attrs
                                 (Just tbElems)
-                                TextBlockPluginMsg
+                                (model.externalMsg << TextBlockPluginMsg)
                     in
                     ( { model
                         | currentPlugin = Just TextBlockPlugin
@@ -1336,7 +1413,9 @@ openPlugin model =
                 Image imgMeta ->
                     let
                         ( newImagePlugin, imagePluginCmds ) =
-                            ImagePlugin.init (Just ( imgMeta, attrs )) ImagePluginMsg
+                            ImagePlugin.open config
+                                (Just ( imgMeta, attrs ))
+                                (model.externalMsg << ImagePluginMsg)
                     in
                     ( { model
                         | currentPlugin = Just ImagePlugin
@@ -1348,7 +1427,9 @@ openPlugin model =
                 Video videoMeta ->
                     let
                         newVideoPlugin =
-                            VideoPlugin.init (Just ( videoMeta, attrs )) VideoPluginMsg
+                            VideoPlugin.init
+                                (Just ( videoMeta, attrs ))
+                                (model.externalMsg << VideoPluginMsg)
                     in
                     ( { model
                         | currentPlugin = Just VideoPlugin

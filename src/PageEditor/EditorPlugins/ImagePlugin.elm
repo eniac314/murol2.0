@@ -12,6 +12,7 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
+import FileExplorer.FileExplorer as FileExplorer
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
@@ -125,24 +126,6 @@ decodeImageData msg =
         )
 
 
-
---main : Program () Model Msg
---main =
---    Browser.element
---        { init = (\_ -> init Nothing)
---        , update =
---            \model msg ->
---                let
---                    ( newModel, cmd, maybeOutput ) =
---                        update model msg
---                in
---                ( newModel, cmd )
---        , view = view { picListing = [] }
---        , subscriptions = subscriptions
---        }
-
-
-init : Maybe ( ImageMeta, List DocAttribute ) -> (Msg -> msg) -> ( Model msg, Cmd msg )
 init mbInput externalMsg =
     ( { mode = ImageAttributeEditor
       , externalMsg = externalMsg
@@ -183,11 +166,64 @@ init mbInput externalMsg =
       , canResize = False
       , mbImageFromFile = Nothing
       }
-    , Cmd.map externalMsg Cmd.none
+    , Cmd.map externalMsg <|
+        Cmd.none
+      --Cmd.batch
+      --[ FileExplorer.setToReadWrite config.fileExplorer ]
     )
 
 
-update msg model =
+open config mbInput externalMsg =
+    ( { mode = ImageAttributeEditor
+      , externalMsg = externalMsg
+
+      ----------------------------
+      -- Image Attribute Editor --
+      ----------------------------
+      , mbCaption =
+            Maybe.andThen (.caption << Tuple.first) mbInput
+      , alignment =
+            Maybe.map (findAlignment << Tuple.second) mbInput
+                |> Maybe.withDefault ACenter
+      , mbImageMeta =
+            Maybe.map Tuple.first mbInput
+      , imageAttrs =
+            Maybe.map Tuple.second mbInput
+                |> Maybe.withDefault []
+
+      ---------------------------
+      -- Internal Image Picker --
+      ---------------------------
+      , selectedImage = Nothing
+
+      ---------------------------------------
+      -- Image Controller (load and resize)--
+      ---------------------------------------
+      , id = "InputId"
+      , mbOriImageWidth = Nothing
+      , mbOriImageHeight = Nothing
+      , mbOriFileSize = Nothing
+      , desiredWidth = Nothing
+      , desiredHeight = Nothing
+      , desiredFilename = Nothing
+      , desiredRotationAngle = 0
+      , sliderValue = 100
+      , needToResize = False
+      , needToRotate = False
+      , canResize = False
+      , mbImageFromFile = Nothing
+      }
+    , --Cmd.none
+      Cmd.batch
+        [ FileExplorer.setToImgReadWrite config.fileExplorer ]
+    )
+
+
+
+--update : Msg -> Model msg -> ( Model msg, Cmd msg, Maybe (EditorPluginResult ( ImageMeta, List DocAttribute )) )
+
+
+update config msg model =
     case msg of
         ---------------------------
         -- Image Attribute Editor--
@@ -456,22 +492,23 @@ view config model =
     --layout
     --    []
     --<|
-    Element.map model.externalMsg <|
-        column
-            [ height fill
-            , width fill
-            , scrollbarY
-            ]
-            [ case model.mode of
-                ImageAttributeEditor ->
+    column
+        [ height fill
+        , width fill
+        , scrollbarY
+        ]
+        [ case model.mode of
+            ImageAttributeEditor ->
+                Element.map model.externalMsg <|
                     imageAttributeEditorView config model
 
-                ImagePicker ->
-                    imagePickerView config model
+            ImagePicker ->
+                imagePickerView config model
 
-                ImageController imgContMode ->
+            ImageController imgContMode ->
+                Element.map model.externalMsg <|
                     imageControllerView model imgContMode
-            ]
+        ]
 
 
 imageAttributeEditorView config model =
@@ -569,87 +606,84 @@ imageAttributeEditorView config model =
         ]
 
 
-
---imagePickerView config model =
---    config.fileExplorerView
---        { maxHeight =
---            600
---        , zone = config.zone
---        , logInfo = config.logInfo
---        }
---        config.fileExplorer
---|> Element.map model.externalMsg
-
-
 imagePickerView config model =
-    column
-        [ spacing 15
-        , Font.size 16
-        , padding 15
-        , alignTop
-        ]
-        [ row [ width fill ]
-            [ text "Choisir image existante: "
-            , Maybe.map
-                (\( url, ( w, h ) ) ->
-                    el [ Element.alignRight ]
-                        (text <|
-                            String.fromInt w
-                                ++ "x"
-                                ++ String.fromInt h
-                        )
-                )
-                model.selectedImage
-                |> Maybe.withDefault Element.none
-            ]
-        , row
-            [ spacing 15
-            ]
-            [ column
-                [ width (px 200)
-                , height (px 300)
-                , Border.width 1
-                , Border.color (rgb 0.8 0.8 0.8)
-                , scrollbarY
-                , Background.color (rgb 1 1 1)
-                ]
-                (List.map (entryView model.selectedImage SelectImage) dummyImageList)
-            , el
-                [ width (px 350)
-                , height (px 300)
-                , Border.width 1
-                , Border.color (rgb 0.8 0.8 0.8)
-                , Background.color (rgb 1 1 1)
-                , case model.selectedImage of
-                    Nothing ->
-                        noAttr
-
-                    Just ( url, ( w, h ) ) ->
-                        Background.uncropped ("images/" ++ url)
-                ]
-                Element.none
-            ]
-        , row
-            [ spacing 15
-            ]
-            [ Input.button (buttonStyle True)
-                { onPress = Just (ChangeMode (ImageController FileReader))
-                , label = text "Charger une nouvelle image"
-                }
-            , Input.button
-                (buttonStyle True)
-                { onPress = Just (ChangeMode ImageAttributeEditor)
-                , label = text "Retour"
-                }
-            , Input.button (buttonStyle True)
-                { onPress = Just ConfirmSelected
-                , label = text "Valider"
-                }
-            ]
-        ]
+    config.fileExplorerView
+        { maxHeight =
+            config.maxHeight
+        , zone = config.zone
+        , logInfo = config.logInfo
+        }
+        config.fileExplorer
 
 
 
+--|> Element.map model.externalMsg
+--imagePickerView config model =
+--    column
+--        [ spacing 15
+--        , Font.size 16
+--        , padding 15
+--        , alignTop
+--        ]
+--        [ row [ width fill ]
+--            [ text "Choisir image existante: "
+--            , Maybe.map
+--                (\( url, ( w, h ) ) ->
+--                    el [ Element.alignRight ]
+--                        (text <|
+--                            String.fromInt w
+--                                ++ "x"
+--                                ++ String.fromInt h
+--                        )
+--                )
+--                model.selectedImage
+--                |> Maybe.withDefault Element.none
+--            ]
+--        , row
+--            [ spacing 15
+--            ]
+--            [ column
+--                [ width (px 200)
+--                , height (px 300)
+--                , Border.width 1
+--                , Border.color (rgb 0.8 0.8 0.8)
+--                , scrollbarY
+--                , Background.color (rgb 1 1 1)
+--                ]
+--                (List.map (entryView model.selectedImage SelectImage) dummyImageList)
+--            , el
+--                [ width (px 350)
+--                , height (px 300)
+--                , Border.width 1
+--                , Border.color (rgb 0.8 0.8 0.8)
+--                , Background.color (rgb 1 1 1)
+--                , case model.selectedImage of
+--                    Nothing ->
+--                        noAttr
+--                    Just ( url, ( w, h ) ) ->
+--                        Background.uncropped ("images/" ++ url)
+--                ]
+--                Element.none
+--            ]
+--        , row
+--            [ spacing 15
+--            ]
+--            [ Input.button (buttonStyle True)
+--                { onPress = Just (ChangeMode (ImageController FileReader))
+--                , label = text "Charger une nouvelle image"
+--                }
+--            , Input.button
+--                (buttonStyle True)
+--                { onPress = Just (ChangeMode ImageAttributeEditor)
+--                , label = text "Retour"
+--                }
+--            , Input.button (buttonStyle True)
+--                { onPress = Just ConfirmSelected
+--                , label = text "Valider"
+--                }
+--            ]
+--        ]
+--------------------
 --entryView : Maybe ( String, ( Int, Int ) ) -> (String -> Msg) -> ( String, ( Int, Int ) ) -> Element.Element Msg
 
 
