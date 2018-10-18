@@ -12,6 +12,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
 import FileExplorer.FileExplorer as FileExplorer
+import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
@@ -115,6 +116,7 @@ type Tool
     | NewsEditorTool
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Launch ->
@@ -219,10 +221,7 @@ update msg model =
             ( model, Cmd.none )
 
 
-
---view : Model ->
-
-
+view : Model -> Browser.Document Msg
 view model =
     { title = "MurolAdmin"
     , body =
@@ -290,17 +289,17 @@ view model =
                                 PageEditorTool
                                 "Editeur de page"
                             , tabView model.currentTool
-                                SiteTreeTool
-                                "Structure du site"
-                            , tabView model.currentTool
                                 NewsEditorTool
                                 "Editeur actualités"
                             , tabView model.currentTool
-                                FileExplorerTool
-                                "Explorateur de fichiers"
-                            , tabView model.currentTool
                                 GeneralDirectoryTool
                                 "Répertoire général"
+                            , tabView model.currentTool
+                                SiteTreeTool
+                                "Structure du site"
+                            , tabView model.currentTool
+                                FileExplorerTool
+                                "Explorateur de fichiers"
                             , tabView model.currentTool
                                 AuthTool
                                 "Authentification"
@@ -341,6 +340,7 @@ view model =
     }
 
 
+tabView : Tool -> Tool -> String -> Element Msg
 tabView currentTool tool s =
     el
         ([ Events.onClick (SetCurrentTool tool)

@@ -256,6 +256,7 @@ update msg model =
             ( model, Nothing )
 
 
+view : config -> Model msg -> Element msg
 view config model =
     Element.map model.externalMsg <|
         column
@@ -473,6 +474,7 @@ iconSize =
     18
 
 
+checkIcon : Bool -> Element msg
 checkIcon =
     \c ->
         if c then
@@ -481,6 +483,20 @@ checkIcon =
             html <| square 15
 
 
+parseHtml :
+    String
+    ->
+        Maybe
+            { controls : Bool
+            , frameBorder : Bool
+            , height : Int
+            , newSrc : Maybe String
+            , privacy : Bool
+            , startAt : Maybe Int
+            , suggestions : Bool
+            , title : Bool
+            , width : Int
+            }
 parseHtml str =
     let
         propDict =
@@ -551,6 +567,7 @@ parseHtml str =
             Nothing
 
 
+parseTime : String -> Maybe Int
 parseTime str =
     case String.split ":" str of
         [] ->

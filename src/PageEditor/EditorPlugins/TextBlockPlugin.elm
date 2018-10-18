@@ -1,5 +1,6 @@
 module PageEditor.EditorPlugins.TextBlockPlugin exposing (Model, Msg, init, update, view)
 
+import Auth.AuthPlugin exposing (LogInfo)
 import Browser exposing (element)
 import Delay exposing (..)
 import Dict exposing (..)
@@ -15,6 +16,7 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
+import FileExplorer.FileExplorer as FileExplorer
 import Hex exposing (fromString)
 import Html as Html
 import Html.Attributes as HtmlAttr
@@ -26,6 +28,7 @@ import Json.Encode as Encode
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import Parser exposing (..)
 import Set exposing (..)
+import Time exposing (Zone)
 
 
 type alias Model msg =
@@ -42,12 +45,8 @@ type alias Model msg =
     , headingLevel : Maybe Int
     , internalUrlSelectorOpen : Bool
     , selectedInternalPage : Maybe String
-    , selectedFolder : Maybe String
-    , selectedFile : Maybe String
     , colorPickerOpen : Maybe String
     , externalMsg : Msg -> msg
-
-    --, config : Config Msg
     }
 
 
@@ -84,9 +83,7 @@ type Msg
     | InternalUrlSelectorClickOff
     | SelectInternalPage String
     | ConfirmInternalPageUrl Int
-    | SelectFolder String
-    | SelectFile String
-    | ConfirmFileUrl Int
+    | ConfirmFileUrl Int String
       ---------------------------
       -- Inline Style messages --
       ---------------------------
@@ -113,14 +110,11 @@ type alias Selection =
     }
 
 
-subscriptions model =
-    Sub.none
-
-
-
---init attrs mbInput flags =
-
-
+init :
+    List DocAttribute
+    -> Maybe (List TextBlockElement)
+    -> (Msg -> msg)
+    -> ( Model msg, Cmd msg )
 init attrs mbInput externalMsg =
     let
         { resultString, trackedData, nextUid } =
@@ -156,8 +150,6 @@ init attrs mbInput externalMsg =
               , headingLevel = Nothing
               , internalUrlSelectorOpen = False
               , selectedInternalPage = Nothing
-              , selectedFolder = Nothing
-              , selectedFile = Nothing
               , colorPickerOpen = Nothing
               , externalMsg = externalMsg
               }
@@ -174,13 +166,10 @@ init attrs mbInput externalMsg =
               , trackedData = Dict.empty
               , currentTrackedData = Nothing
               , nextUid = 0
-              , wholeTextBlocAttr =
-                    attrs
+              , wholeTextBlocAttr = attrs
               , headingLevel = Nothing
               , internalUrlSelectorOpen = False
               , selectedInternalPage = Nothing
-              , selectedFolder = Nothing
-              , selectedFile = Nothing
               , colorPickerOpen = Nothing
               , externalMsg = externalMsg
               }
@@ -249,8 +238,6 @@ update msg model =
                       }
                     , Cmd.batch
                         [ after 5 Millisecond SetSelection
-
-                        --, Random.generate NewRandom (Random.int 0 10000)
                         ]
                         |> Cmd.map model.externalMsg
                     , Nothing
@@ -533,57 +520,37 @@ update msg model =
                             , Nothing
                             )
 
-        SelectFolder f ->
-            ( { model | selectedFolder = Just f }
-            , Cmd.batch
-                []
-            , Nothing
-            )
-
-        SelectFile f ->
-            ( { model | selectedFile = Just f }
-            , Cmd.batch
-                []
-            , Nothing
-            )
-
-        ConfirmFileUrl uid ->
-            case model.selectedFile of
+        ConfirmFileUrl uid url ->
+            case Dict.get uid model.trackedData of
                 Nothing ->
                     ( model, Cmd.none, Nothing )
 
-                Just url ->
-                    case Dict.get uid model.trackedData of
-                        Nothing ->
-                            ( model, Cmd.none, Nothing )
+                Just ({ attrs, meta, dataKind } as td) ->
+                    let
+                        newTrackedData =
+                            { td | dataKind = InternalLink True url }
 
-                        Just ({ attrs, meta, dataKind } as td) ->
-                            let
-                                newTrackedData =
-                                    { td | dataKind = InternalLink True url }
-
-                                newTrackedDataDict =
-                                    Dict.insert
-                                        uid
-                                        newTrackedData
-                                        model.trackedData
-                            in
-                            ( { model
-                                | trackedData = newTrackedDataDict
-                                , currentTrackedData = Just newTrackedData
-                                , internalUrlSelectorOpen = False
-                                , selectedFile = Nothing
-                                , output =
-                                    Result.map
-                                        (List.filterMap
-                                            (toTextBlocElement newTrackedDataDict)
-                                        )
-                                        model.parsedInput
-                                        |> Result.withDefault model.output
-                              }
-                            , Cmd.none
-                            , Nothing
-                            )
+                        newTrackedDataDict =
+                            Dict.insert
+                                uid
+                                newTrackedData
+                                model.trackedData
+                    in
+                    ( { model
+                        | trackedData = newTrackedDataDict
+                        , currentTrackedData = Just newTrackedData
+                        , internalUrlSelectorOpen = False
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
 
         ---------------------------
         -- Inline Style messages --
@@ -860,45 +827,50 @@ iconSize =
     18
 
 
-
---view model =
-
-
-view model config =
-    Element.map model.externalMsg <|
-        column
-            ([ padding 15
-             , spacing 15
-             , scrollbarY
-             , height fill
-             , width fill
-             ]
-                ++ (if model.internalUrlSelectorOpen then
-                        [ Events.onClick InternalUrlSelectorClickOff ]
-                    else
-                        []
-                   )
-                ++ (if not (model.colorPickerOpen == Nothing) then
-                        [ Events.onClick ColorPickerClickOff ]
-                    else
-                        []
-                   )
-            )
-            [ interfaceView model
-            , (if config.width < 1600 then
+view :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : Auth.AuthPlugin.LogInfo
+        , zone : Time.Zone
+    }
+    -> Document.Config msg
+    -> Model msg
+    -> Element.Element msg
+view config renderConfig model =
+    column
+        ([ padding 15
+         , spacing 15
+         , scrollbarY
+         , height fill
+         , width fill
+         ]
+            ++ (if model.internalUrlSelectorOpen then
+                    [ Events.onClick
+                        (model.externalMsg InternalUrlSelectorClickOff)
+                    ]
+                else
+                    []
+               )
+            ++ (if not (model.colorPickerOpen == Nothing) then
+                    [ Events.onClick (model.externalMsg ColorPickerClickOff) ]
+                else
+                    []
+               )
+        )
+        [ interfaceView config model
+        , Element.map model.externalMsg <|
+            (if renderConfig.width < 1600 then
                 column
-               else
+             else
                 row
-              )
+            )
                 [ spacing 30 ]
                 [ column
                     [ alignTop
                     , spacing 20
                     ]
                     [ customTextArea
-                        [ width fill
-                        ]
-                        model.cursorPos
+                        [ width fill ]
                         model.setSelection
                         model.rawInput
                     , row
@@ -921,14 +893,22 @@ view model config =
                             }
                         ]
                     ]
-                , textBlocPreview model config
+                , textBlocPreview model renderConfig
                 ]
 
-            --, Element.paragraph [] [ text <| Debug.toString model ]
-            ]
+        --, Element.paragraph [] [ text <| Debug.toString model ]
+        ]
 
 
-interfaceView model =
+interfaceView :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : Auth.AuthPlugin.LogInfo
+        , zone : Time.Zone
+    }
+    -> Model msg
+    -> Element.Element msg
+interfaceView config model =
     let
         isActive =
             (not <| model.selected == Nothing)
@@ -941,15 +921,13 @@ interfaceView model =
         [ row
             [ spacing 15
             , Font.size 16
-
-            --, Background.color (rgba 0.3 1 0.5 0.5)
             , width fill
             ]
             [ Input.button
                 (buttonStyle isActive)
                 { onPress =
                     if isActive then
-                        Just (InsertTrackingTag <| Heading 1)
+                        Just (model.externalMsg <| InsertTrackingTag <| Heading 1)
                     else
                         Nothing
                 , label =
@@ -962,7 +940,7 @@ interfaceView model =
                 (buttonStyle isActive)
                 { onPress =
                     if isActive then
-                        Just (InsertTrackingTag <| InternalLink False "")
+                        Just (model.externalMsg <| InsertTrackingTag <| InternalLink False "")
                     else
                         Nothing
                 , label =
@@ -975,7 +953,7 @@ interfaceView model =
                 (buttonStyle isActive)
                 { onPress =
                     if isActive then
-                        Just (InsertTrackingTag <| ExternalLink "")
+                        Just (model.externalMsg <| InsertTrackingTag <| ExternalLink "")
                     else
                         Nothing
                 , label =
@@ -988,7 +966,7 @@ interfaceView model =
                 (buttonStyle isActive)
                 { onPress =
                     if isActive then
-                        Just (InsertTrackingTag <| InlineStyled)
+                        Just (model.externalMsg <| InsertTrackingTag <| InlineStyled)
                     else
                         Nothing
                 , label =
@@ -1010,23 +988,23 @@ interfaceView model =
                 Just ({ meta, attrs, dataKind } as td) ->
                     case dataKind of
                         Heading level ->
-                            headingView model.headingLevel td
+                            headingView model.externalMsg model.headingLevel td
 
                         InternalLink isDoc url ->
-                            internalLinkView
+                            internalLinkView model.externalMsg
                                 { isDoc = isDoc
                                 , url = url
                                 , pagesList = dummyInternalPageList
-                                , fileList = dummyFileList
                                 , selectorOpen = model.internalUrlSelectorOpen
                                 , selectedInternalPage = model.selectedInternalPage
-                                , selectedFolder = model.selectedFolder
-                                , selectedFile = model.selectedFile
                                 , td = td
+                                , fileExplorer = config.fileExplorer
+                                , zone = config.zone
+                                , logInfo = config.logInfo
                                 }
 
                         ExternalLink url ->
-                            externalLinkView url td
+                            externalLinkView model.externalMsg url td
 
                         InlineStyled ->
                             inlineStyleView model td
@@ -1034,10 +1012,7 @@ interfaceView model =
         ]
 
 
-
--- TODO: remove model?
-
-
+textBlockStyleView : Model msg -> Element.Element msg
 textBlockStyleView model =
     let
         fontOptionView selectedFont f =
@@ -1060,281 +1035,313 @@ textBlockStyleView model =
                 ]
                 [ Html.text fs ]
     in
-    row
-        [ spacing 15
-
-        --, Background.color (rgba 1 0 0.5 0.5)
-        ]
-        [ el
-            []
-            (html <|
-                Html.select
-                    [ HtmlEvents.onInput SetTextBlocFont
-                    ]
-                    (List.map
-                        (fontOptionView
-                            (List.filter isFontAttr model.wholeTextBlocAttr
-                                |> List.head
+    Element.map model.externalMsg <|
+        row
+            [ spacing 15 ]
+            [ el
+                []
+                (html <|
+                    Html.select
+                        [ HtmlEvents.onInput SetTextBlocFont
+                        ]
+                        (List.map
+                            (fontOptionView
+                                (List.filter isFontAttr model.wholeTextBlocAttr
+                                    |> List.head
+                                )
                             )
+                            fonts
                         )
-                        fonts
-                    )
-            )
-        , el
-            []
-            (html <|
-                Html.select
-                    [ HtmlEvents.onInput SetTextBlocFontSize
-                    ]
-                    (List.map
-                        (fontSizeOptionView
-                            (List.filter isFontSizeAttr model.wholeTextBlocAttr
-                                |> List.head
+                )
+            , el
+                []
+                (html <|
+                    Html.select
+                        [ HtmlEvents.onInput SetTextBlocFontSize
+                        ]
+                        (List.map
+                            (fontSizeOptionView
+                                (List.filter isFontSizeAttr model.wholeTextBlocAttr
+                                    |> List.head
+                                )
                             )
+                            fontSizes
                         )
-                        fontSizes
-                    )
-            )
-        , Input.button
-            (toogleButtonStyle
-                (List.member Justify model.wholeTextBlocAttr)
-                (model.selected == Nothing)
-            )
-            { onPress = Just SetTextBlocAlignment
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| alignJustify iconSize)
-                    ]
-            }
-        , Input.button
-            (toogleButtonStyle
-                (List.member Bold model.wholeTextBlocAttr)
-                (model.selected == Nothing)
-            )
-            { onPress = Just SetTextBlocBold
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| bold iconSize)
-                    ]
-            }
-        , Input.button
-            (toogleButtonStyle
-                (List.member Italic model.wholeTextBlocAttr)
-                (model.selected == Nothing)
-            )
-            { onPress = Just SetTextBlocItalic
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| italic iconSize)
-                    ]
-            }
-        ]
-
-
-headingView level { meta, attrs, dataKind } =
-    row [ spacing 15 ]
-        [ el []
-            (html <|
-                Html.select
-                    [ HtmlEvents.onInput SelectHeadingLevel
-
-                    --, HtmlAttr.disabled (lev == Nothing)
-                    --, HtmlAttr.value (Maybe.map String.fromInt level |> Maybe.withDefault "")
-                    ]
-                    [ Html.option
-                        [ HtmlAttr.value "1"
-                        , HtmlAttr.selected (dataKind == Heading 1)
+                )
+            , Input.button
+                (toogleButtonStyle
+                    (List.member Justify model.wholeTextBlocAttr)
+                    (model.selected == Nothing)
+                )
+                { onPress = Just SetTextBlocAlignment
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| alignJustify iconSize)
                         ]
-                        [ Html.text "Niveau 1" ]
-                    , Html.option
-                        [ HtmlAttr.value "2"
-                        , HtmlAttr.selected (dataKind == Heading 2)
+                }
+            , Input.button
+                (toogleButtonStyle
+                    (List.member Bold model.wholeTextBlocAttr)
+                    (model.selected == Nothing)
+                )
+                { onPress = Just SetTextBlocBold
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| bold iconSize)
                         ]
-                        [ Html.text "Niveau 2" ]
-                    , Html.option
-                        [ HtmlAttr.value "3"
-                        , HtmlAttr.selected (dataKind == Heading 3)
+                }
+            , Input.button
+                (toogleButtonStyle
+                    (List.member Italic model.wholeTextBlocAttr)
+                    (model.selected == Nothing)
+                )
+                { onPress = Just SetTextBlocItalic
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| italic iconSize)
                         ]
-                        [ Html.text "Niveau 3" ]
-                    ]
-            )
-        , Input.button
-            (buttonStyle (not (level == Nothing)) ++ [ alignTop ])
-            { onPress = Just (ConfirmHeadingLevel meta.uid)
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| Icons.externalLink iconSize)
-                    , el [] (text "Valider")
-                    ]
-            }
-        ]
+                }
+            ]
 
 
-internalLinkView config =
+headingView : (Msg -> msg) -> Maybe Int -> TrackedData -> Element.Element msg
+headingView externalMsg level { meta, attrs, dataKind } =
+    Element.map externalMsg <|
+        row [ spacing 15 ]
+            [ el []
+                (html <|
+                    Html.select
+                        [ HtmlEvents.onInput SelectHeadingLevel
+                        ]
+                        [ Html.option
+                            [ HtmlAttr.value "1"
+                            , HtmlAttr.selected (dataKind == Heading 1)
+                            ]
+                            [ Html.text "Niveau 1" ]
+                        , Html.option
+                            [ HtmlAttr.value "2"
+                            , HtmlAttr.selected (dataKind == Heading 2)
+                            ]
+                            [ Html.text "Niveau 2" ]
+                        , Html.option
+                            [ HtmlAttr.value "3"
+                            , HtmlAttr.selected (dataKind == Heading 3)
+                            ]
+                            [ Html.text "Niveau 3" ]
+                        ]
+                )
+            , Input.button
+                (buttonStyle (not (level == Nothing)) ++ [ alignTop ])
+                { onPress = Just (ConfirmHeadingLevel meta.uid)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| Icons.externalLink iconSize)
+                        , el [] (text "Valider")
+                        ]
+                }
+            ]
+
+
+internalLinkView :
+    (Msg -> msg)
+    ->
+        { c
+            | fileExplorer : FileExplorer.Model msg
+            , isDoc : Bool
+            , logInfo : Auth.AuthPlugin.LogInfo
+            , pagesList : List String
+            , selectedInternalPage : Maybe String
+            , selectorOpen : Bool
+            , td : TrackedData
+            , url : String
+            , zone : Time.Zone
+        }
+    -> Element.Element msg
+internalLinkView externalMsg config =
     row
         [ spacing 15
         , below <|
             if config.selectorOpen then
                 column
                     [ htmlAttribute <|
-                        HtmlEvents.stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
-                    , Background.color (rgb 0.95 0.95 0.95)
-
-                    --, Border.width 1
-                    --, Border.color (rgb 0.8 0.8 0.8)
+                        HtmlEvents.stopPropagationOn "click" (Decode.succeed ( externalMsg NoOp, True ))
+                    , Background.color (rgb 1 1 1)
+                    , width (px 850)
+                    , Border.shadow
+                        { offset = ( 4, 4 )
+                        , size = 5
+                        , blur = 10
+                        , color = rgba 0 0 0 0.45
+                        }
                     ]
                     [ if config.isDoc then
-                        chooseDocView config.td.meta.uid config.selectedFolder config.selectedFile config.fileList
+                        chooseDocView externalMsg config.td.meta.uid config.fileExplorer config.zone config.logInfo
                       else
-                        chooseInternalPageView config.td.meta.uid config.selectedInternalPage config.pagesList
+                        chooseInternalPageView externalMsg config.td.meta.uid config.selectedInternalPage config.pagesList
                     ]
             else
                 Element.none
         ]
-        [ row [ spacing 5 ]
-            [ el [ Font.bold ] (text "Lien pour: ")
-            , el [] (text config.td.meta.value)
-            ]
-        , Input.text
-            [ width (px 150)
-            , spacing 5
-            , paddingXY 15 5
-            , focused [ Border.glow (rgb 1 1 1) 0 ]
-            , Font.family
-                [ Font.monospace
-                ]
-            , Events.onClick InternalUrlSelectorClick
-            ]
-            { onChange = SetUrl config.td.meta.uid
-            , text = config.url
-            , placeholder = Nothing
-            , label =
-                Input.labelLeft
-                    [ centerY
-                    , Font.bold
-                    ]
-                    (Element.text "Url: ")
-            }
-        , Input.radioRow
-            [ spacing 15 ]
-            { onChange =
-                SetInternalLinkKind config.td.meta.uid
-            , options =
-                [ Input.option
-                    False
-                    (text "page interne")
-                , Input.option
-                    True
-                    (text "document")
-                ]
-            , selected =
-                Just config.isDoc
-            , label = Input.labelLeft [] Element.none
-            }
-        ]
-
-
-chooseDocView uid mbFolder mbFile fileList =
-    row
-        [ padding 15
-        , spacing 15
-        ]
-        [ column
-            [ width (px 200)
-            , height (px 150)
-            , Border.width 1
-            , Border.color (rgb 0.8 0.8 0.8)
-            , scrollbarY
-            , Background.color (rgb 1 1 1)
-            ]
-            (List.map (entryView mbFolder SelectFolder) (Dict.keys fileList))
-        , column
-            [ width (px 350)
-            , height (px 150)
-            , Border.width 1
-            , Border.color (rgb 0.8 0.8 0.8)
-            , clipX
-            , scrollbarY
-            , Background.color (rgb 1 1 1)
-            ]
-            (Maybe.andThen (\folder -> Dict.get folder fileList) mbFolder
-                |> Maybe.map (List.map (entryView mbFile SelectFile))
-                |> Maybe.withDefault []
+        (List.map
+            (Element.map
+                externalMsg
             )
-        , Input.button
-            (buttonStyle (not (mbFile == Nothing)) ++ [ alignTop ])
-            { onPress =
-                if not (mbFile == Nothing) then
-                    Just (ConfirmFileUrl uid)
-                else
-                    Nothing
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| Icons.externalLink iconSize)
-                    , el [] (text "Valider")
+            [ row [ spacing 5 ]
+                [ el [ Font.bold ] (text "Lien pour: ")
+                , el [] (text config.td.meta.value)
+                ]
+            , Input.text
+                [ width (px 150)
+                , spacing 5
+                , paddingXY 15 5
+                , focused [ Border.glow (rgb 1 1 1) 0 ]
+                , Font.family
+                    [ Font.monospace
                     ]
+                , Events.onClick InternalUrlSelectorClick
+                ]
+                { onChange = SetUrl config.td.meta.uid
+                , text = config.url
+                , placeholder = Nothing
+                , label =
+                    Input.labelLeft
+                        [ centerY
+                        , Font.bold
+                        ]
+                        (Element.text "Url: ")
+                }
+            , Input.radioRow
+                [ spacing 15 ]
+                { onChange =
+                    SetInternalLinkKind config.td.meta.uid
+                , options =
+                    [ Input.option
+                        False
+                        (text "page interne")
+                    , Input.option
+                        True
+                        (text "document")
+                    ]
+                , selected =
+                    Just config.isDoc
+                , label = Input.labelLeft [] Element.none
+                }
+            ]
+        )
+
+
+chooseDocView :
+    (Msg -> msg)
+    -> Int
+    -> FileExplorer.Model msg
+    -> Time.Zone
+    -> LogInfo
+    -> Element.Element msg
+chooseDocView externalMsg uid fileExplorer zone logInfo =
+    column
+        [ paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
             }
-        ]
-
-
-chooseInternalPageView uid mbSelected pagesList =
-    row
-        [ padding 15
         , spacing 15
         ]
-        [ column
-            [ width (px 200)
-            , height (px 150)
-            , Border.width 1
-            , Border.color (rgb 0.8 0.8 0.8)
-            , scrollbarY
-            ]
-            (List.map (entryView mbSelected SelectInternalPage) pagesList)
-        , Input.button
-            (buttonStyle (not (mbSelected == Nothing)) ++ [ alignTop ])
-            { onPress =
-                if not (mbSelected == Nothing) then
-                    Just (ConfirmInternalPageUrl uid)
-                else
-                    Nothing
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| Icons.externalLink iconSize)
-                    , el [] (text "Valider")
-                    ]
+        [ FileExplorer.view
+            { maxHeight =
+                500
+            , zone = zone
+            , logInfo = logInfo
+            , mode = FileExplorer.ReadOnly FileExplorer.DocsRoot
             }
+            fileExplorer
+        , el [ paddingXY 15 0 ]
+            (Input.button
+                (buttonStyle (FileExplorer.getSelectedDoc fileExplorer /= Nothing) ++ [ alignTop ])
+                { onPress =
+                    Maybe.map (externalMsg << ConfirmFileUrl uid)
+                        (FileExplorer.getSelectedDoc fileExplorer)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| Icons.externalLink iconSize)
+                        , el [] (text "Valider")
+                        ]
+                }
+            )
         ]
 
 
-externalLinkView : String -> TrackedData -> Element.Element Msg
-externalLinkView url { meta, attrs, dataKind } =
-    row [ spacing 15 ]
-        [ row [ spacing 5 ]
-            [ el [ Font.bold ] (text "Lien pour: ")
-            , el [] (text meta.value)
+chooseInternalPageView :
+    (Msg -> msg)
+    -> Int
+    -> Maybe String
+    -> List String
+    -> Element.Element msg
+chooseInternalPageView externalMsg uid mbSelected pagesList =
+    Element.map externalMsg <|
+        row
+            [ padding 15
+            , spacing 15
             ]
-        , Input.text
-            [ width (px 150)
-            , spacing 5
-            , paddingXY 15 5
-            , focused [ Border.glow (rgb 1 1 1) 0 ]
-            , Font.family
-                [ Font.monospace
+            [ column
+                [ width (px 200)
+                , height (px 150)
+                , Border.width 1
+                , Border.color (rgb 0.8 0.8 0.8)
+                , scrollbarY
                 ]
+                (List.map (entryView mbSelected SelectInternalPage) pagesList)
+            , Input.button
+                (buttonStyle (not (mbSelected == Nothing)) ++ [ alignTop ])
+                { onPress =
+                    if not (mbSelected == Nothing) then
+                        Just (ConfirmInternalPageUrl uid)
+                    else
+                        Nothing
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| Icons.externalLink iconSize)
+                        , el [] (text "Valider")
+                        ]
+                }
             ]
-            { onChange = SetUrl meta.uid
-            , text = url
-            , placeholder = Nothing
-            , label =
-                Input.labelLeft
-                    [ centerY
-                    , Font.bold
+
+
+externalLinkView :
+    (Msg -> msg)
+    -> String
+    -> TrackedData
+    -> Element.Element msg
+externalLinkView externalMsg url { meta, attrs, dataKind } =
+    Element.map externalMsg <|
+        row [ spacing 15 ]
+            [ row [ spacing 5 ]
+                [ el [ Font.bold ] (text "Lien pour: ")
+                , el [] (text meta.value)
+                ]
+            , Input.text
+                [ width (px 150)
+                , spacing 5
+                , paddingXY 15 5
+                , focused [ Border.glow (rgb 1 1 1) 0 ]
+                , Font.family
+                    [ Font.monospace
                     ]
-                    (Element.text "Url: ")
-            }
-        ]
+                ]
+                { onChange = SetUrl meta.uid
+                , text = url
+                , placeholder = Nothing
+                , label =
+                    Input.labelLeft
+                        [ centerY
+                        , Font.bold
+                        ]
+                        (Element.text "Url: ")
+                }
+            ]
 
 
+inlineStyleView : Model msg -> TrackedData -> Element.Element msg
 inlineStyleView model ({ meta, attrs, dataKind } as td) =
     let
         fontOptionView selectedFont f =
@@ -1357,79 +1364,85 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                 ]
                 [ Html.text fs ]
     in
-    row [ spacing 15 ]
-        [ Input.button
-            (toogleButtonStyle
-                (List.member Bold attrs)
-                True
-            )
-            { onPress = Just (SetInlineBold meta.uid)
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| bold iconSize)
-                    ]
-            }
-        , Input.button
-            (toogleButtonStyle
-                (List.member Italic attrs)
-                True
-            )
-            { onPress = Just (SetInlineItalic meta.uid)
-            , label =
-                row [ spacing 5 ]
-                    [ el [] (html <| italic iconSize)
-                    ]
-            }
-        , el
-            []
-            (html <|
-                Html.select
-                    [ HtmlEvents.onInput (SetInlineFont meta.uid)
-                    ]
-                    (List.map
-                        (fontOptionView
-                            (List.filter isFontAttr attrs
-                                |> List.head
+    Element.map model.externalMsg <|
+        row [ spacing 15 ]
+            [ Input.button
+                (toogleButtonStyle
+                    (List.member Bold attrs)
+                    True
+                )
+                { onPress = Just (SetInlineBold meta.uid)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| bold iconSize)
+                        ]
+                }
+            , Input.button
+                (toogleButtonStyle
+                    (List.member Italic attrs)
+                    True
+                )
+                { onPress = Just (SetInlineItalic meta.uid)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| italic iconSize)
+                        ]
+                }
+            , el
+                []
+                (html <|
+                    Html.select
+                        [ HtmlEvents.onInput (SetInlineFont meta.uid)
+                        ]
+                        (List.map
+                            (fontOptionView
+                                (List.filter isFontAttr attrs
+                                    |> List.head
+                                )
                             )
+                            fonts
                         )
-                        fonts
-                    )
-            )
-        , el
-            []
-            (html <|
-                Html.select
-                    [ HtmlEvents.onInput (SetInlineFontSize meta.uid)
-                    ]
-                    (List.map
-                        (fontSizeOptionView
-                            (List.filter isFontSizeAttr attrs
-                                |> List.head
+                )
+            , el
+                []
+                (html <|
+                    Html.select
+                        [ HtmlEvents.onInput (SetInlineFontSize meta.uid)
+                        ]
+                        (List.map
+                            (fontSizeOptionView
+                                (List.filter isFontSizeAttr attrs
+                                    |> List.head
+                                )
                             )
+                            fontSizes
                         )
-                        fontSizes
-                    )
-            )
-        , colorPicker
-            model.colorPickerOpen
-            (List.filter isFontColorAttr attrs
-                |> List.head
-            )
-            "Couleur du texte"
-            SetTextColor
-            meta.uid
-        , colorPicker
-            model.colorPickerOpen
-            (List.filter isBackgroundColorAttr attrs
-                |> List.head
-            )
-            "Couleur du fond"
-            SetBackgroundColor
-            meta.uid
-        ]
+                )
+            , colorPicker
+                model.colorPickerOpen
+                (List.filter isFontColorAttr attrs
+                    |> List.head
+                )
+                "Couleur du texte"
+                SetTextColor
+                meta.uid
+            , colorPicker
+                model.colorPickerOpen
+                (List.filter isBackgroundColorAttr attrs
+                    |> List.head
+                )
+                "Couleur du fond"
+                SetBackgroundColor
+                meta.uid
+            ]
 
 
-customTextArea attrs cursorPos setSelection rawInput =
+customTextArea :
+    List (Element.Attribute Msg)
+    -> Maybe Encode.Value
+    -> String
+    -> Element.Element Msg
+customTextArea attrs setSelection rawInput =
     el attrs
         (html <|
             Html.node "custom-textarea"
@@ -1458,6 +1471,7 @@ customTextArea attrs cursorPos setSelection rawInput =
         )
 
 
+textBlocPreview : Model msg -> Document.Config msg -> Element.Element Msg
 textBlocPreview model config =
     Element.map (\_ -> NoOp) <|
         column
@@ -1486,6 +1500,13 @@ textBlocPreview model config =
             )
 
 
+colorPicker :
+    Maybe String
+    -> Maybe Document.DocAttribute
+    -> String
+    -> (Int -> String -> Msg)
+    -> Int
+    -> Element.Element Msg
 colorPicker colorPickerOpen currentColor label msg uid =
     let
         currentColor_ =
@@ -1522,7 +1543,6 @@ colorPicker colorPickerOpen currentColor label msg uid =
 
         colors =
             chunks 12 webColors
-                --(List.sortBy (\( n, c ) -> c) webColors)
                 |> List.map
                     (\r ->
                         row [ spacing 3 ]
@@ -1537,12 +1557,7 @@ colorPicker colorPickerOpen currentColor label msg uid =
     el
         [ below <|
             el
-                [ --htmlAttribute <|
-                  --    HtmlEvents.stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
-                  Background.color (rgb 0.95 0.95 0.95)
-
-                --, Events.onLose
-                ]
+                [ Background.color (rgb 0.95 0.95 0.95) ]
                 (case colorPickerOpen of
                     Just l ->
                         if l == label then
@@ -2184,6 +2199,7 @@ type alias ProcessedInput =
     }
 
 
+defmeta : Int -> String -> PrimitiveMeta
 defmeta uid value =
     { start = 0
     , stop = 0
@@ -2517,6 +2533,7 @@ hexColorToDocColor hexColor =
     DocColor (red / 255) (green / 255) (blue / 255)
 
 
+chunks : Int -> List a -> List (List a)
 chunks n xs =
     let
         helper acc ys =
@@ -2530,24 +2547,31 @@ chunks n xs =
     helper [] xs
 
 
-updateAttrs p c val attrs =
+updateAttrs :
+    (Document.DocAttribute -> Bool)
+    -> (a -> Document.DocAttribute)
+    -> a
+    -> List Document.DocAttribute
+    -> List Document.DocAttribute
+updateAttrs p attrWrapper val attrs =
     let
         helper acc xs =
             case xs of
                 [] ->
-                    List.reverse (c val :: acc)
+                    List.reverse (attrWrapper val :: acc)
 
                 x :: xs_ ->
-                    if c val == x then
+                    if attrWrapper val == x then
                         List.reverse acc ++ xs_
                     else if p x then
-                        List.reverse (c val :: acc) ++ xs_
+                        List.reverse (attrWrapper val :: acc) ++ xs_
                     else
                         helper (x :: acc) xs_
     in
     helper [] attrs
 
 
+isFontAttr : Document.DocAttribute -> Bool
 isFontAttr a =
     case a of
         Font _ ->
@@ -2557,6 +2581,7 @@ isFontAttr a =
             False
 
 
+isFontColorAttr : Document.DocAttribute -> Bool
 isFontColorAttr a =
     case a of
         FontColor _ ->
@@ -2566,6 +2591,7 @@ isFontColorAttr a =
             False
 
 
+isBackgroundColorAttr : Document.DocAttribute -> Bool
 isBackgroundColorAttr a =
     case a of
         BackgroundColor _ ->
@@ -2575,6 +2601,7 @@ isBackgroundColorAttr a =
             False
 
 
+isFontSizeAttr : Document.DocAttribute -> Bool
 isFontSizeAttr a =
     case a of
         FontSize _ ->
@@ -2659,71 +2686,6 @@ dummyInternalPageList =
     , "VieScolaire"
     , "VillageFleuri"
     ]
-
-
-dummyFileList =
-    Dict.fromList
-        [ ( "ados"
-          , [ "Document d'information argent de poche.pdf"
-            , "Dossier d'inscription argent de poche 2018.pdf"
-            , "Dossier d'inscription argent de poche.pdf"
-            , "plaquette été 2018 argent de poche.pdf"
-            , "plaquette printemps 2017 argent de poche.pdf"
-            ]
-          )
-        , ( "animation"
-          , [ "affiche14juillet2016.pdf"
-            , "affiche14juillet2017.pdf"
-            , "affiche14juillet2018.pdf"
-            , "afficheFestivalArt2018.pdf"
-            , "animations SIVOM 2017.pdf"
-            , "concert église 19-8-18.pdf"
-            , "expo 2018 amis du vieux murol.pdf"
-            , "expos estivales 2017.pdf"
-            , "programme1 2016.pdf"
-            , "programme 1 juillet 2017.pdf"
-            , "programme2 2016.pdf"
-            , "programme 2 juillet 2017.pdf"
-            , "programme3 2016.pdf"
-            , "programme3 aout 2017.pdf"
-            , "programme4 2016.pdf"
-            , "programme 4 aout 2017.pdf"
-            , "programme des animations de la vallée verte juillet 2018.pdf"
-            , "programme Médiévales 2018.pdf"
-            , "www.villes-et-villages-fleuris.com_presse_presentationFR.pdf"
-            ]
-          )
-        , ( "bulletin"
-          , []
-          )
-        , ( "commerces"
-          , []
-          )
-        , ( "conseilMunicipal"
-          , []
-          )
-        , ( "decouvrirMurol"
-          , []
-          )
-        , ( "DeliberationsConseil"
-          , []
-          )
-        , ( "environnement"
-          , []
-          )
-        , ( "murolInfo"
-          , []
-          )
-        , ( "offresEmploi"
-          , []
-          )
-        , ( "periscolaire"
-          , []
-          )
-        , ( "villageFleuri"
-          , []
-          )
-        ]
 
 
 webColors =

@@ -17,6 +17,7 @@ import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
+import FileExplorer.FileExplorer as FileExplorer
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
 import Internals.CommonStyleHelpers exposing (..)
@@ -135,7 +136,7 @@ storageHandler response state mdl =
 
 
 type alias Model msg =
-    { config : Config Msg
+    { config : Config msg
     , document : DocZipper
     , undoCache : List DocZipper
     , clipboard : Maybe Document
@@ -237,16 +238,6 @@ undoCacheDepth =
     4
 
 
-
---init : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd msg )
---init mbDoc externalMsg =
---    let
---        ( newPageEditor, pageEditorCmds ) =
---            reset mbDoc externalMsg
---    in
---    ( newPageEditor, Cmd.map externalMsg <| pageEditorCmds )
-
-
 init =
     reset
 
@@ -264,10 +255,10 @@ reset mbDoc externalMsg =
             ImagePlugin.init Nothing (externalMsg << ImagePluginMsg)
 
         handlers =
-            { containerClickHandler = SelectDoc
-            , containerDblClickHandler = \_ -> NoOp
-            , cellClick = EditCell
-            , neighbourClickHandler = \_ -> Rewind
+            { containerClickHandler = externalMsg << SelectDoc
+            , containerDblClickHandler = \_ -> externalMsg NoOp
+            , cellClick = externalMsg EditCell
+            , neighbourClickHandler = \_ -> externalMsg Rewind
             }
 
         config =
@@ -282,7 +273,7 @@ reset mbDoc externalMsg =
                     )
             , customElems = Dict.empty
             , styleSheet = defaulStyleSheet
-            , onLoadMsg = \_ -> RefreshSizes
+            , onLoadMsg = \_ -> externalMsg RefreshSizes
             , zipperHandlers = Just handlers
             , editMode = True
             , containersBkgColors = False
@@ -328,6 +319,7 @@ reset mbDoc externalMsg =
     )
 
 
+update : config -> Msg -> Model msg -> ( Model msg, Cmd msg, Maybe a )
 update config msg model =
     let
         ( newModel, cmds ) =
@@ -336,10 +328,7 @@ update config msg model =
     ( newModel, cmds, Nothing )
 
 
-
---internalUpdate : Msg -> Model msg -> ( Model msg, Cmd msg )
-
-
+internalUpdate : config -> Msg -> Model msg -> ( Model msg, Cmd msg )
 internalUpdate config msg model =
     case msg of
         ----------------------------------------------
@@ -416,17 +405,15 @@ internalUpdate config msg model =
             in
             ( { model | config = newConfig }
             , Cmd.batch
-                [ updateSizes newConfig
-                , Task.attempt MainInterfaceViewport
+                [ updateSizes model.externalMsg newConfig
+                , Task.attempt (model.externalMsg << MainInterfaceViewport)
                     (Dom.getViewportOf "mainInterface")
                 ]
-                |> Cmd.map model.externalMsg
             )
 
         RefreshSizes ->
             ( model
-            , updateSizes model.config
-                |> Cmd.map model.externalMsg
+            , updateSizes model.externalMsg model.config
             )
 
         JumpTo id ->
@@ -677,8 +664,7 @@ internalUpdate config msg model =
                         | document = zipper
                         , undoCache = xs
                       }
-                    , updateSizes model.config
-                        |> Cmd.map model.externalMsg
+                    , updateSizes model.externalMsg model.config
                     )
 
         --------------
@@ -722,8 +708,7 @@ internalUpdate config msg model =
                     { config_ | width = newWidth }
             in
             ( { model | previewMode = pm, config = newConfig }
-            , updateSizes newConfig
-                |> Cmd.map model.externalMsg
+            , updateSizes model.externalMsg newConfig
             )
 
         ToogleCountainersColors ->
@@ -1112,29 +1097,20 @@ internalUpdate config msg model =
 -------------------
 -- View funcions --
 -------------------
---view : Model -> Browser.Document Msg
---view :
---    { logInfo : LogInfo
---    --, fileExplorer = FileExplorer.Model
---    --, fileExplorerView = ()
---    , zone : Time.Zone
---    }
---    -> Model msg
---    -> Element msg
 
 
+view :
+    { logInfo : LogInfo
+    , fileExplorer : FileExplorer.Model msg
+    , zone : Time.Zone
+    }
+    -> Model msg
+    -> Element msg
 view config model =
     column
         ([ width fill
          , height (maximum (model.config.height - 35) fill)
-
-         --, Background.color (rgba 1 0.5 0.3 0.4)
          ]
-            --++ (if model.currentPlugin == Nothing && model.controlDown then
-            --        [ htmlAttribute <| Wheel.onWheel WheelEvent ]
-            --    else
-            --        []
-            --   )
             ++ (if model.menuClicked then
                     [ onClick (model.externalMsg MenuClickOff) ]
                 else
@@ -1180,8 +1156,6 @@ view config model =
             , case model.currentPlugin of
                 Nothing ->
                     documentView model
-                        |> Element.map
-                            model.externalMsg
 
                 Just plugin ->
                     pluginView config model plugin
@@ -1189,7 +1163,7 @@ view config model =
         ]
 
 
-documentView : Model msg -> Element Msg
+documentView : Model msg -> Element msg
 documentView model =
     column
         [ scrollbarY
@@ -1226,23 +1200,21 @@ documentView model =
 -------------------------------
 -- Plugins views loading code--
 -------------------------------
---pluginView :
---    { logInfo : LogInfo
---    , fileExplorer = FileExplorer.Model
---    , fileExplorerView = ()
---    , zone : Time.Zone
---    }
---    -> Model msg
---    -> EditorPlugin
---    -> Element msg
 
 
+pluginView :
+    { logInfo : LogInfo
+    , fileExplorer : FileExplorer.Model msg
+    , zone : Time.Zone
+    }
+    -> Model msg
+    -> EditorPlugin
+    -> Element msg
 pluginView config model plugin =
     case plugin of
         ImagePlugin ->
             ImagePlugin.view
                 { picListing = []
-                , externalMsg = ImagePluginMsg
                 , fileExplorer = config.fileExplorer
                 , zone = config.zone
                 , maxHeight = model.config.height - model.config.mainInterfaceHeight - 35
@@ -1257,7 +1229,13 @@ pluginView config model plugin =
             el [] (text "Nothing  here yet!")
 
         TextBlockPlugin ->
-            TextBlockPlugin.view model.textBlockPlugin model.config
+            TextBlockPlugin.view
+                { fileExplorer = config.fileExplorer
+                , zone = config.zone
+                , logInfo = config.logInfo
+                }
+                model.config
+                model.textBlockPlugin
 
         NewDocPlugin ->
             NewDocPlugin.view
@@ -1310,6 +1288,7 @@ pluginView config model plugin =
 --openNewPlugin : Model msg -> ( Model msg, Cmd msg )
 
 
+openNewPlugin : config -> Model msg -> ( Model msg, Cmd msg )
 openNewPlugin config model =
     -- NOTE: reset corresponding plugin when the selection is an empty cell
     -- then open the plugin
@@ -1366,10 +1345,7 @@ openNewPlugin config model =
             ( model, Cmd.none )
 
 
-
---openPlugin : Model msg -> ( Model msg, Cmd msg )
-
-
+openPlugin : config -> Model msg -> ( Model msg, Cmd msg )
 openPlugin config model =
     -- NOTE: open the plugin corresponding to the current selection
     -- and initializes it with selection content
@@ -1834,8 +1810,8 @@ mainMenu config =
 ---------------------
 
 
-updateSizes : Config Msg -> Cmd Msg
-updateSizes { sizesDict } =
+updateSizes : (Msg -> msg) -> Config msg -> Cmd msg
+updateSizes externalMsg { sizesDict } =
     let
         cmd uid id =
             Task.attempt (CurrentViewportOf uid) (Dom.getViewportOf id)
@@ -1843,6 +1819,7 @@ updateSizes { sizesDict } =
     Dict.keys sizesDict
         |> List.map (\uid -> cmd uid ("sizeTracked" ++ String.fromInt uid))
         |> Cmd.batch
+        |> Cmd.map externalMsg
 
 
 scrollTo : Maybe String -> Cmd Msg

@@ -1,5 +1,6 @@
-module PageEditor.EditorPlugins.ImagePlugin exposing (..)
+module PageEditor.EditorPlugins.ImagePlugin exposing (Model, Msg, init, open, update, view)
 
+import Auth.AuthPlugin exposing (LogInfo)
 import Browser exposing (element)
 import Dict exposing (..)
 import Document.Document exposing (..)
@@ -22,7 +23,7 @@ import Internals.Icons exposing (alignCenter, alignLeft, alignRight, rotateCcw, 
 import Json.Decode as Decode
 import Json.Encode as Encode
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
-import PageEditor.Internals.DummyFileSys exposing (dummyImageList)
+import Time exposing (Zone)
 
 
 type alias Model msg =
@@ -36,15 +37,6 @@ type alias Model msg =
     , alignment : Alignment
     , mbImageMeta : Maybe ImageMeta
     , imageAttrs : List DocAttribute
-    }
-
-
-type alias ImageFromFile =
-    { contents : String
-    , filename : String
-    , width : Int
-    , height : Int
-    , filesize : Int
     }
 
 
@@ -66,18 +58,10 @@ type Msg
     | NoOp
 
 
-decodeImageData msg =
-    Decode.at [ "target", "fileData" ]
-        (Decode.map5 ImageFromFile
-            (Decode.field "contents" Decode.string)
-            (Decode.field "filename" Decode.string)
-            (Decode.field "width" Decode.int)
-            (Decode.field "height" Decode.int)
-            (Decode.field "filesize" Decode.int)
-            |> Decode.map msg
-        )
-
-
+init :
+    Maybe ( ImageMeta, List DocAttribute )
+    -> (Msg -> msg)
+    -> ( Model msg, Cmd msg )
 init mbInput externalMsg =
     ( { mode = ImageAttributeEditor
       , externalMsg = externalMsg
@@ -101,6 +85,11 @@ init mbInput externalMsg =
     )
 
 
+open :
+    config
+    -> Maybe ( ImageMeta, List DocAttribute )
+    -> (Msg -> msg)
+    -> ( Model msg, Cmd msg )
 open config mbInput externalMsg =
     ( { mode = ImageAttributeEditor
       , externalMsg = externalMsg
@@ -123,6 +112,11 @@ open config mbInput externalMsg =
     )
 
 
+update :
+    config
+    -> Msg
+    -> Model msg
+    -> ( Model msg, Cmd msg, Maybe (EditorPluginResult ( ImageMeta, List DocAttribute )) )
 update config msg model =
     case msg of
         ---------------------------
@@ -193,6 +187,15 @@ update config msg model =
             ( model, Cmd.none, Nothing )
 
 
+view :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+        , maxHeight : Int
+        , zone : Zone
+    }
+    -> Model msg
+    -> Element msg
 view config model =
     column
         [ height fill
@@ -202,14 +205,15 @@ view config model =
         [ case model.mode of
             ImageAttributeEditor ->
                 Element.map model.externalMsg <|
-                    imageAttributeEditorView config model
+                    imageAttributeEditorView model
 
             ImagePicker ->
                 imagePickerView config model
         ]
 
 
-imageAttributeEditorView config model =
+imageAttributeEditorView : Model msg -> Element Msg
+imageAttributeEditorView model =
     column
         [ spacing 15
         , Font.size 16
@@ -304,6 +308,15 @@ imageAttributeEditorView config model =
         ]
 
 
+imagePickerView :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+        , maxHeight : Int
+        , zone : Zone
+    }
+    -> Model msg
+    -> Element msg
 imagePickerView config model =
     column
         [ height fill
@@ -339,10 +352,6 @@ imagePickerView config model =
                 }
             ]
         ]
-
-
-subscriptions model =
-    Sub.batch []
 
 
 iconSize =

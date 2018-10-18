@@ -32,8 +32,6 @@ type alias Model msg =
     { renameBuffer : String
     , newFolderNameBuffer : String
     , root : Root
-
-    --, mode : Mode
     , mainPanelDisplay : MainPanelDisplay
     , externalMsg : Msg -> msg
     , mbIFilesys : Maybe Filesys
@@ -101,49 +99,6 @@ type MainPanelDisplay
     | LogsDisplay
 
 
-type FsItem
-    = Folder Meta (List FsItem)
-    | File Meta
-
-
-type alias Meta =
-    { path : Path
-    , name : String
-    , fileType : FileType
-    , fileSize : Maybe Int
-    }
-
-
-defMeta =
-    { path = []
-    , name = ""
-    , fileType = RegFile
-    , fileSize = Nothing
-    }
-
-
-type FileType
-    = ImageFile { width : Int, height : Int }
-    | RegFile
-
-
-type alias Path =
-    List String
-
-
-type alias Filesys =
-    { current : FsItem
-    , contexts : List Context
-    }
-
-
-type alias Context =
-    { parent : Meta
-    , left : List FsItem
-    , right : List FsItem
-    }
-
-
 type alias ImageFromFile =
     { contents : String
     , filename : String
@@ -153,12 +108,29 @@ type alias ImageFromFile =
     }
 
 
+type alias FileToUpload =
+    { filename : String
+    , loaded : Float
+    , total : Float
+    , success : Bool
+    }
+
+
+type UploadType
+    = BulkUpload
+    | RegUpload
+
+
+type ImageControllerMode
+    = FileReader
+    | Editor
+
+
+init : Root -> Mode -> (Msg -> msg) -> Model msg
 init root mode externalMsg =
     { renameBuffer = ""
     , newFolderNameBuffer = ""
     , root = root
-
-    --, mode = mode
     , mainPanelDisplay = FilesysDisplay
     , externalMsg = externalMsg
     , mbIFilesys = Nothing
@@ -192,17 +164,9 @@ init root mode externalMsg =
     }
 
 
-type UploadType
-    = BulkUpload
-    | RegUpload
-
-
-type ImageControllerMode
-    = FileReader
-    | Editor
-
-
+load : Model msg -> LogInfo -> Cmd msg
 load model logInfo =
+    --NOTE: load happens only after login
     case logInfo of
         LoggedIn { sessionId } ->
             Cmd.map model.externalMsg <|
@@ -302,7 +266,28 @@ getSelectedImage model =
             Nothing
 
 
+getSelectedDoc : Model msg -> Maybe String
+getSelectedDoc model =
+    case model.selectedFsItem of
+        Just (File { path, name, fileType, fileSize }) ->
+            case fileType of
+                RegFile ->
+                    Just <|
+                        String.join
+                            "/"
+                            path
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
+
+
+update : { a | logInfo : LogInfo } -> Msg -> Model msg -> ( Model msg, Cmd msg, Maybe a )
 update config msg model =
+    -- NOTE : Le troisième élément du tuple est toujours égal à Nothing
+    -- -> laissé au cas où.
     let
         ( newModel, cmds, mbPluginAction ) =
             internalUpdate config msg model
@@ -310,46 +295,12 @@ update config msg model =
     ( newModel, Cmd.map model.externalMsg cmds, mbPluginAction )
 
 
-updateFilesys mode model f =
-    case mode of
-        Full ->
-            case model.root of
-                ImagesRoot ->
-                    { model | mbIFilesys = f model.mbIFilesys }
-
-                DocsRoot ->
-                    { model | mbDFilesys = f model.mbDFilesys }
-
-        mode_ ->
-            case modeRoot mode_ model.root of
-                ImagesRoot ->
-                    { model | mbIFilesys = f model.mbIFilesys }
-
-                DocsRoot ->
-                    { model | mbDFilesys = f model.mbDFilesys }
-
-
-getCurrentFilesys mode model =
-    case mode of
-        Full ->
-            case model.root of
-                ImagesRoot ->
-                    model.mbIFilesys
-
-                DocsRoot ->
-                    model.mbDFilesys
-
-        mode_ ->
-            case modeRoot mode_ model.root of
-                ImagesRoot ->
-                    model.mbIFilesys
-
-                DocsRoot ->
-                    model.mbDFilesys
-
-
+internalUpdate : { a | logInfo : LogInfo } -> Msg -> Model msg -> ( Model msg, Cmd Msg, Maybe a )
 internalUpdate config msg model =
     case msg of
+        ----------------
+        -- Navigation --
+        ----------------
         GoHome mode ->
             let
                 f =
@@ -422,6 +373,28 @@ internalUpdate config msg model =
             , Nothing
             )
 
+        GoTo mode path ->
+            let
+                f =
+                    \mbFs ->
+                        Maybe.map rewindFilesys mbFs
+                            |> Maybe.map
+                                (zipToFsItem path)
+                            |> Maybe.withDefault mbFs
+
+                newModel =
+                    { model
+                        | lastLocation =
+                            getCurrentFilesys mode model
+                                |> Maybe.map extractFsItem
+                        , selectedFsItem = Nothing
+                    }
+            in
+            ( updateFilesys mode newModel f
+            , Cmd.none
+            , Nothing
+            )
+
         SelectFsItem mode fsItem ->
             if model.selectedFsItem == Just fsItem then
                 ( { model
@@ -450,28 +423,9 @@ internalUpdate config msg model =
                     _ ->
                         ( model, Cmd.none, Nothing )
 
-        GoTo mode path ->
-            let
-                f =
-                    \mbFs ->
-                        Maybe.map rewindFilesys mbFs
-                            |> Maybe.map
-                                (zipToFsItem path)
-                            |> Maybe.withDefault mbFs
-
-                newModel =
-                    { model
-                        | lastLocation =
-                            getCurrentFilesys mode model
-                                |> Maybe.map extractFsItem
-                        , selectedFsItem = Nothing
-                    }
-            in
-            ( updateFilesys mode newModel f
-            , Cmd.none
-            , Nothing
-            )
-
+        ------------------------------
+        -- Filesys modyfing Actions --
+        ------------------------------
         NewFolderInput s ->
             ( { model | newFolderNameBuffer = s }
             , Cmd.none
@@ -582,14 +536,9 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        SetRoot root ->
-            ( { model
-                | root = root
-              }
-            , Cmd.none
-            , Nothing
-            )
-
+        ------------------
+        -- Bulk Uploads --
+        ------------------
         RefreshFilesys mbToUnlock log root res ->
             case res of
                 Ok fs ->
@@ -692,14 +641,6 @@ internalUpdate config msg model =
                     , Nothing
                     )
 
-        SetImageUploadType ut ->
-            ( { model
-                | imageUploadType = ut
-              }
-            , Cmd.none
-            , Nothing
-            )
-
         FilesToUpload mode files ->
             let
                 uploadDone =
@@ -729,32 +670,6 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        AddLog l t ->
-            ( { model | logs = l t :: model.logs }
-            , Cmd.none
-            , Nothing
-            )
-
-        ToogleLogsView ->
-            let
-                mainPanelDisplay =
-                    case model.mainPanelDisplay of
-                        UploadDisplay ->
-                            UploadDisplay
-
-                        FilesysDisplay ->
-                            LogsDisplay
-
-                        LogsDisplay ->
-                            FilesysDisplay
-            in
-            ( { model
-                | mainPanelDisplay = mainPanelDisplay
-              }
-            , Cmd.none
-            , Nothing
-            )
-
         ToogleUploadView ->
             let
                 mainPanelDisplay =
@@ -777,14 +692,48 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        Debug s ->
-            ( { model | debug = s }
+        SetImageUploadType ut ->
+            ( { model
+                | imageUploadType = ut
+              }
             , Cmd.none
             , Nothing
             )
 
-        NoOp ->
-            ( model, Cmd.none, Nothing )
+        UploadImage fsItem ->
+            case model.mbImageFromFile of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Just { filename, contents } ->
+                    ( { model
+                        | imageControllerMode = FileReader
+                        , mbOriImageWidth = Nothing
+                        , mbOriImageHeight = Nothing
+                        , mbOriFileSize = Nothing
+                        , desiredWidth = Nothing
+                        , desiredHeight = Nothing
+                        , desiredFilename = Nothing
+                        , desiredRotationAngle = 0
+                        , sliderValue = 100
+                        , needToResize = False
+                        , needToRotate = False
+                        , canResize = False
+                        , mbImageFromFile = Nothing
+                        , mainPanelDisplay = FilesysDisplay
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (uploadImage
+                            fsItem
+                            (Maybe.withDefault filename model.desiredFilename)
+                            contents
+                        )
+                    , Nothing
+                    )
 
         ---------------------
         -- ImageController --
@@ -928,48 +877,57 @@ internalUpdate config msg model =
             , Nothing
             )
 
-        UploadImage fsItem ->
-            case model.mbImageFromFile of
-                Nothing ->
-                    ( model
-                    , Cmd.none
-                    , Nothing
-                    )
+        ----------
+        -- Logs --
+        ----------
+        AddLog l t ->
+            ( { model | logs = l t :: model.logs }
+            , Cmd.none
+            , Nothing
+            )
 
-                Just { filename, contents } ->
-                    ( { model
-                        | imageControllerMode = FileReader
-                        , mbOriImageWidth = Nothing
-                        , mbOriImageHeight = Nothing
-                        , mbOriFileSize = Nothing
-                        , desiredWidth = Nothing
-                        , desiredHeight = Nothing
-                        , desiredFilename = Nothing
-                        , desiredRotationAngle = 0
-                        , sliderValue = 100
-                        , needToResize = False
-                        , needToRotate = False
-                        , canResize = False
-                        , mbImageFromFile = Nothing
-                        , mainPanelDisplay = FilesysDisplay
-                      }
-                    , cmdIfLogged
-                        config.logInfo
-                        (uploadImage
-                            fsItem
-                            (Maybe.withDefault filename model.desiredFilename)
-                            contents
-                        )
-                    , Nothing
-                    )
+        ToogleLogsView ->
+            let
+                mainPanelDisplay =
+                    case model.mainPanelDisplay of
+                        UploadDisplay ->
+                            UploadDisplay
+
+                        FilesysDisplay ->
+                            LogsDisplay
+
+                        LogsDisplay ->
+                            FilesysDisplay
+            in
+            ( { model
+                | mainPanelDisplay = mainPanelDisplay
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        ----------
+        -- Misc --
+        ----------
+        SetRoot root ->
+            ( { model
+                | root = root
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        Debug s ->
+            ( { model | debug = s }
+            , Cmd.none
+            , Nothing
+            )
+
+        NoOp ->
+            ( model, Cmd.none, Nothing )
 
 
 
---selectedFilename : Model msg -> Maybe FsItem
---selectedFilename { mbFilesys } =
---    mbFilesys
---        |> Maybe.andThen
---            (Just << extractFsItem)
 -------------------------------------------------------------------------------
 --------------------
 -- View functions --
@@ -1010,6 +968,7 @@ view config model =
             ]
 
 
+mainInterface : { b | mode : Mode } -> Model msg -> Element Msg
 mainInterface config model =
     let
         iconSize =
@@ -1093,6 +1052,7 @@ mainInterface config model =
         ]
 
 
+clickablePath : { a | mode : Mode } -> Model msg -> Element Msg
 clickablePath config model =
     let
         getEveryPaths acc path =
@@ -1130,6 +1090,7 @@ clickablePath config model =
         )
 
 
+sidePanelView : { a | mode : Mode } -> Model msg -> Element Msg
 sidePanelView config model =
     let
         iconSize =
@@ -1356,12 +1317,20 @@ sidePanelView config model =
                 ]
     in
     column
-        [ width (px 330)
+        [ if
+            config.mode
+                == ReadOnly DocsRoot
+                || (model.mainPanelDisplay == UploadDisplay && config.mode /= Full)
+          then
+            width (px 180)
+          else
+            width (px 330)
         , padding 15
         , alignTop
         , Background.color (rgb 0.95 0.95 0.95)
         , height fill
         , spacing 15
+        , clip
         ]
         (case model.mainPanelDisplay of
             UploadDisplay ->
@@ -1393,6 +1362,7 @@ sidePanelView config model =
         )
 
 
+filesysView : { a | mode : Mode } -> Model msg -> Element Msg
 filesysView config model =
     let
         fileView file { name, path, fileType } =
@@ -1564,6 +1534,7 @@ filesysView config model =
                         ]
 
 
+logsView : { a | mode : Mode, zone : Zone } -> Model msg -> Element Msg
 logsView config model =
     column
         [ scrollbarY
@@ -1575,6 +1546,10 @@ logsView config model =
         [ Internals.CommonHelpers.logsView model.logs config.zone ]
 
 
+uploadView :
+    { a | logInfo : Auth.AuthPlugin.LogInfo, mode : Mode }
+    -> Model msg
+    -> Element Msg
 uploadView config model =
     let
         imagesUploadView =
@@ -1739,7 +1714,10 @@ uploadView config model =
         ]
 
 
+uploadController : List (Html.Attribute msg) -> Element msg
 uploadController attributes =
+    -- NOTE : Custom element qui permet de mettre plusieurs fichiers
+    -- en ligne d'un coup. Fonctionne pour les images, ou les docs
     el
         []
         (html <|
@@ -1754,14 +1732,11 @@ uploadController attributes =
         )
 
 
-type alias FileToUpload =
-    { filename : String
-    , loaded : Float
-    , total : Float
-    , success : Bool
-    }
-
-
+imageControllerView :
+    { a | mode : Mode }
+    -> Model msg
+    -> ImageControllerMode
+    -> Element Msg
 imageControllerView config model imgContMode =
     column
         [ spacing 15
@@ -1814,6 +1789,7 @@ imageControllerView config model imgContMode =
         ]
 
 
+fileReaderView : Model msg -> Element Msg
 fileReaderView model =
     column
         [ spacing 15 ]
@@ -1824,6 +1800,7 @@ fileReaderView model =
         ]
 
 
+imageController : List (Html.Attribute msg) -> Element.Element msg
 imageController attributes =
     --Keyed.el []
     --    ( "test"
@@ -1840,6 +1817,7 @@ imageController attributes =
         )
 
 
+editView : { a | mode : Mode } -> Model msg -> Element Msg
 editView config model =
     let
         iconSize =
@@ -1997,45 +1975,6 @@ editView config model =
             text "no file data"
 
 
-decodeFilesToUpload msg =
-    Decode.at [ "target", "fileDict" ]
-        (Decode.dict
-            (Decode.succeed FileToUpload
-                |> Pipeline.required "filename" Decode.string
-                |> Pipeline.optional "loaded" Decode.float 0
-                |> Pipeline.optional "total" Decode.float 0
-                |> Pipeline.optional "success"
-                    (Decode.oneOf
-                        [ Decode.field "message" Decode.string
-                            |> Decode.map (\_ -> True)
-                        , Decode.field "serverError" Decode.string
-                            |> Decode.map (\_ -> False)
-                        ]
-                    )
-                    False
-            )
-            |> Decode.map Dict.values
-            |> Decode.map msg
-        )
-
-
-decodeDebug =
-    Decode.succeed "debugger called"
-        |> Decode.map Debug
-
-
-decodeImageData msg =
-    Decode.at [ "target", "fileData" ]
-        (Decode.map5 ImageFromFile
-            (Decode.field "contents" Decode.string)
-            (Decode.field "filename" Decode.string)
-            (Decode.field "width" Decode.int)
-            (Decode.field "height" Decode.int)
-            (Decode.field "filesize" Decode.int)
-            |> Decode.map msg
-        )
-
-
 
 -------------------------------------------------------------------------------
 -----------------------------
@@ -2135,6 +2074,7 @@ deleteFile fsItem root sessionId =
 -- Rename file --
 
 
+renameFile : FsItem -> String -> Root -> String -> Cmd Msg
 renameFile fsItem newName root sessionId =
     let
         body =
@@ -2166,6 +2106,7 @@ renameFile fsItem newName root sessionId =
 -- Paste File
 
 
+pasteFile : FsItem -> FsItem -> Root -> String -> Cmd Msg
 pasteFile src dest root sessionId =
     let
         body =
@@ -2195,6 +2136,7 @@ pasteFile src dest root sessionId =
 -- New Folder
 
 
+makeNewFolder : FsItem -> String -> Root -> String -> Cmd Msg
 makeNewFolder fsItem folderName root sessionId =
     let
         body =
@@ -2227,6 +2169,7 @@ encodeFsItemPath fsItem =
         |> Encode.string
 
 
+encodeRoot : Root -> ( String, Encode.Value )
 encodeRoot root =
     case root of
         ImagesRoot ->
@@ -2244,6 +2187,7 @@ encodeRoot root =
 -- upload image
 
 
+uploadImage : FsItem -> String -> String -> String -> Cmd Msg
 uploadImage fsItem filename contents sessionId =
     let
         body =
@@ -2279,73 +2223,96 @@ uploadImage fsItem filename contents sessionId =
         request
 
 
+decodeFilesToUpload : (List FileToUpload -> Msg) -> Decode.Decoder Msg
+decodeFilesToUpload msg =
+    Decode.at [ "target", "fileDict" ]
+        (Decode.dict
+            (Decode.succeed FileToUpload
+                |> Pipeline.required "filename" Decode.string
+                |> Pipeline.optional "loaded" Decode.float 0
+                |> Pipeline.optional "total" Decode.float 0
+                |> Pipeline.optional "success"
+                    (Decode.oneOf
+                        [ Decode.field "message" Decode.string
+                            |> Decode.map (\_ -> True)
+                        , Decode.field "serverError" Decode.string
+                            |> Decode.map (\_ -> False)
+                        ]
+                    )
+                    False
+            )
+            |> Decode.map Dict.values
+            |> Decode.map msg
+        )
+
+
+decodeDebug : Decode.Decoder Msg
+decodeDebug =
+    Decode.succeed "debugger called"
+        |> Decode.map Debug
+
+
+decodeImageData : (ImageFromFile -> Msg) -> Decode.Decoder Msg
+decodeImageData msg =
+    Decode.at [ "target", "fileData" ]
+        (Decode.map5 ImageFromFile
+            (Decode.field "contents" Decode.string)
+            (Decode.field "filename" Decode.string)
+            (Decode.field "width" Decode.int)
+            (Decode.field "height" Decode.int)
+            (Decode.field "filesize" Decode.int)
+            |> Decode.map msg
+        )
+
+
 
 -------------------------------------------------------------------------------
-----------------------
--- Filesys functions--
-----------------------
+---------------------------------
+-- Filesys types and functions --
+---------------------------------
 
 
-fsItemToElement model config fsItem =
-    let
-        iEv handler msg =
-            handler (model.externalMsg msg)
+type FsItem
+    = Folder Meta (List FsItem)
+    | File Meta
 
-        paddingOffset n =
-            paddingEach
-                { top = 0
-                , left = n * 10
-                , right = 0
-                , bottom = 0
-                }
 
-        helper offset f =
-            case f of
-                File { name, path } ->
-                    [ row
-                        [ paddingOffset offset
-                        , spacing 10
-                        ]
-                        [ el
-                            [ Font.bold
-                            , iEv
-                                Events.onClick
-                                (GoTo config.mode path)
-                            ]
-                            (text name)
-                        , el
-                            [ Font.size 14
-                            , Font.color (rgb 0.7 0.7 0.7)
-                            ]
-                            (text <| String.join "/" path)
-                        ]
-                    ]
+type alias Meta =
+    { path : Path
+    , name : String
+    , fileType : FileType
+    , fileSize : Maybe Int
+    }
 
-                Folder { name, path } children ->
-                    [ row
-                        [ paddingOffset offset
-                        , spacing 10
-                        ]
-                        [ el
-                            [ Font.bold
-                            , Font.color (rgba 0 0 1 0.5)
-                            , iEv
-                                Events.onClick
-                                (GoTo config.mode path)
-                            ]
-                            (text name)
-                        , el
-                            [ Font.size 14
-                            , Font.color (rgb 0.7 0.7 0.7)
-                            ]
-                            (text <| String.join "/" path)
-                        ]
-                    ]
-                        ++ List.concatMap (helper (offset + 4)) children
-    in
-    column
-        [ spacing 10 ]
-        (helper 0 fsItem)
+
+defMeta =
+    { path = []
+    , name = ""
+    , fileType = RegFile
+    , fileSize = Nothing
+    }
+
+
+type FileType
+    = ImageFile { width : Int, height : Int }
+    | RegFile
+
+
+type alias Path =
+    List String
+
+
+type alias Filesys =
+    { current : FsItem
+    , contexts : List Context
+    }
+
+
+type alias Context =
+    { parent : Meta
+    , left : List FsItem
+    , right : List FsItem
+    }
 
 
 initFileSys : FsItem -> Filesys
@@ -2512,7 +2479,7 @@ insert : FsItem -> String -> Maybe FsItem -> Maybe FsItem
 insert f rootName mbFsItem_ =
     -- NOTE: permet de de construire un syteme de fichiers à partir
     -- d'une liste de fichiers/repertoires vides et de leur chemins
-    -- d'accès. L'odre d'insertion n'est pas important, la fonction
+    -- d'accès. L'ordre d'insertion n'est pas important, la fonction
     -- crée les repertoires intermédiaires au besoin.
     -- Les doublons sont ignorés.
     -- Format pour f:
@@ -2596,6 +2563,47 @@ insert f rootName mbFsItem_ =
 ---------------------------
 
 
+updateFilesys : Mode -> Model msg -> (Maybe Filesys -> Maybe Filesys) -> Model msg
+updateFilesys mode model f =
+    case mode of
+        Full ->
+            case model.root of
+                ImagesRoot ->
+                    { model | mbIFilesys = f model.mbIFilesys }
+
+                DocsRoot ->
+                    { model | mbDFilesys = f model.mbDFilesys }
+
+        mode_ ->
+            case modeRoot mode_ model.root of
+                ImagesRoot ->
+                    { model | mbIFilesys = f model.mbIFilesys }
+
+                DocsRoot ->
+                    { model | mbDFilesys = f model.mbDFilesys }
+
+
+getCurrentFilesys : Mode -> Model msg -> Maybe Filesys
+getCurrentFilesys mode model =
+    case mode of
+        Full ->
+            case model.root of
+                ImagesRoot ->
+                    model.mbIFilesys
+
+                DocsRoot ->
+                    model.mbDFilesys
+
+        mode_ ->
+            case modeRoot mode_ model.root of
+                ImagesRoot ->
+                    model.mbIFilesys
+
+                DocsRoot ->
+                    model.mbDFilesys
+
+
+cmdIfLogged : LogInfo -> (String -> Cmd msg) -> Cmd msg
 cmdIfLogged logInfo cmd =
     case logInfo of
         LoggedIn { sessionId } ->
@@ -2638,6 +2646,7 @@ onDoubleClick msg =
         |> htmlAttribute
 
 
+prettyName : String -> Int -> String
 prettyName name n =
     String.words name
         |> List.concatMap
@@ -2677,6 +2686,7 @@ prettyName name n =
         |> customJoin [] n " "
 
 
+customJoin : List String -> Int -> String -> List String -> String
 customJoin acc n s xs =
     case xs of
         [] ->
