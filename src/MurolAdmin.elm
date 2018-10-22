@@ -19,6 +19,7 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.ToolHelpers exposing (..)
 import NewsEditor.NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
+import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (..)
 import Task exposing (perform)
 import Time exposing (Zone, here, utc)
 
@@ -35,7 +36,7 @@ main =
 
 type alias Model =
     { pageEditor : PageEditor.Model Msg
-    , pageTreeEditor : ()
+    , pageTreeEditor : PageTreeEditor.Model Msg
     , fileExplorer : FileExplorer.Model Msg
     , generalDirectory : ()
     , newsEditor : ()
@@ -63,14 +64,17 @@ init flags =
         newFileExplorer =
             FileExplorer.init
                 FileExplorer.ImagesRoot
-                FileExplorer.Full
                 FileExplorerMsg
+
+        newPageTreeEditor =
+            PageTreeEditor.init
+                PageTreeEditorMsg
 
         ( newPageEditor, pageEditorCmds ) =
             PageEditor.init Nothing PageEditorMsg
     in
     ( { pageEditor = newPageEditor
-      , pageTreeEditor = ()
+      , pageTreeEditor = newPageTreeEditor
       , fileExplorer = newFileExplorer
       , generalDirectory = ()
       , newsEditor = ()
@@ -100,6 +104,7 @@ type Msg
     | Launch
     | FileExplorerMsg FileExplorer.Msg
     | PageEditorMsg PageEditor.Msg
+    | PageTreeEditorMsg PageTreeEditor.Msg
     | SetCurrentTool Tool
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
@@ -111,7 +116,7 @@ type Tool
     = PageEditorTool
     | FileExplorerTool
     | AuthTool
-    | SiteTreeTool
+    | PageTreeTool
     | GeneralDirectoryTool
     | NewsEditorTool
 
@@ -179,7 +184,10 @@ update msg model =
             let
                 ( newPageEditor, pageEditorCmds, mbToolResult ) =
                     PageEditor.update
-                        { fileExplorer = model.fileExplorer }
+                        { fileExplorer = model.fileExplorer
+                        , loadedContent =
+                            PageTreeEditor.loadedContent model.pageTreeEditor
+                        }
                         pageEditorMsg
                         model.pageEditor
             in
@@ -187,12 +195,23 @@ update msg model =
             , pageEditorCmds
             )
 
+        PageTreeEditorMsg pageTreeEditorMsg ->
+            let
+                ( newPageTreeEditor, pageTreeEditorCmds ) =
+                    PageTreeEditor.update
+                        { logInfo = Auth.getLogInfo model.authTool
+                        , currentDocument =
+                            PageEditor.currentDocument model.pageEditor
+                        }
+                        pageTreeEditorMsg
+                        model.pageTreeEditor
+            in
+            ( { model | pageTreeEditor = newPageTreeEditor }
+            , pageTreeEditorCmds
+            )
+
         SetCurrentTool t ->
             ( { model | currentTool = t }
-              --, if t == FileExplorerTool then
-              --    FileExplorer.setToFull model.fileExplorer
-              --  else
-              --    Cmd.none
             , Cmd.none
             )
 
@@ -295,7 +314,7 @@ view model =
                                 GeneralDirectoryTool
                                 "Répertoire général"
                             , tabView model.currentTool
-                                SiteTreeTool
+                                PageTreeTool
                                 "Structure du site"
                             , tabView model.currentTool
                                 FileExplorerTool
@@ -326,8 +345,15 @@ view model =
                             AuthTool ->
                                 Auth.view { zone = model.zone } model.authTool
 
-                            SiteTreeTool ->
-                                Element.none
+                            PageTreeTool ->
+                                PageTreeEditor.view
+                                    { maxHeight =
+                                        model.winHeight - 35
+                                    , zone = model.zone
+                                    , logInfo = Auth.getLogInfo model.authTool
+                                    , mode = PageTreeEditor.Full
+                                    }
+                                    model.pageTreeEditor
 
                             GeneralDirectoryTool ->
                                 Element.none

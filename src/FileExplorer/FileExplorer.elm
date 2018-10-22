@@ -126,8 +126,8 @@ type ImageControllerMode
     | Editor
 
 
-init : Root -> Mode -> (Msg -> msg) -> Model msg
-init root mode externalMsg =
+init : Root -> (Msg -> msg) -> Model msg
+init root externalMsg =
     { renameBuffer = ""
     , newFolderNameBuffer = ""
     , root = root
@@ -2344,7 +2344,6 @@ rewindFilesys filesys =
 
 zipUpFilesys : Filesys -> Maybe Filesys
 zipUpFilesys filesys =
-    --Debug.log "running zipUp" <|
     case filesys.contexts of
         [] ->
             Nothing

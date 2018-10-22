@@ -46,9 +46,11 @@
 
       set selection(offset){
         if(offset !== null) {
-          this._textarea = this.querySelector('textarea');
-          this._textarea.focus();
-          this._textarea.setSelectionRange(offset.start,offset.stop);
+          if (this.querySelector('textarea') !== null){
+            this._textarea = this.querySelector('textarea');
+            this._textarea.focus();
+            this._textarea.setSelectionRange(offset.start,offset.stop);
+          }
         }
       }
 

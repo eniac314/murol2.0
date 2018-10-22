@@ -53,6 +53,12 @@ type Child
     | NotLastChild Bool
 
 
+docTreeView :
+    { a | containersColors : Bool, isActive : Bool, zipToUidCmd : Int -> msg }
+    -> List Child
+    -> ( Int, Bool )
+    -> Document
+    -> List (Element msg)
 docTreeView config offsets ( sContainer, selection ) document =
     let
         sel =
@@ -92,8 +98,6 @@ docTreeView config offsets ( sContainer, selection ) document =
                                    )
                             )
                             (text <| containerLabelToString containerLabel)
-
-                       --(text <| String.fromInt id.uid ++ " " ++ containerLabelToString containerLabel)
                        ]
                 )
             ]
@@ -137,6 +141,7 @@ docTreeView config offsets ( sContainer, selection ) document =
             ]
 
 
+prefix : List Child -> List (Element msg)
 prefix offsets =
     let
         attrs sel =

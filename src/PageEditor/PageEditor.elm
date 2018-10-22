@@ -159,6 +159,12 @@ type alias Model msg =
     }
 
 
+currentDocument : Model msg -> Document
+currentDocument model =
+    rewind model.document
+        |> extractDoc
+
+
 type PreviewMode
     = PreviewBigScreen
     | PreviewScreen
