@@ -26,6 +26,7 @@ import Internals.Icons as Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
+import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Parser exposing (..)
 import Set exposing (..)
 import Time exposing (Zone)
@@ -830,6 +831,7 @@ iconSize =
 view :
     { a
         | fileExplorer : FileExplorer.Model msg
+        , pageTreeEditor : PageTreeEditor.Model msg
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
     }
@@ -904,6 +906,7 @@ interfaceView :
     { a
         | fileExplorer : FileExplorer.Model msg
         , logInfo : Auth.AuthPlugin.LogInfo
+        , pageTreeEditor : PageTreeEditor.Model msg
         , zone : Time.Zone
     }
     -> Model msg
@@ -999,6 +1002,7 @@ interfaceView config model =
                                 , selectedInternalPage = model.selectedInternalPage
                                 , td = td
                                 , fileExplorer = config.fileExplorer
+                                , pageTreeEditor = config.pageTreeEditor
                                 , zone = config.zone
                                 , logInfo = config.logInfo
                                 }
@@ -1147,6 +1151,7 @@ internalLinkView :
     ->
         { c
             | fileExplorer : FileExplorer.Model msg
+            , pageTreeEditor : PageTreeEditor.Model msg
             , isDoc : Bool
             , logInfo : Auth.AuthPlugin.LogInfo
             , pagesList : List String

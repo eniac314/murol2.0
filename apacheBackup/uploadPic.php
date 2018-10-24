@@ -22,8 +22,6 @@ if(getenv('REQUEST_METHOD') == 'POST' && !empty($_FILES['file']) && $_FILES['fil
   $checkPath = realpath(pathinfo($uploadPath)['dirname']);
 
   if(strpos($checkPath, $uploaddir) !== 0 || strpos($checkPath, $uploaddir) === false){ 
-    logError($uploadPath);
-    logError($uploaddir);
     logError("invalid upload path");
     exit();
   } 

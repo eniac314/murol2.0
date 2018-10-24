@@ -34,6 +34,7 @@ import PageEditor.EditorPlugins.VideoPlugin as VideoPlugin
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageEditor.Internals.DocumentZipper exposing (..)
 import PageEditor.Internals.PersistencePlugin as PersistencePlugin
+import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import PortFunnel exposing (FunnelSpec, GenericMessage, ModuleDesc, StateAccessors)
 import PortFunnel.LocalStorage as LocalStorage
 import Task exposing (perform)
@@ -1108,6 +1109,7 @@ internalUpdate config msg model =
 view :
     { logInfo : LogInfo
     , fileExplorer : FileExplorer.Model msg
+    , pageTreeEditor : PageTreeEditor.Model msg
     , zone : Time.Zone
     }
     -> Model msg
@@ -1211,6 +1213,7 @@ documentView model =
 pluginView :
     { logInfo : LogInfo
     , fileExplorer : FileExplorer.Model msg
+    , pageTreeEditor : PageTreeEditor.Model msg
     , zone : Time.Zone
     }
     -> Model msg
@@ -1237,6 +1240,7 @@ pluginView config model plugin =
         TextBlockPlugin ->
             TextBlockPlugin.view
                 { fileExplorer = config.fileExplorer
+                , pageTreeEditor = config.pageTreeEditor
                 , zone = config.zone
                 , logInfo = config.logInfo
                 }
@@ -1288,6 +1292,29 @@ pluginView config model plugin =
                     , document = extractDoc (rewind model.document)
                     , noOp = NoOp
                     }
+
+        PageTreeEditorPlugin mode ->
+            column
+                [ width fill ]
+                [ PageTreeEditor.view
+                    { maxHeight = model.config.height - model.config.mainInterfaceHeight - 85
+                    , zone = config.zone
+                    , logInfo = config.logInfo
+                    , mode = mode
+                    }
+                    config.pageTreeEditor
+                , row [ paddingXY 15 0 ]
+                    [ Input.button
+                        (buttonStyle True)
+                        { onPress =
+                            Just <| model.externalMsg (SetEditorPlugin Nothing)
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Retour"
+                                ]
+                        }
+                    ]
+                ]
 
 
 
@@ -1690,17 +1717,23 @@ mainMenu config =
               , [ [ { defEntry
                         | label = "Ouvrir page"
                         , isActive = not config.isInPlugin
-                        , msg = SetEditorPlugin (Just PersistencePlugin)
+                        , msg = SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.Open)
                     }
                   , { defEntry
-                        | label = "Sauvegarder"
+                        | label = "Enregistrer"
                         , isActive = not config.isInPlugin
-                        , msg = SetEditorPlugin (Just PersistencePlugin)
+                        , msg = SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.Save)
+                    }
+                  , { defEntry
+                        | label = "Enregistrer sous"
+                        , isActive = not config.isInPlugin
+                        , msg = SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.SaveAs)
                     }
                   ]
                 , [ { defEntry
-                        | label = "Retour menu principal"
-                        , isActive = False && not config.isInPlugin
+                        | label = "Sauvegarde cache"
+                        , isActive = not config.isInPlugin
+                        , msg = SetEditorPlugin (Just PersistencePlugin)
                     }
                   ]
                 ]

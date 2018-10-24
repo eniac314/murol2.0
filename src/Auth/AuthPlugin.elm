@@ -1,4 +1,4 @@
-module Auth.AuthPlugin exposing (LogInfo(..), Model, Msg, getLogInfo, init, update, view)
+module Auth.AuthPlugin exposing (LogInfo(..), Model, Msg, cmdIfLogged, getLogInfo, init, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -16,6 +16,16 @@ import Json.Decode as Decode
 import Json.Encode as Encode exposing (..)
 import Task exposing (..)
 import Time exposing (..)
+
+
+cmdIfLogged : LogInfo -> (String -> Cmd msg) -> Cmd msg
+cmdIfLogged logInfo cmd =
+    case logInfo of
+        LoggedIn { sessionId } ->
+            cmd sessionId
+
+        _ ->
+            Cmd.none
 
 
 type LogInfo

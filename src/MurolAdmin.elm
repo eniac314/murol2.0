@@ -161,7 +161,9 @@ update msg model =
                             /= Auth.LoggedOut
                     then
                         ( Loading
-                        , [ FileExplorer.load model.fileExplorer logInfo ]
+                        , [ FileExplorer.load model.fileExplorer logInfo
+                          , PageTreeEditor.load model.pageTreeEditor logInfo
+                          ]
                         )
                     else
                         ( model.loadingStatus, [] )
@@ -257,7 +259,9 @@ view model =
                     let
                         loadingComplete =
                             List.all (\ls -> ls == ToolLoadingSuccess)
-                                [ FileExplorer.loadingStatus model.fileExplorer ]
+                                [ FileExplorer.loadingStatus model.fileExplorer
+                                , PageTreeEditor.loadingStatus model.pageTreeEditor
+                                ]
                     in
                     column
                         [ spacing 15
@@ -265,6 +269,7 @@ view model =
                         , padding 15
                         ]
                         [ FileExplorer.loadingView model.fileExplorer
+                        , PageTreeEditor.loadingView model.pageTreeEditor
                         , Input.button (buttonStyle loadingComplete)
                             { onPress = Just Launch
                             , label =
@@ -328,6 +333,7 @@ view model =
                                 PageEditor.view
                                     { logInfo = Auth.getLogInfo model.authTool
                                     , fileExplorer = model.fileExplorer
+                                    , pageTreeEditor = model.pageTreeEditor
                                     , zone = model.zone
                                     }
                                     model.pageEditor

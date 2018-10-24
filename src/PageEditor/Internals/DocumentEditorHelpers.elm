@@ -13,6 +13,7 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Http exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
+import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (empty)
 import Time exposing (..)
 
@@ -62,6 +63,7 @@ type EditorPlugin
     | NewDocPlugin
     | ContainerEditPlugin
     | PersistencePlugin
+    | PageTreeEditorPlugin PageTreeEditor.Mode
 
 
 findAlignment : List DocAttribute -> Alignment

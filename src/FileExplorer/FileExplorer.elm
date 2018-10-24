@@ -1,6 +1,6 @@
 port module FileExplorer.FileExplorer exposing (..)
 
-import Auth.AuthPlugin exposing (LogInfo(..))
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Dict exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -2600,16 +2600,6 @@ getCurrentFilesys mode model =
 
                 DocsRoot ->
                     model.mbDFilesys
-
-
-cmdIfLogged : LogInfo -> (String -> Cmd msg) -> Cmd msg
-cmdIfLogged logInfo cmd =
-    case logInfo of
-        LoggedIn { sessionId } ->
-            cmd sessionId
-
-        _ ->
-            Cmd.none
 
 
 break : (a -> Bool) -> List a -> ( List a, List a )

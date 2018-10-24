@@ -1,6 +1,6 @@
 module PageTreeEditor.PageTreeEditor exposing (..)
 
-import Auth.AuthPlugin exposing (LogInfo(..))
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Dict exposing (..)
 import Document.Document exposing (..)
 import Document.Json.DocumentDecoder exposing (..)
@@ -22,7 +22,7 @@ import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import Random
 import Task exposing (..)
-import Time exposing (Zone)
+import Time exposing (Zone, now, posixToMillis)
 import UUID exposing (UUID, canonical)
 
 
@@ -31,8 +31,13 @@ type alias Model msg =
     , contents : Contents
     , selected : Maybe Page
     , loadedContent : Maybe Content
+    , pageTreeSavedStatus : Status
+    , contentSavedStatus : Status
     , externalMsg : Msg -> msg
-    , loadingStatus : ToolLoadingStatus
+    , pageTreeLoaded : Status
+    , contentsLoaded : Status
+    , seed : Maybe Random.Seed
+    , error : String
     }
 
 
@@ -54,46 +59,71 @@ type alias Contents =
 
 type alias Content =
     { contentId : UUID
-    , jsonContent : String
+    , jsonContent : Decode.Value
     , docContent : Document
     }
 
 
 init : (Msg -> msg) -> Model msg
 init externalMsg =
-    { pageTree =
-        List.map
-            (\( n, p ) ->
-                Page { name = n, path = p, mbContentId = Nothing } []
-            )
-            plan
-            |> List.foldr (\p acc -> insert p acc) Nothing
-            |> Maybe.map initPageTree
+    { pageTree = Nothing
     , contents = Dict.empty
     , selected = Nothing
     , loadedContent = Nothing
+    , pageTreeSavedStatus = Initial
+    , contentSavedStatus = Initial
     , externalMsg = externalMsg
-    , loadingStatus = ToolLoadingWaiting
+    , pageTreeLoaded = Initial
+    , contentsLoaded = Initial
+    , seed = Nothing
+    , error = ""
     }
 
 
 load : Model msg -> LogInfo -> Cmd msg
-load model loadInfo =
-    Cmd.none
+load model logInfo =
+    case logInfo of
+        LoggedIn { sessionId } ->
+            Cmd.map model.externalMsg <|
+                Cmd.batch
+                    [ getPageTree
+                    , getContents sessionId
+                    , Task.perform SetInitialSeed Time.now
+                    ]
+
+        LoggedOut ->
+            Cmd.none
 
 
 loadingStatus model =
-    model.loadingStatus
+    case ( model.pageTreeLoaded, model.contentsLoaded ) of
+        ( Success, Success ) ->
+            ToolLoadingSuccess
+
+        ( Failure, _ ) ->
+            ToolLoadingFailure "Erreur chargement arborescence"
+
+        ( _, Failure ) ->
+            ToolLoadingFailure "Erreur chargement pages"
+
+        _ ->
+            ToolLoadingWaiting
 
 
 loadingView model =
-    toolLoadingView "Chargement de la stucture du site: " model
+    toolLoadingView "Chargement de la stucture du site: "
+        { loadingStatus = loadingStatus model }
 
 
 type Msg
-    = RefreshContents (Result Http.Error Decode.Value)
-    | RefreshPageTree (Result Http.Error (Maybe PageTree))
-    | SaveDocument
+    = SelectPage Page
+    | RefreshContents (Result Http.Error Decode.Value)
+    | RefreshPageTree (Result Http.Error PageTree)
+    | SavePageTree
+    | PageTreeSaved (Result Http.Error Bool)
+    | SaveContent
+    | ContentSaved (Result Http.Error Bool)
+    | SetInitialSeed Time.Posix
     | NoOp
 
 
@@ -123,6 +153,13 @@ internalUpdate :
     -> ( Model msg, Cmd Msg )
 internalUpdate config msg model =
     case msg of
+        SelectPage ((Page pageInfo xs) as page) ->
+            ( { model
+                | selected = Just page
+              }
+            , Cmd.none
+            )
+
         RefreshContents res ->
             case res of
                 Ok jsonVal ->
@@ -130,32 +167,145 @@ internalUpdate config msg model =
                         Ok contents ->
                             ( { model
                                 | contents = contents
+                                , contentsLoaded = Success
                               }
                             , Cmd.none
                             )
 
-                        _ ->
-                            ( model, Cmd.none )
+                        Err e ->
+                            ( { model
+                                | contentsLoaded = Failure
+
+                                --, error = Debug.toString e
+                              }
+                            , Cmd.none
+                            )
 
                 Err _ ->
-                    ( model, Cmd.none )
+                    ( { model | contentsLoaded = Failure }
+                    , Cmd.none
+                    )
 
         RefreshPageTree res ->
             case res of
-                Ok mbPageTree ->
-                    ( { model | pageTree = mbPageTree }
+                Ok pageTree ->
+                    ( { model
+                        | pageTree = Just pageTree
+                        , pageTreeLoaded = Success
+                      }
                     , Cmd.none
                     )
 
                 Err _ ->
+                    ( { model | pageTreeLoaded = Failure }
+                    , Cmd.none
+                    )
+
+        SavePageTree ->
+            ( { model | pageTreeSavedStatus = Initial }
+            , Cmd.batch
+                [ Maybe.map extractPage model.pageTree
+                    |> Maybe.map
+                        (\pt ->
+                            cmdIfLogged
+                                config.logInfo
+                                (savePageTree
+                                    pt
+                                )
+                        )
+                    |> Maybe.withDefault Cmd.none
+                ]
+            )
+
+        PageTreeSaved res ->
+            case res of
+                Ok True ->
+                    ( { model | pageTreeSavedStatus = Success }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model | pageTreeSavedStatus = Failure }
+                    , Cmd.none
+                    )
+
+        SaveContent ->
+            case ( model.selected, model.seed ) of
+                ( Just ((Page pageInfo xs) as page), Just seed ) ->
+                    let
+                        ( uuid, newSeed ) =
+                            Random.step UUID.generator seed
+
+                        contentId =
+                            Maybe.withDefault uuid pageInfo.mbContentId
+
+                        newPageTree =
+                            Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                |> Maybe.map
+                                    (updateCurrPageTree
+                                        (Page
+                                            { pageInfo
+                                                | mbContentId = Just contentId
+                                            }
+                                            xs
+                                        )
+                                    )
+                                |> Maybe.map rewind
+                    in
+                    ( { model
+                        | contentSavedStatus = Initial
+                        , pageTreeSavedStatus = Initial
+                        , pageTree = newPageTree
+                        , seed = Just newSeed
+                        , selected =
+                            Just <|
+                                Page
+                                    { pageInfo
+                                        | mbContentId = Just contentId
+                                    }
+                                    xs
+                      }
+                    , Cmd.batch
+                        [ cmdIfLogged
+                            config.logInfo
+                            (saveContent contentId config.currentDocument)
+                        , Maybe.map extractPage model.pageTree
+                            |> Maybe.map
+                                (\pt ->
+                                    cmdIfLogged
+                                        config.logInfo
+                                        (savePageTree
+                                            pt
+                                        )
+                                )
+                            |> Maybe.withDefault Cmd.none
+                        ]
+                    )
+
+                _ ->
                     ( model, Cmd.none )
 
-        SaveDocument ->
-            let
-                jsonDoc =
-                    encodeDocument config.currentDocument
-            in
-            ( model, Cmd.none )
+        ContentSaved res ->
+            case res of
+                Ok True ->
+                    ( { model | pageTreeSavedStatus = Success }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model | pageTreeSavedStatus = Failure }
+                    , Cmd.none
+                    )
+
+        SetInitialSeed t ->
+            ( { model
+                | seed =
+                    posixToMillis t
+                        |> Random.initialSeed
+                        |> Just
+              }
+            , Cmd.none
+            )
 
         NoOp ->
             ( model, Cmd.none )
@@ -168,15 +318,12 @@ internalUpdate config msg model =
 --------------------
 
 
-getPageTree : String -> Cmd Msg
-getPageTree sessionId =
+getPageTree : Cmd Msg
+getPageTree =
     let
         body =
             Encode.object
-                [ ( "sessionId"
-                  , Encode.string sessionId
-                  )
-                ]
+                []
                 |> Http.jsonBody
 
         request =
@@ -202,11 +349,55 @@ getContents sessionId =
     Http.send RefreshContents request
 
 
+savePageTree : Page -> String -> Cmd Msg
+savePageTree page sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , ( "pageTree"
+                  , encodePage page
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "savePageTree.php" body decodeSuccess
+    in
+    Http.send PageTreeSaved request
+
+
+saveContent : UUID -> Document -> String -> Cmd Msg
+saveContent contentId doc sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , ( "contentId"
+                  , Encode.string (canonical contentId)
+                  )
+                , ( "content"
+                  , encodeDocument doc
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "saveContent.php" body decodeSuccess
+    in
+    Http.send ContentSaved request
+
+
 
 -------------------------------------------------------------------------------
 --------------------
 -- Json functions --
 --------------------
+-- Decoders:
 
 
 decodeContents : Decode.Decoder Contents
@@ -220,21 +411,28 @@ decodeContent : Decode.Decoder Content
 decodeContent =
     Decode.succeed Content
         |> Pipeline.required "contentId" decodeUUID
-        |> Pipeline.required "jsonContent" Decode.string
-        |> Pipeline.required "docContent" decodeDocument
+        |> Pipeline.required "jsonContent" Decode.value
+        |> Pipeline.required "jsonContent" decodeDocument
 
 
-decodePageTree : Decode.Decoder (Maybe PageTree)
+decodePageTree : Decode.Decoder PageTree
 decodePageTree =
-    Decode.list decodePageInfo
-        |> Decode.map (List.map (\pi -> Page pi []))
+    decodePage
         |> Decode.map
-            (List.foldr
-                (\p acc -> insert p acc)
-                Nothing
+            initPageTree
+
+
+decodePage : Decode.Decoder Page
+decodePage =
+    Decode.succeed Page
+        |> Pipeline.requiredAt
+            [ "Page", "pageInfo" ]
+            decodePageInfo
+        |> Pipeline.requiredAt
+            [ "Page", "children" ]
+            (Decode.list
+                (Decode.lazy (\_ -> decodePage))
             )
-        |> Decode.map
-            (Maybe.map initPageTree)
 
 
 decodePageInfo : Decode.Decoder PageInfo
@@ -249,14 +447,55 @@ decodePageInfo =
             (Decode.nullable decodeUUID)
 
 
+decodeUUID : Decode.Decoder UUID
 decodeUUID =
     Decode.string
         |> Decode.andThen
             (Json.Decode.Extra.fromResult << UUID.fromString)
 
 
+decodeSuccess : Decode.Decoder Bool
+decodeSuccess =
+    Decode.at [ "message" ] (Decode.succeed True)
+
+
+
+-- Encoders:
+
+
+encodePage : Page -> Encode.Value
+encodePage (Page pageInfo children) =
+    Encode.object
+        [ ( "Page"
+          , Encode.object
+                [ ( "pageInfo", encodePageInfo pageInfo )
+                , ( "children", Encode.list encodePage children )
+                ]
+          )
+        ]
+
+
+encodePageInfo : PageInfo -> Encode.Value
+encodePageInfo { name, path, mbContentId } =
+    Encode.object
+        [ ( "name", Encode.string name )
+        , ( "path"
+          , String.join "/" path
+                |> Encode.string
+          )
+        , ( "mbContentId"
+          , Maybe.map canonical mbContentId
+                |> Maybe.map Encode.string
+                |> Maybe.withDefault Encode.null
+          )
+        ]
+
+
 
 -------------------------------------------------------------------------------
+-------------------------
+-- Page tree functions --
+-------------------------
 
 
 type Page
@@ -311,7 +550,7 @@ rewind pageTree =
             pageTree
 
         Just pageTree_ ->
-            pageTree_
+            rewind pageTree_
 
 
 zipUp : PageTree -> Maybe PageTree
@@ -380,6 +619,16 @@ zipTo path pageTree =
                             |> Maybe.andThen (helper (next :: rest))
     in
     helper path pageTree
+
+
+fixPaths : Page -> Page
+fixPaths homePage =
+    let
+        helper currPath (Page pageInfo ps) =
+            Page { pageInfo | path = currPath ++ [ pageInfo.name ] }
+                (List.map (helper (currPath ++ [ pageInfo.name ])) ps)
+    in
+    helper [] homePage
 
 
 
@@ -512,11 +761,37 @@ fullView config model =
         , height fill
         ]
         [ pageTreeView config model
+        , Input.button
+            (buttonStyle True)
+            { onPress =
+                Just <| SavePageTree
+            , label =
+                row [ spacing 10 ]
+                    [ text "Save"
+                    ]
+            }
         ]
 
 
 saveView config model =
-    Element.none
+    column
+        [ spacing 15
+        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+        , clip
+        , width fill
+        , height fill
+        ]
+        [ pageTreeView config model
+        , Input.button
+            (buttonStyle True)
+            { onPress =
+                Just <| SaveContent
+            , label =
+                row [ spacing 10 ]
+                    [ text "Save content"
+                    ]
+            }
+        ]
 
 
 saveAsView config model =
@@ -543,6 +818,7 @@ pageTreeView config model =
         , height fill
         ]
         (model.pageTree
+            |> Maybe.map rewind
             |> Maybe.map extractPage
             |> Maybe.map (pageTreeView_ [] ())
             |> Maybe.withDefault []
@@ -561,7 +837,7 @@ pageTreeView_ offsets selected (Page pageInfo children) =
         [ width fill ]
         (prefix offsets
             ++ [ el
-                    []
+                    [ Events.onClick (SelectPage (Page pageInfo children)) ]
                     (text <| pageInfo.name)
                ]
         )
@@ -665,126 +941,3 @@ break p xs =
 
 
 -------------------------------------------------------------------------------
-
-
-plan =
-    [ ( "accueil", [ "accueil" ] )
-    , ( "decouvrir", [ "accueil", "decouvrir" ] )
-    , ( "office de tourisme", [ "accueil", "decouvrir", "office de tourisme" ] )
-    , ( "office de tourisme de murol", [ "accueil", "decouvrir", "office de tourisme", "office de tourisme de murol" ] )
-    , ( "sancy.com", [ "accueil", "decouvrir", "office de tourisme", "sancy.com" ] )
-    , ( "voir", [ "accueil", "decouvrir", "voir" ] )
-    , ( "bourg de murol", [ "accueil", "decouvrir", "voir", "bourg de murol" ] )
-    , ( "château", [ "accueil", "decouvrir", "voir", "château" ] )
-    , ( "beaune le froid", [ "accueil", "decouvrir", "voir", "beaune le froid" ] )
-    , ( "volcan du tartaret", [ "accueil", "decouvrir", "voir", "volcan du tartaret" ] )
-    , ( "lac chambon", [ "accueil", "decouvrir", "voir", "lac chambon" ] )
-    , ( "voie verte", [ "accueil", "decouvrir", "voir", "voie verte" ] )
-    , ( "chautignat", [ "accueil", "decouvrir", "voir", "chautignat" ] )
-    , ( "groire", [ "accueil", "decouvrir", "voir", "groire" ] )
-    , ( "la chassagne et les ballats", [ "accueil", "decouvrir", "voir", "la chassagne et les ballats" ] )
-    , ( "se loger", [ "accueil", "decouvrir", "se loger" ] )
-    , ( "hotels et residences hotelieres", [ "accueil", "decouvrir", "se loger", "hotels et residences hotelieres" ] )
-    , ( "campings et aires de camping cars", [ "accueil", "decouvrir", "se loger", "campings et aires de camping cars" ] )
-    , ( "chambres d hotes", [ "accueil", "decouvrir", "se loger", "chambres d hotes" ] )
-    , ( "meubles et gites", [ "accueil", "decouvrir", "se loger", "meubles et gites" ] )
-    , ( "villages vacances", [ "accueil", "decouvrir", "se loger", "villages vacances" ] )
-    , ( "labellises famille plus", [ "accueil", "decouvrir", "se loger", "labellises famille plus" ] )
-    , ( "se restaurer", [ "accueil", "decouvrir", "se restaurer" ] )
-    , ( "bars brasseries et restaurants", [ "accueil", "decouvrir", "se restaurer", "bars brasseries et restaurants" ] )
-    , ( "labellises famille plus", [ "accueil", "decouvrir", "se restaurer", "labellises famille plus" ] )
-    , ( "bouger", [ "accueil", "decouvrir", "bouger" ] )
-    , ( "se reperer", [ "accueil", "decouvrir", "se reperer" ] )
-    , ( "sortir", [ "accueil", "sortir" ] )
-    , ( "animations manifestations", [ "accueil", "sortir", "animations manifestations" ] )
-    , ( "medievales de murol", [ "accueil", "sortir", "animations manifestations", "medievales de murol" ] )
-    , ( "expo temporaire du musee des peintres", [ "accueil", "sortir", "animations manifestations", "expo temporaire du musee des peintres" ] )
-    , ( "horizons arts nature en sancy", [ "accueil", "sortir", "animations manifestations", "horizons arts nature en sancy" ] )
-    , ( "fete de la revolution", [ "accueil", "sortir", "animations manifestations", "fete de la revolution" ] )
-    , ( "festival d art", [ "accueil", "sortir", "animations manifestations", "festival d art" ] )
-    , ( "animation estivale pour tous", [ "accueil", "sortir", "animations manifestations", "animation estivale pour tous" ] )
-    , ( "château", [ "accueil", "sortir", "château" ] )
-    , ( "musees de murol", [ "accueil", "sortir", "musees de murol" ] )
-    , ( "musee des peintres de l'ecole de murols", [ "accueil", "sortir", "musees de murol", "musee des peintres de l'ecole de murols" ] )
-    , ( "musee archeologique", [ "accueil", "sortir", "musees de murol", "musee archeologique" ] )
-    , ( "artistes murolais", [ "accueil", "sortir", "artistes murolais" ] )
-    , ( "visite de fermes", [ "accueil", "sortir", "visite de fermes" ] )
-    , ( "dans les environs", [ "accueil", "sortir", "dans les environs" ] )
-    , ( "vivre a murol", [ "accueil", "vivre a murol" ] )
-    , ( "enfants", [ "accueil", "enfants", "enfants" ] )
-    , ( "vie scolaire", [ "accueil", "vivre a murol", "enfants", "vie scolaire" ] )
-    , ( "ecole maternelle du sivom de la vallee verte", [ "accueil", "vivre a murol", "enfants", "vie scolaire", "ecole maternelle du sivom de la vallee verte" ] )
-    , ( "ecole elementaire du rpi", [ "accueil", "vivre a murol", "enfants", "vie scolaire", "ecole elementaire du rpi" ] )
-    , ( "secondaire", [ "accueil", "vivre a murol", "enfants", "vie scolaire", "secondaire" ] )
-    , ( "vacances", [ "accueil", "vivre a murol", "enfants", "vie scolaire", "vacances" ] )
-    , ( "peri et extra scolaire", [ "accueil", "vivre a murol", "enfants", "peri et extra scolaire" ] )
-    , ( "restaurant scolaire", [ "accueil", "vivre a murol", "enfants", "peri et extra scolaire", "restaurant scolaire" ] )
-    , ( "garderie periscolaire", [ "accueil", "vivre a murol", "enfants", "peri et extra scolaire", "garderie periscolaire" ] )
-    , ( "centre de loisirs", [ "accueil", "vivre a murol", "enfants", "peri et extra scolaire", "centre de loisirs" ] )
-    , ( "transports scolaires", [ "accueil", "vivre a murol", "enfants", "peri et extra scolaire", "transports scolaires" ] )
-    , ( "activites jeunesse", [ "accueil", "vivre a murol", "enfants", "peri et extra scolaire", "activites jeunesse" ] )
-    , ( "seniors", [ "accueil", "vivre a murol", "seniors" ] )
-    , ( "activites et animations", [ "accueil", "vivre a murol", "seniors", "activites et animations" ] )
-    , ( "services du sivom de besse", [ "accueil", "vivre a murol", "seniors", "services du sivom de besse" ] )
-    , ( "autres services", [ "accueil", "vivre a murol", "seniors", "autres services" ] )
-    , ( "associations et activites", [ "accueil", "vivre a murol", "associations et activites" ] )
-    , ( "culture evenementiel solidarite", [ "accueil", "vivre a murol", "associations et activites", "culture evenementiel solidarite" ] )
-    , ( "sport", [ "accueil", "vivre a murol", "associations et activites", "sport" ] )
-    , ( "syndicats et groupements (anciens profes)", [ "accueil", "vivre a murol", "associations et activites", "syndicats et groupements (anciens profes)" ] )
-    , ( "sante", [ "accueil", "vivre a murol", "sante" ] )
-    , ( "transports", [ "accueil", "vivre a murol", "transports" ] )
-    , ( "dessertes de la commune", [ "accueil", "vivre a murol", "transports", "dessertes de la commune" ] )
-    , ( "covoiturage", [ "accueil", "vivre a murol", "transports", "covoiturage" ] )
-    , ( "deneigement", [ "accueil", "vivre a murol", "transports", "deneigement" ] )
-    , ( "environnement", [ "accueil", "vivre a murol", "environnement" ] )
-    , ( "gestion des dechets", [ "accueil", "vivre a murol", "environnement", " gestion des dechets" ] )
-    , ( "gestion de l'eau", [ "accueil", "vivre a murol", "environnement", "gestion de l'eau" ] )
-    , ( "gestion des espaces verts", [ "accueil", "vivre a murol", "environnement", "gestion des espaces verts" ] )
-    , ( "gestion des risques", [ "accueil", "vivre a murol", "environnement", "gestion des risques" ] )
-    , ( "charte de developpement durable", [ "accueil", "vivre a murol", "environnement", "charte de developpement durable" ] )
-    , ( "milieux sensibles", [ "accueil", "vivre a murol", "environnement", "milieux sensibles" ] )
-    , ( "animaux", [ "accueil", "vivre a murol", "animaux" ] )
-    , ( "vie economique", [ "accueil", "vivre a murol", "vie economique" ] )
-    , ( "agriculture", [ "accueil", "vivre a murol", "vie economique", "agriculture" ] )
-    , ( "commerces et services", [ "accueil", "vivre a murol", "vie economique", "commerces et services" ] )
-    , ( "toute l'annee", [ "accueil", "vivre a murol", "vie economique", "commerces et services", "toute l'annee" ] )
-    , ( "en saison", [ "accueil", "vivre a murol", "vie economique", "commerces et services", "en saison" ] )
-    , ( "entreprises et artisans", [ "accueil", "toute l'annee", "entreprises et artisans" ] )
-    , ( "offres d'emploi", [ "accueil", "vivre a murol", "offres d'emploi" ] )
-    , ( "de la mairie et du sivom", [ "accueil", "vivre a murol", "offres d'emploi", "de la mairie et du sivom" ] )
-    , ( "des professionnels", [ "accueil", "vivre a murol", "offres d'emploi", "des professionnels" ] )
-    , ( "liens utiles", [ "accueil", "vivre a murol", "offres d'emploi", "liens utiles" ] )
-    , ( "mairie ", [ "accueil", "mairie " ] )
-    , ( "murol en chiffres ", [ "accueil", "mairie ", "murol en chiffres " ] )
-    , ( "vie municipale", [ "accueil", "mairie ", "vie municipale" ] )
-    , ( "le conseil municipal", [ "accueil", "mairie ", "vie municipale", "le conseil municipal" ] )
-    , ( "deliberations conseil municipal", [ "accueil", "mairie ", "vie municipale", "deliberations conseil municipal" ] )
-    , ( "budget", [ "accueil", "mairie ", "vie municipale", "budget" ] )
-    , ( "les commissions", [ "accueil", "mairie ", "vie municipale", "les commissions" ] )
-    , ( "centre communal d'action sociale", [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale" ] )
-    , ( "les membres du ccas", [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "les membres du ccas" ] )
-    , ( "actions collectives", [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "actions collectives" ] )
-    , ( "actions individuelles", [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "actions individuelles" ] )
-    , ( "argent de poche", [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "argent de poche" ] )
-    , ( "elections", [ "accueil", "mairie ", "vie municipale", "elections" ] )
-    , ( "les elections municipales", [ "accueil", "mairie ", "vie municipale", "elections", "les elections municipales" ] )
-    , ( "resultats des elections", [ "accueil", "mairie ", "vie municipale", "elections", "resultats des elections" ] )
-    , ( "autres elections", [ "accueil", "mairie ", "vie municipale", "elections", "autres elections" ] )
-    , ( "demarches ", [ "accueil", "mairie ", "demarches " ] )
-    , ( "a la mairie de murol", [ "accueil", "mairie ", "demarches ", "a la mairie de murol" ] )
-    , ( "service public .fr", [ "accueil", "mairie ", "demarches ", "service public .fr" ] )
-    , ( "relai sancy", [ "accueil", "mairie ", "demarches ", "relai sancy" ] )
-    , ( "location des salles municipales", [ "accueil", "mairie ", "location des salles municipales" ] )
-    , ( "salle des fetes de murol", [ "accueil", "mairie ", "location des salles municipales", "salle des fetes de murol" ] )
-    , ( "salle des fetes de beaune", [ "accueil", "mairie ", "location des salles municipales", "salle des fetes de beaune" ] )
-    , ( "publications", [ "accueil", "mairie ", "publications" ] )
-    , ( " bulletins municipaux", [ "accueil", "mairie ", "publications", " bulletins municipaux" ] )
-    , ( "murol infos", [ "accueil", "mairie ", "publications", "murol infos" ] )
-    , ( "autres publications", [ "accueil", "mairie ", "publications", "autres publications" ] )
-    , ( "labels", [ "accueil", "mairie ", "labels" ] )
-    , ( "station de tourisme", [ "accueil", "mairie ", "labels", "station de tourisme" ] )
-    , ( "concours des villes et villages fleuris", [ "accueil", "mairie ", "labels", "concours des villes et villages fleuris" ] )
-    , ( "pavillon bleu", [ "accueil", "mairie ", "labels", "pavillon bleu" ] )
-    , ( "station verte", [ "accueil", "mairie ", "labels", "station verte" ] )
-    , ( "famille plus", [ "accueil", "mairie ", "labels", "famille plus" ] )
-    ]
