@@ -45,7 +45,6 @@ type alias Model msg =
     , wholeTextBlocAttr : List DocAttribute
     , headingLevel : Maybe Int
     , internalUrlSelectorOpen : Bool
-    , selectedInternalPage : Maybe String
     , colorPickerOpen : Maybe String
     , externalMsg : Msg -> msg
     }
@@ -82,8 +81,7 @@ type Msg
     | SetInternalLinkKind Int Bool
     | InternalUrlSelectorClick
     | InternalUrlSelectorClickOff
-    | SelectInternalPage String
-    | ConfirmInternalPageUrl Int
+    | ConfirmInternalPageUrl Int String
     | ConfirmFileUrl Int String
       ---------------------------
       -- Inline Style messages --
@@ -150,7 +148,6 @@ init attrs mbInput externalMsg =
                             attrs
               , headingLevel = Nothing
               , internalUrlSelectorOpen = False
-              , selectedInternalPage = Nothing
               , colorPickerOpen = Nothing
               , externalMsg = externalMsg
               }
@@ -170,7 +167,6 @@ init attrs mbInput externalMsg =
               , wholeTextBlocAttr = attrs
               , headingLevel = Nothing
               , internalUrlSelectorOpen = False
-              , selectedInternalPage = Nothing
               , colorPickerOpen = Nothing
               , externalMsg = externalMsg
               }
@@ -476,50 +472,37 @@ update msg model =
             , Nothing
             )
 
-        SelectInternalPage p ->
-            ( { model | selectedInternalPage = Just p }
-            , Cmd.batch
-                []
-            , Nothing
-            )
-
-        ConfirmInternalPageUrl uid ->
-            case model.selectedInternalPage of
+        ConfirmInternalPageUrl uid url ->
+            case Dict.get uid model.trackedData of
                 Nothing ->
                     ( model, Cmd.none, Nothing )
 
-                Just url ->
-                    case Dict.get uid model.trackedData of
-                        Nothing ->
-                            ( model, Cmd.none, Nothing )
+                Just ({ attrs, meta, dataKind } as td) ->
+                    let
+                        newTrackedData =
+                            { td | dataKind = InternalLink False url }
 
-                        Just ({ attrs, meta, dataKind } as td) ->
-                            let
-                                newTrackedData =
-                                    { td | dataKind = InternalLink False url }
-
-                                newTrackedDataDict =
-                                    Dict.insert
-                                        uid
-                                        newTrackedData
-                                        model.trackedData
-                            in
-                            ( { model
-                                | trackedData = newTrackedDataDict
-                                , currentTrackedData = Just newTrackedData
-                                , internalUrlSelectorOpen = False
-                                , selectedInternalPage = Nothing
-                                , output =
-                                    Result.map
-                                        (List.filterMap
-                                            (toTextBlocElement newTrackedDataDict)
-                                        )
-                                        model.parsedInput
-                                        |> Result.withDefault model.output
-                              }
-                            , Cmd.none
-                            , Nothing
-                            )
+                        newTrackedDataDict =
+                            Dict.insert
+                                uid
+                                newTrackedData
+                                model.trackedData
+                    in
+                    ( { model
+                        | trackedData = newTrackedDataDict
+                        , currentTrackedData = Just newTrackedData
+                        , internalUrlSelectorOpen = False
+                        , output =
+                            Result.map
+                                (List.filterMap
+                                    (toTextBlocElement newTrackedDataDict)
+                                )
+                                model.parsedInput
+                                |> Result.withDefault model.output
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
 
         ConfirmFileUrl uid url ->
             case Dict.get uid model.trackedData of
@@ -897,8 +880,6 @@ view config renderConfig model =
                     ]
                 , textBlocPreview model renderConfig
                 ]
-
-        --, Element.paragraph [] [ text <| Debug.toString model ]
         ]
 
 
@@ -999,7 +980,6 @@ interfaceView config model =
                                 , url = url
                                 , pagesList = dummyInternalPageList
                                 , selectorOpen = model.internalUrlSelectorOpen
-                                , selectedInternalPage = model.selectedInternalPage
                                 , td = td
                                 , fileExplorer = config.fileExplorer
                                 , pageTreeEditor = config.pageTreeEditor
@@ -1155,7 +1135,6 @@ internalLinkView :
             , isDoc : Bool
             , logInfo : Auth.AuthPlugin.LogInfo
             , pagesList : List String
-            , selectedInternalPage : Maybe String
             , selectorOpen : Bool
             , td : TrackedData
             , url : String
@@ -1182,7 +1161,7 @@ internalLinkView externalMsg config =
                     [ if config.isDoc then
                         chooseDocView externalMsg config.td.meta.uid config.fileExplorer config.zone config.logInfo
                       else
-                        chooseInternalPageView externalMsg config.td.meta.uid config.selectedInternalPage config.pagesList
+                        chooseInternalPageView externalMsg config.td.meta.uid config.pageTreeEditor config.zone config.logInfo
                     ]
             else
                 Element.none
@@ -1279,37 +1258,45 @@ chooseDocView externalMsg uid fileExplorer zone logInfo =
 chooseInternalPageView :
     (Msg -> msg)
     -> Int
-    -> Maybe String
-    -> List String
+    -> PageTreeEditor.Model msg
+    -> Time.Zone
+    -> LogInfo
     -> Element.Element msg
-chooseInternalPageView externalMsg uid mbSelected pagesList =
-    Element.map externalMsg <|
-        row
-            [ padding 15
-            , spacing 15
-            ]
-            [ column
-                [ width (px 200)
-                , height (px 150)
-                , Border.width 1
-                , Border.color (rgb 0.8 0.8 0.8)
-                , scrollbarY
-                ]
-                (List.map (entryView mbSelected SelectInternalPage) pagesList)
-            , Input.button
-                (buttonStyle (not (mbSelected == Nothing)) ++ [ alignTop ])
+chooseInternalPageView externalMsg uid pageTreeEditor zone logInfo =
+    column
+        [ paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
+            }
+        , spacing 15
+        , width fill
+        ]
+        [ PageTreeEditor.view
+            { maxHeight =
+                500
+            , zone = zone
+            , logInfo = logInfo
+            , mode = PageTreeEditor.Select
+            }
+            pageTreeEditor
+        , el [ paddingXY 15 0 ]
+            (Input.button
+                (buttonStyle (PageTreeEditor.selectedPageInfo pageTreeEditor /= Nothing) ++ [ alignTop ])
                 { onPress =
-                    if not (mbSelected == Nothing) then
-                        Just (ConfirmInternalPageUrl uid)
-                    else
-                        Nothing
+                    PageTreeEditor.selectedPageInfo pageTreeEditor
+                        |> Maybe.map .path
+                        |> Maybe.map (String.join "/")
+                        |> Maybe.map (externalMsg << ConfirmInternalPageUrl uid)
                 , label =
                     row [ spacing 5 ]
                         [ el [] (html <| Icons.externalLink iconSize)
                         , el [] (text "Valider")
                         ]
                 }
-            ]
+            )
+        ]
 
 
 externalLinkView :

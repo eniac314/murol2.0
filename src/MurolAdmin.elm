@@ -187,6 +187,7 @@ update msg model =
                 ( newPageEditor, pageEditorCmds, mbToolResult ) =
                     PageEditor.update
                         { fileExplorer = model.fileExplorer
+                        , pageTreeEditor = model.pageTreeEditor
                         , loadedContent =
                             PageTreeEditor.loadedContent model.pageTreeEditor
                         }

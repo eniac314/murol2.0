@@ -30,7 +30,8 @@ type alias Model msg =
     { pageTree : Maybe PageTree
     , contents : Contents
     , selected : Maybe Page
-    , loadedContent : Maybe Content
+    , fileIoSelected : Maybe Page
+    , internalPageSelected : Maybe Page
     , pageTreeSavedStatus : Status
     , contentSavedStatus : Status
     , externalMsg : Msg -> msg
@@ -43,7 +44,18 @@ type alias Model msg =
 
 loadedContent : Model msg -> Maybe Content
 loadedContent model =
-    model.loadedContent
+    Maybe.andThen getMbContentId model.selected
+        |> Maybe.andThen (\k -> Dict.get (canonical k) model.contents)
+
+
+selectedPageInfo : Model msg -> Maybe PageInfo
+selectedPageInfo model =
+    case model.selected of
+        Nothing ->
+            Nothing
+
+        Just (Page pageInfo xs) ->
+            Just pageInfo
 
 
 type Mode
@@ -51,6 +63,7 @@ type Mode
     | Save
     | SaveAs
     | Open
+    | Select
 
 
 type alias Contents =
@@ -69,7 +82,8 @@ init externalMsg =
     { pageTree = Nothing
     , contents = Dict.empty
     , selected = Nothing
-    , loadedContent = Nothing
+    , fileIoSelected = Nothing
+    , internalPageSelected = Nothing
     , pageTreeSavedStatus = Initial
     , contentSavedStatus = Initial
     , externalMsg = externalMsg
@@ -251,11 +265,21 @@ internalUpdate config msg model =
                                         )
                                     )
                                 |> Maybe.map rewind
+
+                        newContent =
+                            { contentId = contentId
+                            , jsonContent = encodeDocument config.currentDocument
+                            , docContent = config.currentDocument
+                            }
+
+                        newContents =
+                            Dict.insert (canonical contentId) newContent model.contents
                     in
                     ( { model
                         | contentSavedStatus = Initial
                         , pageTreeSavedStatus = Initial
                         , pageTree = newPageTree
+                        , contents = newContents
                         , seed = Just newSeed
                         , selected =
                             Just <|
@@ -269,7 +293,7 @@ internalUpdate config msg model =
                         [ cmdIfLogged
                             config.logInfo
                             (saveContent contentId config.currentDocument)
-                        , Maybe.map extractPage model.pageTree
+                        , Maybe.map extractPage newPageTree
                             |> Maybe.map
                                 (\pt ->
                                     cmdIfLogged
@@ -749,6 +773,9 @@ view config model =
 
                 Open ->
                     openView config model
+
+                Select ->
+                    selectView config model
             ]
 
 
@@ -788,7 +815,7 @@ saveView config model =
                 Just <| SaveContent
             , label =
                 row [ spacing 10 ]
-                    [ text "Save content"
+                    [ text "Sauvegarder"
                     ]
             }
         ]
@@ -799,7 +826,27 @@ saveAsView config model =
 
 
 openView config model =
-    Element.none
+    column
+        [ spacing 15
+        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+        , clip
+        , width fill
+        , height fill
+        ]
+        [ pageTreeView config model
+        ]
+
+
+selectView config model =
+    column
+        [ spacing 15
+        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+        , clip
+        , width fill
+        , height fill
+        ]
+        [ pageTreeView config model
+        ]
 
 
 type Child
@@ -807,6 +854,7 @@ type Child
     | NotLastChild Bool
 
 
+pageTreeView : { config | mode : Mode } -> Model msg -> Element.Element Msg
 pageTreeView config model =
     column
         [ spacing 2
@@ -820,40 +868,117 @@ pageTreeView config model =
         (model.pageTree
             |> Maybe.map rewind
             |> Maybe.map extractPage
-            |> Maybe.map (pageTreeView_ [] ())
+            |> Maybe.map (pageTreeView_ config [] model.selected model.contents)
             |> Maybe.withDefault []
         )
 
 
-pageTreeView_ offsets selected (Page pageInfo children) =
+pageTreeView_ :
+    { config | mode : Mode }
+    -> List Child
+    -> Maybe Page
+    -> Dict String Content
+    -> Page
+    -> List (Element.Element Msg)
+pageTreeView_ config offsets selected contents (Page pageInfo children) =
     let
         l =
             List.length children
 
         ( firsts, last ) =
             ( List.take (l - 1) children, List.drop (l - 1) children )
+
+        attrs =
+            case config.mode of
+                Full ->
+                    [ Events.onClick (SelectPage (Page pageInfo children))
+                    , pointer
+                    , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                    , if selected == Just (Page pageInfo children) then
+                        Font.color (rgba 0 0 1 1)
+                      else
+                        noAttr
+                    ]
+
+                Save ->
+                    [ if selected == Just (Page pageInfo children) then
+                        Font.color (rgba 0 0 1 1)
+                      else
+                        noAttr
+                    ]
+
+                SaveAs ->
+                    []
+
+                Open ->
+                    let
+                        selectable =
+                            pageInfo.mbContentId
+                                |> Maybe.map (\k -> Dict.get (canonical k) contents)
+                                |> (\res -> res /= Nothing)
+
+                        fontColor =
+                            case pageInfo.mbContentId of
+                                Nothing ->
+                                    Font.color (rgba 0.8 0.8 0.8 1)
+
+                                Just contentId ->
+                                    case Dict.get (canonical contentId) contents of
+                                        Just _ ->
+                                            noAttr
+
+                                        Nothing ->
+                                            Font.color (rgba 1 0 0 0.7)
+                    in
+                    (if selectable then
+                        [ Events.onClick (SelectPage (Page pageInfo children))
+                        , pointer
+                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                        ]
+                     else
+                        []
+                    )
+                        ++ [ if selected == Just (Page pageInfo children) then
+                                Font.color (rgba 0 0 1 1)
+                             else
+                                fontColor
+                           ]
+
+                Select ->
+                    [ Events.onClick (SelectPage (Page pageInfo children))
+                    , pointer
+                    , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                    , if selected == Just (Page pageInfo children) then
+                        Font.color (rgba 0 0 1 1)
+                      else
+                        noAttr
+                    ]
     in
     [ row
         [ width fill ]
         (prefix offsets
             ++ [ el
-                    [ Events.onClick (SelectPage (Page pageInfo children)) ]
+                    attrs
                     (text <| pageInfo.name)
                ]
         )
     ]
         ++ List.concatMap
             (pageTreeView_
+                config
                 (NotLastChild True
                     :: offsets
                 )
                 selected
+                contents
             )
             firsts
         ++ List.concatMap
             (pageTreeView_
+                config
                 (LastChild True :: offsets)
                 selected
+                contents
             )
             last
 
@@ -920,6 +1045,10 @@ getName (Page { name } _) =
 
 getPath (Page { path } _) =
     path
+
+
+getMbContentId (Page { mbContentId } _) =
+    mbContentId
 
 
 break : (a -> Bool) -> List a -> ( List a, List a )

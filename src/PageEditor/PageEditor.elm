@@ -225,7 +225,7 @@ type Msg
       -------------------
       -- Persistence   --
       -------------------
-    | LoadDocument
+    | LoadLocalStorageDocument
     | SetLocalStorageKey String
     | SetLocalStorageValue Json.Encode.Value
     | SetJsonBuffer String
@@ -238,6 +238,7 @@ type Msg
       ---------
       -- Misc--
       ---------
+    | LoadDocument
     | NoOp
 
 
@@ -326,7 +327,11 @@ reset mbDoc externalMsg =
     )
 
 
-update : config -> Msg -> Model msg -> ( Model msg, Cmd msg, Maybe a )
+update :
+    { config | pageTreeEditor : PageTreeEditor.Model msg }
+    -> Msg
+    -> Model msg
+    -> ( Model msg, Cmd msg, Maybe a )
 update config msg model =
     let
         ( newModel, cmds ) =
@@ -335,7 +340,11 @@ update config msg model =
     ( newModel, cmds, Nothing )
 
 
-internalUpdate : config -> Msg -> Model msg -> ( Model msg, Cmd msg )
+internalUpdate :
+    { config | pageTreeEditor : PageTreeEditor.Model msg }
+    -> Msg
+    -> Model msg
+    -> ( Model msg, Cmd msg )
 internalUpdate config msg model =
     case msg of
         ----------------------------------------------
@@ -919,7 +928,7 @@ internalUpdate config msg model =
                         ]
                     )
 
-        LoadDocument ->
+        LoadLocalStorageDocument ->
             case Maybe.map (Decode.decodeValue decodeDocument) model.localStorageValue of
                 Just (Ok newDoc) ->
                     let
@@ -1095,6 +1104,20 @@ internalUpdate config msg model =
         ---------
         -- Misc--
         ---------
+        LoadDocument ->
+            case PageTreeEditor.loadedContent config.pageTreeEditor of
+                Just { docContent } ->
+                    let
+                        ( newModel, cmd ) =
+                            reset (Just docContent) model.externalMsg
+                    in
+                    ( { newModel | currentPlugin = Nothing }
+                    , cmd
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -1136,6 +1159,7 @@ view config model =
             , previewMode = model.previewMode
             , containersBkgColors = model.config.containersBkgColors
             , logInfo = config.logInfo
+            , canSave = PageTreeEditor.selectedPageInfo config.pageTreeEditor /= Nothing
             }
             |> Element.map
                 model.externalMsg
@@ -1285,7 +1309,7 @@ pluginView config model plugin =
                     , setJsonBuffer = SetJsonBuffer
                     , getFromLocalStorage = GetFromLocalStorage
                     , putInLocalStorage = PutInLocalStorage
-                    , loadDocument = LoadDocument
+                    , loadDocument = LoadLocalStorageDocument
                     , removeFromLocalStorage = RemoveFromLocalStorage
                     , clearLocalStorage = ClearLocalStorage
                     , setEditorPlugin = SetEditorPlugin
@@ -1303,7 +1327,10 @@ pluginView config model plugin =
                     , mode = mode
                     }
                     config.pageTreeEditor
-                , row [ paddingXY 15 0 ]
+                , row
+                    [ paddingXY 15 0
+                    , spacing 15
+                    ]
                     [ Input.button
                         (buttonStyle True)
                         { onPress =
@@ -1313,6 +1340,18 @@ pluginView config model plugin =
                                 [ text "Retour"
                                 ]
                         }
+                    , if mode == PageTreeEditor.Open then
+                        Input.button
+                            (buttonStyle True)
+                            { onPress =
+                                Just <| model.externalMsg LoadDocument
+                            , label =
+                                row [ spacing 10 ]
+                                    [ text "Ouvrir"
+                                    ]
+                            }
+                      else
+                        Element.none
                     ]
                 ]
 
@@ -1473,6 +1512,7 @@ type alias MenuConfig =
     , selectionIsContainer : Bool
     , previewMode : PreviewMode
     , containersBkgColors : Bool
+    , canSave : Bool
     , logInfo : LogInfo
     }
 
@@ -1577,7 +1617,6 @@ mainInterface config =
                             Just EditCell
                     , isActive =
                         not config.isInPlugin
-                            --&& not config.selectionIsContainer
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig
@@ -1721,7 +1760,7 @@ mainMenu config =
                     }
                   , { defEntry
                         | label = "Enregistrer"
-                        , isActive = not config.isInPlugin
+                        , isActive = not config.isInPlugin && config.canSave
                         , msg = SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.Save)
                     }
                   , { defEntry
