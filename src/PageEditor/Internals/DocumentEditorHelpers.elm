@@ -173,6 +173,30 @@ docSize doc =
             List.foldr (\d acc -> docSize d + acc) 1 xs
 
 
+maxUid doc =
+    let
+        getUid doc_ =
+            case doc_ of
+                Cell { cellContent, id, attrs } ->
+                    id.uid
+
+                Container { containerLabel, id, attrs } _ ->
+                    id.uid
+
+        helper acc doc_ =
+            case doc of
+                Cell { id } ->
+                    max id.uid acc
+
+                Container { id } xs ->
+                    List.foldr
+                        (\d acc_ -> max (getUid d) acc_)
+                        (max id.uid acc)
+                        xs
+    in
+    helper 0 doc
+
+
 
 ---------------
 -- new Cells --

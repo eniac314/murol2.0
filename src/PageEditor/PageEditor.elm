@@ -294,7 +294,7 @@ reset mbDoc externalMsg =
       , document = initZip doc_
       , clipboard = Nothing
       , undoCache = []
-      , nextUid = docSize doc_
+      , nextUid = maxUid doc_ + 1
       , controlDown = False
       , menuClicked = False
       , menuFocused = ""
@@ -791,7 +791,10 @@ internalUpdate config msg model =
         TextBlockPluginMsg textBlockMsg ->
             let
                 ( newTextBlockPlugin, textBlockPluginCmds, mbEditorPluginResult ) =
-                    TextBlockPlugin.update textBlockMsg model.textBlockPlugin
+                    TextBlockPlugin.update
+                        { pageTreeEditor = config.pageTreeEditor }
+                        textBlockMsg
+                        model.textBlockPlugin
             in
             case mbEditorPluginResult of
                 Nothing ->
@@ -1159,7 +1162,7 @@ view config model =
             , previewMode = model.previewMode
             , containersBkgColors = model.config.containersBkgColors
             , logInfo = config.logInfo
-            , canSave = PageTreeEditor.selectedPageInfo config.pageTreeEditor /= Nothing
+            , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
             }
             |> Element.map
                 model.externalMsg

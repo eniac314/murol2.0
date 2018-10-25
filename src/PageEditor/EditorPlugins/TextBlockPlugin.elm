@@ -174,8 +174,12 @@ init attrs mbInput externalMsg =
             )
 
 
-update : Msg -> Model msg -> ( Model msg, Cmd msg, Maybe (EditorPluginResult ( List TextBlockElement, List DocAttribute )) )
-update msg model =
+update :
+    { config | pageTreeEditor : PageTreeEditor.Model msg }
+    -> Msg
+    -> Model msg
+    -> ( Model msg, Cmd msg, Maybe (EditorPluginResult ( List TextBlockElement, List DocAttribute )) )
+update config msg model =
     case msg of
         ---------------------------
         -- Textarea Manipulation --
@@ -241,6 +245,13 @@ update msg model =
                     )
 
         NewSelection s ->
+            let
+                currentTrackedData =
+                    if s.start == s.finish then
+                        getSelectedTrackedData (Just s.start) model.trackedData
+                    else
+                        Nothing
+            in
             ( { model
                 | selected =
                     if s.start == s.finish then
@@ -252,11 +263,7 @@ update msg model =
                         Just s.start
                     else
                         Nothing
-                , currentTrackedData =
-                    if s.start == s.finish then
-                        getSelectedTrackedData (Just s.start) model.trackedData
-                    else
-                        Nothing
+                , currentTrackedData = currentTrackedData
                 , setSelection =
                     if s.start == s.finish then
                         Maybe.map
@@ -266,7 +273,13 @@ update msg model =
                         Nothing
               }
             , Cmd.batch
-                []
+                [ case Maybe.map .dataKind currentTrackedData of
+                    Just (InternalLink False path) ->
+                        PageTreeEditor.setInternalPageSelection config.pageTreeEditor path
+
+                    _ ->
+                        Cmd.none
+                ]
             , Nothing
             )
 
@@ -978,7 +991,6 @@ interfaceView config model =
                             internalLinkView model.externalMsg
                                 { isDoc = isDoc
                                 , url = url
-                                , pagesList = dummyInternalPageList
                                 , selectorOpen = model.internalUrlSelectorOpen
                                 , td = td
                                 , fileExplorer = config.fileExplorer
@@ -1134,7 +1146,6 @@ internalLinkView :
             , pageTreeEditor : PageTreeEditor.Model msg
             , isDoc : Bool
             , logInfo : Auth.AuthPlugin.LogInfo
-            , pagesList : List String
             , selectorOpen : Bool
             , td : TrackedData
             , url : String
@@ -1283,9 +1294,9 @@ chooseInternalPageView externalMsg uid pageTreeEditor zone logInfo =
             pageTreeEditor
         , el [ paddingXY 15 0 ]
             (Input.button
-                (buttonStyle (PageTreeEditor.selectedPageInfo pageTreeEditor /= Nothing) ++ [ alignTop ])
+                (buttonStyle (PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor /= Nothing) ++ [ alignTop ])
                 { onPress =
-                    PageTreeEditor.selectedPageInfo pageTreeEditor
+                    PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor
                         |> Maybe.map .path
                         |> Maybe.map (String.join "/")
                         |> Maybe.map (externalMsg << ConfirmInternalPageUrl uid)
@@ -2652,31 +2663,6 @@ fontSizes =
     , "80"
     , "88"
     , "96"
-    ]
-
-
-dummyInternalPageList =
-    [ "Agriculture"
-    , "AnimationEstivale"
-    , "Animation"
-    , "Animaux"
-    , "Annee2016"
-    , "Annee2017"
-    , "Annee2018"
-    , "Artistes"
-    , "Associations"
-    , "AutomneHiver"
-    , "LaCommune"
-    , "LesSeniors"
-    , "Patrimoine"
-    , "PériEtExtra-scolaire"
-    , "PatrimoinePhoto"
-    , "Photothèque"
-    , "Restaurants"
-    , "Sortir"
-    , "Transports"
-    , "VieScolaire"
-    , "VillageFleuri"
     ]
 
 
