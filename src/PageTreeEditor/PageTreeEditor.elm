@@ -15,6 +15,7 @@ import Html.Attributes as HtmlAttr
 import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
+import Internals.Icons exposing (chevronsDown, chevronsUp)
 import Internals.ToolHelpers exposing (..)
 import Json.Decode as Decode
 import Json.Decode.Extra
@@ -40,6 +41,7 @@ type alias Model msg =
     , pageTreeLoaded : Status
     , contentsLoaded : Status
     , renamePageBuffer : String
+    , pastePageBuffer : Maybe Page
     , newPageBuffer : String
     , seed : Maybe Random.Seed
     , lockedPages : List Page
@@ -123,6 +125,7 @@ init externalMsg =
     , pageTreeLoaded = Initial
     , contentsLoaded = Initial
     , renamePageBuffer = ""
+    , pastePageBuffer = Nothing
     , newPageBuffer = ""
     , seed = Nothing
     , lockedPages = []
@@ -167,13 +170,25 @@ loadingView model =
 
 
 type Msg
-    = SelectPage Page
+    = ----------------
+      -- Selections --
+      ----------------
+      SelectPage Page
     | FileIOSelectPage Page
     | SelectInternalPage Page
     | SaveAsSelectPage Page
+      -----------------------
+      -- Cmds from outside --
+      -----------------------
     | SetInternalPage Path
+      --------------------------
+      -- Initial Data loading --
+      --------------------------
     | RefreshContents (Result Http.Error Decode.Value)
     | RefreshPageTree (Result Http.Error PageTree)
+      ---------------------------
+      -- Cmds / Coms to server --
+      ---------------------------
     | PageTreeSaved (Maybe Page) Page (Result Http.Error Bool)
     | SaveContent Page
     | ContentSaved UUID (Result Http.Error Bool)
@@ -181,6 +196,13 @@ type Msg
     | RenamePage
     | NewPageInput String
     | NewPage
+    | DeletePage
+    | CutPage
+    | PastePage
+    | Swap Bool
+      ----------
+      -- Misc --
+      ----------
     | SetInitialSeed Time.Posix
     | NoOp
 
@@ -214,6 +236,7 @@ internalUpdate config msg model =
         SelectPage ((Page pageInfo xs) as page) ->
             ( { model
                 | selected = Just page
+                , renamePageBuffer = ""
               }
             , Cmd.none
             )
@@ -432,9 +455,48 @@ internalUpdate config msg model =
             )
 
         RenamePage ->
-            ( model
-            , Cmd.none
-            )
+            case model.selected of
+                Just (Page pageInfo xs) ->
+                    if model.renamePageBuffer /= "" then
+                        let
+                            newPage =
+                                Page
+                                    { pageInfo | name = model.renamePageBuffer }
+                                    xs
+                                    |> fixPaths
+
+                            newPageTree =
+                                Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                    |> Maybe.map
+                                        (updateCurrPageTree
+                                            newPage
+                                        )
+                                    |> Maybe.map rewind
+                        in
+                        ( { model
+                            | pageTree = newPageTree
+                            , renamePageBuffer = ""
+                            , lockedPages = newPage :: model.lockedPages
+                            , selected = Nothing
+                          }
+                        , Maybe.map extractPage newPageTree
+                            |> Maybe.map
+                                (\pt ->
+                                    cmdIfLogged
+                                        config.logInfo
+                                        (savePageTree
+                                            (Just <| Page pageInfo xs)
+                                            newPage
+                                            pt
+                                        )
+                                )
+                            |> Maybe.withDefault Cmd.none
+                        )
+                    else
+                        ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         NewPageInput s ->
             ( { model | newPageBuffer = s }
@@ -489,6 +551,138 @@ internalUpdate config msg model =
 
                     _ ->
                         ( model, Cmd.none )
+
+        DeletePage ->
+            case model.selected of
+                Just (Page pageInfo xs) ->
+                    let
+                        newPageTree =
+                            Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                |> Maybe.andThen delete
+                                |> Maybe.map rewind
+                    in
+                    ( { model
+                        | pageTree = newPageTree
+                        , lockedPages = Page pageInfo xs :: model.lockedPages
+                        , selected = Nothing
+                      }
+                    , Maybe.map extractPage newPageTree
+                        |> Maybe.map
+                            (\pt ->
+                                cmdIfLogged
+                                    config.logInfo
+                                    (savePageTree
+                                        Nothing
+                                        (Page pageInfo xs)
+                                        pt
+                                    )
+                            )
+                        |> Maybe.withDefault Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        CutPage ->
+            case ( model.selected, model.pastePageBuffer ) of
+                ( Just page, Nothing ) ->
+                    ( { model
+                        | lockedPages = page :: model.lockedPages
+                        , selected = Nothing
+                        , pastePageBuffer = Just page
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        PastePage ->
+            case ( model.selected, model.pastePageBuffer ) of
+                ( Just (Page pageInfo xs), Just page ) ->
+                    let
+                        newPageTree =
+                            Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                |> Maybe.map
+                                    (updateCurrPageTree
+                                        (Page
+                                            pageInfo
+                                            (xs ++ [ page ])
+                                        )
+                                    )
+                                |> Maybe.map rewind
+                                |> Maybe.andThen (zipTo <| getPath page)
+                                |> Maybe.andThen delete
+                                |> Maybe.map rewind
+                                |> Maybe.map extractPage
+                                |> Maybe.map fixPaths
+                                |> Maybe.map initPageTree
+                    in
+                    ( { model
+                        | pastePageBuffer = Nothing
+                        , pageTree = newPageTree
+                        , selected = Nothing
+                      }
+                    , Maybe.map extractPage newPageTree
+                        |> Maybe.map
+                            (\pt ->
+                                cmdIfLogged
+                                    config.logInfo
+                                    (savePageTree
+                                        (Just page)
+                                        page
+                                        pt
+                                    )
+                            )
+                        |> Maybe.withDefault Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Swap up ->
+            case model.selected of
+                Just (Page pageInfo xs) ->
+                    case
+                        Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                            |> Maybe.andThen
+                                (if up then
+                                    swapLeft
+                                 else
+                                    swapRight
+                                )
+                            |> Maybe.andThen zipUp
+                    of
+                        Just newPageTree ->
+                            let
+                                newPage =
+                                    extractPage newPageTree
+                            in
+                            ( { model
+                                | pageTree = Just <| rewind newPageTree
+                                , lockedPages = newPage :: model.lockedPages
+                                , selected = Nothing
+                              }
+                            , extractPage (rewind newPageTree)
+                                |> (\pt ->
+                                        cmdIfLogged
+                                            config.logInfo
+                                            (savePageTree
+                                                (Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                                    |> Maybe.andThen zipUp
+                                                    |> Maybe.map extractPage
+                                                )
+                                                newPage
+                                                pt
+                                            )
+                                   )
+                            )
+
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         SetInitialSeed t ->
             ( { model
@@ -821,7 +1015,19 @@ fixPaths homePage =
             Page { pageInfo | path = currPath ++ [ pageInfo.name ] }
                 (List.map (helper (currPath ++ [ pageInfo.name ])) ps)
     in
-    helper [] homePage
+    helper
+        (getPath homePage
+            |> List.reverse
+            |> List.tail
+            |> Maybe.map List.reverse
+            |> Maybe.withDefault []
+        )
+        homePage
+
+
+isSubPage : Page -> Page -> Bool
+isSubPage mbSubPage ((Page _ xs) as page) =
+    List.foldr (\p acc -> p == mbSubPage || acc) (page == mbSubPage) xs
 
 
 delete : PageTree -> Maybe PageTree
@@ -835,6 +1041,52 @@ delete { current, contexts } =
                 { current = Page parent (left ++ right)
                 , contexts = cs
                 }
+
+
+swapLeft : PageTree -> Maybe PageTree
+swapLeft { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            case List.reverse left of
+                [] ->
+                    Nothing
+
+                d :: ds ->
+                    Just
+                        { current = current
+                        , contexts =
+                            { parent = parent
+                            , left = List.reverse ds
+                            , right = d :: right
+                            }
+                                :: cs
+                        }
+
+
+swapRight : PageTree -> Maybe PageTree
+swapRight { current, contexts } =
+    case contexts of
+        [] ->
+            Nothing
+
+        { parent, left, right } :: cs ->
+            case right of
+                [] ->
+                    Nothing
+
+                d :: ds ->
+                    Just
+                        { current = current
+                        , contexts =
+                            { parent = parent
+                            , left = left ++ [ d ]
+                            , right = ds
+                            }
+                                :: cs
+                        }
 
 
 
@@ -962,25 +1214,159 @@ view config model =
 
 
 fullView config model =
-    column
+    row
         [ spacing 15
         , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
         , clip
         , width fill
         , height fill
         ]
-        [ pageTreeView config model
-
-        --, Input.button
-        --    (buttonStyle True)
-        --    { onPress =
-        --        Just <| SavePageTree
-        --    , label =
-        --        row [ spacing 10 ]
-        --            [ text "Save"
-        --            ]
-        --    }
+        [ column
+            [ spacing 15
+            , alignTop
+            , Border.solid
+            , Border.widthEach
+                { top = 0
+                , bottom = 0
+                , left = 0
+                , right = 2
+                }
+            , Border.color (rgb 0.8 0.8 0.8)
+            , height fill
+            , paddingEach
+                { top = 0
+                , bottom = 0
+                , left = 0
+                , right = 15
+                }
+            ]
+            [ el
+                [ Font.bold
+                , Font.size 18
+                ]
+                (text "Modification arborescence - Gestion mots clés")
+            , row [ spacing 15 ]
+                [ Input.text
+                    (textInputStyle ++ [ width (px 250), spacing 0 ])
+                    { onChange = RenamePageInput
+                    , text =
+                        if model.renamePageBuffer == "" then
+                            Maybe.map getName model.selected
+                                |> Maybe.withDefault ""
+                        else
+                            model.renamePageBuffer
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft [] Element.none
+                    }
+                , Input.button
+                    (buttonStyle (model.selected /= Nothing))
+                    { onPress =
+                        Maybe.map (\_ -> RenamePage) model.selected
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Renommer"
+                            ]
+                    }
+                ]
+            , row
+                [ spacing 15 ]
+                [ Input.button
+                    (buttonStyle (model.selected /= Nothing))
+                    { onPress =
+                        Maybe.map (\_ -> Swap True) model.selected
+                    , label =
+                        row [ spacing 10 ]
+                            [ el [] (html <| chevronsUp 18)
+                            , text "Monter"
+                            ]
+                    }
+                , Input.button
+                    (buttonStyle (model.selected /= Nothing))
+                    { onPress =
+                        Maybe.map (\_ -> Swap False) model.selected
+                    , label =
+                        row [ spacing 10 ]
+                            [ el [] (html <| chevronsDown 18)
+                            , text "Descendre"
+                            ]
+                    }
+                ]
+            , row
+                [ spacing 15 ]
+                [ Input.button
+                    (buttonStyle (model.selected /= Nothing && model.pastePageBuffer == Nothing))
+                    { onPress =
+                        if model.pastePageBuffer == Nothing then
+                            Maybe.map (\_ -> CutPage) model.selected
+                        else
+                            Nothing
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Couper"
+                            ]
+                    }
+                , Input.button
+                    (buttonStyle (model.selected /= Nothing && model.pastePageBuffer /= Nothing))
+                    { onPress =
+                        if model.pastePageBuffer /= Nothing then
+                            Maybe.map (\_ -> PastePage) model.selected
+                        else
+                            Nothing
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Coller"
+                            ]
+                    }
+                , Input.button
+                    (buttonStyle (model.selected /= Nothing))
+                    { onPress =
+                        Maybe.map (\_ -> DeletePage) model.selected
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Supprimer"
+                            ]
+                    }
+                ]
+            ]
+        , column
+            [ htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+            , clip
+            , width fill
+            , height fill
+            , spacing 15
+            ]
+            [ column
+                [ paddingXY 15 10
+                , Background.color (rgb 0.95 0.95 0.95)
+                , width fill
+                ]
+                [ wrappedRow
+                    [ width fill
+                    , Background.color (rgb 1 1 1)
+                    , padding 4
+                    , Border.rounded 5
+                    , Font.family
+                        [ Font.monospace ]
+                    ]
+                    (Maybe.map getPath model.selected
+                        |> Maybe.map (List.map text)
+                        |> Maybe.map
+                            (List.intersperse
+                                (el [ paddingXY 2 4 ] (text "/"))
+                            )
+                        |> Maybe.map (\res -> text "/" :: res)
+                        |> Maybe.withDefault [ el [ paddingXY 2 4 ] (text "/") ]
+                    )
+                ]
+            , pageTreeView config model
+            ]
         ]
+
+
+
+--]
 
 
 saveView config model =
@@ -1140,23 +1526,36 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
         ( firsts, last ) =
             ( List.take (l - 1) children, List.drop (l - 1) children )
 
+        isLocked =
+            List.any identity
+                (List.map (isSubPage (Page pageInfo children)) locked)
+
         attrs =
             case config.mode of
                 Full ->
-                    [ Events.onClick (SelectPage (Page pageInfo children))
-                    , pointer
-                    , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                    , if selected == Just (Page pageInfo children) then
-                        Font.color (rgba 0 0 1 1)
-                      else
-                        noAttr
-                    ]
+                    let
+                        selectable =
+                            not isLocked
+                    in
+                    (if selectable then
+                        [ Events.onClick (SelectPage (Page pageInfo children))
+                        , pointer
+                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                        ]
+                     else
+                        []
+                    )
+                        ++ [ if selected == Just (Page pageInfo children) then
+                                Font.color (rgba 0 0 1 1)
+                             else
+                                noAttr
+                           ]
 
                 Save ->
                     [ if selected == Just (Page pageInfo children) then
                         Font.color (rgba 0 0 1 1)
                       else
-                        noAttr
+                        Font.color (rgba 0.8 0.8 0.8 1)
                     ]
 
                 SaveAs ->
@@ -1233,7 +1632,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
         (prefix offsets
             ++ [ el
                     (attrs
-                        ++ [ if List.member (Page pageInfo children) locked then
+                        ++ [ if isLocked then
                                 Font.color (rgba 0.8 0.8 0.8 1)
                              else
                                 noAttr

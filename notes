@@ -50,3 +50,5 @@
 - desactiver couper / supprimer  pour dernier élément dans un containeur
 
 - image plugin ellie https://ellie-app.com/3zLhjdtxP3ga1
+
+find . -name '*.elm' | xargs wc -l
