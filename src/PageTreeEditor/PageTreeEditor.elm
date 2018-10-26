@@ -43,7 +43,7 @@ type alias Model msg =
     , newPageBuffer : String
     , seed : Maybe Random.Seed
     , lockedPages : List Page
-    , lockedContents : List UUID
+    , lockedContents : Dict String (Maybe Content)
     , error : String
     }
 
@@ -126,7 +126,7 @@ init externalMsg =
     , newPageBuffer = ""
     , seed = Nothing
     , lockedPages = []
-    , lockedContents = []
+    , lockedContents = Dict.empty
     , error = ""
     }
 
@@ -174,7 +174,7 @@ type Msg
     | SetInternalPage Path
     | RefreshContents (Result Http.Error Decode.Value)
     | RefreshPageTree (Result Http.Error PageTree)
-    | PageTreeSaved Page (Result Http.Error Bool)
+    | PageTreeSaved (Maybe Page) Page (Result Http.Error Bool)
     | SaveContent Page
     | ContentSaved UUID (Result Http.Error Bool)
     | RenamePageInput String
@@ -263,8 +263,6 @@ internalUpdate config msg model =
                         Err e ->
                             ( { model
                                 | contentsLoaded = Failure
-
-                                --, error = Debug.toString e
                               }
                             , Cmd.none
                             )
@@ -289,7 +287,7 @@ internalUpdate config msg model =
                     , Cmd.none
                     )
 
-        PageTreeSaved page res ->
+        PageTreeSaved mbBackup page res ->
             case res of
                 Ok True ->
                     ( { model
@@ -304,9 +302,16 @@ internalUpdate config msg model =
                         | pageTreeSavedStatus = Failure
                         , lockedPages = remove page model.lockedPages
                         , pageTree =
-                            Maybe.andThen (zipTo (getPath page)) model.pageTree
-                                |> Maybe.andThen delete
-                                |> Maybe.map rewind
+                            case mbBackup of
+                                Just backup ->
+                                    Maybe.andThen (zipTo (getPath page)) model.pageTree
+                                        |> Maybe.map (updateCurrPageTree backup)
+                                        |> Maybe.map rewind
+
+                                Nothing ->
+                                    Maybe.andThen (zipTo (getPath page)) model.pageTree
+                                        |> Maybe.andThen delete
+                                        |> Maybe.map rewind
                       }
                     , Cmd.none
                     )
@@ -320,6 +325,13 @@ internalUpdate config msg model =
 
                         contentId =
                             Maybe.withDefault uuid pageInfo.mbContentId
+
+                        mbBackup =
+                            Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                |> Maybe.map extractPage
+
+                        mbBackupContent =
+                            Dict.get (canonical contentId) model.contents
 
                         newPage =
                             Page
@@ -359,7 +371,10 @@ internalUpdate config msg model =
                                     }
                                     xs
                         , lockedPages = newPage :: model.lockedPages
-                        , lockedContents = contentId :: model.lockedContents
+                        , lockedContents =
+                            Dict.insert (canonical contentId)
+                                mbBackupContent
+                                model.lockedContents
                       }
                     , Cmd.batch
                         [ cmdIfLogged
@@ -371,6 +386,7 @@ internalUpdate config msg model =
                                     cmdIfLogged
                                         config.logInfo
                                         (savePageTree
+                                            mbBackup
                                             newPage
                                             pt
                                         )
@@ -387,7 +403,9 @@ internalUpdate config msg model =
                 Ok True ->
                     ( { model
                         | pageTreeSavedStatus = Success
-                        , lockedContents = remove uuid model.lockedContents
+                        , lockedContents =
+                            Dict.remove (canonical uuid)
+                                model.lockedContents
                       }
                     , Cmd.none
                     )
@@ -395,8 +413,15 @@ internalUpdate config msg model =
                 _ ->
                     ( { model
                         | pageTreeSavedStatus = Failure
-                        , lockedContents = remove uuid model.lockedContents
-                        , contents = Dict.remove (canonical uuid) model.contents
+                        , lockedContents =
+                            Dict.remove (canonical uuid) model.lockedContents
+                        , contents =
+                            case Dict.get (canonical uuid) model.lockedContents of
+                                Just (Just backup) ->
+                                    Dict.insert (canonical uuid) backup model.contents
+
+                                _ ->
+                                    Dict.remove (canonical uuid) model.contents
                       }
                     , Cmd.none
                     )
@@ -454,6 +479,7 @@ internalUpdate config msg model =
                                     cmdIfLogged
                                         config.logInfo
                                         (savePageTree
+                                            Nothing
                                             newPage
                                             pt
                                         )
@@ -516,8 +542,8 @@ getContents sessionId =
     Http.send RefreshContents request
 
 
-savePageTree : Page -> Page -> String -> Cmd Msg
-savePageTree page pageTree sessionId =
+savePageTree : Maybe Page -> Page -> Page -> String -> Cmd Msg
+savePageTree mbPage page pageTree sessionId =
     let
         body =
             Encode.object
@@ -533,7 +559,7 @@ savePageTree page pageTree sessionId =
         request =
             Http.post "savePageTree.php" body decodeSuccess
     in
-    Http.send (PageTreeSaved page) request
+    Http.send (PageTreeSaved mbPage page) request
 
 
 saveContent : UUID -> Document -> String -> Cmd Msg
