@@ -71,6 +71,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 
 } else {
   logError("invalid request");
+  exit();
 }
 
 ?>
