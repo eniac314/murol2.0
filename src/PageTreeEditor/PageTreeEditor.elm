@@ -49,6 +49,7 @@ type alias Model msg =
     , keywords : Set.Set ( String, String )
     , keywordsPromptInput : Maybe String
     , selectedKeyword : Maybe String
+    , selectedPageKeyword : Maybe String
     , seed : Maybe Random.Seed
     , lockedPages : List Page
     , lockedContents : Dict String (Maybe Content)
@@ -138,6 +139,7 @@ init externalMsg =
     , keywords = Set.empty
     , keywordsPromptInput = Nothing
     , selectedKeyword = Nothing
+    , selectedPageKeyword = Nothing
     , seed = Nothing
     , lockedPages = []
     , lockedContents = Dict.empty
@@ -221,6 +223,7 @@ type Msg
       -- Keywords admin --
       --------------------
     | SelectKeyword String
+    | SelectPageKeyword String
     | KeywordInput String
     | NewKeyword
     | SetKeyword
@@ -764,8 +767,16 @@ internalUpdate config msg model =
             , Cmd.none
             )
 
+        SelectPageKeyword s ->
+            ( { model | selectedPageKeyword = Just s }
+            , Cmd.none
+            )
+
         KeywordInput s ->
-            ( { model | keywordsPromptInput = Just s }
+            ( { model
+                | keywordsPromptInput = Just s
+                , selectedKeyword = Nothing
+              }
             , Cmd.none
             )
 
@@ -787,6 +798,7 @@ internalUpdate config msg model =
                             , lockedKeywords =
                                 Set.insert newEntry model.lockedKeywords
                             , keywordsPromptInput = Nothing
+                            , selectedKeyword = Nothing
                           }
                         , cmdIfLogged
                             config.logInfo
@@ -807,9 +819,7 @@ internalUpdate config msg model =
                 ( Just keyword, Just contentId ) ->
                     let
                         newEntry =
-                            ( Maybe.withDefault
-                                ""
-                                model.keywordsPromptInput
+                            ( keyword
                             , canonical contentId
                             )
                     in
@@ -820,6 +830,7 @@ internalUpdate config msg model =
                         , lockedKeywords =
                             Set.insert newEntry model.lockedKeywords
                         , keywordsPromptInput = Nothing
+                        , selectedKeyword = Nothing
                       }
                     , cmdIfLogged
                         config.logInfo
@@ -831,16 +842,14 @@ internalUpdate config msg model =
 
         UnsetKeyword ->
             case
-                ( model.selectedKeyword
+                ( model.selectedPageKeyword
                 , Maybe.andThen getMbContentId model.selected
                 )
             of
                 ( Just keyword, Just contentId ) ->
                     let
                         newEntry =
-                            ( Maybe.withDefault
-                                ""
-                                model.keywordsPromptInput
+                            ( keyword
                             , canonical contentId
                             )
                     in
@@ -850,6 +859,7 @@ internalUpdate config msg model =
                                 model.keywords
                         , lockedKeywords =
                             Set.insert newEntry model.lockedKeywords
+                        , selectedPageKeyword = Nothing
                       }
                     , cmdIfLogged
                         config.logInfo
@@ -1676,113 +1686,154 @@ keywordsAdminView config model =
                             k
                     )
 
-        keywordView k =
+        pageKeywords =
+            case Maybe.andThen getMbContentId model.selected of
+                Nothing ->
+                    []
+
+                Just contentId ->
+                    model.keywords
+                        |> Set.filter
+                            (\( c, cId ) ->
+                                cId == canonical contentId
+                            )
+                        |> Set.map Tuple.first
+                        |> Set.toList
+
+        keywordView isPageKeyword k =
+            let
+                ( handler, selected ) =
+                    if isPageKeyword then
+                        ( Events.onClick (SelectPageKeyword k)
+                        , model.selectedPageKeyword == Just k
+                        )
+                    else
+                        ( Events.onClick (SelectKeyword k)
+                        , model.selectedKeyword == Just k
+                        )
+            in
             el
                 [ width fill
-                , Events.onClick (SelectKeyword k)
-                , paddingXY 5 10
+                , handler
+                , paddingXY 5 5
+                , pointer
+                , if selected then
+                    Background.color
+                        (rgba 0 0 1 0.3)
+                  else
+                    noAttr
                 ]
                 (text k)
     in
-    row
-        [ spacing 20
+    column
+        [ spacing 15
+        , Border.widthEach
+            { top = 2
+            , bottom = 0
+            , left = 0
+            , right = 0
+            }
+        , Border.color (rgb 0.8 0.8 0.8)
+        , paddingEach
+            { top = 15
+            , bottom = 0
+            , left = 0
+            , right = 0
+            }
         , width fill
         ]
-        [ column
-            [ spacing 15
-            , Border.widthEach
-                { top = 2
-                , bottom = 0
-                , left = 0
-                , right = 0
-                }
-            , Border.color (rgb 0.8 0.8 0.8)
-            , width fill
-            , paddingEach
-                { top = 15
-                , bottom = 0
-                , left = 0
-                , right = 0
-                }
+        [ el
+            [ Font.bold
+            , Font.size 18
             ]
-            [ el
-                [ Font.bold
-                , Font.size 18
+            (text "Gestion mots clés")
+        , Input.text
+            (textInputStyle ++ [ width (px 300), spacing 0 ])
+            { onChange = KeywordInput
+            , text =
+                if model.keywordsPromptInput == Nothing then
+                    Maybe.withDefault "" model.selectedKeyword
+                else
+                    Maybe.withDefault "" model.keywordsPromptInput
+            , placeholder =
+                Nothing
+            , label =
+                Input.labelLeft [] Element.none
+            }
+        , row
+            [ spacing 15
+            , width fill
+            ]
+            [ column
+                [ Border.width 2
+                , Border.color (rgb 0.8 0.8 0.8)
+                , width (px 200)
+                , height (px 400)
+                , scrollbars
                 ]
-                (text "Gestion mots clés")
-            , Input.text
-                (textInputStyle ++ [ width (px 300), spacing 0 ])
-                { onChange = KeywordInput
-                , text =
-                    if model.keywordsPromptInput == Nothing then
-                        Maybe.withDefault "" model.selectedKeyword
+                (List.map (keywordView False) visibleKeywords)
+            , column
+                [ Border.width 2
+                , Border.color (rgb 0.8 0.8 0.8)
+                , width (px 200)
+                , height (px 400)
+                , scrollbars
+                ]
+                (List.map (keywordView True) pageKeywords)
+            ]
+        , row
+            [ spacing 15 ]
+            [ Input.button
+                (buttonStyle
+                    ((Maybe.andThen getMbContentId model.selected
+                        /= Nothing
+                     )
+                        && ((model.selectedKeyword
+                                /= Nothing
+                            )
+                                || validMbStr model.keywordsPromptInput
+                           )
+                    )
+                )
+                { onPress =
+                    if
+                        (Maybe.andThen getMbContentId model.selected /= Nothing)
+                            && (model.selectedKeyword /= Nothing)
+                    then
+                        Just SetKeyword
+                    else if
+                        (Maybe.andThen getMbContentId model.selected /= Nothing)
+                            && validMbStr model.keywordsPromptInput
+                    then
+                        Just NewKeyword
                     else
-                        Maybe.withDefault "" model.keywordsPromptInput
-                , placeholder =
-                    Nothing
+                        Nothing
                 , label =
-                    Input.labelLeft [] Element.none
+                    row [ spacing 10 ]
+                        [ text "Associer mot clé" ]
                 }
-            , column
-                [ width (px 300) ]
-                []
-            , column
-                [ spacing 15 ]
-                (List.map keywordView visibleKeywords)
-            , row
-                [ spacing 15 ]
-                [ Input.button
-                    (buttonStyle
-                        ((Maybe.andThen getMbContentId model.selected
-                            /= Nothing
-                         )
-                            && ((model.selectedKeyword
-                                    /= Nothing
-                                )
-                                    || validMbStr model.keywordsPromptInput
-                               )
-                        )
+            , Input.button
+                (buttonStyle
+                    ((Maybe.andThen getMbContentId model.selected
+                        /= Nothing
+                     )
+                        && (model.selectedPageKeyword
+                                /= Nothing
+                           )
                     )
-                    { onPress =
-                        if
-                            (Maybe.andThen getMbContentId model.selected /= Nothing)
-                                && (model.selectedKeyword /= Nothing)
-                        then
-                            Just SetKeyword
-                        else if
-                            (Maybe.andThen getMbContentId model.selected /= Nothing)
-                                && validMbStr model.keywordsPromptInput
-                        then
-                            Just NewKeyword
-                        else
-                            Nothing
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Associer mot clé" ]
-                    }
-                , Input.button
-                    (buttonStyle
-                        ((Maybe.andThen getMbContentId model.selected
-                            /= Nothing
-                         )
-                            && (model.selectedKeyword
-                                    /= Nothing
-                               )
-                        )
-                    )
-                    { onPress =
-                        if
-                            (Maybe.andThen getMbContentId model.selected /= Nothing)
-                                && (model.selectedKeyword /= Nothing)
-                        then
-                            Just UnsetKeyword
-                        else
-                            Nothing
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Supprimer mot clé" ]
-                    }
-                ]
+                )
+                { onPress =
+                    if
+                        (Maybe.andThen getMbContentId model.selected /= Nothing)
+                            && (model.selectedPageKeyword /= Nothing)
+                    then
+                        Just UnsetKeyword
+                    else
+                        Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ text "Dissocier mot clé" ]
+                }
             ]
         ]
 
