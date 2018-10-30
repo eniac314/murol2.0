@@ -83,21 +83,23 @@ init flags url key =
             , styleSheet = StyleSheets.defaulStyleSheet
             , zipperHandlers = Nothing
             }
+
+        url_ =
+            if url.path == "/" then
+                { url | path = "/accueil" }
+            else
+                url
     in
     ( { config = config
       , key = key
       , pageTree = Nothing
       , pages = Dict.empty
-      , url =
-            if url.path == "/" then
-                { url | path = "/accueil" }
-            else
-                url
+      , url = url_
       }
     , Cmd.batch
         [ getPages
-        , if url.path == "/" then
-            Nav.pushUrl key (Url.toString { url | path = "/accueil" })
+        , if url /= url_ then
+            Nav.pushUrl key (Url.toString url_)
           else
             Cmd.none
         ]
@@ -141,8 +143,8 @@ update msg model =
                     )
 
                 Nothing ->
-                    ( model
-                    , Nav.pushUrl model.key (Url.toString { url | path = "/accueil" })
+                    ( { model | url = url }
+                    , Cmd.none
                     )
 
         LoadPages res ->
@@ -248,7 +250,51 @@ mainView model =
 
 
 footerView model =
-    Element.none
+    case model.pageTree of
+        Just (PageTreeEditor.Page _ xs_) ->
+            let
+                strPath path =
+                    List.map Url.percentEncode path
+                        |> String.join "/"
+                        |> (\p -> "/" ++ p)
+
+                mainCatView (PageTreeEditor.Page pageInfo xs) =
+                    column
+                        [ width (minimum 100 (maximum 300 fill))
+                        , alignTop
+                        ]
+                        ([ link []
+                            { url =
+                                strPath pageInfo.path
+                            , label =
+                                el
+                                    [ Font.bold ]
+                                    (text pageInfo.name)
+                            }
+                         ]
+                            ++ List.map subCatView xs
+                        )
+
+                subCatView (PageTreeEditor.Page pageInfo _) =
+                    link []
+                        { url =
+                            strPath pageInfo.path
+                        , label =
+                            el
+                                []
+                                (text pageInfo.name)
+                        }
+            in
+            wrappedRow
+                [ width fill
+                , centerX
+                , spaceEvenly
+                , padding 15
+                ]
+                (List.map mainCatView xs_)
+
+        Nothing ->
+            Element.none
 
 
 
@@ -267,7 +313,7 @@ getPages =
                 |> Http.jsonBody
 
         request =
-            Http.post "getPageTree.php" body Decode.value
+            Http.post "/getPageTree.php" body Decode.value
     in
     Http.send LoadPages request
 
@@ -281,7 +327,7 @@ getContent ( path, contentId ) =
                 |> Http.jsonBody
 
         request =
-            Http.post "getContent.php" body Decode.value
+            Http.post "/getContent.php" body Decode.value
     in
     Http.send (LoadContent ( path, contentId )) request
 
