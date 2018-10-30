@@ -363,6 +363,8 @@ internalUpdate config msg model =
                     ( { model
                         | pageTreeUpdatedStatus = Success
                         , lockedPages = remove page model.lockedPages
+                        , fileIoSelected = Nothing
+                        , selected = Nothing
                       }
                     , Cmd.none
                     )
@@ -969,6 +971,7 @@ savePageTree mbPage page pageTree sessionId =
                   , Encode.string sessionId
                   )
                 , ( "pageTree"
+                    --, encodePage (emptyPages pageTree)
                   , encodePage pageTree
                   )
                 ]
@@ -1537,12 +1540,14 @@ fullView config model =
                 }
             , Border.color (rgb 0.8 0.8 0.8)
             , height fill
+            , width (px 430)
             , paddingEach
                 { top = 0
                 , bottom = 0
                 , left = 0
                 , right = 15
                 }
+            , scrollbarY
             ]
             [ el
                 [ Font.bold
@@ -2227,6 +2232,11 @@ break p xs =
 validMbStr : Maybe String -> Bool
 validMbStr mbStr =
     (mbStr /= Nothing) && (mbStr /= Just "")
+
+
+emptyPages : Page -> Page
+emptyPages (Page pageInfo xs) =
+    Page { pageInfo | mbContentId = Nothing } (List.map emptyPages xs)
 
 
 

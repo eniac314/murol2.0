@@ -17,7 +17,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   }
   
   $allowedPath = getcwd().'/pages/contents';
-  $destPath = realpath('./pages/contents'.$php_data->contentId);
+  $destPath = realpath('./pages/contents'.'/'.$php_data->contentId);
   
   if(strpos($destPath, $allowedPath) !== 0 || strpos($destPath, $allowedPath) === false){ 
     logError("invalid path");

@@ -254,7 +254,7 @@ getSelectedImage model =
             case fileType of
                 ImageFile { width, height } ->
                     Just
-                        { src = String.join "/" path
+                        { src = "/" ++ String.join "/" path
                         , width = width
                         , height = height
                         }
@@ -273,9 +273,10 @@ getSelectedDoc model =
             case fileType of
                 RegFile ->
                     Just <|
-                        String.join
-                            "/"
-                            path
+                        "/"
+                            ++ String.join
+                                "/"
+                                path
 
                 _ ->
                     Nothing

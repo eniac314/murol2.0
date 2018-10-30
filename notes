@@ -52,3 +52,29 @@
 - image plugin ellie https://ellie-app.com/3zLhjdtxP3ga1
 
 find . -name '*.elm' | xargs wc -l
+
+- disable directory listing: 
+
+    https://stackoverflow.com/questions/2530372/how-do-i-disable-directory-browsing
+    
+	The best way to do this is disable it with webserver apache2. In my Ubuntu 14.X - open /etc/apache2/apache2.conf change from
+
+	<Directory /var/www/>
+	        Options Indexes FollowSymLinks
+	        AllowOverride None
+	        Require all granted
+	</Directory>
+
+	to
+
+	<Directory /var/www/>
+	        Options FollowSymLinks
+	        AllowOverride None
+	        Require all granted
+	</Directory>
+
+	then restart apache by:
+
+	sudo service apache2 restart
+
+	This will disable directory listing from all folder that apache2 serves.

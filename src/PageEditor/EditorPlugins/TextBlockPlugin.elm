@@ -1298,7 +1298,7 @@ chooseInternalPageView externalMsg uid pageTreeEditor zone logInfo =
                 { onPress =
                     PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor
                         |> Maybe.map .path
-                        |> Maybe.map (String.join "/")
+                        |> Maybe.map (\p -> "/" ++ String.join "/" p)
                         |> Maybe.map (externalMsg << ConfirmInternalPageUrl uid)
                 , label =
                     row [ spacing 5 ]
