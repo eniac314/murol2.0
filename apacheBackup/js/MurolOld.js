@@ -6772,7 +6772,7 @@ var elm$json$Json$Encode$object = function (pairs) {
 var author$project$Murol$getPages = function () {
 	var body = elm$http$Http$jsonBody(
 		elm$json$Json$Encode$object(_List_Nil));
-	var request = A3(elm$http$Http$post, 'getPageTree.php', body, elm$json$Json$Decode$value);
+	var request = A3(elm$http$Http$post, '/getPageTree.php', body, elm$json$Json$Decode$value);
 	return A2(elm$http$Http$send, author$project$Murol$LoadPages, request);
 }();
 var elm$browser$Browser$External = function (a) {
@@ -11055,7 +11055,7 @@ var author$project$Murol$getContent = function (_n0) {
 					'contentId',
 					elm$json$Json$Encode$string(contentId))
 				])));
-	var request = A3(elm$http$Http$post, 'getContent.php', body, elm$json$Json$Decode$value);
+	var request = A3(elm$http$Http$post, '/getContent.php', body, elm$json$Json$Decode$value);
 	return A2(
 		elm$http$Http$send,
 		author$project$Murol$LoadContent(
@@ -11705,6 +11705,7 @@ var author$project$PageTreeEditor$PageTreeEditor$decodeContent = A3(
 			author$project$PageTreeEditor$PageTreeEditor$decodeUUID,
 			elm$json$Json$Decode$succeed(author$project$PageTreeEditor$PageTreeEditor$Content))));
 var elm$browser$Browser$Navigation$load = _Browser_load;
+var elm$core$Debug$log = _Debug_log;
 var author$project$Murol$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -11717,7 +11718,10 @@ var author$project$Murol$update = F2(
 						A2(
 							elm$browser$Browser$Navigation$pushUrl,
 							model.key,
-							elm$url$Url$toString(url)));
+							A2(
+								elm$core$Debug$log,
+								'',
+								elm$url$Url$toString(url))));
 				} else {
 					var url = urlRequest.a;
 					return _Utils_Tuple2(
@@ -11766,8 +11770,8 @@ var author$project$Murol$update = F2(
 			case 'LoadPages':
 				var res = msg.a;
 				if (res.$ === 'Ok') {
-					var jsonVal = res.a;
-					var _n6 = A2(elm$json$Json$Decode$decodeValue, author$project$Murol$decodePages, jsonVal);
+					var value = res.a;
+					var _n6 = A2(elm$json$Json$Decode$decodeValue, author$project$Murol$decodePages, value);
 					if (_n6.$ === 'Ok') {
 						var _n7 = _n6.a;
 						var pages = _n7.a;
@@ -11833,6 +11837,7 @@ var author$project$Murol$update = F2(
 								}),
 							elm$core$Platform$Cmd$none);
 					} else {
+						var e = _n13.a;
 						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
 					}
 				} else {
@@ -18770,7 +18775,7 @@ var author$project$Murol$mainView = function (model) {
 			switch (_n0.a.b.$) {
 				case 'Loaded':
 					var _n1 = _n0.a;
-					var cId = _n1.a;
+					var cid = _n1.a;
 					var doc = _n1.b.a;
 					return A2(
 						mdgriffith$elm_ui$Element$column,
@@ -18785,7 +18790,7 @@ var author$project$Murol$mainView = function (model) {
 							A2(author$project$Document$DocumentViews$DocumentResponsive$responsivePreFormat, model.config, doc)));
 				case 'Loading':
 					var _n2 = _n0.a;
-					var cId = _n2.a;
+					var cid = _n2.a;
 					var _n3 = _n2.b;
 					return A2(
 						mdgriffith$elm_ui$Element$el,
@@ -19033,18 +19038,18 @@ var author$project$Murol$view = function (model) {
 							mdgriffith$elm_ui$Element$el,
 							_List_fromArray(
 								[
+									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 									mdgriffith$elm_ui$Element$Font$size(45),
-									mdgriffith$elm_ui$Element$Font$center,
-									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+									mdgriffith$elm_ui$Element$Font$center
 								]),
 							mdgriffith$elm_ui$Element$text('Murol')),
 							A2(
 							mdgriffith$elm_ui$Element$el,
 							_List_fromArray(
 								[
+									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 									mdgriffith$elm_ui$Element$Font$size(31),
-									mdgriffith$elm_ui$Element$Font$center,
-									mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+									mdgriffith$elm_ui$Element$Font$center
 								]),
 							mdgriffith$elm_ui$Element$text('La municipalité de Murol vous souhaite la bienvenue')),
 							author$project$Murol$mainView(model),
@@ -19058,4 +19063,4 @@ var elm$browser$Browser$application = _Browser_application;
 var author$project$Murol$main = elm$browser$Browser$application(
 	{init: author$project$Murol$init, onUrlChange: author$project$Murol$ChangeUrl, onUrlRequest: author$project$Murol$ClickedLink, subscriptions: author$project$Murol$subscriptions, update: author$project$Murol$update, view: author$project$Murol$view});
 _Platform_export({'Murol':{'init':author$project$Murol$main(
-	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"Murol.Msg","aliases":{"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"},"Url.Url":{"args":[],"type":"{ protocol : Url.Protocol, host : String.String, port_ : Maybe.Maybe Basics.Int, path : String.String, query : Maybe.Maybe String.String, fragment : Maybe.Maybe String.String }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"Murol.Msg":{"args":[],"tags":{"ChangeUrl":["Url.Url"],"ClickedLink":["Browser.UrlRequest"],"LoadContent":["( String.String, String.String )","Result.Result Http.Error Json.Decode.Value"],"LoadPages":["Result.Result Http.Error Json.Decode.Value"],"NoOp":[]}},"Browser.UrlRequest":{"args":[],"tags":{"Internal":["Url.Url"],"External":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Url.Protocol":{"args":[],"tags":{"Http":[],"Https":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
+	elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.0"},"types":{"message":"Murol.Msg","aliases":{"Json.Decode.Value":{"args":[],"type":"Json.Encode.Value"},"Url.Url":{"args":[],"type":"{ protocol : Url.Protocol, host : String.String, port_ : Maybe.Maybe Basics.Int, path : String.String, query : Maybe.Maybe String.String, fragment : Maybe.Maybe String.String }"},"Http.Response":{"args":["body"],"type":"{ url : String.String, status : { code : Basics.Int, message : String.String }, headers : Dict.Dict String.String String.String, body : body }"}},"unions":{"Murol.Msg":{"args":[],"tags":{"ClickedLink":["Browser.UrlRequest"],"ChangeUrl":["Url.Url"],"LoadPages":["Result.Result Http.Error Json.Decode.Value"],"LoadContent":["( String.String, String.String )","Result.Result Http.Error Json.Decode.Value"],"NoOp":[]}},"Browser.UrlRequest":{"args":[],"tags":{"Internal":["Url.Url"],"External":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Result.Result":{"args":["error","value"],"tags":{"Ok":["value"],"Err":["error"]}},"String.String":{"args":[],"tags":{"String":[]}},"Http.Error":{"args":[],"tags":{"BadUrl":["String.String"],"Timeout":[],"NetworkError":[],"BadStatus":["Http.Response String.String"],"BadPayload":["String.String","Http.Response String.String"]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Url.Protocol":{"args":[],"tags":{"Http":[],"Https":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
