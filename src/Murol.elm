@@ -78,8 +78,6 @@ init flags url key =
             , height = 1080
             , width = 1920
             , mainInterfaceHeight = 0
-            , onLoadMsg = \_ -> NoOp
-            , sizesDict = Dict.empty
             , styleSheet = StyleSheets.defaulStyleSheet
             , zipperHandlers = Nothing
             }

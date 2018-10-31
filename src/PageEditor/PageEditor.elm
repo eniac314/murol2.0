@@ -178,9 +178,7 @@ type Msg
       -- Dom manipulation && Dom events processing--
       ----------------------------------------------
       CurrentViewport Dom.Viewport
-    | CurrentViewportOf Int (Result Dom.Error Dom.Viewport)
     | WinResize Int Int
-    | RefreshSizes
     | MainInterfaceViewport (Result Dom.Error Dom.Viewport)
     | JumpTo (Maybe String)
     | KeyDown String
@@ -253,8 +251,8 @@ init =
 reset : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd msg )
 reset mbDoc externalMsg =
     let
-        ( doc_, idsToTrack ) =
-            setSizeTrackedDocUids (Maybe.withDefault emptyDoc mbDoc)
+        doc_ =
+            Maybe.withDefault emptyDoc mbDoc
 
         ( newTextBlockPlugin, textBlockPluginCmds ) =
             TextBlockPlugin.init [] Nothing (externalMsg << TextBlockPluginMsg)
@@ -273,15 +271,8 @@ reset mbDoc externalMsg =
             { width = 1920
             , height = 1080
             , mainInterfaceHeight = 75
-            , sizesDict =
-                Dict.fromList
-                    (List.map
-                        (\uid -> ( uid, { docWidth = 0, docHeight = 0 } ))
-                        idsToTrack
-                    )
             , customElems = Dict.empty
             , styleSheet = defaulStyleSheet
-            , onLoadMsg = \_ -> externalMsg RefreshSizes
             , zipperHandlers = Just handlers
             , editMode = True
             , containersBkgColors = False
@@ -365,32 +356,6 @@ internalUpdate config msg model =
             , Cmd.none
             )
 
-        CurrentViewportOf uid res ->
-            case res of
-                Ok { viewport } ->
-                    let
-                        currentConfig =
-                            model.config
-
-                        newSizesDict =
-                            Dict.insert uid
-                                { docWidth = round viewport.width
-                                , docHeight = round viewport.height
-                                }
-                                currentConfig.sizesDict
-                    in
-                    ( { model
-                        | config =
-                            { currentConfig
-                                | sizesDict = newSizesDict
-                            }
-                      }
-                    , Cmd.none
-                    )
-
-                Err (Dom.NotFound s) ->
-                    ( model, Cmd.none )
-
         MainInterfaceViewport res ->
             case res of
                 Ok { viewport } ->
@@ -421,15 +386,9 @@ internalUpdate config msg model =
             in
             ( { model | config = newConfig }
             , Cmd.batch
-                [ updateSizes model.externalMsg newConfig
-                , Task.attempt (model.externalMsg << MainInterfaceViewport)
+                [ Task.attempt (model.externalMsg << MainInterfaceViewport)
                     (Dom.getViewportOf "mainInterface")
                 ]
-            )
-
-        RefreshSizes ->
-            ( model
-            , updateSizes model.externalMsg model.config
             )
 
         JumpTo id ->
@@ -680,7 +639,7 @@ internalUpdate config msg model =
                         | document = zipper
                         , undoCache = xs
                       }
-                    , updateSizes model.externalMsg model.config
+                    , Cmd.none
                     )
 
         --------------
@@ -724,7 +683,7 @@ internalUpdate config msg model =
                     { config_ | width = newWidth }
             in
             ( { model | previewMode = pm, config = newConfig }
-            , updateSizes model.externalMsg newConfig
+            , Cmd.none
             )
 
         ToogleCountainersColors ->
@@ -1647,12 +1606,6 @@ mainInterface config =
                             && not config.selectionIsRoot
                   }
                 , { defButtonConfig
-                    | icons = [ refreshCw iconSize ]
-                    , labelText = "Rafraichir"
-                    , msg = Just RefreshSizes
-                    , isActive = True
-                  }
-                , { defButtonConfig
                     | icons = [ settings iconSize ]
                     , labelText = "Préférences"
                     , msg = Nothing
@@ -1889,18 +1842,6 @@ mainMenu config =
 ---------------------
 -- Helper functions--
 ---------------------
-
-
-updateSizes : (Msg -> msg) -> Config msg -> Cmd msg
-updateSizes externalMsg { sizesDict } =
-    let
-        cmd uid id =
-            Task.attempt (CurrentViewportOf uid) (Dom.getViewportOf id)
-    in
-    Dict.keys sizesDict
-        |> List.map (\uid -> cmd uid ("sizeTracked" ++ String.fromInt uid))
-        |> Cmd.batch
-        |> Cmd.map externalMsg
 
 
 scrollTo : Maybe String -> Cmd Msg

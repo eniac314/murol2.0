@@ -232,7 +232,6 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
             Html.img
                 [ Attr.style "width" "100%"
                 , Attr.style "height" "auto"
-                , Html.Events.on "load" (Decode.succeed (config.onLoadMsg uid))
                 , Attr.src src_
                 ]
                 []

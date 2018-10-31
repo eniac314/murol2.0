@@ -82,13 +82,7 @@ responsivePreFormat config document =
                         hasClass "sameHeightImgsRow" document
                             && containsOnly isImage document
                     then
-                        case Dict.get id.uid config.sizesDict of
-                            Just { docWidth, docHeight } ->
-                                renderSameHeightImgRow docWidth document
-
-                            Nothing ->
-                                renderSameHeightImgRow config.width document
-                        --Container nv (List.map (responsivePreFormat config) children)
+                        renderSameHeightImgRow document
                     else if device.class == Phone || device.class == Tablet then
                         responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
                     else
@@ -137,112 +131,8 @@ responsivePreFormat config document =
                     l
 
 
-
---renderSameHeightImgRow : Int -> Document -> Document
---renderSameHeightImgRow containerWidth document =
---    case document of
---        Cell _ ->
---            document
---        Container id_ children ->
---            let
---                images =
---                    List.foldr
---                        (\doc acc ->
---                            case doc of
---                                Container _ _ ->
---                                    acc
---                                Cell lv ->
---                                    case lv.cellContent of
---                                        Image ({ src, caption, size } as meta) ->
---                                            { meta = meta
---                                            , id = lv.id
---                                            , attrs = lv.attrs
---                                            , newWidth = 0
---                                            , newHeight = 0
---                                            }
---                                                :: acc
---                                        _ ->
---                                            acc
---                        )
---                        []
---                        children
---                imgSizes imgs =
---                    List.map (\i -> i.meta.size) imgs
---                minHeight imgs =
---                    imgSizes imgs
---                        |> List.map .imgHeight
---                        |> List.sort
---                        |> List.head
---                        |> Maybe.withDefault 0
---                imgsScaledToMinHeight =
---                    let
---                        mh =
---                            minHeight images
---                        scale { meta, attrs, id } =
---                            { meta = meta
---                            , id = id
---                            , attrs = attrs
---                            , newHeight = toFloat mh + 5
---                            , newWidth =
---                                toFloat mh
---                                    * toFloat meta.size.imgWidth
---                                    / toFloat meta.size.imgHeight
---                            }
---                    in
---                    List.map scale images
---                totalImgWidth =
---                    List.foldr (\i n -> i.newWidth + n) 0 imgsScaledToMinHeight
---                spacingOffset =
---                    --1
---                    if containerWidth > 500 then
---                        20
---                    else
---                        15
---                scalingFactor =
---                    if
---                        toFloat containerWidth
---                            < totalImgWidth
---                            + toFloat (List.length images)
---                            * spacingOffset
---                    then
---                        toFloat
---                            (containerWidth
---                                - List.length images
---                                * spacingOffset
---                            )
---                            / totalImgWidth
---                    else
---                        1
---                imgsScaledToFitContainer =
---                    List.map
---                        (\im ->
---                            { im
---                                | newWidth =
---                                    im.newWidth * scalingFactor
---                                , newHeight =
---                                    im.newHeight * scalingFactor
---                            }
---                        )
---                        imgsScaledToMinHeight
---            in
---            Container id_ <|
---                List.map
---                    (\im ->
---                        Cell
---                            { cellContent = Image im.meta
---                            , id = im.id
---                            , attrs =
---                                [ Height (floor im.newHeight)
---                                , Width (floor im.newWidth)
---                                ]
---                                    ++ im.attrs
---                            }
---                    )
---                    imgsScaledToFitContainer
-
-
-renderSameHeightImgRow : Int -> Document -> Document
-renderSameHeightImgRow containerWidth document =
+renderSameHeightImgRow : Document -> Document
+renderSameHeightImgRow document =
     case document of
         Cell _ ->
             document
@@ -303,40 +193,6 @@ renderSameHeightImgRow containerWidth document =
 
                 totalImgWidth =
                     List.foldr (\i n -> i.newWidth + n) 0 imgsScaledToMinHeight
-
-                spacingOffset =
-                    --1
-                    if containerWidth > 500 then
-                        20
-                    else
-                        15
-
-                --scalingFactor =
-                --    if
-                --        toFloat containerWidth
-                --            < totalImgWidth
-                --            + toFloat (List.length images)
-                --            * spacingOffset
-                --    then
-                --        toFloat
-                --            (containerWidth
-                --                - List.length images
-                --                * spacingOffset
-                --            )
-                --            / totalImgWidth
-                --    else
-                --        1
-                --imgsScaledToFitContainer =
-                --    List.map
-                --        (\im ->
-                --            { im
-                --                | newWidth =
-                --                    im.newWidth * scalingFactor
-                --                , newHeight =
-                --                    im.newHeight * scalingFactor
-                --            }
-                --        )
-                --        imgsScaledToMinHeight
             in
             Container { id_ | attrs = id_.attrs ++ [ SpacingXY 15 0 ] } <|
                 List.map
@@ -345,8 +201,7 @@ renderSameHeightImgRow containerWidth document =
                             { cellContent = Image im.meta
                             , id = im.id
                             , attrs =
-                                [ --Height (floor im.newHeight)
-                                  FillPortion (floor <| 10000 * im.newWidth / totalImgWidth)
+                                [ FillPortion (floor <| 10000 * im.newWidth / totalImgWidth)
                                 ]
                                     ++ im.attrs
                             }

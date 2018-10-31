@@ -126,14 +126,8 @@ type alias Config msg =
     { width : Int
     , height : Int
     , mainInterfaceHeight : Int
-    , sizesDict :
-        Dict Int
-            { docWidth : Int
-            , docHeight : Int
-            }
     , customElems :
         Dict String (Element msg)
-    , onLoadMsg : Int -> msg
     , styleSheet : StyleSheet msg
     , zipperHandlers : Maybe (ZipperHandlers msg)
     , editMode : Bool
@@ -141,16 +135,14 @@ type alias Config msg =
     }
 
 
-newsEditorConfig noOp =
+newsEditorConfig =
     { width = 1920
     , height = 1080
     , mainInterfaceHeight = 0
-    , sizesDict = Dict.empty
     , customElems = Dict.empty
-    , onLoadMsg = \_ -> noOp
     , styleSheet = defaulStyleSheet
     , zipperHandlers = Nothing
-    , editMode = False
+    , editMode = True
     , containersBkgColors = False
     }
 
@@ -379,33 +371,6 @@ setHtmlIdIfNone sid doc =
 
                 Just _ ->
                     doc
-
-
-setSizeTrackedDocUids : Document -> ( Document, List Int )
-setSizeTrackedDocUids document =
-    let
-        htmlId uid =
-            "sizeTracked" ++ String.fromInt uid
-    in
-    case document of
-        Container ({ id, attrs } as nv) children ->
-            let
-                ( newChildren, newUids ) =
-                    List.map setSizeTrackedDocUids children
-                        |> List.unzip
-                        |> Tuple.mapSecond List.concat
-            in
-            if hasClass "sameHeightImgsRow" document then
-                ( setHtmlId (htmlId id.uid) document
-                , id.uid :: newUids
-                )
-            else
-                ( Container nv newChildren
-                , newUids
-                )
-
-        Cell lv ->
-            ( document, [] )
 
 
 addClass : String -> Document -> Document
