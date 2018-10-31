@@ -185,6 +185,7 @@ type DocAttribute
     | BackgroundColor DocColor
     | Width Int
     | Height Int
+    | FillPortion Int
     | Border
     | Font String
     | FontColor DocColor

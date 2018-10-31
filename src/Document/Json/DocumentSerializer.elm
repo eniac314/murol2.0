@@ -350,6 +350,11 @@ encodeDocAttribute docAttr =
                 object
                     [ ( "Height", int h ) ]
 
+        FillPortion n ->
+            Just <|
+                object
+                    [ ( "FillPortion", int n ) ]
+
         Border ->
             Just <|
                 string "Border"

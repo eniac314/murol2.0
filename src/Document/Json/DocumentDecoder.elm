@@ -270,6 +270,8 @@ decodeDocAttribute =
             |> required "Width" int
         , succeed Height
             |> required "Height" int
+        , succeed FillPortion
+            |> required "FillPortion" int
         , succeed Font
             |> required "Font" string
         , succeed FontColor

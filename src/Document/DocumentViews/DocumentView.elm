@@ -452,6 +452,9 @@ renderAttrs config attrs =
                 Height n ->
                     [ height (px n) ]
 
+                FillPortion n ->
+                    [ width (fillPortion n) ]
+
                 Border ->
                     [ Border.color (rgb 127 127 127)
                     , Border.width 1
