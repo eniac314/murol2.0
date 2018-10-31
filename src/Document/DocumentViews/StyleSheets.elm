@@ -9,6 +9,90 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
 import Html.Attributes as Attr
+import Time exposing (Month(..), Posix, Zone, toDay, toMonth)
+
+
+timeToSeason : Zone -> Posix -> Season
+timeToSeason zone time =
+    let
+        month =
+            toMonth zone time
+
+        day =
+            toDay zone time
+    in
+    case month of
+        Jan ->
+            Winter
+
+        Feb ->
+            Winter
+
+        Mar ->
+            if day < 21 then
+                Winter
+            else
+                Spring
+
+        Apr ->
+            Spring
+
+        May ->
+            Spring
+
+        Jun ->
+            if day < 21 then
+                Spring
+            else
+                Summer
+
+        Jul ->
+            Summer
+
+        Aug ->
+            Summer
+
+        Sep ->
+            if day < 21 then
+                Summer
+            else
+                Autumn
+
+        Oct ->
+            Autumn
+
+        Nov ->
+            Autumn
+
+        Dec ->
+            if day < 21 then
+                Autumn
+            else
+                Winter
+
+
+type Season
+    = Spring
+    | Summer
+    | Autumn
+    | Winter
+
+
+docMaxWidth : ( Int, Int ) -> Bool -> Int
+docMaxWidth ( winWidth, winHeight ) editMode =
+    let
+        device =
+            Element.classifyDevice
+                { height = winHeight
+                , width = winWidth
+                }
+    in
+    if editMode then
+        900
+    else if device.class == BigDesktop then
+        1000
+    else
+        900
 
 
 type alias StyleSheet msg =
@@ -28,8 +112,28 @@ type alias StyleSheet msg =
     }
 
 
-defaulStyleSheet : StyleSheet msg
-defaulStyleSheet =
+backgroundImage : Season -> String
+backgroundImage season =
+    case season of
+        Spring ->
+            "/assets/images/backgrounds/springbg2017.jpg"
+
+        Summer ->
+            "/assets/images/backgrounds/"
+
+        Winter ->
+            "/assets/images/backgrounds/winter_bg.jpg"
+
+        Autumn ->
+            "/assets/images/backgrounds/automne_bg2.jpg"
+
+
+
+--"/images/automne_bg2.jpg"
+
+
+defaultStyleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
+defaultStyleSheet season ( winWidth, winHeight ) editMode =
     { paragraphStyle =
         [ width fill
         ]
@@ -89,7 +193,7 @@ defaulStyleSheet =
                     , spacing 15
                     , Font.family [ Font.typeface "Arial" ]
                     , Font.size 16
-                    , width (maximum 900 fill)
+                    , width (maximum (docMaxWidth ( winWidth, winHeight ) editMode) fill)
                     , height fill
                     , centerX
                     ]
@@ -98,30 +202,19 @@ defaulStyleSheet =
         , classes =
             Dict.fromList
                 [ ( "colImg"
-                  , [ -- htmlAttribute
-                      --    (Attr.style "width" "100%")
-                      --, htmlAttribute
-                      --    (Attr.style "height" "auto")
-                      centerX
-
-                    --, width (maximum size.imgWidth fill)
+                  , [ centerX
                     ]
                   )
                 , ( "rowImg"
                   , []
                   )
                 , ( "selected"
-                  , [ --Border.width 4
-                      --  , Border.color (rgb 0 0 0)
-                      Border.shadow
+                  , [ Border.shadow
                         { offset = ( 4, 4 )
                         , size = 5
                         , blur = 10
                         , color = rgba 0 0 0 0.45
                         }
-
-                    --, Background.color
-                    --    (rgba 0 1 0 0.5)
                     ]
                   )
                 , ( "sameHeightImgsRow"

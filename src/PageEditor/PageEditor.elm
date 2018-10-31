@@ -38,7 +38,7 @@ import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import PortFunnel exposing (FunnelSpec, GenericMessage, ModuleDesc, StateAccessors)
 import PortFunnel.LocalStorage as LocalStorage
 import Task exposing (perform)
-import Time exposing (Zone)
+import Time exposing (Posix, Zone, here, millisToPosix, utc)
 import Yajson exposing (..)
 import Yajson.Stringify exposing (..)
 
@@ -211,6 +211,7 @@ type Msg
     | MenuClickOff
     | TopEntryFocused String
     | SetPreviewMode PreviewMode
+    | SetSeason Season
     | ToogleCountainersColors
     | SetEditorPlugin (Maybe EditorPlugin)
       -----------------------------
@@ -272,10 +273,11 @@ reset mbDoc externalMsg =
             , height = 1080
             , mainInterfaceHeight = 75
             , customElems = Dict.empty
-            , styleSheet = defaulStyleSheet
+            , styleSheet = defaultStyleSheet
             , zipperHandlers = Just handlers
             , editMode = True
             , containersBkgColors = False
+            , season = Spring
             }
 
         funnelState =
@@ -314,6 +316,17 @@ reset mbDoc externalMsg =
             cmdPort
             (LocalStorage.listKeys "")
             funnelState.storage
+        , Time.now
+            |> Task.andThen
+                (\t ->
+                    Time.here
+                        |> Task.andThen
+                            (\h ->
+                                Task.succeed (timeToSeason h t)
+                            )
+                )
+            |> Task.perform SetSeason
+            |> Cmd.map externalMsg
         ]
     )
 
@@ -683,6 +696,15 @@ internalUpdate config msg model =
                     { config_ | width = newWidth }
             in
             ( { model | previewMode = pm, config = newConfig }
+            , Cmd.none
+            )
+
+        SetSeason season ->
+            let
+                config_ =
+                    model.config
+            in
+            ( { model | config = { config_ | season = season } }
             , Cmd.none
             )
 
@@ -1122,6 +1144,7 @@ view config model =
             , containersBkgColors = model.config.containersBkgColors
             , logInfo = config.logInfo
             , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
+            , season = model.config.season
             }
             |> Element.map
                 model.externalMsg
@@ -1476,6 +1499,7 @@ type alias MenuConfig =
     , containersBkgColors : Bool
     , canSave : Bool
     , logInfo : LogInfo
+    , season : Season
     }
 
 
@@ -1779,17 +1803,6 @@ mainMenu config =
               )
             , ( "Affichage"
               , [ [ { defEntry
-                        | label = "Structure du document"
-                        , isSelectable = True
-                        , isActive = False
-                    }
-                  , { defEntry
-                        | label = "Editeur de feuille de style"
-                        , isSelectable = True
-                        , isActive = False
-                    }
-                  ]
-                , [ { defEntry
                         | label = "Grand écran"
                         , msg = SetPreviewMode PreviewBigScreen
                         , isSelected = config.previewMode == PreviewBigScreen
@@ -1819,6 +1832,35 @@ mainMenu config =
                         , msg = ToogleCountainersColors
                         , isSelected = config.containersBkgColors
                         , isSelectable = True
+                    }
+                  ]
+                , [ { defEntry
+                        | label = "Printemps"
+                        , isSelectable = True
+                        , isSelected = config.season == Spring
+                        , msg = SetSeason Spring
+                        , isActive = True
+                    }
+                  , { defEntry
+                        | label = "Eté"
+                        , isSelectable = True
+                        , isSelected = config.season == Summer
+                        , msg = SetSeason Summer
+                        , isActive = True
+                    }
+                  , { defEntry
+                        | label = "Automne"
+                        , isSelectable = True
+                        , isSelected = config.season == Autumn
+                        , msg = SetSeason Autumn
+                        , isActive = True
+                    }
+                  , { defEntry
+                        | label = "Hiver"
+                        , isSelectable = True
+                        , isSelected = config.season == Winter
+                        , msg = SetSeason Winter
+                        , isActive = True
                     }
                   ]
                 ]

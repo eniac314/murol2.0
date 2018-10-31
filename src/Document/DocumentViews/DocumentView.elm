@@ -67,11 +67,15 @@ renderTextBlock config id attrs xs =
 
 
 renderTextBlockElement config id tbAttrs tbe =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+    in
     case tbe of
         Paragraph attrs xs ->
             paragraph
-                (config.styleSheet.paragraphStyle
-                    ++ idStyle config.styleSheet id
+                (styleSheet.paragraphStyle
+                    ++ idStyle styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
@@ -80,7 +84,7 @@ renderTextBlockElement config id tbAttrs tbe =
         UList attrs xs ->
             paragraph
                 (renderAttrs config tbAttrs
-                    ++ idStyle config.styleSheet id
+                    ++ idStyle styleSheet id
                     ++ renderAttrs config attrs
                     ++ [ spacing 10 ]
                 )
@@ -89,13 +93,13 @@ renderTextBlockElement config id tbAttrs tbe =
         Heading attrs ( level, s ) ->
             let
                 headingStyle =
-                    Dict.get level config.styleSheet.headingStyles
+                    Dict.get level styleSheet.headingStyles
                         |> Maybe.withDefault []
             in
             paragraph
                 ([ Region.heading level ]
                     ++ headingStyle
-                    ++ idStyle config.styleSheet id
+                    ++ idStyle styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
@@ -103,15 +107,19 @@ renderTextBlockElement config id tbAttrs tbe =
 
         TBPrimitive p ->
             el
-                (idStyle config.styleSheet id)
+                (idStyle styleSheet id)
                 (renderTextBlockPrimitive config tbAttrs p)
 
 
 renderTextBlockPrimitive config tbAttrs p =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+    in
     case p of
         Text attrs s ->
             el
-                (config.styleSheet.textStyle
+                (styleSheet.textStyle
                     --++ idStyle config.styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
@@ -127,7 +135,7 @@ renderTextBlockPrimitive config tbAttrs p =
                         link
             in
             linkFun
-                (config.styleSheet.linkStyle
+                (styleSheet.linkStyle
                     --++ idStyle config.styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
@@ -152,14 +160,18 @@ renderLi config tbAttrs li =
 
 
 renderColumn config id attrs children =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+    in
     [ column
-        (config.styleSheet.columnStyle
+        (styleSheet.columnStyle
             ++ (if config.containersBkgColors then
                     [ Background.color (rgba 0 1 0 0.3) ]
                 else
                     []
                )
-            ++ idStyle config.styleSheet id
+            ++ idStyle styleSheet id
             ++ [ width (maximum config.width fill) ]
             ++ renderAttrs config attrs
         )
@@ -168,14 +180,18 @@ renderColumn config id attrs children =
 
 
 renderRow config id attrs children =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+    in
     [ row
-        (config.styleSheet.rowStyle
+        (styleSheet.rowStyle
             ++ (if config.containersBkgColors then
                     [ Background.color (rgba 1 0 0 0.3) ]
                 else
                     []
                )
-            ++ idStyle config.styleSheet id
+            ++ idStyle styleSheet id
             ++ renderAttrs config attrs
         )
         (List.concatMap (renderDoc config) children)
@@ -183,14 +199,18 @@ renderRow config id attrs children =
 
 
 renderTextColumn config id attrs children =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+    in
     [ textColumn
-        (config.styleSheet.textColumnStyle
+        (styleSheet.textColumnStyle
             ++ (if config.containersBkgColors then
                     [ Background.color (rgba 0 0 1 0.3) ]
                 else
                     []
                )
-            ++ idStyle config.styleSheet id
+            ++ idStyle styleSheet id
             ++ renderAttrs config attrs
         )
         (List.concatMap (renderDoc config) children)
@@ -198,9 +218,13 @@ renderTextColumn config id attrs children =
 
 
 renderResponsiveBloc config id attrs children =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+    in
     [ row
-        (config.styleSheet.responsiveBlocStyle
-            ++ idStyle config.styleSheet id
+        (styleSheet.responsiveBlocStyle
+            ++ idStyle styleSheet id
             ++ renderAttrs config attrs
         )
         (List.concatMap (renderDoc config) children)
@@ -209,14 +233,14 @@ renderResponsiveBloc config id attrs children =
 
 renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, size } =
     let
-        device =
-            classifyDevice config
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
 
         attrs_ =
             [ width (maximum size.imgWidth fill)
             ]
-                ++ config.styleSheet.imageStyle
-                ++ idStyle config.styleSheet id
+                ++ styleSheet.imageStyle
+                ++ idStyle styleSheet id
                 ++ renderAttrs config attrs
 
         src_ =
@@ -242,8 +266,11 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
 renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
     let
         attrs_ =
-            idStyle config.styleSheet id
+            idStyle styleSheet id
                 ++ renderAttrs config attrs
+
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
     in
     [ el attrs_
         (html <|
@@ -266,6 +293,9 @@ renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
 
 renderTable config id attrs { style, nbrRows, nbrCols, data } =
     let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+
         columns =
             List.map
                 (\ci ->
@@ -315,7 +345,7 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
 
                --, paddingXY 15 0
                ]
-            ++ idStyle config.styleSheet id
+            ++ idStyle styleSheet id
             ++ renderAttrs config attrs
          --++ idStyle config.styleSheet id
         )
@@ -332,12 +362,16 @@ renderCustomElement config id attrs s =
 
 
 renderEmptyCell config id attrs =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+    in
     [ row
         ([ width fill
          , height (px 100)
          , Background.color (rgba 0 0 1 0.2)
          ]
-            ++ idStyle config.styleSheet id
+            ++ idStyle styleSheet id
             ++ renderAttrs config attrs
         )
         [ el

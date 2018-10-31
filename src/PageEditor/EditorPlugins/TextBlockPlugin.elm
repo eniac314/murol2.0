@@ -6,7 +6,7 @@ import Delay exposing (..)
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
 import Document.DocumentViews.DocumentView exposing (renderTextBlock)
-import Document.DocumentViews.StyleSheets exposing (StyleSheet, defaulStyleSheet)
+import Document.DocumentViews.StyleSheets exposing (StyleSheet, defaultStyleSheet)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border

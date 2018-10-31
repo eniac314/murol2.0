@@ -1,6 +1,8 @@
 module Murol exposing (..)
 
 import Browser exposing (..)
+import Browser.Dom as Dom
+import Browser.Events exposing (onResize)
 import Browser.Navigation as Nav
 import Dict exposing (..)
 import Document.Document as Document
@@ -20,6 +22,8 @@ import Http exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
+import Task exposing (perform)
+import Time exposing (here, now)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
 
@@ -42,6 +46,9 @@ type Msg
     | ClickedLink UrlRequest
     | LoadContent ( String, String ) (Result Http.Error Decode.Value)
     | LoadPages (Result Http.Error Decode.Value)
+    | CurrentViewport Dom.Viewport
+    | SetSeason StyleSheets.Season
+    | WinResize Int Int
     | NoOp
 
 
@@ -65,7 +72,7 @@ main =
 
 
 subscriptions model =
-    Sub.none
+    Sub.batch [ onResize WinResize ]
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -78,8 +85,9 @@ init flags url key =
             , height = 1080
             , width = 1920
             , mainInterfaceHeight = 0
-            , styleSheet = StyleSheets.defaulStyleSheet
+            , styleSheet = StyleSheets.defaultStyleSheet
             , zipperHandlers = Nothing
+            , season = StyleSheets.Spring
             }
 
         url_ =
@@ -100,6 +108,17 @@ init flags url key =
             Nav.pushUrl key (Url.toString url_)
           else
             Cmd.none
+        , Task.perform CurrentViewport Dom.getViewport
+        , Time.now
+            |> Task.andThen
+                (\t ->
+                    Time.here
+                        |> Task.andThen
+                            (\h ->
+                                Task.succeed (StyleSheets.timeToSeason h t)
+                            )
+                )
+            |> Task.perform SetSeason
         ]
     )
 
@@ -193,35 +212,95 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        CurrentViewport vp ->
+            let
+                ws =
+                    model.config
+            in
+            ( { model
+                | config =
+                    { ws
+                        | width = round vp.viewport.width + 13
+                        , height = round vp.viewport.height + 13
+                    }
+              }
+            , Cmd.none
+            )
+
+        SetSeason season ->
+            let
+                config =
+                    model.config
+            in
+            ( { model | config = { config | season = season } }
+            , Cmd.none
+            )
+
+        WinResize width height ->
+            let
+                cfg =
+                    model.config
+
+                newConfig =
+                    { cfg | width = width, height = height }
+            in
+            ( { model | config = newConfig }
+            , Cmd.batch
+                []
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
 
+view : Model -> Browser.Document Msg
 view model =
     { title = "La commune de Murol"
     , body =
+        let
+            maxWidth =
+                StyleSheets.docMaxWidth
+                    ( model.config.width
+                    , model.config.height
+                    )
+                    False
+        in
         [ Element.layout
             [ width fill
             , Font.size 16
             ]
-            (column
-                [ width fill
+            (el
+                [ width (px model.config.width)
+                , height (px model.config.height)
+                , clip
+                , Background.image (StyleSheets.backgroundImage model.config.season)
                 ]
-                [ el
-                    [ Font.size 45
-                    , Font.center
-                    , width fill
+                (column
+                    [ width fill
+                    , scrollbarY
                     ]
-                    (text "Murol")
-                , el
-                    [ Font.size 31
-                    , Font.center
-                    , width fill
+                    [ el
+                        [ Font.size 45
+                        , Font.center
+                        , width (maximum maxWidth fill)
+                        , Background.color (rgba 1 1 1 0.9)
+                        , centerX
+                        ]
+                        (text "Murol")
+                    , el
+                        [ Font.size 31
+                        , Font.center
+                        , width (maximum maxWidth fill)
+                        , Background.color (rgba 1 1 1 0.9)
+                        , centerX
+                        ]
+                        (text "La municipalité de Murol vous souhaite la bienvenue")
+
+                    --, topMenuView model
+                    , mainView model
+                    , footerView model
                     ]
-                    (text "La municipalité de Murol vous souhaite la bienvenue")
-                , mainView model
-                , footerView model
-                ]
+                )
             )
         ]
     }
@@ -232,7 +311,9 @@ mainView model =
         Just ( cId, Loaded doc ) ->
             column
                 [ centerX
-                , width fill
+
+                --, width fill
+                , Background.color (rgba 1 1 1 0.9)
                 ]
                 (responsivePreFormat model.config doc
                     |> renderDoc model.config
@@ -247,6 +328,58 @@ mainView model =
                 (text "Pas de contenu.")
 
 
+topMenuView model =
+    case model.pageTree of
+        Just (PageTreeEditor.Page _ xs_) ->
+            let
+                strPath path =
+                    List.map Url.percentEncode path
+                        |> String.join "/"
+                        |> (\p -> "/" ++ p)
+
+                mainCatView (PageTreeEditor.Page pageInfo xs) =
+                    column
+                        [ alignTop
+                        , padding 15
+                        , below
+                            (column
+                                []
+                                (List.map subCatView xs)
+                            )
+                        ]
+                        [ link []
+                            { url =
+                                strPath pageInfo.path
+                            , label =
+                                el
+                                    [ Font.bold ]
+                                    (text pageInfo.name)
+                            }
+                        ]
+
+                subCatView (PageTreeEditor.Page pageInfo _) =
+                    link []
+                        { url =
+                            strPath pageInfo.path
+                        , label =
+                            el
+                                []
+                                (text pageInfo.name)
+                        }
+            in
+            wrappedRow
+                [ width fill
+                , centerX
+                , spaceEvenly
+
+                --, padding 15
+                ]
+                (List.map mainCatView xs_)
+
+        Nothing ->
+            Element.none
+
+
 footerView model =
     case model.pageTree of
         Just (PageTreeEditor.Page _ xs_) ->
@@ -258,8 +391,8 @@ footerView model =
 
                 mainCatView (PageTreeEditor.Page pageInfo xs) =
                     column
-                        [ width (minimum 100 (maximum 300 fill))
-                        , alignTop
+                        [ alignTop
+                        , padding 15
                         ]
                         ([ link []
                             { url =
@@ -282,12 +415,19 @@ footerView model =
                                 []
                                 (text pageInfo.name)
                         }
+
+                maxWidth =
+                    StyleSheets.docMaxWidth
+                        ( model.config.width
+                        , model.config.height
+                        )
+                        False
             in
             wrappedRow
-                [ width fill
+                [ width (maximum maxWidth fill)
                 , centerX
                 , spaceEvenly
-                , padding 15
+                , Background.color (rgba 1 1 1 0.9)
                 ]
                 (List.map mainCatView xs_)
 

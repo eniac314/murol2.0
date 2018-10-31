@@ -1,0 +1,2533 @@
+/*summer2016.css*/
+/*-------------------------------------------------------------------------------
+  import google fonts
+-------------------------------------------------------------------------------*/
+@import url(https://fonts.googleapis.com/css?family=Lora:400,700italic);
+@import url(https://fonts.googleapis.com/css?family=PT+Serif);
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,500);
+/*--end of code for fonts------------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for overview
+-------------------------------------------------------------------------------*/
+html{
+  margin: 0;
+  padding: 0;
+}
+#top{
+  display: none;
+}
+
+body {
+  background-color: #5e8ad9;
+  background-image: url(/images/landscapebottom.png), url(/images/landscapebottomO.png), url(/images/landscape1920.jpg), url(/images/fleurie.png), url(/images/bgblue.jpg);
+  background-repeat: repeat-x, repeat-x,  no-repeat, repeat-x, repeat;
+  background-position: top center, top right, top center, center bottom, top center;
+  background-size: auto, auto, auto, auto;
+  margin: 0;
+  margin-bottom: 40px;
+  padding-top: 0em;
+  padding-bottom: 40px;
+  min-height: 1080px;
+}
+
+@media screen and (min-width: 1900px) {
+    html {
+      background-image: url(/images/menubg.gif);
+      background-repeat: repeat;
+      /*background-color: white;*/
+    }
+
+    body {
+        border-bottom-left-radius:1em;
+        border-bottom-right-radius:1em;
+        box-shadow: 5px 5px 5px black;
+        margin-top: 0;
+        padding-top: 0em;
+        margin-left: 9em;
+        margin-right:9em;
+    }
+
+ header #pageTitle{
+     margin-top: 0;
+     /*border-top-left-radius:0.4em;*/
+     /*border-top-right-radius:0.4em;*/
+ }
+}
+
+
+header{ 
+  text-align: center;
+  font-family: 'lora', Verdana, serif;
+}
+
+header #pageTitle{
+  /*background-color: #cfff4f;*/
+  background-color: gold;
+  font-style: italic;
+  font-size: 45px;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+header #subTitle{
+  margin-top: 0;
+  color: aliceblue;
+  /*background-color: rgb(71, 84, 196);*/
+  background-color: #356490;
+  font-weight: normal;
+  }
+
+#container
+  { width: 80%;
+    margin: auto;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 0.5em;
+    padding-top: 0.5em;
+    padding-bottom: 1em;
+    margin-top: 12em;
+  }
+
+@media screen and (max-width: 1368px) {
+    #container {
+        width: 85%;
+    }
+}
+
+@media screen and (max-height: 600px) {
+    #container {
+        margin-top: 2em;
+    }
+}
+
+/*--end of code for overview-----------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for mainMenu
+-------------------------------------------------------------------------------*/
+.mainMenu
+  {
+  background-color: rgba(96, 117, 138, 0.8);
+  text-align: center;
+  margin: 0;
+  }
+
+.mainMenu .current{
+  background-image: none;
+  background-color: rgba(53, 100, 144, 0.8);
+}
+
+.mainMenu nav 
+{
+  display: inline-block;
+  margin: 0;
+  margin-right: 0.2em;
+  padding: 0;
+}
+
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+
+
+.mainMenu a ,.mainMenu label{
+  border: 1px solid white;
+  border-left-width: 3px;
+  height: auto;
+  display: inline-block;
+  padding: 0.5em;
+  margin-top: 0.2em;
+  margin-right: 0.2em;
+  margin-bottom: 0.2em;
+  background-color: #cd5c5c;
+  /*background-image: url(/images/menubg.gif);*/
+  /*background: -moz-linear-gradient(saddlebrown, peru, sienna);*/
+  /*text-transform: capitalize;*/
+  text-decoration: none;
+  font-family: 'PT Serif', verdana, serif;
+  color: white;
+  }
+
+.mainMenu label{
+  position: relative;
+  /*border-style: none;*/
+  margin: 0;
+  /*padding: 0;*/
+}
+
+.mainMenu a:hover, .mainMenu label:hover{
+  color: black;
+  text-decoration: overline;
+}
+
+nav[class*="Content"] > nav
+{
+  display:none;
+}
+
+nav[class*="Content"] nav nav
+{
+  width:100%;
+  margin: 0;
+  padding: 0;
+}
+
+@media screen and (min-width: 1024px) {
+
+    nav[class*="Content"]:hover > nav
+    {
+      background-color: rgba(96, 117, 138, 0.8);
+      position: absolute;
+      z-index: 1;
+      display: block;
+    }
+}
+
+input[type=radio] {
+   /*position: absolute;
+   top: -9999px;
+   left: -9999px;*/
+   top:0;
+   left:0;
+   position: absolute;
+   opacity: 0;
+   margin: 0;
+   padding: 0;
+
+   /* For mobile, it's typically better to position checkbox on top of clickable
+      area and turn opacity to 0 instead. */
+}
+
+@media screen and (max-width: 1024px) {
+    nav[class*="Content"] >input[type=radio]:checked ~ nav{
+      background-color: rgba(96, 117, 138, 0.8);
+      position: absolute;
+      z-index: 1;
+      display: block;
+    }
+}
+/*nav[class*="Content"]:focus > nav
+{
+  background-color: rgba(96, 117, 38, 0.8);
+  position: absolute;
+  z-index: 1;
+  display: block;
+}
+
+nav[class*="Content"]:active > nav
+{
+  background-color: rgba(96, 117, 38, 0.8);
+  position: absolute;
+  z-index: 1;
+  display: block;
+}*/
+
+nav[class*="Content"] a
+{ text-align: left;
+  margin-right: 0;
+  display:block;
+}
+/*--end of code for mainMenu-----------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for subContainer
+-------------------------------------------------------------------------------*/
+#subContainer
+{ width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+}
+
+/*-------------------------------------------------------------------------------
+  style for sideMenu
+-------------------------------------------------------------------------------*/
+.sideMenu
+{
+  font-family: 'PT Serif', verdana, serif;
+  position: fixed;
+  width: 16%;
+  padding: 0.5em 0% 0% 0;
+  margin: 0;
+  border-style: none;
+  text-align: left;
+  min-width: 200px;
+}
+
+@media screen and (max-width: 1200px) {
+    .sideMenu {
+        margin-left: 10%;
+        margin-right: 10%;
+        position: initial;
+        width: initial;
+        display: inline-block;
+    }
+}
+
+.sideMenu div 
+{ 
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+
+}
+
+.sideMenu h3
+{ font-size: 18px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 1px #b3b3b3;
+  letter-spacing: 0.1em;
+  border-radius: 1px;
+  border-top: 5px double gray;
+  border-bottom: 5px double gray; 
+  background-color: #6856c1; /*68565d*/
+  text-indent: 1.5em;
+  padding: 0.3em;
+  margin: 0;
+}
+
+.sideMenu a
+{ 
+  color: white;
+  display: block;
+  background-color: grey;
+  text-decoration: none;
+  padding: 0.2em;
+  padding-left: 2em;
+  margin: 0.2em 0 0.2em 0;
+}
+
+@media screen and (max-width: 1200px) {
+    .sideMenu a {
+        display: inline-block;
+        margin: 0.1em;
+        padding: 0.2em;
+    }
+}
+
+
+.sideMenu a:hover, a:active {
+  cursor: pointer;
+  color: black;
+  text-decoration: overline black;
+}
+
+.sideMenu .submenuCurrent{
+  background-color: #4d4b6d;
+}
+/*--end of code for sideMenu-----------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for subContainerData
+-------------------------------------------------------------------------------*/
+  /*__overall_style______________________*/
+
+.subContainerData {
+  font-family: 'lora', Verdana, serif;
+  min-height: 400px;
+  padding: 0em 5% 0 5%;
+  border-style: none;
+  margin-left: 20%;
+}
+
+
+@media screen and (max-width: 1368px) {
+    .subContainerData {
+      margin-left:  15%;
+      margin-right: 0;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .subContainerData {
+      margin-left: 10%;
+      margin-right: 10%;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .subContainerData {
+      margin 0;
+    }
+}
+
+.noSubmenu {
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+
+@media screen and (min-width: 1900px) {
+  .noSubmenu {
+    margin-left: 5%;
+    margin-right: 5%;
+  }  
+}
+
+@media screen and (max-width: 1368px) {
+    .noSubmenu {
+      margin-left:  0%;
+      margin-right: 0%;
+    }
+}
+
+.subContainerData a {
+  text-decoration: none;
+  color: teal;
+  padding:0 0.1em;
+}
+.subContainerData a:hover {
+  color: white;
+  background-color: teal;
+  border-radius: 2px;
+}
+
+.subContainerData p {
+  font-family: 'PT Serif', Verdana, serif;
+  text-align: justify; 
+  /*text-indent: 2em;*/
+}
+
+.subContainerData h2{
+  text-align: center;
+  /*text-transform: capitalize;*/
+  background-color: rgba(53, 100, 144, 0.9); /*blue*/
+  color: aliceblue;
+  padding: 0.3em 0;
+  margin-top: 0.4em;
+  /*margin-top: 0.5em*/
+}
+
+.subContainerData h3 {
+  font-size: 150%;
+  color: #2F4F4F;/*darkslategray*/
+}
+.subContainerData h4 {
+  margin-top: 0.5em;
+  text-transform: uppercase;
+  font-size: 100%;
+  color: black;
+  text-align: center;
+  background-color: #199a9a;
+}
+.subContainerData h5 {
+  color: green;
+  font-size: 100%;
+}
+
+.subContainerData h6 {
+  color: #191970 ;/*midnightblue*/
+  font-size: 16px;
+  padding-bottom: 0;
+  margin: 0;
+  border-left: 5px double darkslategray;
+  border-right: 5px double darkslategray;
+  width: 45%;
+  text-indent: 0.5em;
+  text-align: center;
+  background-color: rgba(245, 245, 220, 0.5);
+}
+
+.subContainerData table
+{
+  width:100%;
+}
+
+.subContainerData table p
+{ padding-left: 1em;
+  padding-right: 1em;
+  padding-top: 0em;
+  padding-bottom: 0em;
+  text-indent: 0;
+  margin: 0.5em;
+}
+
+.subContainerData td {
+  border-bottom: 1px solid gray;
+}
+
+figure img {
+  border: 1em double silver;
+  background-color: rgb(119, 136, 153);/*lightslategray #778899 */
+}
+figcaption {
+  color: #F0FFF0;/*honeydew rgb(240,255,240)*/
+  background-color: rgba(119, 136, 153, 0.8);/*lightslategray #778899*/
+  padding: 0.3em 0.5em 0.3em 1em;
+  border-top-left-radius: 1em;
+  border-bottom-right-radius: 1em;
+  box-shadow: 2px 2px 2px gray;
+}
+  /*__end_of_code_for_overall_style______*/
+
+
+/*-------------------------------------------------------------------------------
+  style for tiledMenu
+-------------------------------------------------------------------------------*/
+.tiledMenu {
+  margin: auto;
+}
+
+.tiledMenu .tile {
+ display: inline-block;
+ margin: 0.1em;
+ width: 31%;
+ cursor: pointer;
+ background-color: #ABB5C3;
+ vertical-align: top;
+ min-width: 220px;
+ padding: 0;
+}
+
+.tiledMenu .tile:hover{
+  background-color: #ABB5C3;
+}
+
+.tiledMenu .tile figure:hover{
+ box-shadow: 2px 2px 2px gray;
+}
+
+.tiledMenu .tile figure{
+  margin:2%;
+  position: relative;
+  padding: 0;
+  padding-bottom: 0;
+}
+
+.tiledMenu .tile img {  
+  padding: 0;
+  margin: 0;
+  width:100%;
+  border-style: none;
+  border-width: 0;
+  display: block; 
+}
+
+.tiledMenu .tile .captionWrapper {  
+  position: absolute;
+  z-index: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  bottom: 0px;
+  margin-bottom: 0;
+}
+
+.tiledMenu .tile .captionWrapper figcaption {
+  text-align: center;
+  min-height: 20px;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#photoLink{
+
+  float: right;
+}
+
+
+#backToTiledMenu, #photoLink{
+  vertical-align: center;
+  text-align: center;
+  background-color: #B0C4DE; 
+  color: black;
+  width: 150px;
+  display: inline-block;
+  padding: 1em 0 1em 0;
+}
+
+#backToTiledMenu:hover, #photoLink:hover{
+  color: white;
+  background-color: teal;
+}
+
+
+/*--end of code for tiledMenu-----------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for Accueil and dropdown items
+-------------------------------------------------------------------------------*/
+#index {
+  width: 70%;
+  float: right;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid #aca6a9;
+
+}
+
+#index h4{
+  padding-top: 0.5em;
+  padding-bottom: 0.5em; 
+}
+
+.ActualitésDeLaCommune { 
+}
+.LaMairieVousInforme {
+  /*background-color: violet;*/
+  display: none;
+}
+
+#lastUpdate{
+  padding-left: 0.5em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid #aca6a9;
+}
+
+.news{
+  margin-left: 0.5em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+}
+
+.dropable{
+  margin-bottom: 1em;
+}
+
+.newsBody, .dropBody{
+  background-color: rgba(176,196,222,0.4);
+  box-shadow: 0 1px 1px #B0C4DE;
+  overflow: hidden;
+  clear: both;
+}
+
+.dropBody{
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+
+
+h5.newsTitle, h5.dropTitle{
+  color: rgb(50, 50, 70);
+  display: inline-block;
+  margin: 0;
+  cursor: pointer;
+  border-bottom: 1px solid #778899;
+}
+
+h5.newsTitle:hover, h5.dropTitle:hover{
+  background-color: rgba(119,136,153, 0.3);
+  box-shadow: 0px -1px 1px gray;
+}
+
+span.date {
+  float: right;
+  color: white;
+  /*letter-spacing: 0.1em;*/
+  background-color: rgba(119,136,153, 0.8);
+  padding: 0.1em 0.5em 0 0.4em;
+  border-top-left-radius: 0.5em;
+  box-shadow: -1px -1px 1px gray;
+  width:6em;
+  /*font-family: monospace;*/
+}
+
+.news p {
+  margin-bottom: 0.5em;
+  padding: 0em;
+  max-width: 800px;
+
+}
+
+.newspic {
+  float: right;
+  padding: 0 0.5em 0 0.5em;
+  margin-top: 1em;
+  margin-left: 1em; 
+}
+
+.newsdescr {
+  padding: 1em;
+  
+}
+
+.newsdescr a {
+  text-decoration: none;
+  color: teal;
+}
+
+.dropIntro a{
+ display: inline-block;
+ width: auto;
+}
+
+.newsdescr a:hover {
+  border-bottom: 1px solid teal;
+  background-color: teal;
+}
+
+.arrow{
+  float: right;
+  margin-right: 2em;
+  opacity: 0;
+  -webkit-transition: all 0.75s ease-in-out;
+  -moz-transition: all 0.75s ease-in-out;
+  -ms-transition: all 0.75s ease-in-out;
+  -o-transition: all 0.75s ease-in-out;
+  transition: all 0.75s ease-in-out;
+}
+
+.dropTitle ~ .arrow{
+  position: relative;
+  top: 0;
+  right: 0;
+}
+
+.newsTitle:hover ~ .arrow, .dropHeader:hover > .arrow{
+  -webkit-opacity: 1;
+  -moz-opacity: 1;
+  opacity: 1;
+}
+
+.arrow img{
+  max-height: 1em;
+}
+
+
+/*---------------------------------------
+  style for sidebar
+---------------------------------------*/
+.sidebar {
+  width: 29%;
+  float: left;
+  overflow: auto;
+  margin-top: 0.5em;
+
+}
+
+.sidebar h3 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  background-color: rgba(53, 100, 144, 1);
+  color: white;
+  padding-left: 0.5em;
+
+}
+
+#newsletters, #misc, #plugins {
+}
+
+#misc #contact h4{
+background-image: none;
+}
+
+#plugins {
+  margin-bottom: 0.5em;
+  padding-bottom: 0.2em;
+}
+
+#plugins h3 {
+  border-top: 1px solid #aca6a9;
+  font-size: 20px;
+  margin: 0;
+}
+
+#plugins ul {
+  text-align: center;
+  padding: 0;
+  padding-top: 0.5em;
+  padding-bottom: 0;
+  margin: 0;
+}
+
+#plugins li {
+  vertical-align: top;
+  display: inline-block;
+  padding: 0;
+  margin-left: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+#plugins #EtatRoutes{
+  padding: 0;
+}
+
+#lcm2K13_1000, #EtatRoutes{
+  display: block;
+  width: 140px;
+  position: relative;
+  padding: 0;
+  margin: 0; 
+}
+
+#urgencesLink{
+  display: block;
+  text-decoration: none;
+  color: red;
+  padding-right: 0.1em;
+  padding-left: 0.1em;
+  margin-left: 1em;
+}
+
+#urgencesLink:hover{
+  background-color: red;
+  color: white;
+}
+
+#plugins figcaption{
+  position: absolute;
+  width: 100%;
+  height: 40px;
+  bottom: 0px;
+  border-radius: 0;
+  box-shadow: none;
+  background-color: grey;
+  color: white;
+  padding: 0;
+  vertical-align: center;
+}
+
+#plugins img {
+  width: 100%;
+  border-style: initial;
+  display: block;
+}
+
+#counter {
+  margin-left: 1em;
+  display: inline-block;
+}
+
+#agenda{
+  margin: auto;
+  width: 100%;
+}
+
+#agenda h3
+{
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: #aca6a9;
+  font-size: 20px;
+  margin: 0;
+}
+
+#agenda a{
+  display: block;
+  margin-left: 1em;
+}
+
+#agenda a, .divers a{
+  text-decoration-line: none;
+  text-decoration-style: solid;
+  color: teal;
+  padding-right: 0.1em;
+  padding-left: 0.1em;
+}
+
+#agenda a:hover, .divers a:hover{
+  border-bottom-color: teal;
+  color:white;
+  background-color: teal;
+}
+
+.divers{
+  padding-left: 1em;
+}
+
+#agenda iframe{
+  border:solid 1px #777;
+  width: 99%;
+  height: 150px;
+  frameborder:0;
+  scrolling:0;
+}
+
+#bigAgenda iframe{
+  border:solid 1px #777;
+  width: 800px;
+  height: 600px;
+  frameborder:0;
+  scrolling:0;
+}
+
+.entry {
+  border-top: 1px solid #aca6a9;
+}
+
+.entry h3 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.entry ul {
+  list-style-type: none;
+  margin:0.5em;
+  padding:0;
+}
+
+.entry li {
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+  font-family: 'lora', Verdana, serif;
+  border-bottom: 1px solid #aca6a9;
+}
+
+.entry a {
+  text-decoration: none;
+  color: black;
+}
+
+.entry li:hover {
+  /*text-decoration: overline;*/
+  background-color: #B0E0E6; /*powderblue*/
+  opacity: 0.9;
+}
+
+#newsletters {
+
+}
+/*---------------------------------------
+  style for divers
+---------------------------------------*/
+#horairesContact{
+  border-bottom: 1px solid #aca6a9;
+}
+
+#horairesContact div{
+  background-color: lightgrey;
+  border-radius: 0.5em;
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+  margin-bottom: 0.5em;
+  padding: 0.5em;
+  max-width: 45%; 
+}
+
+#horairesContact h4{
+ background-color: initial;
+ text-align: left;
+ padding-left: 0.5em;
+ margin: 0;
+ color: black;
+ text-transform: none;
+
+}
+
+#horairesContact h5{
+  margin: 0;
+  padding-left: 0.5em;
+}
+
+
+
+#horairesContact p{
+}
+
+#horaires {
+}
+
+#contact .email{
+  padding-left: 0.5em;
+}
+
+#contact .email a{
+  padding: 0;
+}
+
+.divers #peintres{
+  background-image: url("/images/peintres.png");
+  background-repeat: no-repeat;
+  background-position: 100% 10px;
+  min-height:96px;
+  padding-top: 1em;
+  border-bottom: 1px solid #aca6a9;
+}
+
+.divers #chateauDivers{
+  background-image: url("/images/logo-chateau-de-murol-800.png");
+  background-repeat: no-repeat;
+  background-position: right top;
+  min-height:96px;
+  border-bottom: 1px solid #aca6a9;
+}rder-bottom: 1px solid #aca6a9;
+}
+
+
+
+
+/*--end of code fot divers--------------*/
+
+/*--end of code fot sidebar--------------*/
+/*--end of code for Accueil------------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for Tourisme
+-------------------------------------------------------------------------------*/
+.intro{
+  display: none;
+}
+.displayIntro {
+  display: block;
+}
+
+
+/*-------------------------------------------------------------------------------
+  style for officeTourisme
+-------------------------------------------------------------------------------*/
+#infoOfficeTourisme{
+  float: left;
+}
+
+#officePic{
+  float: left;
+  margin-right: 1em;
+  width: 35%;
+}
+
+#officeTourisme ul{
+
+}
+
+#officeTourisme h5{
+  margin-top:0.5em; 
+  margin-bottom: 0.5em;
+}
+
+#officeDescr{
+  clear: both;
+}
+
+/*-------------------------------------------------------------------------------
+  style for decouvrirMurol
+-------------------------------------------------------------------------------*/
+#decouvrirMurol img{
+}
+
+#bourg1{
+  float: left;
+  margin-right: 1em;
+}
+
+.toClear{
+  clear: both;
+}
+
+
+#bourg2, #bourg3, #bourg4{
+ margin-right: 1em;
+ margin-bottom: 1em;
+ max-width: 29%;
+ display: inline-block;
+} 
+
+#bourg4{
+  max-width: 32.76%;
+}
+
+#chateau1{
+  float: right;
+  margin-left: 1em;
+}
+
+#tartaretPics img{
+  vertical-align: top;
+}
+
+#tartaret1, #tartaret2{
+  display: inline-block;
+}
+
+#tartaretBois{
+  margin-left: 1em; 
+}
+
+#parcoursSportSmall{
+  margin-left: 0.5em;
+}
+
+.miniLightboxWrapperparcoursSport .thumbAnchor i{
+  color: grey;
+}
+
+.miniLightboxWrappermap{
+  margin-left:calc(50% - 200px); 
+  /*margin: auto;*/
+}
+
+#mapSmall img{
+  box-shadow: 0px 0px 5px olive;
+}
+
+#divVoie1, #divVoie2{
+  /*height:400px;*/
+  margin-bottom: 1em;
+  clear: both;
+  /*background-color: red;*/
+  padding: 0.5em;
+}
+
+#divVoie1 ul, #divVoie2 ul{
+  list-style-type: square;
+  /*border-top: 1px solid darkolivegreen;*/
+  /*border-bottom: 1px solid darkolivegreen;*/
+  padding: 1em 5em;
+}
+
+#divVoie1 li p:nth-child(1), #divVoie2 li p:nth-child(1){
+  color: darkolivegreen;
+  text-shadow: 1px 1px 15px greenyellow;
+  width: 80%;
+}
+
+#divVoie1 li p:nth-child(2), #divVoie2 li p:nth-child(2) {
+  color: black;
+  width: 80%;
+}
+
+
+#divVoie2 ul li:nth-child(3) p {
+ color: black;
+ text-shadow: none;
+}
+
+#voie2{
+  clear: both;
+  max-width:48%; 
+  /*float: right;*/
+  margin-left: 1em;
+  /*height: 100%;*/
+}
+
+#voie1{
+  clear: both;
+  max-width:48%;
+  /*height: 100%;*/
+  /*float: right;*/
+  /*margin-left: 1em;*/
+}
+
+#chautignatPics{
+  position: relative;
+  height: 600px;
+  margin:0;
+  padding: 0;
+  /*height: calc(300px * 0.5 * 1.77);*/
+  /*height: calc(531px);*/
+  /*background-color: red;*/
+}
+
+#bottomPics{
+  /*position: absolute;*/
+  /*bottom:0;*/
+  /*width:calc(100% - 300px);*/
+  /*font-size: 0px;*/
+  /*letter-spacing: 0px;*/
+  /*word-spacing: 0px;*/
+  /*width: 80%;*/
+  /*background-color: blue;*/
+}
+
+#hori3{
+  display: inline-block;
+  /*float: right;*/
+  margin-left: 1em;
+  
+  /*width: 20%;*/
+
+  /*margin-top: 69px;*/
+  /*position: absolute;*/
+  /*bottom: 0px;*/
+  /*vertical-align: bottom;*/
+}
+
+#hori2{
+  display: inline-block;
+  /*width: 45%;*/
+  /*margin-bottom: 0;*/
+  /*padding-bottom: 0;*/
+  /*height: 35%;*/
+  /*position: absolute;*/
+  /*bottom:0; */
+}
+
+#rajatPic{
+  display: inline-block;
+  margin-right: 15px;
+  /*width: 45%;*/
+  /*margin-bottom: 0;*/
+  /*padding-bottom: 0;*/
+  /*position: absolute;*/
+  /*height: 35%;*/
+  /*left:250px;*/
+  /*bottom:0;*/
+}
+
+#groire1, #groire2, #groire3{
+  display: inline-block;
+  max-width: 31%;
+  margin-right: 1em;
+  margin-bottom: 1em;
+}
+
+#lac1, #lac2, #lac3{
+  display: inline-block;
+  max-width: 29%;
+  margin-right: 1em;
+  margin-bottom: 1em;
+}
+
+#lac3{
+  max-width: 32.76%;
+}
+
+#chassagne1, #chassagne2, #chassagne3{
+  display: inline-block;
+  max-width: 31%;
+  margin-right: 1em;
+  margin-bottom: 1em;
+}
+
+/*#mapSmall{
+  clear:both;
+  text-align: center;
+}*/
+
+
+
+
+
+
+
+
+
+/*--end of code for decouvrirMurol----------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for hebergTourisme
+-------------------------------------------------------------------------------*/
+.Line td{
+  border-radius: 0 0 0.5em 0.5em;
+  background-color: lightsteelblue;
+}
+
+.altLine td{
+  border-radius: 0 0 0.5em 0.5em;
+  /*background-color: lightslategray;*/
+  background-color: lightgrey;
+}
+
+.stars, .epis {
+  text-shadow: 1px 1px 1px olive;
+  color: gold;
+}
+/*--end of code for hebergTourisme-----------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for carteTourisme
+-------------------------------------------------------------------------------*/
+#map
+{
+  width:600px;
+  height:450px;
+  border-style: none;
+}
+
+#infoRoute
+{
+  width:800px;
+  height:600px;
+  border-style: none;
+}
+/*--end of code for carteTourisme------------------------------------------------*/
+/*--end of code for Tourisme-----------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for Vie Locale
+-------------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------------
+  style for initVieScolaire
+-------------------------------------------------------------------------------*/
+.imgHolydays {
+  display: inline-block;
+}
+
+.imgHolydays img {
+  margin: 0;
+  margin-right: 0.1em;
+  width: 45%;
+}
+
+.schoolAddress {
+  width: 70%;
+  padding: 0.5em;
+  background-color: lightslategray;
+  border-top: 0.5em ridge darkslateblue;
+  box-shadow: 2px 2px gray;
+  border-radius: 0.1em 1em;
+}
+.schoolAddress p{
+  color: rgb(10, 10, 50);
+  text-shadow: 1px 1px 0 lightgray;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  margin: 0;
+  /*padding: 0;*/
+}
+h6.periCat {
+  border: none;
+  background-color: rgba(135,206,235 , 0.8); /*skyblue*/
+  color: darkred;
+  border-top: 5px double indianred;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 2px 2px 2px slategray;
+}
+
+#quotient {
+  border: 1px solid black;
+}
+
+#quotient .quotLine {
+  background-color: skyblue;
+}
+
+#quotient .quotAltLine {
+  background-color: antiquewhite;
+}
+/*--end of code for initVieScolaire----------------------------------------------*/
+/*-------------------------------------------------------------------------------
+  style for Les Seniors
+-------------------------------------------------------------------------------*/
+
+#SIVOMAddress {
+  margin: auto;
+  width: 40%;
+  padding: 0.5em;
+  background-color: lightslategray;
+  border-top: 0.5em ridge darkslateblue;
+  box-shadow: 2px 2px gray;
+  border-radius: 0.1em 1em;
+}
+#SIVOMAddress p{
+  color: rgb(10, 10, 50);
+  text-shadow: 1px 1px 0 lightgray;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  margin: 0;
+  /*padding: 0;*/
+}
+
+/*#lesSeniors h4{
+  font-size: 150%;
+  color: #2F4F4F;
+}
+
+#lesSeniors h5{
+  margin-top: 0.5em;
+  text-transform: uppercase;
+  font-size: 100%;
+  color: black;
+  text-align: center;
+  background-color: #91bd19;
+}*/
+
+/*--end of code for Les Seniors----------------------------------------------*/
+/*-------------------------------------------------------------------------------
+  style for periscolaire
+-------------------------------------------------------------------------------*/
+
+#tableTAP th{
+  text-align: left;
+}
+
+#tableTAP tr:nth-child(even){
+  background-color: lightgrey;
+}
+/*--end of code for periscolaire----------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for Santé
+-------------------------------------------------------------------------------*/
+
+#sante img{
+  margin: auto;
+  display: block;
+  margin-bottom: 2em;
+}
+
+.praticiens{
+  display: inline-block;
+  vertical-align: top;
+  width: 250px;
+  padding: 0.5em;
+  margin-left: 1em;
+  margin-bottom: 1em;
+  background-color: lightgrey;
+
+}
+
+.praticiens p {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+.pratiName {
+  background-color: #868686;
+  padding:0.1em;
+}
+
+/*--end of code for Santé----------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for initDechets
+-------------------------------------------------------------------------------*/
+h5.trashCat {
+  padding:0.5em;
+  text-indent: 2.3em;
+  background-image: url(/images/Recycling.png);
+  background-position: 1% 50%;
+  background-repeat: no-repeat;
+  color: white;
+  background-color: seagreen;
+  box-shadow: 0px 4px 1px darkseagreen;
+  text-shadow: 1px 1px 0px darkslategray;
+}
+
+#initDechets h6 {
+  color: #2F4F4F ;
+  background-color: darkseagreen;
+}
+#initDechets ul {
+  display: inline-block;
+  padding: 0.5em 1.5em 0.5em 2em;
+  margin: 0.5em 0;
+  background-color: rgba(46, 139, 87, 0.5);
+  border-radius: 1em;
+}
+#initDechets li p {
+  margin: 0.3em;
+}
+
+.forbidden {
+  padding: 0 0.5em;
+  color: firebrick;
+  background-color: rgba(248, 248, 255, 0.4);
+  border-radius: 0.1em;
+}
+/*--end of code for initDechets--------------------------------------------------*/
+/*--end of code for Vie Locale---------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for Vie Economique
+-------------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------------
+  style for artisanat and commerces
+-------------------------------------------------------------------------------*/
+#entreprises, #commerces {
+ /*overflow: auto;*/
+}
+
+.column{
+  vertical-align: top;
+  display: inline-block;
+}
+
+.businesses {
+  width: 300px;
+  height: auto;
+  vertical-align: top;
+  display: block;
+  text-align: center;
+  margin: 1em 1em;
+  border: 1px solid black;
+  border-radius: 4px;
+  box-shadow: 2px 2px 2px gray;
+}
+
+#commerces .businesses {
+  height: auto;
+}
+#commerces h5 {
+  text-align: center;
+  color: black;
+  border-top: 1px double black;
+  border-bottom: 1px double black;
+  clear: left;
+}
+ 
+.businesses h5 {
+  border: 1px double black;
+  color: black;
+  font-size: 17px;
+  margin-bottom: 0;
+  margin-top: 0.5em;
+  margin-right: 1em;
+  margin-left: 1em;
+}
+
+.businesses div {
+  border-top: 1px solid gray;
+  margin: 0.5em 0;
+  background-color: #BAADC6;
+  /*background-color: #79899F;*/
+  /*background-color: rgba(102, 205, 170, 0.6);*/
+}
+
+.businesses p {
+  text-align: center;
+  margin: 0;
+}
+/*--end of code for artisanat and commerces--------------------------------------*/
+/*--end of code for Vie Economique-----------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for Mairie
+-------------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------------------
+  style for Vos démarches
+-------------------------------------------------------------------------------*/
+.justifFrame {
+  height: auto; 
+}
+
+.justif {
+  width: 45%;
+  height: 100%;
+  text-align: center;
+  margin: 0 0.5em;
+  padding-right: 1em;
+  vertical-align: top;
+  display: inline-block;
+  background-color: rgba(176, 196, 222, 0.9);
+  border-radius: 1px;
+  box-shadow: -1px -1px 1px #778899;
+}
+
+
+.justif h6 {
+  border: none;
+  text-align: left;
+  width: 100%;
+  border-top: 2px inset black;
+  border-bottom: 2px inset black;
+  margin: 0.5em auto;
+  background-color: white;
+}
+.justif p {
+  text-align: left;
+  margin: 0;
+}
+/*--end of code for Vos démarches------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for conseilMunicipal
+-------------------------------------------------------------------------------*/
+#conseilMunicipal {
+  font-family: 'Roboto', sans-serif;
+}
+
+#conseilMunicipal table {
+  border-collapse: collapse;
+  font-size: 18px;
+  /*border: 1px solid black;*/
+}
+#conseilMunicipal table p {
+  font-family: 'Roboto', sans-serif;
+  text-align: left;
+}
+
+#conseilMunicipal tr {
+  /*border-bottom: 1px solid gray;*/
+}
+#conseilMunicipal tr:hover {
+  background-color: rgb(200, 210, 200);
+  transition-duration: 1s;
+
+}
+#conseilMunicipal td {
+  border-style: none;
+}
+#conseilMunicipal td:nth-child(even) {
+  width: 30%;
+}
+
+.status {
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+  background-color: rgba(255, 255, 240, 0.5);
+  padding: 0.3em;
+}
+.nom {
+  font-weight: 500;
+  border-bottom: 1px solid rgb(1, 1, 10);
+  /*background-color: rgba(211, 211, 211, 0.8);*/
+}
+.jop {
+}
+
+#conseilMunicipal img {
+  width: 130px;
+  height: 130px;
+  margin: 1em;
+  margin-right: 0;
+/*  border-top: 1px solid gray;
+  border-right: 1px solid gray;
+  border-left: 1px solid gray;
+  border-bottom: 1px solid gray;*/
+  box-shadow: 0px 0px 3px gray;
+  border-top-right-radius: 75px;
+  border-top-left-radius: 75px;
+  border-bottom-right-radius: 75px;
+  border-bottom-left-radius: 75px;
+}
+/*--end of code for conseilMunicipal---------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for gestionDesRisques
+-------------------------------------------------------------------------------*/
+#quakePic img {
+  width: 95%;
+}
+
+.DICRIM img{
+  float: right;
+  margin-bottom: 1em;
+}
+
+.DICRIM a{
+  display: block;
+  /*padding-bottom: 0.5em;*/
+}
+
+#gestionDesRisques h4{
+  clear: both;
+}
+
+/*--end of code for gestionDesRisques--------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for horairesContact
+-------------------------------------------------------------------------------*/
+#horairesContact {
+  /*background-image: url(/images/Mairiebg.gif);*/
+/*  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;*/
+}
+
+#horairesEtContact figure {
+  float:right;
+}
+
+#horairesContact img {
+  /*display: inline-block;
+  float: right;*/
+
+}
+
+#horairesContact h5 {
+}
+
+#horairesContact p {
+
+  padding: 0 0.5em;
+  /*background-color: rgba(200, 200, 200, 0.5);*/
+}
+/*--end of code for horairesContact----------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style fot Publications
+-------------------------------------------------------------------------------*/
+/*#bullPubli {
+  padding-right: 0;
+  margin-right: 0;
+}*/
+
+.bulletin {
+  /*background-color: blue;*/
+  margin-bottom: 1em;
+}
+
+.cover {
+  margin: 0;
+  /*background-color: red;*/
+  display: inline-block;
+}
+
+.cover img {
+  width: 100%;
+  max-width: 450px;
+}
+
+.cover figcaption {
+  border-radius: 0;
+  border-bottom-left-radius: 1px;
+  border-bottom-right-radius: 1px;
+  box-shadow: none;
+  background-color: 
+}
+
+.bulletin ul {
+  /*background-color: rgba(176, 196, 222, 0.5);*/
+  /*background-color: rgba(214, 140, 138, 1);*/
+  background-color: #617C81;
+  vertical-align: top;
+  /*background-color: yellow;*/
+  display: inline-block;
+  width: 30%;
+  min-width: 100px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 4px;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  margin-top: 0;
+}
+
+.bulletin li {
+  list-style: square;
+}
+
+.bulletin h6 {
+  border: 0;
+  width: 100%;
+  font-weight: normal;
+  font-size:  20px;
+  color: white;
+  background-color: transparent;
+  border-bottom: 1px solid black;
+  text-align: left;
+}
+.bulletin a {
+  display: block;
+  color: white;
+  background-color: gray;
+  margin-top: 0.3em;
+  padding: 0.8em;
+}
+
+#autresPubli a{
+  display: block;
+}
+
+/*--end of code for Publications-------------------------------------------------------*/
+
+/*--end of code for Mairie-------------------------------------------------------*/
+
+
+
+/*-------------------------------------------------------------------------------
+style for Culture et loisirs
+-------------------------------------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for Artiste
+-------------------------------------------------------------------------------*/
+
+.artiste {
+  width: 600px;
+  margin: auto;
+  margin-bottom: 1em;
+  padding: 1em 0; 
+  text-align: center;
+  border: 1px solid black;
+  border-top-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.artiste h5 {
+  width: 500px;
+  color: black;
+  border-bottom: 4px double black;
+  margin: auto;
+  margin-bottom: 0.5em;
+}
+
+.artiste img {
+  width: 500px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 4px dimgray;
+  max-width: 100%;
+  display: block;
+  clear: right;
+  margin: auto;
+}
+
+.artiste a {
+}
+
+/*--end of code for Artiste------------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for Associations
+-------------------------------------------------------------------------------*/
+.assoc {
+  background: linear-gradient(to top, rgba(97,124,129,0.2), rgba(110,117,142,0.9));
+  width: 300px;
+  height: auto;
+  vertical-align: top;
+  display: block;
+  text-align: center;
+  margin: 1em 1em;
+  border: 1px solid black;
+  border-radius: 4px;
+  box-shadow: 2px 2px 2px gray;
+}
+
+.assoc h5 {
+  background-color: rgba(255,255,255,0.8);
+  text-align: center;
+  color: black;
+  border-top: 1px double black;
+  border-bottom: 1px double black;
+  clear: left;
+}
+ 
+.assoc h5 {
+  border: 1px double black;
+  color: black;
+  font-size: 17px;
+  margin-bottom: 0;
+  margin-top: 0.5em;
+  margin-right: 1em;
+  margin-left: 1em;
+}
+
+.assoc div {
+  border-top: 1px solid gray;
+  margin: 0.5em 0;
+  padding: 0.5em;
+}
+
+.assoc h6{
+ border-style: none;
+ background-color: lightgrey;
+ width: auto;
+ text-align: left;
+
+}
+
+.assoc p {
+  text-align: left;
+  margin: 0;
+}
+
+.mailsAssoc{
+  text-align: left;
+}
+
+.mailsAssoc a {
+  display: block;
+  
+}
+.sitesAssoc{
+ text-align: left;
+}
+
+.sitesAssoc a {
+ display: block;
+}
+
+/*--end of code for Associations-------------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for Numeros D'urgence
+-------------------------------------------------------------------------------*/
+#urgence {
+}
+
+#urgence table {
+  width: 100%;
+  padding: 1em;
+}
+
+#tableUrgence {
+  border-radius: 0.2em;
+  width:100%;
+}
+
+#urgence th{
+  text-align: center;
+  color: black;
+  background-color: lightgrey;
+  border-bottom: 1px solid black;
+}
+#urgence tr:hover {
+  background-color: #B0C4DE ; /*lightsteelblue*/
+}
+
+#urgence .telTitle{
+  padding-left: 0.5em;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
+#urgence .telNumber{
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  padding-left: 2em;
+  width: 30%;
+}
+/*--end of code for Numeros D'urgence--------------------------------------------*/
+
+/*--end of code for subContainerData---------------------------------------------*/
+/*--end of code fot subContainer-------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for logo
+-------------------------------------------------------------------------------*/
+#pics{
+  border-top: 1px solid #aca6a9;
+  clear: left;
+  text-align: center;
+  background-color: rgb(255, 200, 50); /*rgba(53, 100, 44, 0.8)*/
+  margin:0;
+  padding: 0.4em 0 0 0;
+  vertical-align: center;
+}
+
+#pics ul{
+   margin:0;
+   padding: 0; 
+}
+
+#pics li { 
+  display: inline-block;
+  padding: 0;
+  margin-left: 1%;
+  margin-right: 1%;
+}
+
+@media screen and (max-width: 1280px) {
+  #pics li { 
+    display: inline-block;
+    padding: 0;
+    margin-left: 0.5%;
+    margin-right: 0.5%;
+  }
+}
+
+#pics img { 
+  max-height: 100px;
+  border-radius: 0.5em;
+  border: 0.2em solid;
+  border-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
+  cursor: pointer;
+}
+
+
+#pics a:hover{
+  background-color: initial;
+}
+
+#pics img:hover{
+  border: 0.2em outset;
+  border-color: #2F4F4F;
+}
+
+/*-------------------------------------------------------------------------------
+  style for footer
+-------------------------------------------------------------------------------*/
+
+
+footer{
+  text-align: center;
+  font-size: small;
+  margin: auto;
+/*  background-color: rgba(53, 39, 44, 0.8);*/
+}
+
+footer div{
+  display: inline-block;
+}
+
+footer p {
+  margin-left: 1em;
+  display: inline-block;
+}
+/*--end of code for footer-------------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for Village fleuri
+-------------------------------------------------------------------------------*/
+#villageFleuri #compteRendu{
+  margin-bottom: 1em;
+}
+
+#villageFleuri #compteRendu img{
+  float: right;
+  margin-bottom: 1em;
+
+}
+
+#villageFleuri h4 {
+  clear: both;
+}
+
+/*--end of code for village fleuri-------------------------------------------------------*/
+
+
+/*-------------------------------------------------------------------------------
+  style for Transports
+-------------------------------------------------------------------------------*/
+
+#Transports th{
+ background-color: lightgrey;
+ min-height: 40px;
+}
+
+#Transports td{
+  border-style: none;
+}
+
+#Transports .row{
+  background-color: #B0C4DE; 
+}
+
+
+/*--end of code for Transports-------------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for Gallery
+-------------------------------------------------------------------------------*/
+.gallery{
+  clear: both;
+  max-width: 900px;
+  background-color: grey;
+  border-radius: 0.2em;
+  margin: 1em;
+  padding: 0.5em;
+  display: inline-block;
+}
+
+.galleryLightbox{
+  visibility: hidden;
+  overflow: hidden;
+  height: 0;
+}
+
+.galleryDescr{
+  display: inline-block;
+  /*background-color: yellow;*/
+  margin: 0.5em;
+
+  padding: 0.5em;
+  background-color: white;
+  border-radius: 0.2em;
+  clear: both; 
+}
+
+.galleryLightbox.display {
+  visibility: visible;
+  height: initial;
+}
+
+.previewPanel{
+  margin: auto;
+  /*background-color: red;*/
+}
+
+.previewThumbs{
+  position: relative;
+  width: 100%;
+  height: 175px;
+  overflow: hidden;
+  display: inline-block;
+  margin: auto;
+  /*background-color: blue;*/
+}
+
+.innerPannel{
+  position: absolute;
+  width: calc(6*224px);
+  height: 175px;
+  left : -224px;
+}
+
+.previewThumbs a{
+  display:inline-block;
+  /*float: left;*/
+  margin: 8px;
+  padding: 4px;
+  background-color: white;
+  box-shadow: 2px 2px 2px black;
+}
+
+.previewThumbs img{
+  display: block;
+}
+
+.previewThumbs a:hover{
+  box-shadow: 4px 4px 4px black;
+  background-color: white;
+}
+
+.previewThumbs img{
+  display: block;
+}
+
+.seeAll{
+  display: inline-block;
+  margin-left: 0.5em;
+  width: 224px;
+}
+
+.galleryButtons{
+
+  /*background-color: green;*/
+  vertical-align: top;
+  display: inline-block;
+  text-align: left;
+  width: 100%;
+}
+
+.galleryButtons button{
+  display: inline-block;
+}
+
+.diapoButton{
+  margin-right: 0.5em;
+  float: right;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/*--end of code for Gallery----------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for CCAS
+-------------------------------------------------------------------------------*/
+#tableCCAS tr:nth-child(even){
+  background-color: lightgrey
+}
+
+#tableCCAS tr:nth-child(odd){
+  background-color: lightgreen
+}
+
+/*--end of code for CCAS----------------------------------------------------*/
+
+/*-------------------------------------------------------------------------------
+  style for LightBox
+-------------------------------------------------------------------------------*/
+
+.thumbs{
+  background-color: grey;
+  /*border-radius: 0.2em;
+  margin: 1em;
+  padding: 0.5em;*/
+  display: inline-block;
+  text-align: center;
+}
+
+.gallery .thumbs{
+  text-align: left;
+}
+
+.thumbs a{
+  display:inline-block;
+  margin: 8px;
+  padding: 4px;
+  background-color: white;
+  box-shadow: 2px 2px 2px black;
+}
+
+.thumbs a:hover{
+  box-shadow: 4px 4px 4px black;
+  background-color: white;
+}
+
+.thumbs img{
+  display: block;
+} 
+
+
+
+.lightbox {
+  /*display: none;*/
+  overflow: hidden;
+  visibility: hidden;
+  z-index: 999;
+  height: 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  /*min-height: 1110px;
+  max-height: calc(100% + 405px);*/
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+/*.lightbox:target {
+  display: block;
+  position: absolute;
+}*/
+
+.hiddenBtn{
+  display: none;
+}
+
+.lightbox.display{
+  height: 100%;
+}
+
+.display {
+  visibility: visible;
+}
+
+.lightBoxcaption{
+  display: inline-block;
+  background-color: white;
+  width: 100%;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  z-index: 3;
+  box-shadow: 2px 2px 2px gray;
+  text-align: left;
+  font-family: 'PT Serif', verdana, serif;
+  color: black;
+}
+
+.lightbox-content{
+  position: fixed;
+  padding-bottom: 10%;
+  padding-top: 5%;
+  max-width: auto;
+  display: inline-block;
+  left:50%;
+  
+  -webkit-transform: translateX(-50%);
+  -moz-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  -o-transform: translateX(-50%);
+  transform: translateX(-50%);
+
+
+  margin-left: auto;
+  margin-right: auto;
+  outline: none;
+}
+
+@media screen and (max-width: 1368px) {
+    .lightbox-content{
+     padding: 15px 0 0 0;
+    }
+
+    .lightbox-content{
+      max-width: 80%; 
+     }
+}
+
+.picContainer{
+  width: 100%;
+  position: relative;
+  background-color: white;
+  margin: 0;
+  padding: 0.5em;
+  box-shadow: 2px 2px 2px gray;
+  z-index: 2;
+}
+
+.picContainer img{
+  display: block;
+  width: 100%;
+  color:#fff;  
+}
+
+.loader{
+  display: block;
+  width: 300px;
+  height: 300px;
+  font-size: 50px;
+  text-align: center;
+}
+
+.loader i {
+  margin-top: 45%;
+}
+
+#miniGallery .hiddenGalleryLinksContainer{
+  position: absolute;
+  height: 100%;
+  top: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#miniGallery .hiddenGalleryLinks{
+  opacity: 0;
+  display: block;
+  text-align: center;
+  margin: 1em;
+  color: black;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  font-size: 16px;
+  background-color: white;
+  border-radius: 0.5em;
+  padding: 0.3em;
+  text-decoration: none;
+}  
+
+#miniGallery .hiddenGalleryLinks:hover{
+  color: teal;
+}
+
+#miniGallery .hiddenGalleryLinksContainer:hover a{
+  -webkit-opacity: 1;
+  -moz-opacity: 1;
+  opacity: 1;
+}
+
+.halfPic{
+  position: absolute;
+  height: 100%;
+  top: 0;
+  width: 50%;
+  margin: 0;
+  padding: 0;
+}
+
+
+.halfPic span{
+  display: block;
+  opacity: 0;
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  font-size: 18px;
+  background-color: white;
+  border-radius: 0.5em;
+  padding: 0.5em;
+  position: absolute;
+  top:10%;
+}
+
+.halfPic:hover span{
+  -webkit-opacity: 1;
+  -moz-opacity: 1;
+  opacity: 1;  
+}
+
+#halfPicleft{
+  left: 0;
+}
+
+#halfPicright{
+  right: 0;
+}
+
+#halfPicleft:hover{
+/*  background: linear-gradient(to left, rgba(0,0,0,0), rgba(110,117,142,0.3));
+*/}
+
+#halfPicleft span{
+  left: 0; 
+}
+
+#halfPicright span{
+  right:0;
+}
+
+#halfPicright:hover{
+ /* background: linear-gradient(to right, rgba(0,0,0,0), rgba(110,117,142,0.3));*/
+}
+
+.lightboxNav{
+ display: inline-block;
+ width: 100%; 
+}
+
+.lightboxNav .navBtnLeft{
+  display: block;
+  background-color: #B0C4DE;
+  float: left;
+  text-decoration: none;
+}
+
+.lightboxNav .navBtnRight:hover, .lightboxNav .navBtnLeft:hover{
+  cursor: pointer;
+  color: white;
+  background-color: teal;
+}
+
+.lightboxNav .navBtnRight {
+  display: block;
+  background-color: #B0C4DE;
+  float: right;
+  text-decoration: none;
+}
+
+
+.downloadHDPic {
+  display: none;
+  float: right;
+  padding: 0.3em !important;
+  margin-top: 0.15em !important;
+  margin-right: 0.5em !important;
+  text-decoration: none !important;
+  background-color: grey !important;
+  color: white !important;
+}
+
+.displayHDLink {
+  display: block;
+}
+
+.displayHDLink:hover{
+  color: white !important;
+  background-color: teal !important;
+}
+
+#diapoLightbox{
+  color: black;
+  vertical-align: bottom;
+  text-decoration: none;
+  float: right;
+  font-size: 20px;
+  padding: 0.2em;
+  margin-right: 0.5em;
+}
+
+#diapoLightbox:hover{
+  color: grey;
+  background-color: inherit;
+}
+
+#closebtn{
+  text-decoration: none;
+  float: right;
+  font-size: 25px;
+  font-weight: bold;
+  color: black;
+}
+
+#closebtn:hover{
+  color: grey;
+  background-color: inherit;
+}
+
+
+/*--end of code for LightBox-------------------------------------------------------*/
+
+div[class*="miniLightboxWrapper"]{
+  display: inline-block;
+}
+
+.miniLightbox {
+  /** Default lightbox to hidden */
+  display: none;
+
+  /** Position and style */
+  position: fixed;
+  z-index: 999;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  top: 0;
+  left: 0;
+  background: rgba(0,0,0,0.8);
+}
+
+.miniLightbox img {
+  /** Pad the lightbox image */
+  max-width: 90%;
+  max-height: 80%;
+  margin-top: 2%;
+
+}
+
+.miniLightbox:target {
+  /** Remove default browser outline */
+  outline: none;
+
+  /** Unhide lightbox **/
+  display: block;
+}
+
+.thumbAnchor{
+  display: inline-block;
+  position: relative;
+}
+
+.thumbAnchor img{
+  border-radius: 3px;
+  box-shadow: 0px 0px 5px black;
+}
+
+.thumbAnchor i{
+ opacity: 0;
+ position: absolute;
+ top:3px;
+ right:8px;
+ color: rgba(255,255,255,0.8);
+ font-size: 35px;
+}
+
+.thumbAnchor:hover i{
+ opacity: 1;
+}
+
+.oblique{
+  font-style: oblique;
+}
+
+a[id*="Small"]{
+  margin-left: 0;
+  padding-left: 0;
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
+}
+
+a[id*="Small"]:hover{
+  background-color: initial;
+}
+a[id*="Big"]:hover{
+  background-color: rgba(0,0,0,0.8);
+}
+
+/*--------------------------------------------------------------------------------------*/
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;           /* non-prefixed version, currently
+                                  not supported by any browser */
+}

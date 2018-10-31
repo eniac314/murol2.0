@@ -21,7 +21,7 @@ import NewsEditor.NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (..)
 import Task exposing (perform)
-import Time exposing (Zone, here, utc)
+import Time exposing (Posix, Zone, here, millisToPosix, utc)
 
 
 main : Program () Model Msg

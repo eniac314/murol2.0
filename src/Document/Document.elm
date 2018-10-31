@@ -128,10 +128,11 @@ type alias Config msg =
     , mainInterfaceHeight : Int
     , customElems :
         Dict String (Element msg)
-    , styleSheet : StyleSheet msg
+    , styleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
     , zipperHandlers : Maybe (ZipperHandlers msg)
     , editMode : Bool
     , containersBkgColors : Bool
+    , season : Season
     }
 
 
@@ -140,10 +141,11 @@ newsEditorConfig =
     , height = 1080
     , mainInterfaceHeight = 0
     , customElems = Dict.empty
-    , styleSheet = defaulStyleSheet
+    , styleSheet = defaultStyleSheet
     , zipperHandlers = Nothing
     , editMode = True
     , containersBkgColors = False
+    , season = Spring
     }
 
 
