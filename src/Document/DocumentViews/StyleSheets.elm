@@ -12,72 +12,6 @@ import Html.Attributes as Attr
 import Time exposing (Month(..), Posix, Zone, toDay, toMonth)
 
 
-timeToSeason : Zone -> Posix -> Season
-timeToSeason zone time =
-    let
-        month =
-            toMonth zone time
-
-        day =
-            toDay zone time
-    in
-    case month of
-        Jan ->
-            Winter
-
-        Feb ->
-            Winter
-
-        Mar ->
-            if day < 21 then
-                Winter
-            else
-                Spring
-
-        Apr ->
-            Spring
-
-        May ->
-            Spring
-
-        Jun ->
-            if day < 21 then
-                Spring
-            else
-                Summer
-
-        Jul ->
-            Summer
-
-        Aug ->
-            Summer
-
-        Sep ->
-            if day < 21 then
-                Summer
-            else
-                Autumn
-
-        Oct ->
-            Autumn
-
-        Nov ->
-            Autumn
-
-        Dec ->
-            if day < 21 then
-                Autumn
-            else
-                Winter
-
-
-type Season
-    = Spring
-    | Summer
-    | Autumn
-    | Winter
-
-
 docMaxWidth : ( Int, Int ) -> Bool -> Int
 docMaxWidth ( winWidth, winHeight ) editMode =
     let
@@ -112,26 +46,6 @@ type alias StyleSheet msg =
     }
 
 
-backgroundImage : Season -> String
-backgroundImage season =
-    case season of
-        Spring ->
-            "/assets/images/backgrounds/springbg2017.jpg"
-
-        Summer ->
-            "/assets/images/backgrounds/"
-
-        Winter ->
-            "/assets/images/backgrounds/winter_bg.jpg"
-
-        Autumn ->
-            "/assets/images/backgrounds/automne_bg2.jpg"
-
-
-
---"/images/automne_bg2.jpg"
-
-
 defaultStyleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
 defaultStyleSheet season ( winWidth, winHeight ) editMode =
     { paragraphStyle =
@@ -157,34 +71,7 @@ defaultStyleSheet season ( winWidth, winHeight ) editMode =
     , linkStyle =
         [ Font.color (rgb 0 0.5 0.5) ]
     , headingStyles =
-        Dict.fromList
-            [ ( 1
-              , [ Background.color (rgb 0.4 0.6 0.55)
-                , Font.size 24
-                , Font.center
-                , Font.color (rgb 0.94 0.97 1)
-                , Font.bold
-                , paddingXY 0 10
-                , width fill
-                ]
-              )
-            , ( 2
-              , [ Background.color (rgb 0.4 0.6 0.55)
-                , Font.size 18
-                , Font.center
-                , Font.color (rgb 0.94 0.97 1)
-                , Font.bold
-                , paddingXY 0 2
-                , width fill
-                ]
-              )
-            , ( 3
-              , [ Font.size 16
-                , Font.color (rgb 0 0.5 0)
-                , Font.bold
-                ]
-              )
-            ]
+        headingStyles season ( winWidth, winHeight ) editMode
     , customStyles =
         { idNbrs =
             Dict.fromList
@@ -225,6 +112,116 @@ defaultStyleSheet season ( winWidth, winHeight ) editMode =
                 ]
         }
     }
+
+
+headingStyles season ( winWidth, winHeight ) editMode =
+    let
+        commonAttr =
+            Dict.fromList
+                [ ( 1
+                  , [ Font.size 24
+                    , Font.center
+                    , Font.bold
+                    , paddingXY 0 10
+                    , width fill
+                    ]
+                  )
+                , ( 2
+                  , [ Font.size 18
+                    , Font.center
+                    , Font.bold
+                    , paddingXY 0 2
+                    , width fill
+                    ]
+                  )
+                , ( 3
+                  , [ Font.size 16
+                    , Font.color (rgb 0 0.5 0)
+                    , Font.bold
+                    ]
+                  )
+                ]
+
+        seasonAttr =
+            case season of
+                Spring ->
+                    Dict.fromList
+                        [ ( 1
+                          , [ Background.color (rgba255 102 153 140 225)
+                            , Font.color (rgba255 240 248 255 255)
+                            ]
+                          )
+                        , ( 2
+                          , [ Background.color (rgba255 102 153 140 225)
+                            , Font.color (rgba255 240 248 255 255)
+                            ]
+                          )
+                        , ( 3
+                          , []
+                          )
+                        ]
+
+                Summer ->
+                    Dict.fromList
+                        []
+
+                Autumn ->
+                    Dict.fromList
+                        [ ( 1
+                          , [ Background.color (rgba255 160 82 45 255)
+                            , Font.color (rgba255 240 248 255 255)
+                            ]
+                          )
+                        , ( 2
+                          , [ Background.color (rgba255 160 82 45 255)
+                            , Font.color (rgba255 240 248 255 255)
+                            ]
+                          )
+                        , ( 3
+                          , []
+                          )
+                        ]
+
+                Winter ->
+                    Dict.fromList
+                        [ ( 1
+                          , [ Background.color (rgba255 51 51 102 255)
+                            , Font.color (rgba255 240 248 255 255)
+                            ]
+                          )
+                        , ( 2
+                          , [ Background.color (rgba255 51 51 102 255)
+                            , Font.color (rgba255 240 248 255 255)
+                            ]
+                          )
+                        , ( 3
+                          , []
+                          )
+                        ]
+    in
+    Dict.foldr
+        (\k v acc ->
+            Dict.update
+                k
+                (\mbSeasonAttr ->
+                    case mbSeasonAttr of
+                        Just attrs ->
+                            Just (v ++ attrs)
+
+                        _ ->
+                            Just v
+                )
+                acc
+        )
+        commonAttr
+        seasonAttr
+
+
+
+-------------------------------------------------------------------------------
+-----------------
+-- Table styles -
+-----------------
 
 
 type alias TableStyle msg =
@@ -310,8 +307,6 @@ tableStyles =
         , ( "bleu-blanc"
           , { tableStyle =
                 [ Border.width 1
-
-                --, width shrink
                 ]
             , cellStyle =
                 \ri ->
@@ -335,16 +330,93 @@ tableStyles =
                 ]
             }
           )
-
-        --, ( ""
-        --  , { tableStyle =
-        --        []
-        --    , cellStyle =
-        --        (\ri ->
-        --            [])
-        --    , containerStyle =
-        --       []
-        --    }
-        --  )
-        --
         ]
+
+
+
+-------------------------------------------------------------------------------
+---------------------------
+-- Misc helper functions --
+---------------------------
+
+
+type Season
+    = Spring
+    | Summer
+    | Autumn
+    | Winter
+
+
+timeToSeason : Zone -> Posix -> Season
+timeToSeason zone time =
+    let
+        month =
+            toMonth zone time
+
+        day =
+            toDay zone time
+    in
+    case month of
+        Jan ->
+            Winter
+
+        Feb ->
+            Winter
+
+        Mar ->
+            if day < 21 then
+                Winter
+            else
+                Spring
+
+        Apr ->
+            Spring
+
+        May ->
+            Spring
+
+        Jun ->
+            if day < 21 then
+                Spring
+            else
+                Summer
+
+        Jul ->
+            Summer
+
+        Aug ->
+            Summer
+
+        Sep ->
+            if day < 21 then
+                Summer
+            else
+                Autumn
+
+        Oct ->
+            Autumn
+
+        Nov ->
+            Autumn
+
+        Dec ->
+            if day < 21 then
+                Autumn
+            else
+                Winter
+
+
+backgroundImage : Season -> String
+backgroundImage season =
+    case season of
+        Spring ->
+            "/assets/images/backgrounds/springbg2017.jpg"
+
+        Summer ->
+            "/assets/images/backgrounds/"
+
+        Winter ->
+            "/assets/images/backgrounds/winter_bg.jpg"
+
+        Autumn ->
+            "/assets/images/backgrounds/automne_bg2.jpg"

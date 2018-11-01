@@ -1,4 +1,4 @@
-module Murol exposing (..)
+port module Murol exposing (..)
 
 import Browser exposing (..)
 import Browser.Dom as Dom
@@ -8,7 +8,7 @@ import Dict exposing (..)
 import Document.Document as Document
 import Document.DocumentViews.DocumentResponsive exposing (responsivePreFormat)
 import Document.DocumentViews.DocumentView exposing (renderDoc)
-import Document.DocumentViews.StyleSheets as StyleSheets
+import Document.DocumentViews.StyleSheets as StyleSheets exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -19,13 +19,21 @@ import Element.Region as Region
 import Html as Html
 import Html.Attributes as Attr
 import Http exposing (..)
+import Internals.SearchEngine exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
+import Set exposing (..)
 import Task exposing (perform)
 import Time exposing (here, now)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
+
+
+port searchStr : String -> Cmd msg
+
+
+port searchResult : (String -> msg) -> Sub msg
 
 
 type alias Model =
@@ -33,6 +41,10 @@ type alias Model =
     , key : Nav.Key
     , url : Url.Url
     , pages : Pages
+    , keywords : Set ( String, String )
+    , searchStr : String
+    , searchWords : List String
+    , results : Maybe ( List String, Dict String ( Int, Set String ) )
     , pageTree : Maybe PageTreeEditor.Page
     }
 
@@ -45,9 +57,12 @@ type Msg
     = ChangeUrl Url.Url
     | ClickedLink UrlRequest
     | LoadContent ( String, String ) (Result Http.Error Decode.Value)
+    | LoadKeywords (Result Http.Error (Set ( String, String )))
     | LoadPages (Result Http.Error Decode.Value)
-    | CurrentViewport Dom.Viewport
+    | SearchPromptInput String
+    | Search
     | SetSeason StyleSheets.Season
+    | CurrentViewport Dom.Viewport
     | WinResize Int Int
     | NoOp
 
@@ -100,10 +115,15 @@ init flags url key =
       , key = key
       , pageTree = Nothing
       , pages = Dict.empty
+      , keywords = Set.empty
+      , searchStr = ""
+      , searchWords = []
+      , results = Nothing
       , url = url_
       }
     , Cmd.batch
         [ getPages
+        , getKeywords
         , if url /= url_ then
             Nav.pushUrl key (Url.toString url_)
           else
@@ -212,6 +232,56 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        LoadKeywords res ->
+            case res of
+                Ok keywords ->
+                    ( { model
+                        | keywords = keywords
+                      }
+                    , Cmd.none
+                    )
+
+                Err e ->
+                    ( model
+                    , Cmd.none
+                    )
+
+        SearchPromptInput s ->
+            let
+                lower =
+                    String.toLower s
+
+                wrds =
+                    String.words lower
+            in
+            ( { model
+                | searchStr = lower
+                , searchWords = wrds
+              }
+            , Cmd.none
+            )
+
+        Search ->
+            ( { model
+                | results =
+                    Just <|
+                        searchM Dict.empty
+                            (List.filter irrelevant
+                                (.searchWords model)
+                            )
+              }
+            , Cmd.none
+            )
+
+        SetSeason season ->
+            let
+                config =
+                    model.config
+            in
+            ( { model | config = { config | season = season } }
+            , Cmd.none
+            )
+
         CurrentViewport vp ->
             let
                 ws =
@@ -224,15 +294,6 @@ update msg model =
                         , height = round vp.viewport.height + 13
                     }
               }
-            , Cmd.none
-            )
-
-        SetSeason season ->
-            let
-                config =
-                    model.config
-            in
-            ( { model | config = { config | season = season } }
             , Cmd.none
             )
 
@@ -279,22 +340,8 @@ view model =
                     [ width fill
                     , scrollbarY
                     ]
-                    [ el
-                        [ Font.size 45
-                        , Font.center
-                        , width (maximum maxWidth fill)
-                        , Background.color (rgba 1 1 1 0.9)
-                        , centerX
-                        ]
-                        (text "Murol")
-                    , el
-                        [ Font.size 31
-                        , Font.center
-                        , width (maximum maxWidth fill)
-                        , Background.color (rgba 1 1 1 0.9)
-                        , centerX
-                        ]
-                        (text "La municipalité de Murol vous souhaite la bienvenue")
+                    [ pageTitleView maxWidth model
+                    , subTitleView maxWidth model
 
                     --, topMenuView model
                     , mainView model
@@ -304,6 +351,85 @@ view model =
             )
         ]
     }
+
+
+pageTitleView maxWidth model =
+    let
+        seasonAttr =
+            case model.config.season of
+                Spring ->
+                    [ Background.color (rgba255 76 115 56 255) ]
+
+                Summer ->
+                    []
+
+                Autumn ->
+                    [ Background.color (rgba255 255 211 37 255) ]
+
+                Winter ->
+                    [ Background.color (rgba255 0 0 51 255) ]
+    in
+    el
+        ([ Font.size 45
+         , Font.center
+         , width (maximum maxWidth fill)
+         , centerX
+         , Font.italic
+         , Font.family
+            [ Font.typeface "lora"
+            , Font.serif
+            ]
+         , paddingEach
+            { top = 7
+            , bottom = 10
+            , left = 0
+            , right = 0
+            }
+         ]
+            ++ seasonAttr
+        )
+        (text "Murol")
+
+
+subTitleView maxWidth model =
+    let
+        seasonAttr =
+            case model.config.season of
+                Spring ->
+                    [ Background.color (rgba255 41 80 0 255)
+                    , Font.color (rgba255 240 248 255 255)
+                    ]
+
+                Summer ->
+                    []
+
+                Autumn ->
+                    [ Background.color (rgba255 69 22 6 255)
+                    , Font.color (rgba255 240 248 255 255)
+                    ]
+
+                Winter ->
+                    [ Background.color (rgba255 240 248 255 255)
+                    , Font.color (rgba255 0 0 51 255)
+                    ]
+    in
+    el
+        ([ Font.size 24
+         , Font.family
+            [ Font.typeface "lora"
+            , Font.serif
+            ]
+         , Font.center
+         , width (maximum maxWidth fill)
+         , centerX
+         , paddingXY 0 3
+         ]
+            ++ seasonAttr
+        )
+        (paragraph
+            []
+            [ text "La municipalité de Murol vous souhaite la bienvenue" ]
+        )
 
 
 mainView model =
@@ -468,6 +594,20 @@ getContent ( path, contentId ) =
             Http.post "/getContent.php" body Decode.value
     in
     Http.send (LoadContent ( path, contentId )) request
+
+
+getKeywords : Cmd Msg
+getKeywords =
+    let
+        body =
+            Encode.object
+                []
+                |> Http.jsonBody
+
+        request =
+            Http.post "getKeywords.php" body PageTreeEditor.decodeKeywords
+    in
+    Http.send LoadKeywords request
 
 
 
