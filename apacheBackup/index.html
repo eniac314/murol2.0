@@ -3,12 +3,26 @@
 <head>
 	<meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/fonts.css">
   <script type="text/javascript" src="/js/Murol.js"></script>
+  
 </head>
 
 <body>
   <script type="text/javascript">
+    var worker = new Worker('/js/worker.js');	
+    
     var app = Elm.Murol.init();
+    
+    app.ports.toSearchEngine.subscribe(function(s){
+       worker.postMessage(s);
+    });
+
+    worker.addEventListener('message', function(e) {
+      app.ports.searchResult.send(e.data);
+    }, false);
+
+
   </script>
 
 </body>

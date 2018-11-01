@@ -19,8 +19,8 @@ import Element.Region as Region
 import Html as Html
 import Html.Attributes as Attr
 import Http exposing (..)
-import Internals.SearchEngine exposing (..)
 import Json.Decode as Decode
+import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
@@ -30,7 +30,7 @@ import UUID exposing (UUID, canonical)
 import Url exposing (..)
 
 
-port searchStr : String -> Cmd msg
+port toSearchEngine : String -> Cmd msg
 
 
 port searchResult : (String -> msg) -> Sub msg
@@ -43,9 +43,10 @@ type alias Model =
     , pages : Pages
     , keywords : Set ( String, String )
     , searchStr : String
-    , searchWords : List String
-    , results : Maybe ( List String, Dict String ( Int, Set String ) )
+    , results : Maybe SearchResult
     , pageTree : Maybe PageTreeEditor.Page
+    , debug : String
+    , counter : Int
     }
 
 
@@ -61,10 +62,12 @@ type Msg
     | LoadPages (Result Http.Error Decode.Value)
     | SearchPromptInput String
     | Search
+    | ProcessSearchResult String
     | SetSeason StyleSheets.Season
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
     | NoOp
+    | Increment Time.Posix
 
 
 type LoadingStatus
@@ -87,7 +90,12 @@ main =
 
 
 subscriptions model =
-    Sub.batch [ onResize WinResize ]
+    Sub.batch
+        [ onResize WinResize
+        , searchResult ProcessSearchResult
+
+        --, Time.every 500 Increment
+        ]
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -117,9 +125,10 @@ init flags url key =
       , pages = Dict.empty
       , keywords = Set.empty
       , searchStr = ""
-      , searchWords = []
       , results = Nothing
       , url = url_
+      , debug = ""
+      , counter = 0
       }
     , Cmd.batch
         [ getPages
@@ -247,28 +256,29 @@ update msg model =
                     )
 
         SearchPromptInput s ->
-            let
-                lower =
-                    String.toLower s
-
-                wrds =
-                    String.words lower
-            in
             ( { model
-                | searchStr = lower
-                , searchWords = wrds
+                | searchStr = s
               }
-            , Cmd.none
+            , toSearchEngine
+                (Encode.object
+                    [ ( "SearchStr", Encode.string s ) ]
+                    |> Encode.encode 0
+                )
             )
 
         Search ->
+            ( model
+            , toSearchEngine
+                (Encode.string "<Cmd -> Search>"
+                    |> Encode.encode 0
+                )
+            )
+
+        ProcessSearchResult s ->
             ( { model
                 | results =
-                    Just <|
-                        searchM Dict.empty
-                            (List.filter irrelevant
-                                (.searchWords model)
-                            )
+                    Decode.decodeString decodeSearchResults s
+                        |> Result.toMaybe
               }
             , Cmd.none
             )
@@ -313,6 +323,9 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        Increment _ ->
+            ( { model | counter = 1 + model.counter }, Cmd.none )
+
 
 view : Model -> Browser.Document Msg
 view model =
@@ -342,6 +355,29 @@ view model =
                     ]
                     [ pageTitleView maxWidth model
                     , subTitleView maxWidth model
+                    , row
+                        [ spacing 15
+                        , centerX
+                        , width (maximum maxWidth fill)
+                        , padding 15
+                        , Background.color (rgba 1 1 1 0.9)
+                        ]
+                        [ Input.text
+                            []
+                            { onChange = SearchPromptInput
+                            , text = model.searchStr
+                            , placeholder = Nothing
+                            , label = Input.labelLeft [] Element.none
+                            }
+                        , Input.button
+                            []
+                            { onPress = Just Search
+                            , label = el [] (text "rechercher!")
+                            }
+
+                        --, el []
+                        --    (text <| String.fromInt model.counter)
+                        ]
 
                     --, topMenuView model
                     , mainView model
@@ -648,3 +684,21 @@ pageToPages page =
     toList page
         |> List.map (\( p, cId ) -> ( p, ( cId, NotLoaded ) ))
         |> Dict.fromList
+
+
+type alias SearchResult =
+    ( List String, Dict String ( Int, Set String ) )
+
+
+decodeSearchResults : Decode.Decoder SearchResult
+decodeSearchResults =
+    let
+        decodeRes =
+            Decode.succeed (\s k -> ( s, Set.fromList k ))
+                |> Pipeline.required "score" Decode.int
+                |> Pipeline.required "keywords" (Decode.list Decode.string)
+    in
+    Decode.succeed (\k r -> ( k, r ))
+        |> Pipeline.required "keywords" (Decode.list Decode.string)
+        |> Pipeline.required "results"
+            (Decode.dict decodeRes)
