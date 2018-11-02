@@ -30,6 +30,7 @@ import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Parser exposing (..)
 import Set exposing (..)
 import Time exposing (Zone)
+import UUID exposing (canonical)
 
 
 type alias Model msg =
@@ -1196,7 +1197,9 @@ internalLinkView externalMsg config =
                 , Events.onClick InternalUrlSelectorClick
                 ]
                 { onChange = SetUrl config.td.meta.uid
-                , text = config.url
+                , text =
+                    PageTreeEditor.getPathFromId config.pageTreeEditor config.url
+                        |> Maybe.withDefault config.url
                 , placeholder = Nothing
                 , label =
                     Input.labelLeft
@@ -1297,8 +1300,10 @@ chooseInternalPageView externalMsg uid pageTreeEditor zone logInfo =
                 (buttonStyle (PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor /= Nothing) ++ [ alignTop ])
                 { onPress =
                     PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor
-                        |> Maybe.map .path
-                        |> Maybe.map (\p -> "/" ++ String.join "/" p)
+                        --|> Maybe.map .path
+                        --|> Maybe.map (\p -> "/" ++ String.join "/" p)
+                        |> Maybe.andThen .mbContentId
+                        |> Maybe.map canonical
                         |> Maybe.map (externalMsg << ConfirmInternalPageUrl uid)
                 , label =
                     row [ spacing 5 ]

@@ -10,6 +10,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Region as Region
 import Html as Html
 import Html.Attributes as Attr
@@ -133,16 +134,29 @@ renderTextBlockPrimitive config tbAttrs p =
                         newTabLink
                     else
                         link
+
+                url_ =
+                    Dict.get url config.pageIndex
+                        |> Maybe.withDefault ""
             in
-            linkFun
-                (styleSheet.linkStyle
-                    --++ idStyle config.styleSheet id
-                    ++ renderAttrs config tbAttrs
-                    ++ renderAttrs config attrs
-                )
-                { url = url
-                , label = text label
-                }
+            if config.editMode then
+                el
+                    (styleSheet.linkStyle
+                        --++ idStyle config.styleSheet id
+                        ++ renderAttrs config tbAttrs
+                        ++ renderAttrs config attrs
+                    )
+                    (text label)
+            else
+                linkFun
+                    (styleSheet.linkStyle
+                        --++ idStyle config.styleSheet id
+                        ++ renderAttrs config tbAttrs
+                        ++ renderAttrs config attrs
+                    )
+                    { url = url_
+                    , label = text label
+                    }
 
 
 renderLi config tbAttrs li =

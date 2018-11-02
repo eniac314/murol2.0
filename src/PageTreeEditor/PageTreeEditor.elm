@@ -100,6 +100,20 @@ setInternalPageSelection model path =
         |> Cmd.map model.externalMsg
 
 
+getPathFromId : Model msg -> String -> Maybe String
+getPathFromId model cId =
+    let
+        findPath (Page { path, mbContentId } xs) =
+            if mbContentId == Result.toMaybe (UUID.fromString cId) then
+                Just ("/" ++ String.join "/" path)
+            else
+                List.filterMap findPath xs
+                    |> List.head
+    in
+    Maybe.map extractPage model.pageTree
+        |> Maybe.andThen findPath
+
+
 type Mode
     = Full
     | Save
