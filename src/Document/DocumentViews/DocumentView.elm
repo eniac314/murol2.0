@@ -137,7 +137,7 @@ renderTextBlockPrimitive config tbAttrs p =
 
                 url_ =
                     Dict.get url config.pageIndex
-                        |> Maybe.withDefault ""
+                        |> Maybe.withDefault url
             in
             if config.editMode then
                 el
