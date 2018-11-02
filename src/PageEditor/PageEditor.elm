@@ -278,6 +278,7 @@ reset mbDoc externalMsg =
             , editMode = True
             , containersBkgColors = False
             , season = Spring
+            , pageIndex = Dict.empty
             }
 
         funnelState =

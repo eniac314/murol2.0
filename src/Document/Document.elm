@@ -133,6 +133,7 @@ type alias Config msg =
     , editMode : Bool
     , containersBkgColors : Bool
     , season : Season
+    , pageIndex : Dict String String
     }
 
 
@@ -146,6 +147,7 @@ newsEditorConfig =
     , editMode = True
     , containersBkgColors = False
     , season = Spring
+    , pageIndex = Dict.empty
     }
 
 

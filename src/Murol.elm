@@ -52,12 +52,28 @@ type alias Model =
     }
 
 
+type alias ContentIdStr =
+    String
+
+
+type alias PathStr =
+    String
+
+
+type alias PageName =
+    String
+
+
+type alias Keyword =
+    String
+
+
 type alias Pages =
-    Dict.Dict String ( String, String, LoadingStatus )
+    Dict.Dict PathStr ( ContentIdStr, PageName, LoadingStatus )
 
 
 type alias SearchResult =
-    ( List String, Dict String ( Int, Set String ) )
+    ( List Keyword, Dict ContentIdStr ( Int, Set Keyword ) )
 
 
 type SearchEngineStatus
@@ -69,7 +85,7 @@ type SearchEngineStatus
 type Msg
     = ChangeUrl Url.Url
     | ClickedLink UrlRequest
-    | LoadContent ( String, String, String ) (Result Http.Error Decode.Value)
+    | LoadContent ( PathStr, ContentIdStr, PageName ) (Result Http.Error Decode.Value)
     | LoadPages (Result Http.Error Decode.Value)
     | SearchPromptInput String
     | Search
@@ -123,6 +139,7 @@ init flags url key =
             , styleSheet = StyleSheets.defaultStyleSheet
             , zipperHandlers = Nothing
             , season = StyleSheets.Spring
+            , pageIndex = Dict.empty
             }
 
         url_ =
@@ -209,9 +226,22 @@ update msg model =
                 Ok jsonVal ->
                     case Decode.decodeValue decodePages jsonVal of
                         Ok ( pages, pageTree ) ->
+                            let
+                                pageIndex =
+                                    Dict.foldr
+                                        (\path ( cId, _, _ ) acc ->
+                                            Dict.insert cId path acc
+                                        )
+                                        Dict.empty
+                                        pages
+
+                                config =
+                                    model.config
+                            in
                             ( { model
                                 | pages = pages
                                 , pageTree = Just pageTree
+                                , config = { config | pageIndex = pageIndex }
                               }
                             , case Dict.get model.url.path pages of
                                 Just ( cId, name, NotLoaded ) ->
@@ -309,8 +339,8 @@ update msg model =
             ( { model
                 | config =
                     { ws
-                        | width = round vp.viewport.width + 13
-                        , height = round vp.viewport.height + 13
+                        | width = round vp.viewport.width --+ 13
+                        , height = round vp.viewport.height --+ 13
                     }
               }
             , Cmd.none
@@ -353,7 +383,7 @@ view model =
             , Font.size 16
             ]
             (el
-                [ width (px model.config.width)
+                [ width fill --(px model.config.width)
                 , height (px model.config.height)
                 , clip
                 , Background.image (StyleSheets.backgroundImage model.config.season)
@@ -402,7 +432,10 @@ searchEngineView maxWidth model =
                 [ paddingXY 5 5
                 , spacing 15
                 , focused [ Border.glow (rgb 1 1 1) 0 ]
-                , width (px 270)
+                , if model.config.width < 500 then
+                    width (px 150)
+                  else
+                    width (px 270)
                 , onKeyEvent
                 ]
                 { onChange = SearchPromptInput
@@ -530,7 +563,10 @@ clickablePath maxWidth model =
 
         linkView ( n, p ) =
             link
-                [ paddingXY 2 4 ]
+                [ paddingXY 2 4
+                , mouseOver
+                    [ Font.color (rgba 0.3 0.4 0.6 0.5) ]
+                ]
                 { url = strPath p
                 , label =
                     el [] (text (Maybe.withDefault n (Url.percentDecode n)))
@@ -554,8 +590,8 @@ clickablePath maxWidth model =
                 |> List.reverse
                 |> getEveryPaths []
                 |> List.map linkView
-                |> List.intersperse (el [] (text "/"))
-                |> (\res -> text "/" :: res)
+                |> List.intersperse (el [ Font.color (rgb 0.5 0.5 0.5) ] (text "/"))
+                |> (\res -> el [ Font.color (rgb 0.5 0.5 0.5) ] (text "/") :: res)
             )
         ]
 
