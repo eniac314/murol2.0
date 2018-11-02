@@ -2,8 +2,9 @@ port module SearchEngine exposing (..)
 
 import Delay exposing (..)
 import Dict exposing (..)
+import Http exposing (..)
 import Json.Decode as Decode exposing (..)
-import Json.Decode.Pipeline exposing (..)
+import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode exposing (..)
 import Set exposing (..)
 
@@ -12,6 +13,33 @@ port outbound : String -> Cmd msg
 
 
 port inbound : (String -> msg) -> Sub msg
+
+
+type alias Model =
+    { searchStr : String
+    , searchWords : List String
+    , metadata : Metadata
+    }
+
+
+type Msg
+    = LoadKeywords (Result Http.Error (Set ( String, String )))
+    | SearchStr String
+    | Search
+    | Reset
+    | NoOp
+
+
+type alias Metadata =
+    Dict Keyword (List String)
+
+
+type alias Keyword =
+    String
+
+
+type alias SearchResult =
+    ( List String, Dict String ( Int, Set String ) )
 
 
 main : Program () Model Msg
@@ -26,8 +54,9 @@ main =
 init flags =
     ( { searchStr = ""
       , searchWords = []
+      , metadata = Dict.empty
       }
-    , Cmd.none
+    , getKeywords
     )
 
 
@@ -35,85 +64,23 @@ subscriptions model =
     inbound processInput
 
 
-processInput : String -> Msg
-processInput s =
-    decodeString
-        (Decode.oneOf
-            [ decodeAction
-            , decodeSearchStr
-            ]
-        )
-        s
-        |> Result.withDefault NoOp
-
-
-decodeAction : Decode.Decoder Msg
-decodeAction =
-    Decode.string
-        |> Decode.andThen
-            (\str ->
-                case str of
-                    "<Cmd -> Search>" ->
-                        succeed Search
-
-                    "<Cmd -> Reset>" ->
-                        succeed Reset
-
-                    _ ->
-                        fail <|
-                            "Unknown command"
-            )
-
-
-decodeSearchStr : Decode.Decoder Msg
-decodeSearchStr =
-    Decode.field "SearchStr" Decode.string
-        |> Decode.map SearchStr
-
-
-
---type alias SearchResult =
---    ( List String, Dict String ( Int, Set String ) )
-
-
-encodeSearchResult : SearchResult -> String
-encodeSearchResult ( keywords, results ) =
-    Encode.object
-        [ ( "keywords", Encode.list Encode.string keywords )
-        , ( "results"
-          , Encode.dict
-                identity
-                (\( score, keywords_ ) ->
-                    Encode.object
-                        [ ( "score"
-                          , Encode.int score
-                          )
-                        , ( "keywords"
-                          , Encode.set Encode.string keywords_
-                          )
-                        ]
-                )
-                results
-          )
-        ]
-        |> Encode.encode 0
-
-
-type alias Model =
-    { searchStr : String
-    , searchWords : List String
-    }
-
-
-type Msg
-    = SearchStr String
-    | Search
-    | Reset
-    | NoOp
-
-
 update msg model =
     case msg of
+        LoadKeywords res ->
+            case res of
+                Ok keywords ->
+                    ( { model
+                        | metadata =
+                            keywordsToMetadata keywords
+                      }
+                    , Cmd.none
+                    )
+
+                Err e ->
+                    ( model
+                    , Cmd.none
+                    )
+
         SearchStr s ->
             let
                 lower =
@@ -146,42 +113,11 @@ update msg model =
             ( model, Cmd.none )
 
 
-type alias Metadata =
-    Dict Keyword (List String)
 
-
-type alias Keyword =
-    String
-
-
-type alias SearchResult =
-    ( List String, Dict String ( Int, Set String ) )
-
-
-irrelevant =
-    \w ->
-        w
-            /= "et"
-            && w
-            /= "de"
-            && w
-            /= "des"
-            && w
-            /= "le"
-            && w
-            /= "la"
-            && w
-            /= "les"
-            && w
-            /= "a"
-            && w
-            /= "au"
-            && w
-            /= "en"
-            && w
-            /= "dans"
-            && w
-            /= "se"
+-------------------------------------------------------------------------------
+----------------------
+-- Search algorithm --
+----------------------
 
 
 search : Metadata -> String -> ( List String, Dict String ( Int, Set String ) )
@@ -350,6 +286,106 @@ consIfEqual x y ( listLen, list ) =
         ( listLen, list )
 
 
+
+-------------------------------------------------------------------------------
+-------------------
+-- Json functions--
+-------------------
+
+
+processInput : String -> Msg
+processInput s =
+    decodeString
+        (Decode.oneOf
+            [ decodeAction
+            , decodeSearchStr
+            ]
+        )
+        s
+        |> Result.withDefault NoOp
+
+
+decodeAction : Decode.Decoder Msg
+decodeAction =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                case str of
+                    "<Cmd -> Search>" ->
+                        succeed Search
+
+                    "<Cmd -> Reset>" ->
+                        succeed Reset
+
+                    _ ->
+                        fail <|
+                            "Unknown command"
+            )
+
+
+decodeSearchStr : Decode.Decoder Msg
+decodeSearchStr =
+    Decode.field "SearchStr" Decode.string
+        |> Decode.map SearchStr
+
+
+encodeSearchResult : SearchResult -> String
+encodeSearchResult ( keywords, results ) =
+    Encode.object
+        [ ( "keywords", Encode.list Encode.string keywords )
+        , ( "results"
+          , Encode.dict
+                identity
+                (\( score, keywords_ ) ->
+                    Encode.object
+                        [ ( "score"
+                          , Encode.int score
+                          )
+                        , ( "keywords"
+                          , Encode.set Encode.string keywords_
+                          )
+                        ]
+                )
+                results
+          )
+        ]
+        |> Encode.encode 0
+
+
+getKeywords : Cmd Msg
+getKeywords =
+    let
+        body =
+            Encode.object
+                []
+                |> Http.jsonBody
+
+        request =
+            Http.post "getKeywords.php" body decodeKeywords
+    in
+    Http.send LoadKeywords request
+
+
+decodeKeywords : Decode.Decoder (Set.Set ( String, String ))
+decodeKeywords =
+    Decode.list decodeKeyword
+        |> Decode.map Set.fromList
+
+
+decodeKeyword : Decode.Decoder ( String, String )
+decodeKeyword =
+    Decode.succeed (\k cid -> ( k, cid ))
+        |> Pipeline.required "keyword" Decode.string
+        |> Pipeline.required "contentId" Decode.string
+
+
+
+-------------------------------------------------------------------------------
+----------
+-- Misc --
+----------
+
+
 keywordsToMetadata : Set ( String, String ) -> Metadata
 keywordsToMetadata keywords =
     Set.foldr
@@ -368,6 +404,32 @@ keywordsToMetadata keywords =
         )
         Dict.empty
         keywords
+
+
+irrelevant =
+    \w ->
+        w
+            /= "et"
+            && w
+            /= "de"
+            && w
+            /= "des"
+            && w
+            /= "le"
+            && w
+            /= "la"
+            && w
+            /= "les"
+            && w
+            /= "a"
+            && w
+            /= "au"
+            && w
+            /= "en"
+            && w
+            /= "dans"
+            && w
+            /= "se"
 
 
 metadata : Metadata

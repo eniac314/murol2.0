@@ -229,6 +229,7 @@ type Msg
     | SetKeyword
     | UnsetKeyword
     | KeywordUpdated Bool ( String, String ) (Result Http.Error Bool)
+    | BatchSetKeywords
       ----------
       -- Misc --
       ----------
@@ -895,6 +896,63 @@ internalUpdate config msg model =
                       }
                     , Cmd.none
                     )
+
+        BatchSetKeywords ->
+            let
+                strPath path =
+                    --List.map Url.percentEncode path
+                    String.join "/" path
+                        |> (\p -> "/" ++ p)
+
+                metaData =
+                    Dict.empty
+
+                keywords =
+                    metaDataToKeywords
+                        |> List.filterMap
+                            (\( key, path ) ->
+                                Maybe.map (\cId -> ( key, cId ))
+                                    (Dict.get (strPath path) pagesIndex)
+                            )
+
+                metaDataToKeywords =
+                    Dict.foldr
+                        (\key vals acc ->
+                            List.map (\v -> key v) vals
+                                |> (\newVals -> newVals ++ acc)
+                        )
+                        []
+                        metaData
+
+                pagesIndex =
+                    case Maybe.map extractPage model.pageTree of
+                        Nothing ->
+                            Dict.empty
+
+                        Just page ->
+                            let
+                                toList (Page pageInfo xs) =
+                                    case pageInfo.mbContentId of
+                                        Nothing ->
+                                            List.concatMap toList xs
+
+                                        Just contentId ->
+                                            ( strPath pageInfo.path, pageInfo.name, canonical contentId ) :: List.concatMap toList xs
+                            in
+                            toList page
+                                |> List.map (\( p, n, cId ) -> ( p, cId ))
+                                |> Dict.fromList
+            in
+            ( model
+            , Cmd.batch <|
+                List.map
+                    (\e ->
+                        cmdIfLogged
+                            config.logInfo
+                            (setKeyword e)
+                    )
+                    keywords
+            )
 
         SetInitialSeed t ->
             ( { model
@@ -1635,6 +1693,15 @@ fullView config model =
                     , label =
                         row [ spacing 10 ]
                             [ text "Supprimer"
+                            ]
+                    }
+                , Input.button
+                    (buttonStyle True)
+                    { onPress =
+                        Maybe.map (\_ -> BatchSetKeywords) model.selected
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "batch update"
                             ]
                     }
                 ]

@@ -18,7 +18,9 @@ import Element.Input as Input
 import Element.Region as Region
 import Html as Html
 import Html.Attributes as Attr
+import Html.Events as HtmlEvents
 import Http exposing (..)
+import Internals.CommonStyleHelpers exposing (buttonStyle)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
@@ -41,9 +43,9 @@ type alias Model =
     , key : Nav.Key
     , url : Url.Url
     , pages : Pages
-    , keywords : Set ( String, String )
     , searchStr : String
     , results : Maybe SearchResult
+    , searching : Bool
     , pageTree : Maybe PageTreeEditor.Page
     , debug : String
     , counter : Int
@@ -51,14 +53,17 @@ type alias Model =
 
 
 type alias Pages =
-    Dict.Dict String ( String, LoadingStatus )
+    Dict.Dict String ( String, String, LoadingStatus )
+
+
+type alias SearchResult =
+    ( List String, Dict String ( Int, Set String ) )
 
 
 type Msg
     = ChangeUrl Url.Url
     | ClickedLink UrlRequest
-    | LoadContent ( String, String ) (Result Http.Error Decode.Value)
-    | LoadKeywords (Result Http.Error (Set ( String, String )))
+    | LoadContent ( String, String, String ) (Result Http.Error Decode.Value)
     | LoadPages (Result Http.Error Decode.Value)
     | SearchPromptInput String
     | Search
@@ -123,16 +128,15 @@ init flags url key =
       , key = key
       , pageTree = Nothing
       , pages = Dict.empty
-      , keywords = Set.empty
       , searchStr = ""
       , results = Nothing
+      , searching = False
       , url = url_
       , debug = ""
       , counter = 0
       }
     , Cmd.batch
         [ getPages
-        , getKeywords
         , if url /= url_ then
             Nav.pushUrl key (Url.toString url_)
           else
@@ -171,16 +175,16 @@ update msg model =
 
         ChangeUrl url ->
             case Dict.get url.path model.pages of
-                Just ( cId, NotLoaded ) ->
+                Just ( cId, name, NotLoaded ) ->
                     ( { model
                         | pages =
                             Dict.insert
                                 url.path
-                                ( cId, Loading )
+                                ( cId, name, Loading )
                                 model.pages
                         , url = url
                       }
-                    , getContent ( url.path, cId )
+                    , getContent ( url.path, cId, name )
                     )
 
                 Just _ ->
@@ -203,8 +207,8 @@ update msg model =
                                 , pageTree = Just pageTree
                               }
                             , case Dict.get model.url.path pages of
-                                Just ( cId, NotLoaded ) ->
-                                    getContent ( model.url.path, cId )
+                                Just ( cId, name, NotLoaded ) ->
+                                    getContent ( model.url.path, cId, name )
 
                                 Just _ ->
                                     Cmd.none
@@ -223,14 +227,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        LoadContent ( path, cId ) res ->
+        LoadContent ( path, cId, name ) res ->
             case res of
                 Ok jsonVal ->
                     case Decode.decodeValue PageTreeEditor.decodeContent jsonVal of
                         Ok { contentId, docContent } ->
                             ( { model
                                 | pages =
-                                    Dict.insert path ( cId, Loaded docContent ) model.pages
+                                    Dict.insert path ( cId, name, Loaded docContent ) model.pages
                               }
                             , Cmd.none
                             )
@@ -240,20 +244,6 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
-
-        LoadKeywords res ->
-            case res of
-                Ok keywords ->
-                    ( { model
-                        | keywords = keywords
-                      }
-                    , Cmd.none
-                    )
-
-                Err e ->
-                    ( model
-                    , Cmd.none
-                    )
 
         SearchPromptInput s ->
             ( { model
@@ -267,7 +257,7 @@ update msg model =
             )
 
         Search ->
-            ( model
+            ( { model | searching = True }
             , toSearchEngine
                 (Encode.string "<Cmd -> Search>"
                     |> Encode.encode 0
@@ -276,7 +266,8 @@ update msg model =
 
         ProcessSearchResult s ->
             ( { model
-                | results =
+                | searching = False
+                , results =
                     Decode.decodeString decodeSearchResults s
                         |> Result.toMaybe
               }
@@ -355,29 +346,7 @@ view model =
                     ]
                     [ pageTitleView maxWidth model
                     , subTitleView maxWidth model
-                    , row
-                        [ spacing 15
-                        , centerX
-                        , width (maximum maxWidth fill)
-                        , padding 15
-                        , Background.color (rgba 1 1 1 0.9)
-                        ]
-                        [ Input.text
-                            []
-                            { onChange = SearchPromptInput
-                            , text = model.searchStr
-                            , placeholder = Nothing
-                            , label = Input.labelLeft [] Element.none
-                            }
-                        , Input.button
-                            []
-                            { onPress = Just Search
-                            , label = el [] (text "rechercher!")
-                            }
-
-                        --, el []
-                        --    (text <| String.fromInt model.counter)
-                        ]
+                    , searchEngineView maxWidth model
 
                     --, topMenuView model
                     , mainView model
@@ -387,6 +356,111 @@ view model =
             )
         ]
     }
+
+
+searchEngineView maxWidth model =
+    let
+        pagesIndex =
+            Dict.foldr
+                (\path ( cId, name, l ) acc ->
+                    Dict.insert cId ( name, path ) acc
+                )
+                Dict.empty
+                model.pages
+    in
+    column
+        [ spacing 15
+        , centerX
+        , width (maximum maxWidth fill)
+        , paddingXY 0 15
+        , Background.color (rgba 1 1 1 0.9)
+        ]
+        [ row
+            [ spacing 15
+            , width (maximum maxWidth fill)
+            ]
+            [ Input.text
+                [ paddingXY 5 5
+                , spacing 15
+                , focused [ Border.glow (rgb 1 1 1) 0 ]
+                , width (px 270)
+                , onEnter Search
+                ]
+                { onChange = SearchPromptInput
+                , text = model.searchStr
+                , placeholder =
+                    Just <| Input.placeholder [] (text "mot clés")
+                , label = Input.labelLeft [] Element.none
+                }
+            , Input.button
+                (buttonStyle (model.searchStr /= "" && not model.searching))
+                { onPress = Just Search
+                , label =
+                    el [] (text "Rechercher")
+                }
+            ]
+        , if model.searching then
+            el [ paddingXY 15 0 ] (text "recherche en cours...")
+          else
+            Element.none
+        , case model.results of
+            Just ( keywords, results ) ->
+                column
+                    [ width fill
+
+                    --, height (maximum 200 fill)
+                    --, clip
+                    --, scrollbarY
+                    ]
+                    (Dict.map (\cId v -> resView pagesIndex cId v) results
+                        |> Dict.values
+                    )
+
+            Nothing ->
+                Element.none
+        ]
+
+
+
+--type alias SearchResult =
+--    ( List String, Dict String ( Int, Set String ) )
+
+
+resView : Dict String ( String, String ) -> String -> ( Int, Set String ) -> Element Msg
+resView pagesIndex cId ( score, keywords ) =
+    case Dict.get cId pagesIndex of
+        Just ( name, path ) ->
+            let
+                keywordView keyword =
+                    el
+                        [ pointer
+                        , Events.onClick (SearchPromptInput keyword)
+                        ]
+                        (text "keyword")
+            in
+            column
+                [ spacing 10
+                , width fill
+                , Border.widthEach
+                    { top = 1
+                    , bottom = 0
+                    , left = 0
+                    , right = 0
+                    }
+                ]
+                [ link
+                    []
+                    { url = path
+                    , label =
+                        el [] (text name)
+                    }
+                , wrappedRow
+                    [ spacing 10 ]
+                    (List.map keywordView (Set.toList keywords))
+                ]
+
+        Nothing ->
+            Element.none
 
 
 pageTitleView maxWidth model =
@@ -470,7 +544,7 @@ subTitleView maxWidth model =
 
 mainView model =
     case Dict.get model.url.path model.pages of
-        Just ( cId, Loaded doc ) ->
+        Just ( cId, name, Loaded doc ) ->
             column
                 [ centerX
 
@@ -481,7 +555,7 @@ mainView model =
                     |> renderDoc model.config
                 )
 
-        Just ( cId, Loading ) ->
+        Just ( cId, name, Loading ) ->
             el [ centerX ]
                 (text "Chargement en cours...")
 
@@ -618,8 +692,8 @@ getPages =
     Http.send LoadPages request
 
 
-getContent : ( String, String ) -> Cmd Msg
-getContent ( path, contentId ) =
+getContent : ( String, String, String ) -> Cmd Msg
+getContent ( path, contentId, name ) =
     let
         body =
             Encode.object
@@ -629,21 +703,7 @@ getContent ( path, contentId ) =
         request =
             Http.post "/getContent.php" body Decode.value
     in
-    Http.send (LoadContent ( path, contentId )) request
-
-
-getKeywords : Cmd Msg
-getKeywords =
-    let
-        body =
-            Encode.object
-                []
-                |> Http.jsonBody
-
-        request =
-            Http.post "getKeywords.php" body PageTreeEditor.decodeKeywords
-    in
-    Http.send LoadKeywords request
+    Http.send (LoadContent ( path, contentId, name )) request
 
 
 
@@ -679,15 +739,11 @@ pageToPages page =
                                 |> String.join "/"
                                 |> (\p -> "/" ++ p)
                     in
-                    ( strPath pageInfo.path, canonical contentId ) :: List.concatMap toList xs
+                    ( strPath pageInfo.path, pageInfo.name, canonical contentId ) :: List.concatMap toList xs
     in
     toList page
-        |> List.map (\( p, cId ) -> ( p, ( cId, NotLoaded ) ))
+        |> List.map (\( p, n, cId ) -> ( p, ( cId, n, NotLoaded ) ))
         |> Dict.fromList
-
-
-type alias SearchResult =
-    ( List String, Dict String ( Int, Set String ) )
 
 
 decodeSearchResults : Decode.Decoder SearchResult
@@ -702,3 +758,25 @@ decodeSearchResults =
         |> Pipeline.required "keywords" (Decode.list Decode.string)
         |> Pipeline.required "results"
             (Decode.dict decodeRes)
+
+
+
+-------------------------------------------------------------------------------
+----------
+-- Misc --
+----------
+
+
+onEnter : Msg -> Attribute Msg
+onEnter msg =
+    HtmlEvents.on "keyup"
+        (Decode.map
+            (\kc ->
+                if kc == 13 then
+                    msg
+                else
+                    NoOp
+            )
+            HtmlEvents.keyCode
+        )
+        |> htmlAttribute

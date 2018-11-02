@@ -1819,6 +1819,188 @@ function _Scheduler_step(proc)
 
 
 
+// SEND REQUEST
+
+var _Http_toTask = F2(function(request, maybeProgress)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var xhr = new XMLHttpRequest();
+
+		_Http_configureProgress(xhr, maybeProgress);
+
+		xhr.addEventListener('error', function() {
+			callback(_Scheduler_fail(elm$http$Http$NetworkError));
+		});
+		xhr.addEventListener('timeout', function() {
+			callback(_Scheduler_fail(elm$http$Http$Timeout));
+		});
+		xhr.addEventListener('load', function() {
+			callback(_Http_handleResponse(xhr, request.be.a));
+		});
+
+		try
+		{
+			xhr.open(request.bq, request.e7, true);
+		}
+		catch (e)
+		{
+			return callback(_Scheduler_fail(elm$http$Http$BadUrl(request.e7)));
+		}
+
+		_Http_configureRequest(xhr, request);
+
+		var body = request.dd;
+		xhr.send(elm$http$Http$Internal$isStringBody(body)
+			? (xhr.setRequestHeader('Content-Type', body.a), body.b)
+			: body.a
+		);
+
+		return function() { xhr.abort(); };
+	});
+});
+
+function _Http_configureProgress(xhr, maybeProgress)
+{
+	if (!elm$core$Maybe$isJust(maybeProgress))
+	{
+		return;
+	}
+
+	xhr.addEventListener('progress', function(event) {
+		if (!event.lengthComputable)
+		{
+			return;
+		}
+		_Scheduler_rawSpawn(maybeProgress.a({
+			dm: event.loaded,
+			dn: event.total
+		}));
+	});
+}
+
+function _Http_configureRequest(xhr, request)
+{
+	for (var headers = request.aO; headers.b; headers = headers.b) // WHILE_CONS
+	{
+		xhr.setRequestHeader(headers.a.a, headers.a.b);
+	}
+
+	xhr.responseType = request.be.b;
+	xhr.withCredentials = request.bC;
+
+	elm$core$Maybe$isJust(request.bz) && (xhr.timeout = request.bz.a);
+}
+
+
+// RESPONSES
+
+function _Http_handleResponse(xhr, responseToResult)
+{
+	var response = _Http_toResponse(xhr);
+
+	if (xhr.status < 200 || 300 <= xhr.status)
+	{
+		response.body = xhr.responseText;
+		return _Scheduler_fail(elm$http$Http$BadStatus(response));
+	}
+
+	var result = responseToResult(response);
+
+	if (elm$core$Result$isOk(result))
+	{
+		return _Scheduler_succeed(result.a);
+	}
+	else
+	{
+		response.body = xhr.responseText;
+		return _Scheduler_fail(A2(elm$http$Http$BadPayload, result.a, response));
+	}
+}
+
+function _Http_toResponse(xhr)
+{
+	return {
+		e7: xhr.responseURL,
+		eE: { dv: xhr.status, G: xhr.statusText },
+		aO: _Http_parseHeaders(xhr.getAllResponseHeaders()),
+		dd: xhr.response
+	};
+}
+
+function _Http_parseHeaders(rawHeaders)
+{
+	var headers = elm$core$Dict$empty;
+
+	if (!rawHeaders)
+	{
+		return headers;
+	}
+
+	var headerPairs = rawHeaders.split('\u000d\u000a');
+	for (var i = headerPairs.length; i--; )
+	{
+		var headerPair = headerPairs[i];
+		var index = headerPair.indexOf('\u003a\u0020');
+		if (index > 0)
+		{
+			var key = headerPair.substring(0, index);
+			var value = headerPair.substring(index + 2);
+
+			headers = A3(elm$core$Dict$update, key, function(oldValue) {
+				return elm$core$Maybe$Just(elm$core$Maybe$isJust(oldValue)
+					? value + ', ' + oldValue.a
+					: value
+				);
+			}, headers);
+		}
+	}
+
+	return headers;
+}
+
+
+// EXPECTORS
+
+function _Http_expectStringResponse(responseToResult)
+{
+	return {
+		$: 0,
+		b: 'text',
+		a: responseToResult
+	};
+}
+
+var _Http_mapExpect = F2(function(func, expect)
+{
+	return {
+		$: 0,
+		b: expect.b,
+		a: function(response) {
+			var convertedResponse = expect.a(response);
+			return A2(elm$core$Result$map, func, convertedResponse);
+		}
+	};
+});
+
+
+// BODY
+
+function _Http_multipart(parts)
+{
+
+
+	for (var formData = new FormData(); parts.b; parts = parts.b) // WHILE_CONS
+	{
+		var part = parts.a;
+		formData.append(part.a, part.b);
+	}
+
+	return elm$http$Http$Internal$FormDataBody(formData);
+}
+
+
+
 function _Process_sleep(time)
 {
 	return _Scheduler_binding(function(callback) {
@@ -2295,15 +2477,18 @@ function _Platform_mergeExportsDebug(moduleName, obj, exports)
 			: (obj[name] = exports[name]);
 	}
 }
-var elm$core$Basics$False = 1;
-var elm$core$Basics$True = 0;
-var elm$core$Result$isOk = function (result) {
-	if (!result.$) {
-		return true;
-	} else {
-		return false;
-	}
+var author$project$SearchEngine$LoadKeywords = function (a) {
+	return {$: 0, a: a};
 };
+var elm$core$Basics$apR = F2(
+	function (x, f) {
+		return f(x);
+	});
+var elm$core$Array$branchFactor = 32;
+var elm$core$Array$Array_elm_builtin = F4(
+	function (a, b, c, d) {
+		return {$: 0, a: a, b: b, c: c, d: d};
+	});
 var elm$core$Basics$EQ = 1;
 var elm$core$Basics$GT = 2;
 var elm$core$Basics$LT = 0;
@@ -2384,11 +2569,6 @@ var elm$core$Array$foldr = F3(
 var elm$core$Array$toList = function (array) {
 	return A3(elm$core$Array$foldr, elm$core$List$cons, _List_Nil, array);
 };
-var elm$core$Array$branchFactor = 32;
-var elm$core$Array$Array_elm_builtin = F4(
-	function (a, b, c, d) {
-		return {$: 0, a: a, b: b, c: c, d: d};
-	});
 var elm$core$Basics$ceiling = _Basics_ceiling;
 var elm$core$Basics$fdiv = _Basics_fdiv;
 var elm$core$Basics$logBase = F2(
@@ -2451,10 +2631,6 @@ var elm$core$Array$compressNodes = F2(
 			}
 		}
 	});
-var elm$core$Basics$apR = F2(
-	function (x, f) {
-		return f(x);
-	});
 var elm$core$Basics$eq = _Utils_equal;
 var elm$core$Tuple$first = function (_n0) {
 	var x = _n0.a;
@@ -2513,6 +2689,7 @@ var elm$core$Array$builderToArray = F2(
 				builder.g);
 		}
 	});
+var elm$core$Basics$False = 1;
 var elm$core$Basics$idiv = _Basics_idiv;
 var elm$core$Basics$lt = _Utils_lt;
 var elm$core$Elm$JsArray$initialize = _JsArray_initialize;
@@ -2564,6 +2741,14 @@ var elm$core$Result$Err = function (a) {
 };
 var elm$core$Result$Ok = function (a) {
 	return {$: 0, a: a};
+};
+var elm$core$Basics$True = 0;
+var elm$core$Result$isOk = function (result) {
+	if (!result.$) {
+		return true;
+	} else {
+		return false;
+	}
 };
 var elm$json$Json$Decode$Failure = F2(
 	function (a, b) {
@@ -2770,197 +2955,38 @@ var elm$json$Json$Decode$errorToStringHelp = F2(
 			}
 		}
 	});
-var elm$core$Platform$Cmd$batch = _Platform_batch;
-var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
-var author$project$SearchEngine$init = function (flags) {
-	return _Utils_Tuple2(
-		{bv: '', a1: _List_Nil},
-		elm$core$Platform$Cmd$none);
-};
-var elm$json$Json$Decode$string = _Json_decodeString;
-var author$project$SearchEngine$inbound = _Platform_incomingPort('inbound', elm$json$Json$Decode$string);
-var author$project$SearchEngine$NoOp = {$: 3};
-var author$project$SearchEngine$Reset = {$: 2};
-var author$project$SearchEngine$Search = {$: 1};
-var elm$json$Json$Decode$andThen = _Json_andThen;
-var elm$json$Json$Decode$fail = _Json_fail;
-var elm$json$Json$Decode$succeed = _Json_succeed;
-var author$project$SearchEngine$decodeAction = A2(
-	elm$json$Json$Decode$andThen,
-	function (str) {
-		switch (str) {
-			case '<Cmd -> Search>':
-				return elm$json$Json$Decode$succeed(author$project$SearchEngine$Search);
-			case '<Cmd -> Reset>':
-				return elm$json$Json$Decode$succeed(author$project$SearchEngine$Reset);
-			default:
-				return elm$json$Json$Decode$fail('Unknown command');
-		}
-	},
-	elm$json$Json$Decode$string);
-var author$project$SearchEngine$SearchStr = function (a) {
-	return {$: 0, a: a};
-};
+var elm$json$Json$Decode$map2 = _Json_map2;
+var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom = elm$json$Json$Decode$map2(elm$core$Basics$apR);
 var elm$json$Json$Decode$field = _Json_decodeField;
-var elm$json$Json$Decode$map = _Json_map1;
-var author$project$SearchEngine$decodeSearchStr = A2(
-	elm$json$Json$Decode$map,
-	author$project$SearchEngine$SearchStr,
-	A2(elm$json$Json$Decode$field, 'SearchStr', elm$json$Json$Decode$string));
-var elm$core$Result$withDefault = F2(
-	function (def, result) {
-		if (!result.$) {
-			var a = result.a;
-			return a;
-		} else {
-			return def;
-		}
+var NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
+	function (key, valDecoder, decoder) {
+		return A2(
+			NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+			A2(elm$json$Json$Decode$field, key, valDecoder),
+			decoder);
 	});
-var elm$json$Json$Decode$decodeString = _Json_runOnString;
-var elm$json$Json$Decode$oneOf = _Json_oneOf;
-var author$project$SearchEngine$processInput = function (s) {
-	return A2(
-		elm$core$Result$withDefault,
-		author$project$SearchEngine$NoOp,
-		A2(
-			elm$json$Json$Decode$decodeString,
-			elm$json$Json$Decode$oneOf(
-				_List_fromArray(
-					[author$project$SearchEngine$decodeAction, author$project$SearchEngine$decodeSearchStr])),
-			s));
-};
-var author$project$SearchEngine$subscriptions = function (model) {
-	return author$project$SearchEngine$inbound(author$project$SearchEngine$processInput);
-};
+var elm$json$Json$Decode$string = _Json_decodeString;
+var elm$json$Json$Decode$succeed = _Json_succeed;
+var author$project$SearchEngine$decodeKeyword = A3(
+	NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+	'contentId',
+	elm$json$Json$Decode$string,
+	A3(
+		NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+		'keyword',
+		elm$json$Json$Decode$string,
+		elm$json$Json$Decode$succeed(
+			F2(
+				function (k, cid) {
+					return _Utils_Tuple2(k, cid);
+				}))));
 var elm$core$Basics$identity = function (x) {
 	return x;
 };
-var elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
-		while (true) {
-			if (dict.$ === -2) {
-				return acc;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3(elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
-			}
-		}
-	});
-var elm$json$Json$Encode$dict = F3(
-	function (toKey, toValue, dictionary) {
-		return _Json_wrap(
-			A3(
-				elm$core$Dict$foldl,
-				F3(
-					function (key, value, obj) {
-						return A3(
-							_Json_addField,
-							toKey(key),
-							toValue(value),
-							obj);
-					}),
-				_Json_emptyObject(0),
-				dictionary));
-	});
-var elm$json$Json$Encode$int = _Json_wrap;
-var elm$json$Json$Encode$list = F2(
-	function (func, entries) {
-		return _Json_wrap(
-			A3(
-				elm$core$List$foldl,
-				_Json_addEntry(func),
-				_Json_emptyArray(0),
-				entries));
-	});
-var elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			elm$core$List$foldl,
-			F2(
-				function (_n0, obj) {
-					var k = _n0.a;
-					var v = _n0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(0),
-			pairs));
-};
-var elm$core$Set$foldl = F3(
-	function (func, initialState, _n0) {
-		var dict = _n0;
-		return A3(
-			elm$core$Dict$foldl,
-			F3(
-				function (key, _n1, state) {
-					return A2(func, key, state);
-				}),
-			initialState,
-			dict);
-	});
-var elm$json$Json$Encode$set = F2(
-	function (func, entries) {
-		return _Json_wrap(
-			A3(
-				elm$core$Set$foldl,
-				_Json_addEntry(func),
-				_Json_emptyArray(0),
-				entries));
-	});
-var elm$json$Json$Encode$string = _Json_wrap;
-var author$project$SearchEngine$encodeSearchResult = function (_n0) {
-	var keywords = _n0.a;
-	var results = _n0.b;
-	return A2(
-		elm$json$Json$Encode$encode,
-		0,
-		elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'keywords',
-					A2(elm$json$Json$Encode$list, elm$json$Json$Encode$string, keywords)),
-					_Utils_Tuple2(
-					'results',
-					A3(
-						elm$json$Json$Encode$dict,
-						elm$core$Basics$identity,
-						function (_n1) {
-							var score = _n1.a;
-							var keywords_ = _n1.b;
-							return elm$json$Json$Encode$object(
-								_List_fromArray(
-									[
-										_Utils_Tuple2(
-										'score',
-										elm$json$Json$Encode$int(score)),
-										_Utils_Tuple2(
-										'keywords',
-										A2(elm$json$Json$Encode$set, elm$json$Json$Encode$string, keywords_))
-									]));
-						},
-						results))
-				])));
-};
-var elm$core$Basics$neq = _Utils_notEqual;
-var author$project$SearchEngine$irrelevant = function (w) {
-	return (w !== 'et') && ((w !== 'de') && ((w !== 'des') && ((w !== 'le') && ((w !== 'la') && ((w !== 'les') && ((w !== 'a') && ((w !== 'au') && ((w !== 'en') && ((w !== 'dans') && (w !== 'se'))))))))));
-};
 var elm$core$Dict$RBEmpty_elm_builtin = {$: -2};
 var elm$core$Dict$empty = elm$core$Dict$RBEmpty_elm_builtin;
+var elm$core$Set$Set_elm_builtin = elm$core$Basics$identity;
+var elm$core$Set$empty = elm$core$Dict$empty;
 var elm$core$Dict$Black = 1;
 var elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -3070,20 +3096,315 @@ var elm$core$Dict$insert = F3(
 			return x;
 		}
 	});
-var elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		elm$core$List$foldl,
-		F2(
-			function (_n0, dict) {
-				var key = _n0.a;
-				var value = _n0.b;
-				return A3(elm$core$Dict$insert, key, value, dict);
-			}),
-		elm$core$Dict$empty,
-		assocs);
+var elm$core$Set$insert = F2(
+	function (key, _n0) {
+		var dict = _n0;
+		return A3(elm$core$Dict$insert, key, 0, dict);
+	});
+var elm$core$Set$fromList = function (list) {
+	return A3(elm$core$List$foldl, elm$core$Set$insert, elm$core$Set$empty, list);
 };
-var elm$core$Dict$map = F2(
-	function (func, dict) {
+var elm$json$Json$Decode$list = _Json_decodeList;
+var elm$json$Json$Decode$map = _Json_map1;
+var author$project$SearchEngine$decodeKeywords = A2(
+	elm$json$Json$Decode$map,
+	elm$core$Set$fromList,
+	elm$json$Json$Decode$list(author$project$SearchEngine$decodeKeyword));
+var elm$http$Http$Internal$StringBody = F2(
+	function (a, b) {
+		return {$: 1, a: a, b: b};
+	});
+var elm$http$Http$jsonBody = function (value) {
+	return A2(
+		elm$http$Http$Internal$StringBody,
+		'application/json',
+		A2(elm$json$Json$Encode$encode, 0, value));
+};
+var elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === -2) {
+				return elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _n1 = A2(elm$core$Basics$compare, targetKey, key);
+				switch (_n1) {
+					case 0:
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 1:
+						return elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
+var elm$core$Dict$getMin = function (dict) {
+	getMin:
+	while (true) {
+		if ((dict.$ === -1) && (dict.d.$ === -1)) {
+			var left = dict.d;
+			var $temp$dict = left;
+			dict = $temp$dict;
+			continue getMin;
+		} else {
+			return dict;
+		}
+	}
+};
+var elm$core$Dict$moveRedLeft = function (dict) {
+	if (((dict.$ === -1) && (dict.d.$ === -1)) && (dict.e.$ === -1)) {
+		if ((dict.e.d.$ === -1) && (!dict.e.d.a)) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var lLeft = _n1.d;
+			var lRight = _n1.e;
+			var _n2 = dict.e;
+			var rClr = _n2.a;
+			var rK = _n2.b;
+			var rV = _n2.c;
+			var rLeft = _n2.d;
+			var _n3 = rLeft.a;
+			var rlK = rLeft.b;
+			var rlV = rLeft.c;
+			var rlL = rLeft.d;
+			var rlR = rLeft.e;
+			var rRight = _n2.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				0,
+				rlK,
+				rlV,
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					1,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
+					rlL),
+				A5(elm$core$Dict$RBNode_elm_builtin, 1, rK, rV, rlR, rRight));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n4 = dict.d;
+			var lClr = _n4.a;
+			var lK = _n4.b;
+			var lV = _n4.c;
+			var lLeft = _n4.d;
+			var lRight = _n4.e;
+			var _n5 = dict.e;
+			var rClr = _n5.a;
+			var rK = _n5.b;
+			var rV = _n5.c;
+			var rLeft = _n5.d;
+			var rRight = _n5.e;
+			if (clr === 1) {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					1,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					1,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var elm$core$Dict$moveRedRight = function (dict) {
+	if (((dict.$ === -1) && (dict.d.$ === -1)) && (dict.e.$ === -1)) {
+		if ((dict.d.d.$ === -1) && (!dict.d.d.a)) {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n1 = dict.d;
+			var lClr = _n1.a;
+			var lK = _n1.b;
+			var lV = _n1.c;
+			var _n2 = _n1.d;
+			var _n3 = _n2.a;
+			var llK = _n2.b;
+			var llV = _n2.c;
+			var llLeft = _n2.d;
+			var llRight = _n2.e;
+			var lRight = _n1.e;
+			var _n4 = dict.e;
+			var rClr = _n4.a;
+			var rK = _n4.b;
+			var rV = _n4.c;
+			var rLeft = _n4.d;
+			var rRight = _n4.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				0,
+				lK,
+				lV,
+				A5(elm$core$Dict$RBNode_elm_builtin, 1, llK, llV, llLeft, llRight),
+				A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					1,
+					k,
+					v,
+					lRight,
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight)));
+		} else {
+			var clr = dict.a;
+			var k = dict.b;
+			var v = dict.c;
+			var _n5 = dict.d;
+			var lClr = _n5.a;
+			var lK = _n5.b;
+			var lV = _n5.c;
+			var lLeft = _n5.d;
+			var lRight = _n5.e;
+			var _n6 = dict.e;
+			var rClr = _n6.a;
+			var rK = _n6.b;
+			var rV = _n6.c;
+			var rLeft = _n6.d;
+			var rRight = _n6.e;
+			if (clr === 1) {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					1,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					1,
+					k,
+					v,
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
+					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
+			}
+		}
+	} else {
+		return dict;
+	}
+};
+var elm$core$Dict$removeHelpPrepEQGT = F7(
+	function (targetKey, dict, color, key, value, left, right) {
+		if ((left.$ === -1) && (!left.a)) {
+			var _n1 = left.a;
+			var lK = left.b;
+			var lV = left.c;
+			var lLeft = left.d;
+			var lRight = left.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				lK,
+				lV,
+				lLeft,
+				A5(elm$core$Dict$RBNode_elm_builtin, 0, key, value, lRight, right));
+		} else {
+			_n2$2:
+			while (true) {
+				if ((right.$ === -1) && (right.a === 1)) {
+					if (right.d.$ === -1) {
+						if (right.d.a === 1) {
+							var _n3 = right.a;
+							var _n4 = right.d;
+							var _n5 = _n4.a;
+							return elm$core$Dict$moveRedRight(dict);
+						} else {
+							break _n2$2;
+						}
+					} else {
+						var _n6 = right.a;
+						var _n7 = right.d;
+						return elm$core$Dict$moveRedRight(dict);
+					}
+				} else {
+					break _n2$2;
+				}
+			}
+			return dict;
+		}
+	});
+var elm$core$Dict$removeMin = function (dict) {
+	if ((dict.$ === -1) && (dict.d.$ === -1)) {
+		var color = dict.a;
+		var key = dict.b;
+		var value = dict.c;
+		var left = dict.d;
+		var lColor = left.a;
+		var lLeft = left.d;
+		var right = dict.e;
+		if (lColor === 1) {
+			if ((lLeft.$ === -1) && (!lLeft.a)) {
+				var _n3 = lLeft.a;
+				return A5(
+					elm$core$Dict$RBNode_elm_builtin,
+					color,
+					key,
+					value,
+					elm$core$Dict$removeMin(left),
+					right);
+			} else {
+				var _n4 = elm$core$Dict$moveRedLeft(dict);
+				if (_n4.$ === -1) {
+					var nColor = _n4.a;
+					var nKey = _n4.b;
+					var nValue = _n4.c;
+					var nLeft = _n4.d;
+					var nRight = _n4.e;
+					return A5(
+						elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						elm$core$Dict$removeMin(nLeft),
+						nRight);
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			}
+		} else {
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				value,
+				elm$core$Dict$removeMin(left),
+				right);
+		}
+	} else {
+		return elm$core$Dict$RBEmpty_elm_builtin;
+	}
+};
+var elm$core$Dict$removeHelp = F2(
+	function (targetKey, dict) {
 		if (dict.$ === -2) {
 			return elm$core$Dict$RBEmpty_elm_builtin;
 		} else {
@@ -3092,15 +3413,197 @@ var elm$core$Dict$map = F2(
 			var value = dict.c;
 			var left = dict.d;
 			var right = dict.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				color,
-				key,
-				A2(func, key, value),
-				A2(elm$core$Dict$map, func, left),
-				A2(elm$core$Dict$map, func, right));
+			if (_Utils_cmp(targetKey, key) < 0) {
+				if ((left.$ === -1) && (left.a === 1)) {
+					var _n4 = left.a;
+					var lLeft = left.d;
+					if ((lLeft.$ === -1) && (!lLeft.a)) {
+						var _n6 = lLeft.a;
+						return A5(
+							elm$core$Dict$RBNode_elm_builtin,
+							color,
+							key,
+							value,
+							A2(elm$core$Dict$removeHelp, targetKey, left),
+							right);
+					} else {
+						var _n7 = elm$core$Dict$moveRedLeft(dict);
+						if (_n7.$ === -1) {
+							var nColor = _n7.a;
+							var nKey = _n7.b;
+							var nValue = _n7.c;
+							var nLeft = _n7.d;
+							var nRight = _n7.e;
+							return A5(
+								elm$core$Dict$balance,
+								nColor,
+								nKey,
+								nValue,
+								A2(elm$core$Dict$removeHelp, targetKey, nLeft),
+								nRight);
+						} else {
+							return elm$core$Dict$RBEmpty_elm_builtin;
+						}
+					}
+				} else {
+					return A5(
+						elm$core$Dict$RBNode_elm_builtin,
+						color,
+						key,
+						value,
+						A2(elm$core$Dict$removeHelp, targetKey, left),
+						right);
+				}
+			} else {
+				return A2(
+					elm$core$Dict$removeHelpEQGT,
+					targetKey,
+					A7(elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
+			}
 		}
 	});
+var elm$core$Dict$removeHelpEQGT = F2(
+	function (targetKey, dict) {
+		if (dict.$ === -1) {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			if (_Utils_eq(targetKey, key)) {
+				var _n1 = elm$core$Dict$getMin(right);
+				if (_n1.$ === -1) {
+					var minKey = _n1.b;
+					var minValue = _n1.c;
+					return A5(
+						elm$core$Dict$balance,
+						color,
+						minKey,
+						minValue,
+						left,
+						elm$core$Dict$removeMin(right));
+				} else {
+					return elm$core$Dict$RBEmpty_elm_builtin;
+				}
+			} else {
+				return A5(
+					elm$core$Dict$balance,
+					color,
+					key,
+					value,
+					left,
+					A2(elm$core$Dict$removeHelp, targetKey, right));
+			}
+		} else {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		}
+	});
+var elm$core$Dict$remove = F2(
+	function (key, dict) {
+		var _n0 = A2(elm$core$Dict$removeHelp, key, dict);
+		if ((_n0.$ === -1) && (!_n0.a)) {
+			var _n1 = _n0.a;
+			var k = _n0.b;
+			var v = _n0.c;
+			var l = _n0.d;
+			var r = _n0.e;
+			return A5(elm$core$Dict$RBNode_elm_builtin, 1, k, v, l, r);
+		} else {
+			var x = _n0;
+			return x;
+		}
+	});
+var elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _n0 = alter(
+			A2(elm$core$Dict$get, targetKey, dictionary));
+		if (!_n0.$) {
+			var value = _n0.a;
+			return A3(elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2(elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var elm$core$Maybe$isJust = function (maybe) {
+	if (!maybe.$) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var elm$core$Result$map = F2(
+	function (func, ra) {
+		if (!ra.$) {
+			var a = ra.a;
+			return elm$core$Result$Ok(
+				func(a));
+		} else {
+			var e = ra.a;
+			return elm$core$Result$Err(e);
+		}
+	});
+var elm$http$Http$BadPayload = F2(
+	function (a, b) {
+		return {$: 4, a: a, b: b};
+	});
+var elm$http$Http$BadStatus = function (a) {
+	return {$: 3, a: a};
+};
+var elm$http$Http$BadUrl = function (a) {
+	return {$: 0, a: a};
+};
+var elm$http$Http$NetworkError = {$: 2};
+var elm$http$Http$Timeout = {$: 1};
+var elm$http$Http$Internal$FormDataBody = function (a) {
+	return {$: 2, a: a};
+};
+var elm$http$Http$Internal$isStringBody = function (body) {
+	if (body.$ === 1) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var elm$http$Http$expectStringResponse = _Http_expectStringResponse;
+var elm$json$Json$Decode$decodeString = _Json_runOnString;
+var elm$http$Http$expectJson = function (decoder) {
+	return elm$http$Http$expectStringResponse(
+		function (response) {
+			var _n0 = A2(elm$json$Json$Decode$decodeString, decoder, response.dd);
+			if (_n0.$ === 1) {
+				var decodeError = _n0.a;
+				return elm$core$Result$Err(
+					elm$json$Json$Decode$errorToString(decodeError));
+			} else {
+				var value = _n0.a;
+				return elm$core$Result$Ok(value);
+			}
+		});
+};
+var elm$http$Http$Internal$Request = elm$core$Basics$identity;
+var elm$http$Http$request = elm$core$Basics$identity;
+var elm$http$Http$post = F3(
+	function (url, body, decoder) {
+		return elm$http$Http$request(
+			{
+				dd: body,
+				be: elm$http$Http$expectJson(decoder),
+				aO: _List_Nil,
+				bq: 'POST',
+				bz: elm$core$Maybe$Nothing,
+				e7: url,
+				bC: false
+			});
+	});
+var elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var elm$core$Task$Perform = elm$core$Basics$identity;
+var elm$core$Task$andThen = _Scheduler_andThen;
+var elm$core$Task$succeed = _Scheduler_succeed;
+var elm$core$Task$init = elm$core$Task$succeed(0);
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -3169,6 +3672,355 @@ var elm$core$List$map = F2(
 				}),
 			_List_Nil,
 			xs);
+	});
+var elm$core$Task$map = F2(
+	function (func, taskA) {
+		return A2(
+			elm$core$Task$andThen,
+			function (a) {
+				return elm$core$Task$succeed(
+					func(a));
+			},
+			taskA);
+	});
+var elm$core$Task$map2 = F3(
+	function (func, taskA, taskB) {
+		return A2(
+			elm$core$Task$andThen,
+			function (a) {
+				return A2(
+					elm$core$Task$andThen,
+					function (b) {
+						return elm$core$Task$succeed(
+							A2(func, a, b));
+					},
+					taskB);
+			},
+			taskA);
+	});
+var elm$core$Task$sequence = function (tasks) {
+	return A3(
+		elm$core$List$foldr,
+		elm$core$Task$map2(elm$core$List$cons),
+		elm$core$Task$succeed(_List_Nil),
+		tasks);
+};
+var elm$core$Platform$sendToApp = _Platform_sendToApp;
+var elm$core$Task$spawnCmd = F2(
+	function (router, _n0) {
+		var task = _n0;
+		return _Scheduler_spawn(
+			A2(
+				elm$core$Task$andThen,
+				elm$core$Platform$sendToApp(router),
+				task));
+	});
+var elm$core$Task$onEffects = F3(
+	function (router, commands, state) {
+		return A2(
+			elm$core$Task$map,
+			function (_n0) {
+				return 0;
+			},
+			elm$core$Task$sequence(
+				A2(
+					elm$core$List$map,
+					elm$core$Task$spawnCmd(router),
+					commands)));
+	});
+var elm$core$Task$onSelfMsg = F3(
+	function (_n0, _n1, _n2) {
+		return elm$core$Task$succeed(0);
+	});
+var elm$core$Task$cmdMap = F2(
+	function (tagger, _n0) {
+		var task = _n0;
+		return A2(elm$core$Task$map, tagger, task);
+	});
+_Platform_effectManagers['Task'] = _Platform_createManager(elm$core$Task$init, elm$core$Task$onEffects, elm$core$Task$onSelfMsg, elm$core$Task$cmdMap);
+var elm$core$Task$command = _Platform_leaf('Task');
+var elm$core$Task$onError = _Scheduler_onError;
+var elm$core$Task$attempt = F2(
+	function (resultToMessage, task) {
+		return elm$core$Task$command(
+			A2(
+				elm$core$Task$onError,
+				A2(
+					elm$core$Basics$composeL,
+					A2(elm$core$Basics$composeL, elm$core$Task$succeed, resultToMessage),
+					elm$core$Result$Err),
+				A2(
+					elm$core$Task$andThen,
+					A2(
+						elm$core$Basics$composeL,
+						A2(elm$core$Basics$composeL, elm$core$Task$succeed, resultToMessage),
+						elm$core$Result$Ok),
+					task)));
+	});
+var elm$http$Http$toTask = function (_n0) {
+	var request_ = _n0;
+	return A2(_Http_toTask, request_, elm$core$Maybe$Nothing);
+};
+var elm$http$Http$send = F2(
+	function (resultToMessage, request_) {
+		return A2(
+			elm$core$Task$attempt,
+			resultToMessage,
+			elm$http$Http$toTask(request_));
+	});
+var elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			elm$core$List$foldl,
+			F2(
+				function (_n0, obj) {
+					var k = _n0.a;
+					var v = _n0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(0),
+			pairs));
+};
+var author$project$SearchEngine$getKeywords = function () {
+	var body = elm$http$Http$jsonBody(
+		elm$json$Json$Encode$object(_List_Nil));
+	var request = A3(elm$http$Http$post, 'getKeywords.php', body, author$project$SearchEngine$decodeKeywords);
+	return A2(elm$http$Http$send, author$project$SearchEngine$LoadKeywords, request);
+}();
+var author$project$SearchEngine$init = function (flags) {
+	return _Utils_Tuple2(
+		{bp: elm$core$Dict$empty, bv: '', a1: _List_Nil},
+		author$project$SearchEngine$getKeywords);
+};
+var author$project$SearchEngine$inbound = _Platform_incomingPort('inbound', elm$json$Json$Decode$string);
+var author$project$SearchEngine$NoOp = {$: 4};
+var author$project$SearchEngine$Reset = {$: 3};
+var author$project$SearchEngine$Search = {$: 2};
+var elm$json$Json$Decode$andThen = _Json_andThen;
+var elm$json$Json$Decode$fail = _Json_fail;
+var author$project$SearchEngine$decodeAction = A2(
+	elm$json$Json$Decode$andThen,
+	function (str) {
+		switch (str) {
+			case '<Cmd -> Search>':
+				return elm$json$Json$Decode$succeed(author$project$SearchEngine$Search);
+			case '<Cmd -> Reset>':
+				return elm$json$Json$Decode$succeed(author$project$SearchEngine$Reset);
+			default:
+				return elm$json$Json$Decode$fail('Unknown command');
+		}
+	},
+	elm$json$Json$Decode$string);
+var author$project$SearchEngine$SearchStr = function (a) {
+	return {$: 1, a: a};
+};
+var author$project$SearchEngine$decodeSearchStr = A2(
+	elm$json$Json$Decode$map,
+	author$project$SearchEngine$SearchStr,
+	A2(elm$json$Json$Decode$field, 'SearchStr', elm$json$Json$Decode$string));
+var elm$core$Result$withDefault = F2(
+	function (def, result) {
+		if (!result.$) {
+			var a = result.a;
+			return a;
+		} else {
+			return def;
+		}
+	});
+var elm$json$Json$Decode$oneOf = _Json_oneOf;
+var author$project$SearchEngine$processInput = function (s) {
+	return A2(
+		elm$core$Result$withDefault,
+		author$project$SearchEngine$NoOp,
+		A2(
+			elm$json$Json$Decode$decodeString,
+			elm$json$Json$Decode$oneOf(
+				_List_fromArray(
+					[author$project$SearchEngine$decodeAction, author$project$SearchEngine$decodeSearchStr])),
+			s));
+};
+var author$project$SearchEngine$subscriptions = function (model) {
+	return author$project$SearchEngine$inbound(author$project$SearchEngine$processInput);
+};
+var elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === -2) {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3(elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var elm$json$Json$Encode$dict = F3(
+	function (toKey, toValue, dictionary) {
+		return _Json_wrap(
+			A3(
+				elm$core$Dict$foldl,
+				F3(
+					function (key, value, obj) {
+						return A3(
+							_Json_addField,
+							toKey(key),
+							toValue(value),
+							obj);
+					}),
+				_Json_emptyObject(0),
+				dictionary));
+	});
+var elm$json$Json$Encode$int = _Json_wrap;
+var elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(0),
+				entries));
+	});
+var elm$core$Set$foldl = F3(
+	function (func, initialState, _n0) {
+		var dict = _n0;
+		return A3(
+			elm$core$Dict$foldl,
+			F3(
+				function (key, _n1, state) {
+					return A2(func, key, state);
+				}),
+			initialState,
+			dict);
+	});
+var elm$json$Json$Encode$set = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				elm$core$Set$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(0),
+				entries));
+	});
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$SearchEngine$encodeSearchResult = function (_n0) {
+	var keywords = _n0.a;
+	var results = _n0.b;
+	return A2(
+		elm$json$Json$Encode$encode,
+		0,
+		elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'keywords',
+					A2(elm$json$Json$Encode$list, elm$json$Json$Encode$string, keywords)),
+					_Utils_Tuple2(
+					'results',
+					A3(
+						elm$json$Json$Encode$dict,
+						elm$core$Basics$identity,
+						function (_n1) {
+							var score = _n1.a;
+							var keywords_ = _n1.b;
+							return elm$json$Json$Encode$object(
+								_List_fromArray(
+									[
+										_Utils_Tuple2(
+										'score',
+										elm$json$Json$Encode$int(score)),
+										_Utils_Tuple2(
+										'keywords',
+										A2(elm$json$Json$Encode$set, elm$json$Json$Encode$string, keywords_))
+									]));
+						},
+						results))
+				])));
+};
+var elm$core$Basics$neq = _Utils_notEqual;
+var author$project$SearchEngine$irrelevant = function (w) {
+	return (w !== 'et') && ((w !== 'de') && ((w !== 'des') && ((w !== 'le') && ((w !== 'la') && ((w !== 'les') && ((w !== 'a') && ((w !== 'au') && ((w !== 'en') && ((w !== 'dans') && (w !== 'se'))))))))));
+};
+var elm$core$Set$foldr = F3(
+	function (func, initialState, _n0) {
+		var dict = _n0;
+		return A3(
+			elm$core$Dict$foldr,
+			F3(
+				function (key, _n1, state) {
+					return A2(func, key, state);
+				}),
+			initialState,
+			dict);
+	});
+var author$project$SearchEngine$keywordsToMetadata = function (keywords) {
+	return A3(
+		elm$core$Set$foldr,
+		F2(
+			function (_n0, acc) {
+				var keyword = _n0.a;
+				var uuid = _n0.b;
+				return A3(
+					elm$core$Dict$update,
+					keyword,
+					function (mbUuids) {
+						if (!mbUuids.$) {
+							var uuids = mbUuids.a;
+							return elm$core$Maybe$Just(
+								A2(elm$core$List$cons, uuid, uuids));
+						} else {
+							return elm$core$Maybe$Just(
+								_List_fromArray(
+									[uuid]));
+						}
+					},
+					acc);
+			}),
+		elm$core$Dict$empty,
+		keywords);
+};
+var elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		elm$core$List$foldl,
+		F2(
+			function (_n0, dict) {
+				var key = _n0.a;
+				var value = _n0.b;
+				return A3(elm$core$Dict$insert, key, value, dict);
+			}),
+		elm$core$Dict$empty,
+		assocs);
+};
+var elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === -2) {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2(elm$core$Dict$map, func, left),
+				A2(elm$core$Dict$map, func, right));
+		}
 	});
 var author$project$SearchEngine$metadata = A2(
 	elm$core$Dict$map,
@@ -4258,37 +5110,6 @@ var author$project$SearchEngine$consIfEqual = F3(
 			listLen + 1,
 			A2(elm$core$List$cons, x, list)) : _Utils_Tuple2(listLen, list);
 	});
-var elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === -2) {
-				return elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _n1 = A2(elm$core$Basics$compare, targetKey, key);
-				switch (_n1) {
-					case 0:
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 1:
-						return elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
 var elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (!maybe.$) {
@@ -4426,379 +5247,6 @@ var author$project$SearchEngine$sift3Distance = F2(
 		}
 	});
 var elm$core$Basics$round = _Basics_round;
-var elm$core$Dict$getMin = function (dict) {
-	getMin:
-	while (true) {
-		if ((dict.$ === -1) && (dict.d.$ === -1)) {
-			var left = dict.d;
-			var $temp$dict = left;
-			dict = $temp$dict;
-			continue getMin;
-		} else {
-			return dict;
-		}
-	}
-};
-var elm$core$Dict$moveRedLeft = function (dict) {
-	if (((dict.$ === -1) && (dict.d.$ === -1)) && (dict.e.$ === -1)) {
-		if ((dict.e.d.$ === -1) && (!dict.e.d.a)) {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n1 = dict.d;
-			var lClr = _n1.a;
-			var lK = _n1.b;
-			var lV = _n1.c;
-			var lLeft = _n1.d;
-			var lRight = _n1.e;
-			var _n2 = dict.e;
-			var rClr = _n2.a;
-			var rK = _n2.b;
-			var rV = _n2.c;
-			var rLeft = _n2.d;
-			var _n3 = rLeft.a;
-			var rlK = rLeft.b;
-			var rlV = rLeft.c;
-			var rlL = rLeft.d;
-			var rlR = rLeft.e;
-			var rRight = _n2.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				0,
-				rlK,
-				rlV,
-				A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					1,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
-					rlL),
-				A5(elm$core$Dict$RBNode_elm_builtin, 1, rK, rV, rlR, rRight));
-		} else {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n4 = dict.d;
-			var lClr = _n4.a;
-			var lK = _n4.b;
-			var lV = _n4.c;
-			var lLeft = _n4.d;
-			var lRight = _n4.e;
-			var _n5 = dict.e;
-			var rClr = _n5.a;
-			var rK = _n5.b;
-			var rV = _n5.c;
-			var rLeft = _n5.d;
-			var rRight = _n5.e;
-			if (clr === 1) {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					1,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					1,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
-			}
-		}
-	} else {
-		return dict;
-	}
-};
-var elm$core$Dict$moveRedRight = function (dict) {
-	if (((dict.$ === -1) && (dict.d.$ === -1)) && (dict.e.$ === -1)) {
-		if ((dict.d.d.$ === -1) && (!dict.d.d.a)) {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n1 = dict.d;
-			var lClr = _n1.a;
-			var lK = _n1.b;
-			var lV = _n1.c;
-			var _n2 = _n1.d;
-			var _n3 = _n2.a;
-			var llK = _n2.b;
-			var llV = _n2.c;
-			var llLeft = _n2.d;
-			var llRight = _n2.e;
-			var lRight = _n1.e;
-			var _n4 = dict.e;
-			var rClr = _n4.a;
-			var rK = _n4.b;
-			var rV = _n4.c;
-			var rLeft = _n4.d;
-			var rRight = _n4.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				0,
-				lK,
-				lV,
-				A5(elm$core$Dict$RBNode_elm_builtin, 1, llK, llV, llLeft, llRight),
-				A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					1,
-					k,
-					v,
-					lRight,
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight)));
-		} else {
-			var clr = dict.a;
-			var k = dict.b;
-			var v = dict.c;
-			var _n5 = dict.d;
-			var lClr = _n5.a;
-			var lK = _n5.b;
-			var lV = _n5.c;
-			var lLeft = _n5.d;
-			var lRight = _n5.e;
-			var _n6 = dict.e;
-			var rClr = _n6.a;
-			var rK = _n6.b;
-			var rV = _n6.c;
-			var rLeft = _n6.d;
-			var rRight = _n6.e;
-			if (clr === 1) {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					1,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					1,
-					k,
-					v,
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, lK, lV, lLeft, lRight),
-					A5(elm$core$Dict$RBNode_elm_builtin, 0, rK, rV, rLeft, rRight));
-			}
-		}
-	} else {
-		return dict;
-	}
-};
-var elm$core$Dict$removeHelpPrepEQGT = F7(
-	function (targetKey, dict, color, key, value, left, right) {
-		if ((left.$ === -1) && (!left.a)) {
-			var _n1 = left.a;
-			var lK = left.b;
-			var lV = left.c;
-			var lLeft = left.d;
-			var lRight = left.e;
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				color,
-				lK,
-				lV,
-				lLeft,
-				A5(elm$core$Dict$RBNode_elm_builtin, 0, key, value, lRight, right));
-		} else {
-			_n2$2:
-			while (true) {
-				if ((right.$ === -1) && (right.a === 1)) {
-					if (right.d.$ === -1) {
-						if (right.d.a === 1) {
-							var _n3 = right.a;
-							var _n4 = right.d;
-							var _n5 = _n4.a;
-							return elm$core$Dict$moveRedRight(dict);
-						} else {
-							break _n2$2;
-						}
-					} else {
-						var _n6 = right.a;
-						var _n7 = right.d;
-						return elm$core$Dict$moveRedRight(dict);
-					}
-				} else {
-					break _n2$2;
-				}
-			}
-			return dict;
-		}
-	});
-var elm$core$Dict$removeMin = function (dict) {
-	if ((dict.$ === -1) && (dict.d.$ === -1)) {
-		var color = dict.a;
-		var key = dict.b;
-		var value = dict.c;
-		var left = dict.d;
-		var lColor = left.a;
-		var lLeft = left.d;
-		var right = dict.e;
-		if (lColor === 1) {
-			if ((lLeft.$ === -1) && (!lLeft.a)) {
-				var _n3 = lLeft.a;
-				return A5(
-					elm$core$Dict$RBNode_elm_builtin,
-					color,
-					key,
-					value,
-					elm$core$Dict$removeMin(left),
-					right);
-			} else {
-				var _n4 = elm$core$Dict$moveRedLeft(dict);
-				if (_n4.$ === -1) {
-					var nColor = _n4.a;
-					var nKey = _n4.b;
-					var nValue = _n4.c;
-					var nLeft = _n4.d;
-					var nRight = _n4.e;
-					return A5(
-						elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						elm$core$Dict$removeMin(nLeft),
-						nRight);
-				} else {
-					return elm$core$Dict$RBEmpty_elm_builtin;
-				}
-			}
-		} else {
-			return A5(
-				elm$core$Dict$RBNode_elm_builtin,
-				color,
-				key,
-				value,
-				elm$core$Dict$removeMin(left),
-				right);
-		}
-	} else {
-		return elm$core$Dict$RBEmpty_elm_builtin;
-	}
-};
-var elm$core$Dict$removeHelp = F2(
-	function (targetKey, dict) {
-		if (dict.$ === -2) {
-			return elm$core$Dict$RBEmpty_elm_builtin;
-		} else {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			if (_Utils_cmp(targetKey, key) < 0) {
-				if ((left.$ === -1) && (left.a === 1)) {
-					var _n4 = left.a;
-					var lLeft = left.d;
-					if ((lLeft.$ === -1) && (!lLeft.a)) {
-						var _n6 = lLeft.a;
-						return A5(
-							elm$core$Dict$RBNode_elm_builtin,
-							color,
-							key,
-							value,
-							A2(elm$core$Dict$removeHelp, targetKey, left),
-							right);
-					} else {
-						var _n7 = elm$core$Dict$moveRedLeft(dict);
-						if (_n7.$ === -1) {
-							var nColor = _n7.a;
-							var nKey = _n7.b;
-							var nValue = _n7.c;
-							var nLeft = _n7.d;
-							var nRight = _n7.e;
-							return A5(
-								elm$core$Dict$balance,
-								nColor,
-								nKey,
-								nValue,
-								A2(elm$core$Dict$removeHelp, targetKey, nLeft),
-								nRight);
-						} else {
-							return elm$core$Dict$RBEmpty_elm_builtin;
-						}
-					}
-				} else {
-					return A5(
-						elm$core$Dict$RBNode_elm_builtin,
-						color,
-						key,
-						value,
-						A2(elm$core$Dict$removeHelp, targetKey, left),
-						right);
-				}
-			} else {
-				return A2(
-					elm$core$Dict$removeHelpEQGT,
-					targetKey,
-					A7(elm$core$Dict$removeHelpPrepEQGT, targetKey, dict, color, key, value, left, right));
-			}
-		}
-	});
-var elm$core$Dict$removeHelpEQGT = F2(
-	function (targetKey, dict) {
-		if (dict.$ === -1) {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			if (_Utils_eq(targetKey, key)) {
-				var _n1 = elm$core$Dict$getMin(right);
-				if (_n1.$ === -1) {
-					var minKey = _n1.b;
-					var minValue = _n1.c;
-					return A5(
-						elm$core$Dict$balance,
-						color,
-						minKey,
-						minValue,
-						left,
-						elm$core$Dict$removeMin(right));
-				} else {
-					return elm$core$Dict$RBEmpty_elm_builtin;
-				}
-			} else {
-				return A5(
-					elm$core$Dict$balance,
-					color,
-					key,
-					value,
-					left,
-					A2(elm$core$Dict$removeHelp, targetKey, right));
-			}
-		} else {
-			return elm$core$Dict$RBEmpty_elm_builtin;
-		}
-	});
-var elm$core$Dict$remove = F2(
-	function (key, dict) {
-		var _n0 = A2(elm$core$Dict$removeHelp, key, dict);
-		if ((_n0.$ === -1) && (!_n0.a)) {
-			var _n1 = _n0.a;
-			var k = _n0.b;
-			var v = _n0.c;
-			var l = _n0.d;
-			var r = _n0.e;
-			return A5(elm$core$Dict$RBNode_elm_builtin, 1, k, v, l, r);
-		} else {
-			var x = _n0;
-			return x;
-		}
-	});
-var elm$core$Dict$update = F3(
-	function (targetKey, alter, dictionary) {
-		var _n0 = alter(
-			A2(elm$core$Dict$get, targetKey, dictionary));
-		if (!_n0.$) {
-			var value = _n0.a;
-			return A3(elm$core$Dict$insert, targetKey, value, dictionary);
-		} else {
-			return A2(elm$core$Dict$remove, targetKey, dictionary);
-		}
-	});
 var elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -4809,12 +5257,6 @@ var elm$core$List$filter = F2(
 				}),
 			_List_Nil,
 			list);
-	});
-var elm$core$Set$Set_elm_builtin = elm$core$Basics$identity;
-var elm$core$Set$insert = F2(
-	function (key, _n0) {
-		var dict = _n0;
-		return A3(elm$core$Dict$insert, key, 0, dict);
 	});
 var elm$core$Dict$singleton = F2(
 	function (key, value) {
@@ -4969,10 +5411,6 @@ var elm$core$Dict$merge = F6(
 			intermediateResult,
 			leftovers);
 	});
-var elm$core$Set$empty = elm$core$Dict$empty;
-var elm$core$Set$fromList = function (list) {
-	return A3(elm$core$List$foldl, elm$core$Set$insert, elm$core$Set$empty, list);
-};
 var elm$core$Dict$union = F2(
 	function (t1, t2) {
 		return A3(elm$core$Dict$foldl, elm$core$Dict$insert, t2, t1);
@@ -5038,11 +5476,28 @@ var author$project$SearchEngine$searchM = F2(
 			elm$core$Set$toList(keySet),
 			combRes);
 	});
+var elm$core$Platform$Cmd$batch = _Platform_batch;
+var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
 var elm$core$String$toLower = _String_toLower;
 var author$project$SearchEngine$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 0:
+				var res = msg.a;
+				if (!res.$) {
+					var keywords = res.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								bp: author$project$SearchEngine$keywordsToMetadata(keywords)
+							}),
+						elm$core$Platform$Cmd$none);
+				} else {
+					var e = res.a;
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				}
+			case 1:
 				var s = msg.a;
 				var lower = elm$core$String$toLower(s);
 				var wrds = elm$core$String$words(lower);
@@ -5051,7 +5506,7 @@ var author$project$SearchEngine$update = F2(
 						model,
 						{bv: lower, a1: wrds}),
 					elm$core$Platform$Cmd$none);
-			case 1:
+			case 2:
 				return _Utils_Tuple2(
 					model,
 					author$project$SearchEngine$outbound(
@@ -5065,7 +5520,7 @@ var author$project$SearchEngine$update = F2(
 									function ($) {
 										return $.a1;
 									}(model))))));
-			case 2:
+			case 3:
 				return author$project$SearchEngine$init(0);
 			default:
 				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
