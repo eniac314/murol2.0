@@ -45,7 +45,7 @@ type alias Model =
     , pages : Pages
     , searchStr : String
     , results : Maybe SearchResult
-    , searching : Bool
+    , searchEngineStatus : SearchEngineStatus
     , pageTree : Maybe PageTreeEditor.Page
     , debug : String
     , counter : Int
@@ -60,6 +60,12 @@ type alias SearchResult =
     ( List String, Dict String ( Int, Set String ) )
 
 
+type SearchEngineStatus
+    = Standby
+    | Searching
+    | DisplayResult
+
+
 type Msg
     = ChangeUrl Url.Url
     | ClickedLink UrlRequest
@@ -67,6 +73,7 @@ type Msg
     | LoadPages (Result Http.Error Decode.Value)
     | SearchPromptInput String
     | Search
+    | ResetSearchEngine
     | ProcessSearchResult String
     | SetSeason StyleSheets.Season
     | CurrentViewport Dom.Viewport
@@ -130,7 +137,7 @@ init flags url key =
       , pages = Dict.empty
       , searchStr = ""
       , results = Nothing
-      , searching = False
+      , searchEngineStatus = Standby
       , url = url_
       , debug = ""
       , counter = 0
@@ -257,16 +264,27 @@ update msg model =
             )
 
         Search ->
-            ( { model | searching = True }
+            ( { model | searchEngineStatus = Searching }
             , toSearchEngine
                 (Encode.string "<Cmd -> Search>"
                     |> Encode.encode 0
                 )
             )
 
+        ResetSearchEngine ->
+            ( { model
+                | searchEngineStatus = Standby
+                , searchStr = ""
+              }
+            , toSearchEngine
+                (Encode.string "<Cmd -> Reset>"
+                    |> Encode.encode 0
+                )
+            )
+
         ProcessSearchResult s ->
             ( { model
-                | searching = False
+                | searchEngineStatus = DisplayResult
                 , results =
                     Decode.decodeString decodeSearchResults s
                         |> Result.toMaybe
@@ -349,6 +367,7 @@ view model =
                     , searchEngineView maxWidth model
 
                     --, topMenuView model
+                    , clickablePath maxWidth model
                     , mainView model
                     , footerView model
                     ]
@@ -384,7 +403,7 @@ searchEngineView maxWidth model =
                 , spacing 15
                 , focused [ Border.glow (rgb 1 1 1) 0 ]
                 , width (px 270)
-                , onEnter Search
+                , onKeyEvent
                 ]
                 { onChange = SearchPromptInput
                 , text = model.searchStr
@@ -393,30 +412,45 @@ searchEngineView maxWidth model =
                 , label = Input.labelLeft [] Element.none
                 }
             , Input.button
-                (buttonStyle (model.searchStr /= "" && not model.searching))
+                (buttonStyle
+                    ((model.searchStr /= "")
+                        && (model.searchEngineStatus /= Searching)
+                    )
+                )
                 { onPress = Just Search
                 , label =
                     el [] (text "Rechercher")
                 }
             ]
-        , if model.searching then
-            el [ paddingXY 15 0 ] (text "recherche en cours...")
-          else
-            Element.none
-        , case model.results of
-            Just ( keywords, results ) ->
-                column
-                    [ width fill
+        , case model.searchEngineStatus of
+            Searching ->
+                el [ paddingXY 15 0 ] (text "recherche en cours...")
 
-                    --, height (maximum 200 fill)
-                    --, clip
-                    --, scrollbarY
-                    ]
-                    (Dict.map (\cId v -> resView pagesIndex cId v) results
-                        |> Dict.values
-                    )
+            DisplayResult ->
+                case model.results of
+                    Just ( keywords, results ) ->
+                        if results == Dict.empty then
+                            el
+                                [ paddingXY 15 0 ]
+                                (text "pas de resultats")
+                        else
+                            column
+                                [ width fill
+                                , height (maximum 200 fill)
+                                , clip
+                                , scrollbarY
+                                , paddingXY 15 0
+                                ]
+                                (Dict.map (\cId v -> resView pagesIndex cId v) results
+                                    |> Dict.values
+                                )
 
-            Nothing ->
+                    Nothing ->
+                        el
+                            [ paddingXY 15 0 ]
+                            (text "pas de resultats")
+
+            _ ->
                 Element.none
         ]
 
@@ -435,8 +469,22 @@ resView pagesIndex cId ( score, keywords ) =
                     el
                         [ pointer
                         , Events.onClick (SearchPromptInput keyword)
+                        , Background.color (rgba255 119 136 153 0.8)
+                        , Font.color (rgb 1 1 1)
+                        , paddingEach
+                            { top = 2
+                            , bottom = 2
+                            , left = 5
+                            , right = 5
+                            }
+                        , Border.roundEach
+                            { topLeft = 5
+                            , topRight = 0
+                            , bottomLeft = 0
+                            , bottomRight = 0
+                            }
                         ]
-                        (text "keyword")
+                        (text keyword)
             in
             column
                 [ spacing 10
@@ -447,12 +495,15 @@ resView pagesIndex cId ( score, keywords ) =
                     , left = 0
                     , right = 0
                     }
+                , Border.color (rgb 0.8 0.8 0.8)
+                , paddingXY 0 10
                 ]
                 [ link
                     []
                     { url = path
                     , label =
-                        el [] (text name)
+                        el [ Font.color (rgb 0 0.5 0.5) ]
+                            (text name)
                     }
                 , wrappedRow
                     [ spacing 10 ]
@@ -461,6 +512,52 @@ resView pagesIndex cId ( score, keywords ) =
 
         Nothing ->
             Element.none
+
+
+clickablePath maxWidth model =
+    let
+        strPath path =
+            String.join "/" path
+                |> (\p -> "/" ++ p)
+
+        getEveryPaths acc path =
+            case path of
+                [] ->
+                    acc
+
+                current :: rest ->
+                    getEveryPaths (( current, List.reverse path ) :: acc) rest
+
+        linkView ( n, p ) =
+            link
+                [ paddingXY 2 4 ]
+                { url = strPath p
+                , label =
+                    el [] (text (Maybe.withDefault n (Url.percentDecode n)))
+                }
+    in
+    column
+        [ paddingXY 15 10
+        , Background.color (rgb 0.95 0.95 0.95)
+        , width (maximum maxWidth fill)
+        , centerX
+        ]
+        [ wrappedRow
+            [ width fill
+            , Background.color (rgb 1 1 1)
+            , padding 4
+            , Border.rounded 5
+            , Font.family
+                [ Font.monospace ]
+            ]
+            (String.split "/" (String.dropLeft 1 model.url.path)
+                |> List.reverse
+                |> getEveryPaths []
+                |> List.map linkView
+                |> List.intersperse (el [] (text "/"))
+                |> (\res -> text "/" :: res)
+            )
+        ]
 
 
 pageTitleView maxWidth model =
@@ -737,6 +834,7 @@ pageToPages page =
                         strPath path =
                             List.map Url.percentEncode path
                                 |> String.join "/"
+                                --String.join "/" path
                                 |> (\p -> "/" ++ p)
                     in
                     ( strPath pageInfo.path, pageInfo.name, canonical contentId ) :: List.concatMap toList xs
@@ -767,12 +865,44 @@ decodeSearchResults =
 ----------
 
 
+onKeyEvent : Attribute Msg
+onKeyEvent =
+    HtmlEvents.on "keyup"
+        (Decode.map
+            (\kc ->
+                if kc == 13 then
+                    Search
+                else if kc == 27 then
+                    ResetSearchEngine
+                else
+                    NoOp
+            )
+            HtmlEvents.keyCode
+        )
+        |> htmlAttribute
+
+
 onEnter : Msg -> Attribute Msg
 onEnter msg =
     HtmlEvents.on "keyup"
         (Decode.map
             (\kc ->
                 if kc == 13 then
+                    msg
+                else
+                    NoOp
+            )
+            HtmlEvents.keyCode
+        )
+        |> htmlAttribute
+
+
+onEscape : Msg -> Attribute Msg
+onEscape msg =
+    HtmlEvents.on "keyup"
+        (Decode.map
+            (\kc ->
+                if kc == 27 then
                     msg
                 else
                     NoOp

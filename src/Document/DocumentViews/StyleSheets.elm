@@ -147,13 +147,13 @@ headingStyles season ( winWidth, winHeight ) editMode =
                 Spring ->
                     Dict.fromList
                         [ ( 1
-                          , [ Background.color (rgba255 102 153 140 225)
-                            , Font.color (rgba255 240 248 255 255)
+                          , [ Background.color (rgba255 102 153 140 1)
+                            , Font.color (rgba255 240 248 255 1)
                             ]
                           )
                         , ( 2
-                          , [ Background.color (rgba255 102 153 140 225)
-                            , Font.color (rgba255 240 248 255 255)
+                          , [ Background.color (rgba255 102 153 140 1)
+                            , Font.color (rgba255 240 248 255 1)
                             ]
                           )
                         , ( 3
@@ -168,13 +168,13 @@ headingStyles season ( winWidth, winHeight ) editMode =
                 Autumn ->
                     Dict.fromList
                         [ ( 1
-                          , [ Background.color (rgba255 160 82 45 255)
-                            , Font.color (rgba255 240 248 255 255)
+                          , [ Background.color (rgba255 160 82 45 1)
+                            , Font.color (rgba255 240 248 255 1)
                             ]
                           )
                         , ( 2
-                          , [ Background.color (rgba255 160 82 45 255)
-                            , Font.color (rgba255 240 248 255 255)
+                          , [ Background.color (rgba255 160 82 45 1)
+                            , Font.color (rgba255 240 248 255 1)
                             ]
                           )
                         , ( 3
@@ -185,13 +185,13 @@ headingStyles season ( winWidth, winHeight ) editMode =
                 Winter ->
                     Dict.fromList
                         [ ( 1
-                          , [ Background.color (rgba255 51 51 102 255)
-                            , Font.color (rgba255 240 248 255 255)
+                          , [ Background.color (rgba255 51 51 102 1)
+                            , Font.color (rgba255 240 248 255 1)
                             ]
                           )
                         , ( 2
-                          , [ Background.color (rgba255 51 51 102 255)
-                            , Font.color (rgba255 240 248 255 255)
+                          , [ Background.color (rgba255 51 51 102 1)
+                            , Font.color (rgba255 240 248 255 1)
                             ]
                           )
                         , ( 3

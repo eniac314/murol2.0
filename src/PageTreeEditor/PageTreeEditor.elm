@@ -905,7 +905,712 @@ internalUpdate config msg model =
                         |> (\p -> "/" ++ p)
 
                 metaData =
-                    Dict.empty
+                    Dict.fromList
+                        [ ( "accueil"
+                          , [ ( [ "accueil" ], "Page d'accueil" ) ]
+                          )
+                        , ( "actualités"
+                          , [ ( [ "accueil" ], "Page d'accueil" ) ]
+                          )
+                        , ( "agenda"
+                          , [ ( [ "accueil", "sortir", "animations manifestations" ], "Animation" )
+                            , ( [ "accueil" ], "Page d'accueil" )
+                            ]
+                          )
+                        , ( "animation"
+                          , [ ( [ "accueil", "sortir", "animations manifestations" ], "Animation manifestation" )
+                            , ( [ "accueil", "sortir", "animations manifestations", "animation estivale pour tous" ], "Animation estivale pour tous" )
+                            , ( [ "accueil", "vivre à murol", "séniors" ], "Les seniors" )
+                            ]
+                          )
+                        , ( "tourisme"
+                          , [ ( [ "accueil", "découvrir", "office de tourisme" ], "Office de tourisme" )
+                            , ( [ "accueil", "découvrir", "office de tourisme", "office de tourisme de murol" ], "Office de tourisme de Murol" )
+                            , ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            , ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            , ( [ "accueil", "découvrir", "se restaurer" ], "Se restaurer" )
+                            , ( [ "accueil", "découvrir", "se repérer" ], "Se repérer" )
+                            , ( [ "accueil", "sortir", "animations manifestations", "animation estivale pour tous" ], "Animation Estivale pour tous" )
+                            ]
+                          )
+                        , ( "découvrir"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            , ( [ "accueil", "mairie ", "murol en chiffres " ], "Murol en chiffres" )
+                            ]
+                          )
+                        , ( "château"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            , ( [ "accueil", "sortir" ], "Sortir" )
+                            , ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "beaune"
+                          , [ ( [ "accueil", "découvrir", "voir", "beaune le froid" ], "Beaune le froid" )
+                            , ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            , ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "volcan"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            , ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "tartaret"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            , ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "lac chambon"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "promener"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "promenade"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "voie verte"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "chautignat"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "groire"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "chassagne"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "ballats"
+                          , [ ( [ "accueil", "découvrir", "voir" ], "Voir" )
+                            ]
+                          )
+                        , ( "hébergements"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "logement"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "loger"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "hotels"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "camping"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "résidence"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "chambres"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "gite"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "meublé"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "villages vacances"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "famille plus"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            , ( [ "accueil", "découvrir", "se restaurer" ], "Se restaurer" )
+                            ]
+                          )
+                        , ( "camping-car"
+                          , [ ( [ "accueil", "découvrir", "se loger" ], "Se loger" )
+                            ]
+                          )
+                        , ( "restaurants"
+                          , [ ( [ "accueil", "découvrir", "se restaurer" ], "Se restaurer" )
+                            ]
+                          )
+                        , ( "bar"
+                          , [ ( [ "accueil", "découvrir", "se restaurer" ], "Se restaurer" )
+                            ]
+                          )
+                        , ( "brasserie"
+                          , [ ( [ "accueil", "découvrir", "se restaurer" ], "Se restaurer" )
+                            ]
+                          )
+                        , ( "carte"
+                          , [ ( [ "accueil", "découvrir", "se repérer" ], "Se repérer" )
+                            ]
+                          )
+                        , ( "plan"
+                          , [ ( [ "accueil", "découvrir", "se repérer" ], "Se repérer" )
+                            ]
+                          )
+                        , ( "accès"
+                          , [ ( [ "accueil", "découvrir", "se repérer" ], "Se repérer" )
+                            ]
+                          )
+                        , ( "route"
+                          , [ ( [ "accueil", "découvrir", "se repérer" ], "Se repérer" )
+                            ]
+                          )
+                        , ( "vie locale"
+                          , [ ( [ "vivre à murol", "enfants", "vie scolaire" ], "Vie scolaire" )
+                            , ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            , ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "argent de poche" ], "Argent de poche" )
+                            , ( [ "accueil", "vivre à murol", "séniors" ], "Les seniors" )
+                            , ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            , ( [ "accueil", "vivre à murol", "transports" ], "Transports" )
+                            , ( [ "accueil", "vivre à murol", "environnement", " gestion des déchets" ], "Gestion des déchets" )
+                            , ( [ "accueil", "vivre à murol", "animaux" ], "Animaux" )
+                            ]
+                          )
+                        , ( "école"
+                          , [ ( [ "vivre à murol", "enfants", "vie scolaire" ], "Vie scolaire" )
+                            , ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "périscolaire"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "maternelle"
+                          , [ ( [ "vivre à murol", "enfants", "vie scolaire" ], "Vie scolaire" )
+                            ]
+                          )
+                        , ( "élémentaire"
+                          , [ ( [ "vivre à murol", "enfants", "vie scolaire" ], "Vie scolaire" )
+                            ]
+                          )
+                        , ( "secondaire"
+                          , [ ( [ "vivre à murol", "enfants", "vie scolaire" ], "Vie scolaire" )
+                            ]
+                          )
+                        , ( "collège"
+                          , [ ( [ "vivre à murol", "enfants", "vie scolaire" ], "Vie scolaire" )
+                            ]
+                          )
+                        , ( "cantine"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "restaurant scolaire"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "garderie"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "tap"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "temps d'activités périscolaire"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "centre loisirs"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "transports scolaire"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "activités jeunesse"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            ]
+                          )
+                        , ( "sivom"
+                          , [ ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            , ( [ "accueil", "vivre à murol", "séniors" ], "Les seniors" )
+                            ]
+                          )
+                        , ( "ados"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "argent de poche" ], "Argent de poche" )
+                            ]
+                          )
+                        , ( "jeunes"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "argent de poche" ], "Argent de poche" )
+                            ]
+                          )
+                        , ( "argent de poche"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale", "argent de poche" ], "Argent de poche" )
+                            ]
+                          )
+                        , ( "séniors"
+                          , [ ( [ "accueil", "vivre à murol", "séniors" ], "Les seniors" )
+                            ]
+                          )
+                        , ( "actvités"
+                          , [ ( [ "accueil", "vivre à murol", "séniors" ], "Les seniors" )
+                            ]
+                          )
+                        , ( "service"
+                          , [ ( [ "accueil", "vivre à murol", "séniors" ], "Les seniors" )
+                            ]
+                          )
+                        , ( "santé"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "médecin"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "infirmier"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "dentiste"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "kiné"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "cabinet médical"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "pédicure"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "podologue"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            ]
+                          )
+                        , ( "pharmacie"
+                          , [ ( [ "accueil", "vivre à murol", "santé" ], "Santé" )
+                            , ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "transport"
+                          , [ ( [ "accueil", "vivre à murol", "transports" ], "Transports" )
+                            , ( [ "accueil", "vivre à murol", "enfants", "péri et extra scolaire" ], "Péri et extra-scolaire" )
+                            , ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "desserte"
+                          , [ ( [ "accueil", "vivre à murol", "transports" ], "Transports" )
+                            ]
+                          )
+                        , ( "covoiturage"
+                          , [ ( [ "accueil", "vivre à murol", "transports" ], "Transports" )
+                            ]
+                          )
+                        , ( "déneigement"
+                          , [ ( [ "accueil", "vivre à murol", "transports" ], "Transports" )
+                            ]
+                          )
+                        , ( "vie économique"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "agriculture" ], "Agriculture" )
+                            , ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            , ( [ "accueil", "toute l'année", "entreprises et artisans" ], "Entreprises" )
+                            , ( [ "accueil", "vivre à murol", "offres d'emploi" ], "Offres d'emploi" )
+                            ]
+                          )
+                        , ( "agriculture"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "agriculture" ], "Agriculture" )
+                            ]
+                          )
+                        , ( "fromage"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "agriculture" ], "Agriculture" )
+                            ]
+                          )
+                        , ( "commerce"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "informatique"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "boucherie"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "garage"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "alimentation"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "supermarché"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "poste"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "banque"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "terroir"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "souvenir"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "artisanat"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "assurance"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "location"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            , ( [ "accueil", "mairie ", "location des salles municipales" ], "location des salles municipales" )
+                            ]
+                          )
+                        , ( "vêtement"
+                          , [ ( [ "accueil", "vivre à murol", "vie économique", "commerces et services" ], "Commerces" )
+                            ]
+                          )
+                        , ( "entreprise"
+                          , [ ( [ "accueil", "toute l'année", "entreprises et artisans" ], "Entreprises" )
+                            ]
+                          )
+                        , ( "electricien"
+                          , [ ( [ "accueil", "toute l'année", "entreprises et artisans" ], "Entreprises" )
+                            ]
+                          )
+                        , ( "maçon"
+                          , [ ( [ "accueil", "toute l'année", "entreprises et artisans" ], "Entreprises" )
+                            ]
+                          )
+                        , ( "quincallerie"
+                          , [ ( [ "accueil", "toute l'année", "entreprises et artisans" ], "Entreprises" )
+                            ]
+                          )
+                        , ( "plomberie"
+                          , [ ( [ "accueil", "toute l'année", "entreprises et artisans" ], "Entreprises" )
+                            ]
+                          )
+                        , ( "peintre"
+                          , [ ( [ "accueil", "toute l'année", "entreprises et artisans" ], "Entreprises" )
+                            ]
+                          )
+                        , ( "mairie"
+                          , [ ( [ "accueil", "mairie " ], "Mairie" )
+                            , ( [ "accueil", "mairie ", "murol en chiffres " ], "Murol en chiffres" )
+                            , ( [ "accueil", "mairie ", "vie municipale", "le conseil municipal" ], "Conseil municipal" )
+                            , ( [ "accueil", "mairie ", "vie municipale", "délibérations conseil municipal" ], "Délibérations" )
+                            , ( [ "accueil", "mairie ", "vie municipale", "les commissions" ], "Commissions" )
+                            , ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale" ], "CCAS" )
+                            , ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            , ( [ "accueil", "mairie ", "location des salles municipales" ], "location des salles municipales" )
+                            ]
+                          )
+                        , ( "conseil municipal"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "le conseil municipal" ], "Conseil municipal" )
+                            ]
+                          )
+                        , ( "maire"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "le conseil municipal" ], "Conseil municipal" )
+                            ]
+                          )
+                        , ( "adjoint"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "le conseil municipal" ], "Conseil municipal" )
+                            ]
+                          )
+                        , ( "conseillers municipaux"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "le conseil municipal" ], "Conseil municipal" )
+                            ]
+                          )
+                        , ( "délibérations"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "délibérations conseil municipal" ], "Délibérations" )
+                            ]
+                          )
+                        , ( "commission"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "les commissions" ], "Commissions" )
+                            ]
+                          )
+                        , ( "ccas"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale" ], "CCAS" )
+                            ]
+                          )
+                        , ( "centre communal d'action sociale"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale" ], "CCAS" )
+                            ]
+                          )
+                        , ( "aide"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale" ], "CCAS" )
+                            ]
+                          )
+                        , ( "secours"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "centre communal d'action sociale" ], "CCAS" )
+                            ]
+                          )
+                        , ( "démarches"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "papiers"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "documents"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "carte identité"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "passeport"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "permis de conduire"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "véhicule"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "etat civil"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "liste électorale"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "service civique"
+                          , [ ( [ "accueil", "mairie ", "démarches " ], "Vos démarches" )
+                            ]
+                          )
+                        , ( "salle"
+                          , [ ( [ "accueil", "mairie ", "location des salles municipales" ], "location des salles municipales" )
+                            ]
+                          )
+                        , ( "matériel"
+                          , [ ( [ "accueil", "mairie ", "location des salles municipales" ], "location des salles municipales" )
+                            ]
+                          )
+                        , ( "horaires"
+                          , [ ( [ "accueil", "mairie " ], "Horaires et contact" )
+                            ]
+                          )
+                        , ( "contact"
+                          , [ ( [ "accueil", "mairie " ], "Horaires et contact" )
+                            ]
+                          )
+                        , ( "téléphone"
+                          , [ ( [ "accueil", "mairie " ], "Horaires et contact" )
+                            ]
+                          )
+                        , ( "mail"
+                          , [ ( [ "accueil", "mairie " ], "Horaires et contact" )
+                            ]
+                          )
+                        , ( "culture et loisirs"
+                          , [ ( [ "accueil", "sortir", "artistes murolais" ], "Artistes murolais" )
+                            , ( [ "accueil", "vivre à murol", "associations et activités" ], "Associations" )
+                            , ( [ "accueil", "sortir" ], "Sortir" )
+                            , ( [ "accueil", "sortir" ], "Patrimoine" )
+                            , ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "artiste"
+                          , [ ( [ "accueil", "sortir", "artistes murolais" ], "Artistes murolais" )
+                            ]
+                          )
+                        , ( "festival d'art"
+                          , [ ( [ "accueil", "sortir", "artistes murolais" ], "Artistes murolais" )
+                            , ( [ "accueil", "sortir", "animations manifestations", "festival d'art" ], "Festival d'art" )
+                            ]
+                          )
+                        , ( "associations"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités" ], "Associations" )
+                            ]
+                          )
+                        , ( "culture"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités" ], "Associations" )
+                            ]
+                          )
+                        , ( "solidarité"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités" ], "Associations" )
+                            ]
+                          )
+                        , ( "sport"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités" ], "Associations" )
+                            , ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "professionnel"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités" ], "Associations" )
+                            ]
+                          )
+                        , ( "sortir"
+                          , [ ( [ "accueil", "sortir" ], "Sortir" )
+                            ]
+                          )
+                        , ( "musée des peintres"
+                          , [ ( [ "accueil", "sortir" ], "Sortir" )
+                            , ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "environs"
+                          , [ ( [ "accueil", "sortir" ], "Sortir" )
+                            ]
+                          )
+                        , ( "cinéma"
+                          , [ ( [ "accueil", "sortir" ], "Sortir" )
+                            ]
+                          )
+                        , ( "patrimoine"
+                          , [ ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "parc"
+                          , [ ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "prélong"
+                          , [ ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "église"
+                          , [ ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "moulin"
+                          , [ ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "archéologie"
+                          , [ ( [ "accueil", "sortir" ], "Patrimoine" )
+                            ]
+                          )
+                        , ( "détente"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "rugby"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "tennis de table"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "gymnastique"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "qi gong"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "équitation"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "chorale"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "tarot"
+                          , [ ( [ "accueil", "vivre à murol", "associations et activités", "sport" ], "Associations et activités" )
+                            ]
+                          )
+                        , ( "médiévales"
+                          , [ ( [ "accueil", "sortir", "animations manifestations", "médiévales de murol" ], "Médiévales de Murol" )
+                            ]
+                          )
+                        , ( "14 juillet"
+                          , [ ( [ "accueil", "sortir", "animations manifestations", "fête de la revolution" ], "Fête de la révolution" )
+                            ]
+                          )
+                        , ( "révolution"
+                          , [ ( [ "accueil", "sortir", "animations manifestations", "fête de la revolution" ], "Fête de la révolution" )
+                            ]
+                          )
+                        , ( "documentation"
+                          , [ ( [ "accueil", "mairie ", "publications", " bulletins municipaux" ], "Bulletins municipaux" )
+                            , ( [ "accueil", "mairie ", "publications", "murol infos" ], "Murol Infos" )
+                            , ( [ "accueil", "mairie ", "vie municipale", "délibérations conseil municipal" ], "Délibérations" )
+                            , ( [ "accueil", "vivre à murol", "environnement", "gestion des risques" ], "Gestion des risques" )
+                            , ( [ "accueil", "mairie ", "vie municipale", "élections", "résultats des élections" ], "Elections" )
+                            , ( [ "accueil", "mairie ", "publications" ], "Autres publications" )
+                            , ( [ "accueil", "mairie ", "labels" ], "Les Labels" )
+                            ]
+                          )
+                        , ( "bulletin"
+                          , [ ( [ "accueil", "mairie ", "publications", " bulletins municipaux" ], "Bulletins municipaux" )
+                            ]
+                          )
+                        , ( "murol infos"
+                          , [ ( [ "accueil", "mairie ", "publications", "murol infos" ], "Murol Infos" )
+                            ]
+                          )
+                        , ( "risques"
+                          , [ ( [ "accueil", "vivre à murol", "environnement", "gestion des risques" ], "Gestion des risques" )
+                            ]
+                          )
+                        , ( "dicrim"
+                          , [ ( [ "accueil", "vivre à murol", "environnement", "gestion des risques" ], "Gestion des risques" )
+                            ]
+                          )
+                        , ( "élections"
+                          , [ ( [ "accueil", "mairie ", "vie municipale", "élections", "résultats des élections" ], "Elections" )
+                            ]
+                          )
+                        , ( "publications"
+                          , [ ( [ "accueil", "mairie ", "publications" ], "Autres publications" )
+                            ]
+                          )
+                        , ( "développement durable"
+                          , [ ( [ "accueil", "mairie ", "publications" ], "Autres publications" )
+                            ]
+                          )
+                        , ( "compostage"
+                          , [ ( [ "accueil", "mairie ", "publications" ], "Autres publications" )
+                            ]
+                          )
+                        , ( "station tourisme"
+                          , [ ( [ "accueil", "mairie ", "publications" ], "Autres publications" )
+                            ]
+                          )
+                        , ( "pavillon bleu"
+                          , [ ( [ "accueil", "mairie ", "publications" ], "Autres publications" )
+                            ]
+                          )
+                        , ( "fleuri"
+                          , [ ( [ "accueil", "mairie ", "labels" ], "Les Labels" )
+                            ]
+                          )
+                        ]
+                        |> Dict.map (\k v -> List.map (\( p, n ) -> p) v)
 
                 keywords =
                     metaDataToKeywords
@@ -918,7 +1623,7 @@ internalUpdate config msg model =
                 metaDataToKeywords =
                     Dict.foldr
                         (\key vals acc ->
-                            List.map (\v -> key v) vals
+                            List.map (\v -> ( key, v )) vals
                                 |> (\newVals -> newVals ++ acc)
                         )
                         []
@@ -1698,7 +2403,7 @@ fullView config model =
                 , Input.button
                     (buttonStyle True)
                     { onPress =
-                        Maybe.map (\_ -> BatchSetKeywords) model.selected
+                        Just BatchSetKeywords
                     , label =
                         row [ spacing 10 ]
                             [ text "batch update"
