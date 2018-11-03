@@ -398,7 +398,7 @@ view model =
 
                     --, topMenuView model
                     , clickablePath maxWidth model
-                    , mainView model
+                    , mainView maxWidth model
                     , footerView model
                     ]
                 )
@@ -675,13 +675,12 @@ subTitleView maxWidth model =
         )
 
 
-mainView model =
+mainView maxWidth model =
     case Dict.get model.url.path model.pages of
         Just ( cId, name, Loaded doc ) ->
             column
                 [ centerX
-
-                --, width fill
+                , width (maximum maxWidth fill)
                 , Background.color (rgba 1 1 1 0.9)
                 ]
                 (responsivePreFormat model.config doc

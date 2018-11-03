@@ -76,6 +76,8 @@ decodeCellContent =
             |> required "Table" decodeTableMeta
         , succeed CustomElement
             |> required "CustomElement" string
+        , succeed BlockLinks
+            |> required "BlockLinks" (list decodeBlockLink)
         , succeed TextBlock
             |> required "TextBlock" (list decodeTextBlockElement)
         , string
@@ -91,6 +93,15 @@ decodeCellContent =
                                     ++ somethingElse
                 )
         ]
+
+
+decodeBlockLink : Decoder BlockLinkMeta
+decodeBlockLink =
+    succeed BlockLinkMeta
+        |> required "image" string
+        |> required "label" string
+        |> required "targetBlank" bool
+        |> required "url" string
 
 
 decodeTextBlockElement : Decoder TextBlockElement

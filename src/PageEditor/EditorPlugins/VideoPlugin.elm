@@ -86,13 +86,6 @@ init mbInput externalMsg =
         Maybe.map (.size << Tuple.first) mbInput
             |> Maybe.withDefault
                 (VideoSize 560 314)
-
-    --, width =
-    --    Maybe.map (.videoWidth << .size << Tuple.first) mbInput
-    --        |> Maybe.withDefault 560
-    --, height =
-    --    Maybe.map (.videoHeight << .size << Tuple.first) mbInput
-    --        |> Maybe.withDefault 315
     , sizeRatio =
         Maybe.map
             (\mbI ->

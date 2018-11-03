@@ -46,6 +46,7 @@ type CellContent
     | Video VideoMeta
     | Table TableMeta
     | CustomElement String
+    | BlockLinks (List BlockLinkMeta)
     | TextBlock (List TextBlockElement)
     | EmptyCell
 
@@ -91,6 +92,14 @@ type VideoHost
     = Youtube
 
 
+type alias BlockLinkMeta =
+    { image : String
+    , label : String
+    , targetBlank : Bool
+    , url : String
+    }
+
+
 type TextBlockElement
     = Paragraph (List DocAttribute) (List TextBlockPrimitive)
     | UList (List DocAttribute) (List Li)
@@ -134,20 +143,6 @@ type alias Config msg =
     , containersBkgColors : Bool
     , season : Season
     , pageIndex : Dict String String
-    }
-
-
-newsEditorConfig =
-    { width = 1920
-    , height = 1080
-    , mainInterfaceHeight = 0
-    , customElems = Dict.empty
-    , styleSheet = defaultStyleSheet
-    , zipperHandlers = Nothing
-    , editMode = True
-    , containersBkgColors = False
-    , season = Spring
-    , pageIndex = Dict.empty
     }
 
 

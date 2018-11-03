@@ -24,6 +24,7 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode exposing (Value, null)
+import PageEditor.EditorPlugins.BlockLinksPlugin as BlockLinksPlugin
 import PageEditor.EditorPlugins.ContainerEditPlugin as ContainerEditPlugin
 import PageEditor.EditorPlugins.ImagePlugin as ImagePlugin
 import PageEditor.EditorPlugins.NewDocPlugin as NewDocPlugin
@@ -156,6 +157,7 @@ type alias Model msg =
     , textBlockPlugin : TextBlockPlugin.Model msg
     , imagePlugin : ImagePlugin.Model msg
     , videoPlugin : VideoPlugin.Model msg
+    , blockLinksPlugin : BlockLinksPlugin.Model msg
     , externalMsg : Msg -> msg
     }
 
@@ -221,6 +223,7 @@ type Msg
     | TextBlockPluginMsg TextBlockPlugin.Msg
     | ImagePluginMsg ImagePlugin.Msg
     | VideoPluginMsg VideoPlugin.Msg
+    | BlockLinksPluginMsg BlockLinksPlugin.Msg
       -------------------
       -- Persistence   --
       -------------------
@@ -303,6 +306,7 @@ reset mbDoc externalMsg =
       , textBlockPlugin = newTextBlockPlugin
       , imagePlugin = newImagePlugin
       , videoPlugin = VideoPlugin.init Nothing (externalMsg << VideoPluginMsg)
+      , blockLinksPlugin = BlockLinksPlugin.init Nothing (externalMsg << BlockLinksPluginMsg)
       , externalMsg = externalMsg
       }
     , Cmd.batch
@@ -913,6 +917,48 @@ internalUpdate config msg model =
                         ]
                     )
 
+        BlockLinksPluginMsg blockLinksPluginMsg ->
+            let
+                ( newBlockLinksPlugin, mbEditorPluginResult ) =
+                    BlockLinksPlugin.update blockLinksPluginMsg model.blockLinksPlugin
+            in
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | blockLinksPlugin = newBlockLinksPlugin }, Cmd.none )
+
+                Just EditorPluginQuit ->
+                    ( { model
+                        | blockLinksPlugin = newBlockLinksPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.map model.externalMsg <|
+                        scrollTo <|
+                            getHtmlId (extractDoc model.document)
+                    )
+
+                Just (EditorPluginData newBlockLinks) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = newBlockLinks
+                                    , attrs = []
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        ]
+                    )
+
         LoadLocalStorageDocument ->
             case Maybe.map (Decode.decodeValue decodeDocument) model.localStorageValue of
                 Just (Ok newDoc) ->
@@ -1282,7 +1328,16 @@ pluginView config model plugin =
                 []
                 model.videoPlugin
 
-        --|> Element.map VideoPluginMsg
+        BlockLinksPlugin ->
+            BlockLinksPlugin.view
+                { fileExplorer = config.fileExplorer
+                , pageTreeEditor = config.pageTreeEditor
+                , zone = config.zone
+                , logInfo = config.logInfo
+                }
+                model.config
+                model.blockLinksPlugin
+
         PersistencePlugin ->
             Element.map model.externalMsg <|
                 PersistencePlugin.view
@@ -1399,6 +1454,18 @@ openNewPlugin config model =
             , Cmd.none
             )
 
+        Just BlockLinksPlugin ->
+            let
+                newBlockLinksPlugin =
+                    BlockLinksPlugin.init Nothing
+                        (model.externalMsg << BlockLinksPluginMsg)
+            in
+            ( { model
+                | blockLinksPlugin = newBlockLinksPlugin
+              }
+            , Cmd.none
+            )
+
         _ ->
             ( model, Cmd.none )
 
@@ -1467,6 +1534,20 @@ openPlugin config model =
                     ( { model
                         | currentPlugin = Just VideoPlugin
                         , videoPlugin = newVideoPlugin
+                      }
+                    , Cmd.none
+                    )
+
+                BlockLinks blocks ->
+                    let
+                        newBlockLinksPlugin =
+                            BlockLinksPlugin.init
+                                (Just blocks)
+                                (model.externalMsg << BlockLinksPluginMsg)
+                    in
+                    ( { model
+                        | currentPlugin = Just BlockLinksPlugin
+                        , blockLinksPlugin = newBlockLinksPlugin
                       }
                     , Cmd.none
                     )

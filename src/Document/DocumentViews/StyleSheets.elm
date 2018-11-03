@@ -37,6 +37,7 @@ type alias StyleSheet msg =
     , respBlocStyle : List (Attribute msg)
     , imageStyle : List (Attribute msg)
     , textStyle : List (Attribute msg)
+    , blocLinkStyle : List (Attribute msg)
     , linkStyle : List (Attribute msg)
     , headingStyles : Dict Int (List (Attribute msg))
     , customStyles :
@@ -68,6 +69,7 @@ defaultStyleSheet season ( winWidth, winHeight ) editMode =
     , imageStyle =
         []
     , textStyle = []
+    , blocLinkStyle = []
     , linkStyle =
         [ Font.color (rgb 0 0.5 0.5) ]
     , headingStyles =

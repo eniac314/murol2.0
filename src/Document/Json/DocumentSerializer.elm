@@ -78,11 +78,24 @@ encodeCellContent cellContent =
         CustomElement s ->
             object [ ( "CustomElement", string s ) ]
 
+        BlockLinks blLinks ->
+            object [ ( "BlockLinks", list encodeBlockLink blLinks ) ]
+
         TextBlock tbElems ->
             object [ ( "TextBlock", list encodeTextBlockElement tbElems ) ]
 
         EmptyCell ->
             string "EmptyCell"
+
+
+encodeBlockLink : BlockLinkMeta -> Value
+encodeBlockLink { image, label, targetBlank, url } =
+    object
+        [ ( "image", string image )
+        , ( "label", string label )
+        , ( "targetBlank", bool targetBlank )
+        , ( "url", string url )
+        ]
 
 
 encodeTextBlockElement : TextBlockElement -> Value

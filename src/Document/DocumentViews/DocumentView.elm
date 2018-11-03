@@ -50,6 +50,9 @@ renderDoc config document =
                 Video meta ->
                     renderVideo config id attrs meta
 
+                BlockLinks meta ->
+                    renderBlockLinks config id attrs meta
+
                 TextBlock xs ->
                     renderTextBlock config id attrs xs
 
@@ -61,6 +64,83 @@ renderDoc config document =
 
                 EmptyCell ->
                     renderEmptyCell config id attrs
+
+
+renderBlockLinks config id attrs meta =
+    [ wrappedRow
+        [ spacing 15
+
+        --, Background.color (rgba255 255 255 0 1)
+        --, if config.width < 615 then
+        --    width (px 300)
+        --  else if config.width < 930 then
+        --    width (px 615)
+        --  else
+        --    width (px 930)
+        , centerX
+        ]
+        (List.map (renderBlocksLinksMeta config id attrs) meta)
+    ]
+
+
+renderBlocksLinksMeta config id attrs { image, label, targetBlank, url } =
+    let
+        styleSheet =
+            config.styleSheet config.season ( config.width, config.height ) config.editMode
+
+        linkFun =
+            if targetBlank then
+                newTabLink
+            else
+                link
+
+        url_ =
+            if targetBlank then
+                url
+            else
+                Dict.get url config.pageIndex
+                    |> Maybe.withDefault ""
+
+        block =
+            el
+                (styleSheet.blocLinkStyle
+                    ++ renderAttrs config attrs
+                    ++ [ width (px 300)
+                       , height (px 225)
+                       , Background.color (rgb255 119 136 153)
+                       , mouseOver
+                            [ Background.color (rgba255 119 136 153 0.5) ]
+                       ]
+                )
+                (el
+                    [ width (px 288)
+                    , height (px 213)
+                    , centerX
+                    , centerY
+                    , Background.image image
+                    , inFront
+                        (el
+                            [ alignBottom
+                            , width fill
+                            , padding 10
+                            , Font.center
+                            , Background.color (rgba255 119 136 153 0.8)
+                            , Font.color (rgba255 240 248 255 1)
+                            ]
+                            (text label)
+                        )
+                    ]
+                    Element.none
+                )
+    in
+    if config.editMode then
+        block
+    else
+        linkFun
+            []
+            { url = url_
+            , label = block
+            }
 
 
 renderTextBlock config id attrs xs =
@@ -136,13 +216,15 @@ renderTextBlockPrimitive config tbAttrs p =
                         link
 
                 url_ =
-                    Dict.get url config.pageIndex
-                        |> Maybe.withDefault url
+                    if targetBlank then
+                        url
+                    else
+                        Dict.get url config.pageIndex
+                            |> Maybe.withDefault ""
             in
             if config.editMode then
                 el
                     (styleSheet.linkStyle
-                        --++ idStyle config.styleSheet id
                         ++ renderAttrs config tbAttrs
                         ++ renderAttrs config attrs
                     )
@@ -150,7 +232,6 @@ renderTextBlockPrimitive config tbAttrs p =
             else
                 linkFun
                     (styleSheet.linkStyle
-                        --++ idStyle config.styleSheet id
                         ++ renderAttrs config tbAttrs
                         ++ renderAttrs config attrs
                     )

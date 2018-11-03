@@ -237,6 +237,9 @@ cellContentToString lc =
         CustomElement s ->
             "Element spécial: " ++ s
 
+        BlockLinks _ ->
+            "Zone blocs de liens"
+
         TextBlock xs ->
             "Zone de texte"
 

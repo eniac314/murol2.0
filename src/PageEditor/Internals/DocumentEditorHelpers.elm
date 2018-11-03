@@ -62,6 +62,7 @@ type EditorPlugin
     | TextBlockPlugin
     | NewDocPlugin
     | ContainerEditPlugin
+    | BlockLinksPlugin
     | PersistencePlugin
     | PageTreeEditorPlugin PageTreeEditor.Mode
 

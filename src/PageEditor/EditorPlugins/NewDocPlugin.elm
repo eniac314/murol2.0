@@ -87,7 +87,16 @@ view config =
                             config.createNewCell TextBlockPlugin
                     , label =
                         row [ spacing 10 ]
-                            [ text "Créer bloc de texte"
+                            [ text "Bloc de texte"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.createNewCell BlockLinksPlugin
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Zone blocs de liens"
                             ]
                     }
                 , Input.button (buttonStyle True)

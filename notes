@@ -78,3 +78,13 @@ find . -name '*.elm' | xargs wc -l
 	sudo service apache2 restart
 
 	This will disable directory listing from all folder that apache2 serves.
+
+- compiler crashes when trying to treat 
+  styleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
+
+  as a record 
+
+  elm: ./Data/Vector/Generic/Mutable.hs:703 (modify): index out of bounds (3,3)
+CallStack (from HasCallStack):
+  error, called at ./Data/Vector/Internal/Check.hs:87:5 in vector-0.12.0.1-IfIQAgrX0q07Xkx6bkYLRX:Data.Vector.Internal.Check
+elm: thread blocked indefinitely in an MVar operation
