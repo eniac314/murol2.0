@@ -43,6 +43,23 @@ chunks n xs =
     helper [] xs
 
 
+break : (a -> Bool) -> List a -> ( List a, List a )
+break p xs =
+    let
+        helper ys left =
+            case ys of
+                [] ->
+                    ( left, [] )
+
+                y :: ys_ ->
+                    if p y then
+                        ( List.reverse left, y :: ys_ )
+                    else
+                        helper ys_ (y :: left)
+    in
+    helper xs []
+
+
 newLog :
     ((Time.Posix -> Log) -> Time.Posix -> msg)
     -> String

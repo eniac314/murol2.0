@@ -118,13 +118,6 @@ main =
 
 
 subscriptions model =
-    let
-        device =
-            Element.classifyDevice
-                { height = winHeight
-                , width = winWidth
-                }
-    in
     Sub.batch
         [ onResize WinResize
         , searchResult ProcessSearchResult

@@ -251,6 +251,9 @@ view model =
             [ width fill
             , height (maximum model.winHeight fill)
             , Font.size 16
+
+            --, Font.family
+            --    [ Font.typeface "Ubuntu" ]
             ]
             (case model.loadingStatus of
                 WaitingForLogin ->

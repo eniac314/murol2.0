@@ -14,8 +14,10 @@ import Element.Lazy as Lazy
 import Element.Region as Region
 import FileExplorer.FileExplorer as FileExplorer
 import Html exposing (Html)
+import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons as Icons exposing (externalLink)
+import List.Extra exposing (findIndex, swapAt, zip)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (empty)
@@ -27,6 +29,7 @@ type alias Model msg =
     { blocks : Dict Int BlockLinkMeta
     , selectedBlock : Maybe Int
     , labelPromptInput : Maybe String
+    , externalLinkInput : Maybe String
     , selector : Selector
     , linkType : LinkType
     , externalMsg : Msg -> msg
@@ -40,10 +43,13 @@ type Msg
     | ConfirmInternalPageUrl String
     | LabelPromptInput String
     | UpdateLabel
+    | ExternalLinkPromptInput String
+    | ConfirmExternalLink
     | SetLinkType LinkType
     | SelectBlock Int
     | AddBlock
     | RemoveBlock
+    | Move Direction
     | Quit
     | SaveAndQuit
     | NoOp
@@ -61,6 +67,11 @@ type LinkType
     | ExternalLink
 
 
+type Direction
+    = Left
+    | Right
+
+
 init : Maybe (List BlockLinkMeta) -> (Msg -> msg) -> Model msg
 init mbInput externalMsg =
     { blocks =
@@ -69,6 +80,7 @@ init mbInput externalMsg =
             |> Maybe.withDefault Dict.empty
     , selectedBlock = Nothing
     , labelPromptInput = Nothing
+    , externalLinkInput = Nothing
     , selector = Closed
     , linkType = InternalLink
     , externalMsg = externalMsg
@@ -139,6 +151,39 @@ update msg model =
                 Nothing ->
                     ( model, Nothing )
 
+        ExternalLinkPromptInput s ->
+            ( { model | externalLinkInput = Just s }
+            , Nothing
+            )
+
+        ConfirmExternalLink ->
+            case ( model.selectedBlock, model.externalLinkInput ) of
+                ( Just id, Just url ) ->
+                    ( { model
+                        | blocks =
+                            Dict.update
+                                id
+                                (\mbVal ->
+                                    case mbVal of
+                                        Just val ->
+                                            Just
+                                                { val
+                                                    | url = url
+                                                    , targetBlank = True
+                                                }
+
+                                        Nothing ->
+                                            Nothing
+                                )
+                                model.blocks
+                        , selector = Closed
+                      }
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model, Nothing )
+
         SelectImage url ->
             case model.selectedBlock of
                 Just id ->
@@ -156,6 +201,8 @@ update msg model =
                                 )
                                 model.blocks
                         , selector = Closed
+                        , labelPromptInput = Nothing
+                        , externalLinkInput = Nothing
                       }
                     , Nothing
                     )
@@ -246,6 +293,59 @@ update msg model =
                 |> Just
             )
 
+        Move dir ->
+            case model.selectedBlock of
+                Just n ->
+                    let
+                        xs =
+                            Dict.toList model.blocks
+
+                        l =
+                            List.length xs
+
+                        ( indexes, values ) =
+                            List.unzip xs
+
+                        mbInd =
+                            findIndex (\( j, _ ) -> j == n) xs
+
+                        newIndexes =
+                            Maybe.map
+                                (\i ->
+                                    if dir == Left then
+                                        swapAt i (i - 1) indexes
+                                    else
+                                        swapAt i (i + 1) indexes
+                                )
+                                mbInd
+                                |> Maybe.withDefault indexes
+
+                        newBlocks =
+                            zip newIndexes values
+                                |> Dict.fromList
+
+                        selection =
+                            if model.blocks == newBlocks then
+                                Just n
+                            else if dir == Left then
+                                Just <| n - 1
+                            else
+                                Just <| n + 1
+                    in
+                    ( { model
+                        | blocks = newBlocks
+                        , selectedBlock = selection
+                      }
+                    , Nothing
+                    )
+
+                --        case dir of
+                --            Left ->
+                Nothing ->
+                    ( model
+                    , Nothing
+                    )
+
         Quit ->
             ( model, Just EditorPluginQuit )
 
@@ -314,11 +414,16 @@ topInterfaceView config model =
                 { onChange =
                     model.externalMsg << LabelPromptInput
                 , text =
-                    model.labelPromptInput
-                        |> Maybe.withDefault ""
+                    if model.labelPromptInput == Nothing then
+                        Maybe.andThen (\id -> Dict.get id model.blocks) model.selectedBlock
+                            |> Maybe.map .label
+                            |> Maybe.withDefault ""
+                    else
+                        model.labelPromptInput
+                            |> Maybe.withDefault ""
                 , placeholder = Nothing
                 , label =
-                    Input.labelLeft [] (el [] (text "Nom du bloc: "))
+                    Input.labelLeft [] (el [ centerY ] (text "Nom du bloc: "))
                 }
             , Input.button
                 (buttonStyle (model.labelPromptInput /= Nothing))
@@ -351,6 +456,20 @@ topInterfaceView config model =
                         model.selectedBlock
                 , label = text "Supprimer bloc"
                 }
+            , Input.button
+                (buttonStyle (model.selectedBlock /= Nothing))
+                { onPress =
+                    Maybe.map (\_ -> model.externalMsg (Move Left))
+                        model.selectedBlock
+                , label = text "Déplacer à gauche"
+                }
+            , Input.button
+                (buttonStyle (model.selectedBlock /= Nothing))
+                { onPress =
+                    Maybe.map (\_ -> model.externalMsg (Move Right))
+                        model.selectedBlock
+                , label = text "Déplacer à droite"
+                }
             ]
         ]
 
@@ -382,20 +501,64 @@ dropDownView config model =
                 , case model.linkType of
                     InternalLink ->
                         chooseInternalPageView
-                            model.externalMsg
+                            model
                             config.pageTreeEditor
                             config.zone
                             config.logInfo
 
                     DocLink ->
                         chooseDocView
-                            model.externalMsg
+                            model
                             config.fileExplorer
                             config.zone
                             config.logInfo
 
                     ExternalLink ->
-                        Element.none
+                        column
+                            [ spacing 15
+                            , padding 15
+                            ]
+                            [ row
+                                [ spacing 15 ]
+                                [ Input.text
+                                    (textInputStyle ++ [ width (px 300) ])
+                                    { onChange =
+                                        model.externalMsg << ExternalLinkPromptInput
+                                    , text =
+                                        if model.externalLinkInput == Nothing then
+                                            Maybe.andThen (\id -> Dict.get id model.blocks) model.selectedBlock
+                                                |> Maybe.map
+                                                    (\block ->
+                                                        if block.targetBlank then
+                                                            block.url
+                                                        else
+                                                            ""
+                                                    )
+                                                |> Maybe.withDefault ""
+                                        else
+                                            model.externalLinkInput
+                                                |> Maybe.withDefault ""
+                                    , placeholder = Nothing
+                                    , label =
+                                        Input.labelLeft [ centerY ] (el [] (text "Url lien externe: "))
+                                    }
+                                ]
+                            , row
+                                [ spacing 15 ]
+                                [ Input.button
+                                    (buttonStyle True)
+                                    { onPress = Just (model.externalMsg <| SetSelector Closed)
+                                    , label = text "Retour"
+                                    }
+                                , Input.button
+                                    (buttonStyle (model.externalLinkInput /= Nothing))
+                                    { onPress =
+                                        Maybe.map (\_ -> model.externalMsg ConfirmExternalLink)
+                                            model.externalLinkInput
+                                    , label = text "Valider"
+                                    }
+                                ]
+                            ]
                 ]
 
         Closed ->
@@ -403,12 +566,12 @@ dropDownView config model =
 
 
 chooseDocView :
-    (Msg -> msg)
+    Model msg
     -> FileExplorer.Model msg
     -> Time.Zone
     -> LogInfo
     -> Element.Element msg
-chooseDocView externalMsg fileExplorer zone logInfo =
+chooseDocView model fileExplorer zone logInfo =
     column
         [ paddingEach
             { top = 0
@@ -418,7 +581,27 @@ chooseDocView externalMsg fileExplorer zone logInfo =
             }
         , spacing 15
         ]
-        [ FileExplorer.view
+        [ row
+            [ paddingXY 15 0 ]
+            [ el [] (text "Document: ")
+            , el
+                [ Font.family
+                    [ Font.monospace ]
+                ]
+                (Maybe.andThen (\id -> Dict.get id model.blocks) model.selectedBlock
+                    |> Maybe.map .url
+                    |> Maybe.map
+                        (\url ->
+                            if String.startsWith "/baseDocumentaire" url then
+                                url
+                            else
+                                ""
+                        )
+                    |> Maybe.withDefault ""
+                    |> text
+                )
+            ]
+        , FileExplorer.view
             { maxHeight =
                 500
             , zone = zone
@@ -430,14 +613,14 @@ chooseDocView externalMsg fileExplorer zone logInfo =
             [ padding 15 ]
             [ Input.button
                 (buttonStyle True)
-                { onPress = Just (externalMsg <| SetSelector Closed)
+                { onPress = Just (model.externalMsg <| SetSelector Closed)
                 , label = text "Retour"
                 }
             , el [ paddingXY 15 0 ]
                 (Input.button
                     (buttonStyle (FileExplorer.getSelectedDoc fileExplorer /= Nothing) ++ [ alignTop ])
                     { onPress =
-                        Maybe.map (externalMsg << ConfirmDocUrl)
+                        Maybe.map (model.externalMsg << ConfirmDocUrl)
                             (FileExplorer.getSelectedDoc fileExplorer)
                     , label =
                         row [ spacing 5 ]
@@ -451,12 +634,12 @@ chooseDocView externalMsg fileExplorer zone logInfo =
 
 
 chooseInternalPageView :
-    (Msg -> msg)
+    Model msg
     -> PageTreeEditor.Model msg
     -> Time.Zone
     -> LogInfo
     -> Element.Element msg
-chooseInternalPageView externalMsg pageTreeEditor zone logInfo =
+chooseInternalPageView model pageTreeEditor zone logInfo =
     column
         [ paddingEach
             { top = 0
@@ -467,7 +650,26 @@ chooseInternalPageView externalMsg pageTreeEditor zone logInfo =
         , spacing 15
         , width fill
         ]
-        [ PageTreeEditor.view
+        [ row
+            [ paddingXY 15 0 ]
+            [ el [] (text "Url: ")
+            , el
+                [ Font.family
+                    [ Font.monospace ]
+                ]
+                (Maybe.andThen (\id -> Dict.get id model.blocks) model.selectedBlock
+                    |> Maybe.map .url
+                    |> Maybe.andThen
+                        (\url ->
+                            PageTreeEditor.getPathFromId
+                                pageTreeEditor
+                                url
+                        )
+                    |> Maybe.withDefault ""
+                    |> text
+                )
+            ]
+        , PageTreeEditor.view
             { maxHeight =
                 500
             , zone = zone
@@ -479,7 +681,7 @@ chooseInternalPageView externalMsg pageTreeEditor zone logInfo =
             [ padding 15 ]
             [ Input.button
                 (buttonStyle True)
-                { onPress = Just (externalMsg <| SetSelector Closed)
+                { onPress = Just (model.externalMsg <| SetSelector Closed)
                 , label = text "Retour"
                 }
             , el [ paddingXY 15 0 ]
@@ -489,7 +691,7 @@ chooseInternalPageView externalMsg pageTreeEditor zone logInfo =
                         PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor
                             |> Maybe.andThen .mbContentId
                             |> Maybe.map canonical
-                            |> Maybe.map (externalMsg << ConfirmInternalPageUrl)
+                            |> Maybe.map (model.externalMsg << ConfirmInternalPageUrl)
                     , label =
                         row [ spacing 5 ]
                             [ el [] (html <| Icons.externalLink iconSize)
@@ -548,18 +750,10 @@ imagePickerView config model =
 
 blockLinksPreview : Document.Config msg -> Model msg -> Element msg
 blockLinksPreview config model =
-    --el
-    --    [ width fill
-    --    ]
     wrappedRow
-        --paragraph
         [ width fill
         , height (maximum 600 fill)
         , scrollbarY
-
-        --, spacing 15
-        --, scrollbars
-        --, clip
         ]
         (Dict.foldr
             (\id block acc ->
