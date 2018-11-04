@@ -137,9 +137,9 @@ type alias Config msg =
     , mainInterfaceHeight : Int
     , customElems :
         Dict String (Element msg)
-    , styleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
     , zipperHandlers : Maybe (ZipperHandlers msg)
     , editMode : Bool
+    , previewMode : PreviewMode
     , containersBkgColors : Bool
     , season : Season
     , pageIndex : Dict String String

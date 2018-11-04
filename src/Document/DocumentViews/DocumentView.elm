@@ -15,6 +15,7 @@ import Element.Region as Region
 import Html as Html
 import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
+import Internals.CommonHelpers exposing (chunks)
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as Decode
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
@@ -66,27 +67,70 @@ renderDoc config document =
                     renderEmptyCell config id attrs
 
 
+renderBlockLinks : Config msg -> Id -> List DocAttribute -> List BlockLinkMeta -> List (Element msg)
 renderBlockLinks config id attrs meta =
-    [ wrappedRow
-        [ spacing 15
+    let
+        maxWidth =
+            docMaxWidth
+                ( config.width, config.height )
+                config.editMode
+                config.previewMode
 
-        --, Background.color (rgba255 255 255 0 1)
-        --, if config.width < 615 then
-        --    width (px 300)
-        --  else if config.width < 930 then
-        --    width (px 615)
-        --  else
-        --    width (px 930)
-        , centerX
+        device =
+            Element.classifyDevice
+                { height = config.height
+                , width = config.width
+                }
+
+        nbrChunks =
+            if config.editMode then
+                case config.previewMode of
+                    PreviewPhone ->
+                        1
+
+                    PreviewTablet ->
+                        2
+
+                    PreviewScreen ->
+                        3
+
+                    PreviewBigScreen ->
+                        3
+            else
+                case device.class of
+                    Phone ->
+                        1
+
+                    Tablet ->
+                        2
+
+                    Desktop ->
+                        3
+
+                    BigDesktop ->
+                        3
+
+        rows =
+            chunks nbrChunks
+                (List.map (renderBlocksLinksMeta config id attrs) meta)
+                |> List.map
+                    (row
+                        [ centerX, spacing 10 ]
+                    )
+    in
+    [ column
+        [ width fill
+        , spacing 10
         ]
-        (List.map (renderBlocksLinksMeta config id attrs) meta)
+        rows
     ]
 
 
+renderBlocksLinksMeta : Config msg -> Id -> List DocAttribute -> BlockLinkMeta -> Element msg
 renderBlocksLinksMeta config id attrs { image, label, targetBlank, url } =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
 
         linkFun =
             if targetBlank then
@@ -108,8 +152,11 @@ renderBlocksLinksMeta config id attrs { image, label, targetBlank, url } =
                     ++ [ width (px 300)
                        , height (px 225)
                        , Background.color (rgb255 119 136 153)
-                       , mouseOver
-                            [ Background.color (rgba255 119 136 153 0.5) ]
+                       , if not config.editMode then
+                            mouseOver
+                                [ Background.color (rgba255 119 136 153 0.5) ]
+                         else
+                            noAttr
                        ]
                 )
                 (el
@@ -123,11 +170,17 @@ renderBlocksLinksMeta config id attrs { image, label, targetBlank, url } =
                             [ alignBottom
                             , width fill
                             , padding 10
-                            , Font.center
                             , Background.color (rgba255 119 136 153 0.8)
                             , Font.color (rgba255 240 248 255 1)
                             ]
-                            (text label)
+                            (el
+                                ([ Font.center
+                                 , width fill
+                                 ]
+                                    ++ unselectable
+                                )
+                                (text label)
+                            )
                         )
                     ]
                     Element.none
@@ -150,7 +203,7 @@ renderTextBlock config id attrs xs =
 renderTextBlockElement config id tbAttrs tbe =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     case tbe of
         Paragraph attrs xs ->
@@ -195,13 +248,12 @@ renderTextBlockElement config id tbAttrs tbe =
 renderTextBlockPrimitive config tbAttrs p =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     case p of
         Text attrs s ->
             el
                 (styleSheet.textStyle
-                    --++ idStyle config.styleSheet id
                     ++ renderAttrs config tbAttrs
                     ++ renderAttrs config attrs
                 )
@@ -257,7 +309,7 @@ renderLi config tbAttrs li =
 renderColumn config id attrs children =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     [ column
         (styleSheet.columnStyle
@@ -277,7 +329,7 @@ renderColumn config id attrs children =
 renderRow config id attrs children =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     [ row
         (styleSheet.rowStyle
@@ -296,7 +348,7 @@ renderRow config id attrs children =
 renderTextColumn config id attrs children =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     [ textColumn
         (styleSheet.textColumnStyle
@@ -315,10 +367,10 @@ renderTextColumn config id attrs children =
 renderResponsiveBloc config id attrs children =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     [ row
-        (styleSheet.responsiveBlocStyle
+        (styleSheet.respBlocStyle
             ++ idStyle styleSheet id
             ++ renderAttrs config attrs
         )
@@ -329,7 +381,7 @@ renderResponsiveBloc config id attrs children =
 renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, size } =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
 
         attrs_ =
             [ width (maximum size.imgWidth fill)
@@ -365,7 +417,7 @@ renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
                 ++ renderAttrs config attrs
 
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     [ el attrs_
         (html <|
@@ -389,7 +441,7 @@ renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
 renderTable config id attrs { style, nbrRows, nbrCols, data } =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
 
         columns =
             List.map
@@ -442,7 +494,6 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
                ]
             ++ idStyle styleSheet id
             ++ renderAttrs config attrs
-         --++ idStyle config.styleSheet id
         )
         { data = data
         , columns = columns
@@ -459,7 +510,7 @@ renderCustomElement config id attrs s =
 renderEmptyCell config id attrs =
     let
         styleSheet =
-            config.styleSheet config.season ( config.width, config.height ) config.editMode
+            defaultStyleSheet config
     in
     [ row
         ([ width fill

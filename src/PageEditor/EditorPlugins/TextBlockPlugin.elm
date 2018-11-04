@@ -21,6 +21,7 @@ import Hex exposing (fromString)
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
+import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons as Icons exposing (..)
 import Json.Decode as Decode
@@ -2539,20 +2540,6 @@ hexColorToDocColor hexColor =
                 |> toFloat
     in
     DocColor (red / 255) (green / 255) (blue / 255)
-
-
-chunks : Int -> List a -> List (List a)
-chunks n xs =
-    let
-        helper acc ys =
-            case ys of
-                [] ->
-                    List.reverse acc
-
-                _ ->
-                    helper (List.take n ys :: acc) (List.drop n ys)
-    in
-    helper [] xs
 
 
 updateAttrs :

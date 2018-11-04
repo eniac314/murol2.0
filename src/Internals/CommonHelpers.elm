@@ -29,6 +29,20 @@ type alias Log =
     }
 
 
+chunks : Int -> List a -> List (List a)
+chunks n xs =
+    let
+        helper acc ys =
+            case ys of
+                [] ->
+                    List.reverse acc
+
+                _ ->
+                    helper (List.take n ys :: acc) (List.drop n ys)
+    in
+    helper [] xs
+
+
 newLog :
     ((Time.Posix -> Log) -> Time.Posix -> msg)
     -> String

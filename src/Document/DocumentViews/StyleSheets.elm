@@ -12,8 +12,8 @@ import Html.Attributes as Attr
 import Time exposing (Month(..), Posix, Zone, toDay, toMonth)
 
 
-docMaxWidth : ( Int, Int ) -> Bool -> Int
-docMaxWidth ( winWidth, winHeight ) editMode =
+docMaxWidth : ( Int, Int ) -> Bool -> PreviewMode -> Int
+docMaxWidth ( winWidth, winHeight ) editMode previewMode =
     let
         device =
             Element.classifyDevice
@@ -22,11 +22,22 @@ docMaxWidth ( winWidth, winHeight ) editMode =
                 }
     in
     if editMode then
-        900
+        case previewMode of
+            PreviewBigScreen ->
+                1000
+
+            PreviewTablet ->
+                768
+
+            PreviewPhone ->
+                320
+
+            _ ->
+                950
     else if device.class == BigDesktop then
         1000
     else
-        900
+        950
 
 
 type alias StyleSheet msg =
@@ -47,8 +58,27 @@ type alias StyleSheet msg =
     }
 
 
-defaultStyleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
-defaultStyleSheet season ( winWidth, winHeight ) editMode =
+type PreviewMode
+    = PreviewBigScreen
+    | PreviewScreen
+    | PreviewTablet
+    | PreviewPhone
+
+
+
+--defaultStyleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
+--defaultStyleSheet :
+--    { config
+--        | season : Season
+--        , winWidth : Int
+--        , winHeight : Int
+--        , editMode : Bool
+--        , previewMode : PreviewMode
+--    }
+--    -> StyleSheet msg
+
+
+defaultStyleSheet config =
     { paragraphStyle =
         [ width fill
         ]
@@ -73,7 +103,10 @@ defaultStyleSheet season ( winWidth, winHeight ) editMode =
     , linkStyle =
         [ Font.color (rgb 0 0.5 0.5) ]
     , headingStyles =
-        headingStyles season ( winWidth, winHeight ) editMode
+        headingStyles
+            config.season
+            ( config.width, config.height )
+            config.editMode
     , customStyles =
         { idNbrs =
             Dict.fromList
@@ -82,7 +115,15 @@ defaultStyleSheet season ( winWidth, winHeight ) editMode =
                     , spacing 15
                     , Font.family [ Font.typeface "Arial" ]
                     , Font.size 16
-                    , width (maximum (docMaxWidth ( winWidth, winHeight ) editMode) fill)
+                    , width
+                        (maximum
+                            (docMaxWidth
+                                ( config.width, config.height )
+                                config.editMode
+                                config.previewMode
+                            )
+                            fill
+                        )
                     , height fill
                     , centerX
                     ]

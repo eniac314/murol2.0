@@ -146,7 +146,6 @@ type alias Model msg =
     , controlDown : Bool
     , menuClicked : Bool
     , menuFocused : String
-    , previewMode : PreviewMode
     , funnelState : FunnelState
     , localStorageKey : String
     , localStorageValue : Maybe Value
@@ -166,13 +165,6 @@ currentDocument : Model msg -> Document
 currentDocument model =
     rewind model.document
         |> extractDoc
-
-
-type PreviewMode
-    = PreviewBigScreen
-    | PreviewScreen
-    | PreviewTablet
-    | PreviewPhone
 
 
 type Msg
@@ -276,9 +268,9 @@ reset mbDoc externalMsg =
             , height = 1080
             , mainInterfaceHeight = 75
             , customElems = Dict.empty
-            , styleSheet = defaultStyleSheet
             , zipperHandlers = Just handlers
             , editMode = True
+            , previewMode = PreviewScreen
             , containersBkgColors = False
             , season = Spring
             , pageIndex = Dict.empty
@@ -295,7 +287,6 @@ reset mbDoc externalMsg =
       , controlDown = False
       , menuClicked = False
       , menuFocused = ""
-      , previewMode = PreviewBigScreen
       , funnelState = funnelState
       , localStorageKey = ""
       , localStorageValue = Nothing
@@ -369,6 +360,11 @@ internalUpdate config msg model =
                     { ws
                         | width = round vp.viewport.width
                         , height = round vp.viewport.height
+                        , previewMode =
+                            if vp.viewport.width < 1300 then
+                                PreviewTablet
+                            else
+                                PreviewScreen
                     }
               }
             , Cmd.none
@@ -683,24 +679,12 @@ internalUpdate config msg model =
                 config_ =
                     model.config
 
-                newWidth =
-                    case pm of
-                        PreviewBigScreen ->
-                            1920
-
-                        PreviewScreen ->
-                            1268
-
-                        PreviewTablet ->
-                            1024
-
-                        PreviewPhone ->
-                            480
-
                 newConfig =
-                    { config_ | width = newWidth }
+                    { config_
+                        | previewMode = pm
+                    }
             in
-            ( { model | previewMode = pm, config = newConfig }
+            ( { model | config = newConfig }
             , Cmd.none
             )
 
@@ -1187,7 +1171,7 @@ view config model =
             , undoCacheEmpty = model.undoCache == []
             , selectionIsRoot = zipUp model.document == Nothing
             , selectionIsContainer = isContainer (extractDoc model.document)
-            , previewMode = model.previewMode
+            , previewMode = model.config.previewMode
             , containersBkgColors = model.config.containersBkgColors
             , logInfo = config.logInfo
             , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
@@ -1236,19 +1220,21 @@ documentView model =
         -- needed to be able to scroll
         , width fill
         , htmlAttribute <| HtmlAttr.id "documentContainer"
-        , case model.previewMode of
+        , case model.config.previewMode of
             PreviewBigScreen ->
                 width fill
 
             PreviewScreen ->
-                width (px 1268)
+                width (px 980)
 
             PreviewTablet ->
-                width (px 1024)
+                width (px 800)
 
             PreviewPhone ->
-                width (px 480)
+                width (px 350)
         , centerX
+
+        --, clipX
         ]
         (model.document
             |> addZipperHandlers

@@ -118,6 +118,13 @@ main =
 
 
 subscriptions model =
+    let
+        device =
+            Element.classifyDevice
+                { height = winHeight
+                , width = winWidth
+                }
+    in
     Sub.batch
         [ onResize WinResize
         , searchResult ProcessSearchResult
@@ -136,10 +143,10 @@ init flags url key =
             , height = 1080
             , width = 1920
             , mainInterfaceHeight = 0
-            , styleSheet = StyleSheets.defaultStyleSheet
             , zipperHandlers = Nothing
             , season = StyleSheets.Spring
             , pageIndex = Dict.empty
+            , previewMode = PreviewScreen
             }
 
         url_ =
@@ -377,6 +384,7 @@ view model =
                     , model.config.height
                     )
                     False
+                    model.config.previewMode
         in
         [ Element.layout
             [ width fill
@@ -682,6 +690,7 @@ mainView maxWidth model =
                 [ centerX
                 , width (maximum maxWidth fill)
                 , Background.color (rgba 1 1 1 0.9)
+                , clipX
                 ]
                 (responsivePreFormat model.config doc
                     |> renderDoc model.config
@@ -790,6 +799,7 @@ footerView model =
                         , model.config.height
                         )
                         False
+                        model.config.previewMode
             in
             wrappedRow
                 [ width (maximum maxWidth fill)

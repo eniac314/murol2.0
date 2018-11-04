@@ -86,3 +86,14 @@ noAttr =
 
 noHtmlAttr =
     HtmlAttr.class ""
+
+
+unselectable =
+    List.map htmlAttribute
+        [ HtmlAttr.style "-webkit-touch-callout" "none"
+        , HtmlAttr.style "-webkit-user-select" "none"
+        , HtmlAttr.style "-khtml-user-select" "none"
+        , HtmlAttr.style "-moz-user-select" "none"
+        , HtmlAttr.style "-ms-user-select" "none"
+        , HtmlAttr.style "user-select" "none"
+        ]
