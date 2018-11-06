@@ -12,6 +12,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
 import FileExplorer.FileExplorer as FileExplorer
+import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (..)
 import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
@@ -38,7 +39,7 @@ type alias Model =
     { pageEditor : PageEditor.Model Msg
     , pageTreeEditor : PageTreeEditor.Model Msg
     , fileExplorer : FileExplorer.Model Msg
-    , generalDirectory : ()
+    , generalDirectory : GeneralDirectoryEditor.Model Msg
     , newsEditor : ()
     , authTool : Auth.Model Msg
     , loadingStatus : LoadingStatus
@@ -72,11 +73,14 @@ init flags =
 
         ( newPageEditor, pageEditorCmds ) =
             PageEditor.init Nothing PageEditorMsg
+
+        ( newGeneralDirectory, generalDirectoryCmds ) =
+            GeneralDirectoryEditor.init GeneralDirectoryMsg
     in
     ( { pageEditor = newPageEditor
       , pageTreeEditor = newPageTreeEditor
       , fileExplorer = newFileExplorer
-      , generalDirectory = ()
+      , generalDirectory = newGeneralDirectory
       , newsEditor = ()
       , authTool = Auth.init AuthMsg
       , loadingStatus = WaitingForLogin
@@ -87,6 +91,7 @@ init flags =
       }
     , Cmd.batch
         [ pageEditorCmds
+        , generalDirectoryCmds
         , Task.perform CurrentViewport Dom.getViewport
         , Task.perform SetZone Time.here
         ]
@@ -105,6 +110,7 @@ type Msg
     | FileExplorerMsg FileExplorer.Msg
     | PageEditorMsg PageEditor.Msg
     | PageTreeEditorMsg PageTreeEditor.Msg
+    | GeneralDirectoryMsg GeneralDirectoryEditor.Msg
     | SetCurrentTool Tool
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
@@ -211,6 +217,19 @@ update msg model =
             in
             ( { model | pageTreeEditor = newPageTreeEditor }
             , pageTreeEditorCmds
+            )
+
+        GeneralDirectoryMsg generalDirectoryMsg ->
+            let
+                ( newGeneralDirectory, generalDirectoryCmds ) =
+                    GeneralDirectoryEditor.update
+                        generalDirectoryMsg
+                        model.generalDirectory
+            in
+            ( { model
+                | generalDirectory = newGeneralDirectory
+              }
+            , generalDirectoryCmds
             )
 
         SetCurrentTool t ->
@@ -366,7 +385,8 @@ view model =
                                     model.pageTreeEditor
 
                             GeneralDirectoryTool ->
-                                Element.none
+                                GeneralDirectoryEditor.view
+                                    model.generalDirectory
 
                             NewsEditorTool ->
                                 Element.none

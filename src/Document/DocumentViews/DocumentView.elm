@@ -18,6 +18,7 @@ import Html.Events exposing (on, onMouseOut, onMouseOver)
 import Internals.CommonHelpers exposing (chunks)
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as Decode
+import Murmur3 exposing (hashString)
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
 import Set exposing (..)
 
@@ -187,7 +188,14 @@ renderBlocksLinksMeta config id attrs { image, label, targetBlank, url } =
                 )
     in
     if config.editMode then
-        block
+        Keyed.el
+            []
+            ( hashString
+                0
+                (image ++ url ++ label)
+                |> String.fromInt
+            , block
+            )
     else
         linkFun
             []

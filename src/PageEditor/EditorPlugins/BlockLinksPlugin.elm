@@ -372,7 +372,7 @@ view config renderConfig model =
         , alignTop
         , width fill
         ]
-        [ topInterfaceView config model
+        [ topInterfaceView config renderConfig model
         , blockLinksPreview renderConfig model
         , Element.map model.externalMsg <|
             bottomInterfaceView
@@ -386,9 +386,10 @@ topInterfaceView :
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
     }
+    -> Document.Config msg
     -> Model msg
     -> Element.Element msg
-topInterfaceView config model =
+topInterfaceView config renderConfig model =
     column
         [ spacing 15
         , below <|
@@ -405,7 +406,7 @@ topInterfaceView config model =
                         , color = rgba 0 0 0 0.45
                         }
                     ]
-                    (dropDownView config model)
+                    (dropDownView config renderConfig model)
         ]
         [ row
             [ spacing 15 ]
@@ -431,13 +432,29 @@ topInterfaceView config model =
                 , label = text "Valider"
                 }
             , Input.button
-                (buttonStyle (model.selector == Closed))
-                { onPress = Just <| model.externalMsg (SetSelector SelectingImages)
+                (buttonStyle
+                    (model.selectedBlock
+                        /= Nothing
+                        && (model.selector == Closed)
+                    )
+                )
+                { onPress =
+                    Maybe.map
+                        (\_ -> model.externalMsg (SetSelector SelectingImages))
+                        model.selectedBlock
                 , label = text "Modifier Image"
                 }
             , Input.button
-                (buttonStyle (model.selector == Closed))
-                { onPress = Just <| model.externalMsg (SetSelector SelectingLink)
+                (buttonStyle
+                    (model.selectedBlock
+                        /= Nothing
+                        && (model.selector == Closed)
+                    )
+                )
+                { onPress =
+                    Maybe.map
+                        (\_ -> model.externalMsg (SetSelector SelectingLink))
+                        model.selectedBlock
                 , label = text "Modifier lien"
                 }
             ]
@@ -474,10 +491,10 @@ topInterfaceView config model =
         ]
 
 
-dropDownView config model =
+dropDownView config renderConfig model =
     case model.selector of
         SelectingImages ->
-            imagePickerView config model
+            imagePickerView config renderConfig model
 
         SelectingLink ->
             column
@@ -502,6 +519,7 @@ dropDownView config model =
                     InternalLink ->
                         chooseInternalPageView
                             model
+                            renderConfig
                             config.pageTreeEditor
                             config.zone
                             config.logInfo
@@ -509,6 +527,7 @@ dropDownView config model =
                     DocLink ->
                         chooseDocView
                             model
+                            renderConfig
                             config.fileExplorer
                             config.zone
                             config.logInfo
@@ -567,11 +586,12 @@ dropDownView config model =
 
 chooseDocView :
     Model msg
+    -> Document.Config msg
     -> FileExplorer.Model msg
     -> Time.Zone
     -> LogInfo
     -> Element.Element msg
-chooseDocView model fileExplorer zone logInfo =
+chooseDocView model renderConfig fileExplorer zone logInfo =
     column
         [ paddingEach
             { top = 0
@@ -598,12 +618,21 @@ chooseDocView model fileExplorer zone logInfo =
                                 ""
                         )
                     |> Maybe.withDefault ""
-                    |> text
+                    |> (\t ->
+                            paragraph
+                                [ Font.family
+                                    [ Font.monospace ]
+                                ]
+                                [ text t ]
+                       )
                 )
             ]
         , FileExplorer.view
             { maxHeight =
-                500
+                if renderConfig.height < 800 then
+                    400
+                else
+                    500
             , zone = zone
             , logInfo = logInfo
             , mode = FileExplorer.ReadOnly FileExplorer.DocsRoot
@@ -635,11 +664,12 @@ chooseDocView model fileExplorer zone logInfo =
 
 chooseInternalPageView :
     Model msg
+    -> Document.Config msg
     -> PageTreeEditor.Model msg
     -> Time.Zone
     -> LogInfo
     -> Element.Element msg
-chooseInternalPageView model pageTreeEditor zone logInfo =
+chooseInternalPageView model renderConfig pageTreeEditor zone logInfo =
     column
         [ paddingEach
             { top = 0
@@ -671,7 +701,10 @@ chooseInternalPageView model pageTreeEditor zone logInfo =
             ]
         , PageTreeEditor.view
             { maxHeight =
-                500
+                if renderConfig.height < 800 then
+                    400
+                else
+                    500
             , zone = zone
             , logInfo = logInfo
             , mode = PageTreeEditor.Select
@@ -709,9 +742,10 @@ imagePickerView :
         , logInfo : LogInfo
         , zone : Zone
     }
+    -> Document.Config msg
     -> Model msg
     -> Element msg
-imagePickerView config model =
+imagePickerView config renderConfig model =
     column
         [ height fill
         , paddingEach
@@ -723,7 +757,10 @@ imagePickerView config model =
         ]
         [ FileExplorer.view
             { maxHeight =
-                500
+                if renderConfig.height < 800 then
+                    400
+                else
+                    500
             , zone = config.zone
             , logInfo = config.logInfo
             , mode = FileExplorer.ReadWrite FileExplorer.ImagesRoot
