@@ -1,5 +1,6 @@
 module GeneralDirectoryEditor.GeneralDirectoryEditor exposing (..)
 
+import Base64 exposing (..)
 import Dict exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -8,8 +9,12 @@ import Element.Events as Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
+import Html as Html
+import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Random exposing (..)
 import Set exposing (..)
 import UUID exposing (..)
@@ -47,15 +52,129 @@ type alias Fiche =
     , label : List Label
     , rank : Rank
     , nomEntite : String
-    , nomResponsable : Maybe String
-    , siegeSocial : Maybe String
+    , responsables : List Responsable
     , adresse : String
-    , telNumber : TelNumber
+    , telNumber : Maybe TelNumber
     , fax : Maybe String
-    , email : Maybe String
+    , email : List String
     , site : Maybe String
+    , pjaun : Maybe String
     , visuel : String
     , description : List String
+    , ouverture : Maybe Ouverture
+    }
+
+
+encodeFiche : Fiche -> Encode.Value
+encodeFiche f =
+    Encode.object
+        [ ( "uuid", Encode.string (UUID.canonical f.uuid) )
+        , ( "categories", Encode.list Encode.string f.categories )
+        , ( "natureActiv", Encode.list Encode.string f.natureActiv )
+        , ( "refOt"
+          , Maybe.map (\( n, s ) -> Encode.object [ ( "ref", Encode.int n ), ( "link", Encode.string s ) ]) f.refOt
+                |> Maybe.withDefault Encode.null
+          )
+        , ( "label"
+          , Encode.list
+                (\{ nom, logo, lien } ->
+                    Encode.object
+                        [ ( "nom", Encode.string nom )
+                        , ( "logo", Encode.string logo )
+                        , ( "lien", Encode.string lien )
+                        ]
+                )
+                f.label
+          )
+        , ( "rank"
+          , Encode.object
+                [ ( "stars"
+                  , Maybe.map Encode.int f.rank.stars
+                        |> Maybe.withDefault Encode.null
+                  )
+                , ( "epis"
+                  , Maybe.map Encode.int f.rank.epis
+                        |> Maybe.withDefault Encode.null
+                  )
+                ]
+          )
+        , ( "nomEntite", Encode.string f.nomEntite )
+        , ( "responsables"
+          , Encode.list
+                (\r ->
+                    Encode.object
+                        [ ( "poste", Encode.string r.poste )
+                        , ( "nom", Encode.string r.nom )
+                        , ( "tel"
+                          , encodeTel r.tel
+                          )
+                        ]
+                )
+                f.responsables
+          )
+        , ( "adresse", Encode.string f.adresse )
+        , ( "telNumber"
+          , Maybe.map encodeTel f.telNumber
+                |> Maybe.withDefault Encode.null
+          )
+        , ( "fax"
+          , Maybe.map Encode.string f.fax
+                |> Maybe.withDefault Encode.null
+          )
+        , ( "email", Encode.list Encode.string f.email )
+        , ( "site"
+          , Maybe.map Encode.string f.site
+                |> Maybe.withDefault Encode.null
+          )
+        , ( "pjaun"
+          , Maybe.map Encode.string f.pjaun
+                |> Maybe.withDefault Encode.null
+          )
+        , ( "visuel"
+          , Encode.string f.visuel
+          )
+        , ( "description"
+          , Encode.list Encode.string f.description
+          )
+        , ( "ouverture"
+          , Maybe.map
+                (\o ->
+                    case o of
+                        TteAnnee ->
+                            Encode.string "TteAnnee"
+
+                        Saisoniere ->
+                            Encode.string "Saisoniere"
+                )
+                f.ouverture
+                |> Maybe.withDefault Encode.null
+          )
+        ]
+
+
+encodeTel tel =
+    case tel of
+        TelFixe s ->
+            Encode.object [ ( "TelFixe", Encode.string s ) ]
+
+        TelPortable s ->
+            Encode.object [ ( "TelPortable", Encode.string s ) ]
+
+        TelBoth ( s1, s2 ) ->
+            Encode.object
+                [ ( "TelBoth"
+                  , Encode.object
+                        [ ( "TelFixe", Encode.string s1 )
+                        , ( "TelPortable", Encode.string s2 )
+                        ]
+                  )
+                ]
+
+
+type alias Responsable =
+    { poste : String
+    , nom : String
+    , tel : TelNumber
     }
 
 
@@ -63,6 +182,11 @@ type TelNumber
     = TelFixe String
     | TelPortable String
     | TelBoth ( String, String )
+
+
+type Ouverture
+    = Saisoniere
+    | TteAnnee
 
 
 type Categorie
@@ -252,7 +376,7 @@ ficheSelectorView model =
 formsView model =
     column
         []
-        []
+        [ fichesToJsonLink ]
 
 
 
@@ -267,6 +391,25 @@ toMbStr s =
         Nothing
     else
         Just s
+
+
+toTelNbr t =
+    case String.split " / " t of
+        fixe :: portable :: [] ->
+            TelBoth ( fixe, portable )
+
+        tel :: [] ->
+            if String.startsWith "06" tel then
+                TelPortable t
+            else
+                TelFixe t
+
+        _ ->
+            TelFixe t
+
+
+
+-------------------------------------------------------------------------------
 
 
 type LabelOld
@@ -332,28 +475,197 @@ tableEntryToFiche cat activ tEntry =
                 |> Maybe.andThen String.toInt
         }
     , nomEntite = tEntry.name
-    , nomResponsable = Nothing
-    , siegeSocial = Nothing
+    , responsables = []
     , adresse = tEntry.addr
-    , telNumber =
-        case String.split " / " tEntry.tel of
-            fixe :: portable :: [] ->
-                TelBoth ( fixe, portable )
-
-            tel :: [] ->
-                if String.startsWith "06" tel then
-                    TelPortable tEntry.tel
-                else
-                    TelFixe tEntry.tel
-
-            _ ->
-                TelFixe tEntry.tel
+    , telNumber = Just <| toTelNbr tEntry.tel
     , fax = toMbStr tEntry.fax
-    , email = toMbStr tEntry.mail
+    , email =
+        if tEntry.mail == "" then
+            []
+        else
+            [ tEntry.mail ]
     , site = toMbStr tEntry.site
+    , pjaun = toMbStr tEntry.pjaun
     , visuel = ""
     , description = tEntry.descr
+    , ouverture = Nothing
     }
+
+
+
+-------------------------------------------------------------------------------
+
+
+type alias Entreprise =
+    { name : String
+    , descr : List String
+    , addr : String
+    , tel : String
+    , fax : String
+    , mail : String
+    , site : String
+    }
+
+
+defArt =
+    Entreprise "" [] "" "" "" "" ""
+
+
+entrepriseToFiche : String -> Entreprise -> Fiche
+entrepriseToFiche activ e =
+    { uuid = UUID.nil
+    , categories = [ "Entreprise" ]
+    , natureActiv = [ activ ]
+    , refOt = Nothing
+    , label = []
+    , rank = { stars = Nothing, epis = Nothing }
+    , nomEntite = e.name
+    , responsables = []
+    , adresse = e.addr
+    , telNumber = Just <| toTelNbr e.tel
+    , fax = toMbStr e.fax
+    , email =
+        if e.mail == "" then
+            []
+        else
+            [ e.mail ]
+    , site = toMbStr e.site
+    , pjaun = Nothing
+    , visuel = ""
+    , description = e.descr
+    , ouverture = Nothing
+    }
+
+
+
+-------------------------------------------------------------------------------
+
+
+type alias Commerce =
+    { name : String
+    , descr : List String
+    , addr : String
+    , tel : String
+    , fax : String
+    , mail : String
+    , site : String
+    , pjaun : String
+    , refOt : Maybe ( String, String )
+    }
+
+
+defCom =
+    Commerce "" [] "" "" "" "" "" "" Nothing
+
+
+commerceToFiche : String -> Ouverture -> Commerce -> Fiche
+commerceToFiche activ ouverture com =
+    { uuid = UUID.nil
+    , categories = [ "Commerce" ]
+    , natureActiv = [ activ ]
+    , refOt =
+        Maybe.andThen
+            (\( ref, link ) ->
+                Just
+                    ( Maybe.withDefault 0 (String.toInt ref)
+                    , link
+                    )
+            )
+            com.refOt
+    , label = []
+    , rank = { stars = Nothing, epis = Nothing }
+    , nomEntite = com.name
+    , responsables = []
+    , adresse = com.addr
+    , telNumber = Just <| toTelNbr com.tel
+    , fax = toMbStr com.fax
+    , email =
+        if com.mail == "" then
+            []
+        else
+            [ com.mail ]
+    , site = toMbStr com.site
+    , pjaun = toMbStr com.pjaun
+    , visuel = ""
+    , description = com.descr
+    , ouverture = Just ouverture
+    }
+
+
+
+-------------------------------------------------------------------------------
+
+
+type alias Assoc =
+    { nom : String
+    , preci : String
+    , domaine : String
+    , siege : String
+    , affil : String
+    , resp : List { poste : String, nom : String, tel : String }
+    , mails : List String
+    , sites : List String
+    , logo : String
+    , cat : Category
+    }
+
+
+type Category
+    = Culture
+    | Sport
+    | Pro
+
+
+emptyAssoc =
+    Assoc "" "" "" "" "" [] [] [] "" Culture
+
+
+assocToFiche : Assoc -> Fiche
+assocToFiche assoc =
+    { uuid = UUID.nil
+    , categories =
+        [ "Association" ]
+    , natureActiv =
+        case assoc.cat of
+            Culture ->
+                [ "Culture, Evénementiel, Solidarité" ]
+
+            Pro ->
+                [ "Professionnel" ]
+
+            Sport ->
+                [ "Sport" ]
+    , refOt = Nothing
+    , label = []
+    , rank = { stars = Nothing, epis = Nothing }
+    , nomEntite = assoc.nom
+    , responsables =
+        List.map (\{ poste, nom, tel } -> Responsable poste nom (toTelNbr tel)) assoc.resp
+    , adresse = assoc.siege
+    , telNumber = Nothing
+    , fax = Nothing
+    , email = assoc.mails
+    , site =
+        case assoc.sites of
+            [] ->
+                Nothing
+
+            x :: xs ->
+                Just x
+    , pjaun = Nothing
+    , visuel = ""
+    , description =
+        [ assoc.preci, assoc.domaine, assoc.affil ]
+            |> List.filter (\s -> s /= "")
+    , ouverture = Nothing
+    }
+
+
+
+-------------------------------------------------------------------------------
+----------------------
+-- Database builder --
+----------------------
 
 
 setUUIDS : Random.Seed -> List Fiche -> ( Random.Seed, List Fiche )
@@ -379,8 +691,7 @@ doublonValide f1 f2 =
         && (f1.label == f2.label)
         && (f1.rank == f2.rank)
         && (f1.nomEntite == f2.nomEntite)
-        && (f1.nomResponsable == f2.nomResponsable)
-        && (f1.siegeSocial == f2.siegeSocial)
+        && (f1.responsables == f2.responsables)
         && (f1.adresse == f2.adresse)
         && (f1.telNumber == f2.telNumber)
         && (f1.fax == f2.fax)
@@ -439,15 +750,174 @@ database seed =
                 ++ chambresHotes
                 ++ meubles
 
+        commerces =
+            commercesYL
+                ++ commercesSummer
+
         data =
             hebergements
                 ++ restaurants
+                ++ entreprises
+                ++ commerces
+                ++ associations
     in
     setUUIDS seed data
         |> Tuple.second
         |> List.map (\f -> ( canonical f.uuid, f ))
         |> Dict.fromList
         |> mergeMultiple
+
+
+csvDatabase =
+    database (initialSeed 0)
+        |> (\( res, double, errors ) ->
+                fichesToCsv (Dict.values res)
+           )
+
+
+
+-------------------------------------------------------------------------------
+--------------------
+-- Export to excel--
+--------------------
+--type alias Responsable =
+--    { poste : String
+--    , nom : String
+--    , tel : TelNumber
+--    }
+--type TelNumber
+--    = TelFixe String
+--    | TelPortable String
+--    | TelBoth ( String, String )
+
+
+fichesToJsonLink =
+    database (initialSeed 0)
+        |> (\( res, double, errors ) ->
+                List.map encodeFiche (Dict.values res)
+                    |> Encode.list identity
+                    |> Encode.encode 0
+                    |> (\data ->
+                            el []
+                                (html <|
+                                    Html.a
+                                        [ HtmlAttr.href <|
+                                            "data:application/octet-stream;charset=utf-16le;base64,"
+                                                ++ Base64.encode data
+                                        , HtmlAttr.download "database.json"
+                                        ]
+                                        [ Html.text "database.json" ]
+                                )
+                       )
+           )
+
+
+fichesToCsv : List Fiche -> String
+fichesToCsv fs =
+    List.map ficheToCsvStr fs
+        |> String.join "\n"
+        |> (\res -> "Catégories, Nature activités, Nom entité, ref OT, label, Etoiles/Epis, adresse, tel, fax, responsables, email, site, pages jaunes, description, ouverture\n" ++ res)
+
+
+ficheToCsvStr : Fiche -> String
+ficheToCsvStr f =
+    let
+        labelToStr { nom, logo, lien } =
+            "\"" ++ nom ++ " - " ++ logo ++ " - " ++ lien ++ "\""
+
+        telToStr tel =
+            case tel of
+                TelFixe s ->
+                    "TelFixe: " ++ s
+
+                TelPortable s ->
+                    "TelPortable: " ++ s
+
+                TelBoth ( s1, s2 ) ->
+                    "TelFixe: " ++ s1 ++ " TelPortable: " ++ s2
+
+        respStr { poste, nom, tel } =
+            "\"" ++ nom ++ " - " ++ poste ++ " - " ++ telToStr tel ++ "\""
+
+        ----------------------------------------
+        categories =
+            String.join " " f.categories
+
+        natureActiv =
+            String.join " " f.natureActiv
+
+        refOt =
+            case f.refOt of
+                Nothing ->
+                    ""
+
+                Just ( n, s ) ->
+                    String.fromInt n ++ " " ++ s
+
+        label =
+            List.map labelToStr f.label
+                |> String.join " "
+
+        rank =
+            ((Maybe.map String.fromInt f.rank.stars
+                |> Maybe.map (\s -> s ++ " étoiles")
+                |> Maybe.withDefault ""
+             )
+                ++ (Maybe.map String.fromInt f.rank.epis
+                        |> Maybe.map (\s -> ", " ++ s ++ " épis")
+                        |> Maybe.withDefault ""
+                   )
+            )
+                |> (\s ->
+                        if String.startsWith ", " s then
+                            String.dropLeft 2 s
+                        else
+                            s
+                   )
+
+        nomEntite =
+            f.nomEntite
+
+        responsables =
+            List.map respStr f.responsables
+                |> String.join " "
+
+        adresse =
+            f.adresse
+
+        telNumber =
+            Maybe.map telToStr f.telNumber
+                |> Maybe.withDefault ""
+
+        fax =
+            Maybe.withDefault "" f.fax
+
+        email =
+            String.join " " f.email
+
+        site =
+            Maybe.withDefault "" f.site
+
+        pjaun =
+            Maybe.withDefault "" f.pjaun
+
+        description =
+            List.map (\s -> "\"" ++ s ++ "\"") f.description
+                |> String.join " "
+
+        ouverture =
+            case f.ouverture of
+                Just TteAnnee ->
+                    "Ouvert toute l'année"
+
+                Just Saisoniere ->
+                    "Ouverture saisonière"
+
+                _ ->
+                    ""
+    in
+    List.intersperse "," [ categories, natureActiv, nomEntite, refOt, label, rank, adresse, telNumber, fax, responsables, email, site, pjaun, description, ouverture ]
+        |> String.join ""
 
 
 
@@ -1306,5 +1776,1168 @@ restaurants =
             , addr = "Rue George Sand - 63790 Murol"
             , tel = "04 73 88 85 79"
             , mail = "restaurantlarbalete@gmail.com"
+          }
+        ]
+
+
+
+-------------------------------------------------------------------------------
+-----------------
+-- Entreprises --
+-----------------
+
+
+entreprises =
+    List.foldr (\( k, v ) acc -> List.map (entrepriseToFiche k) v ++ acc)
+        []
+        [ ( "Electricité générale"
+          , [ { defArt
+                | name = "Boulhol Cougoul (Sarl)"
+                , addr = "Groire 63790 MUROL"
+                , tel = "04 73 88 67 33"
+              }
+            , { defArt
+                | name = "Cattarelli Rémi"
+                , addr = "route de Besse - 63790 MUROL"
+                , tel = "06 86 18 16 54"
+                , mail = "remi.cattarelli@orange.fr"
+                , site = "http://electymurol.wifeo.com"
+              }
+            , { defArt
+                | name = "Sancy Electricité"
+                , addr = "chemin des sables 63790 MUROL"
+                , tel = "04 73 88 67 16"
+              }
+            ]
+          )
+        , ( "Electricité et petits travaux du bâtiment"
+          , [ { defArt
+                | name = "Olivier Dhainaut"
+                , addr = "Groire 63790 MUROL"
+                , tel = "04 73 88 66 33 ou 06 99 40 17 08"
+                , mail = "ace.dhainaut@neuf.fr"
+              }
+            ]
+          )
+        , ( "Maçonnerie"
+          , [ { defArt
+                | name = "Bouche Benoît (SARL)"
+                , addr = "Beaune Le Froid 63790 MUROL"
+                , tel = "04 73 88 80 72"
+              }
+            ]
+          )
+        , ( "Plomberie"
+          , [ { defArt
+                | name = "Bouche Nicolas"
+                , addr = "Rue George Sand 63790 MUROL"
+                , tel = "06 64 10 74 78"
+              }
+            ]
+          )
+
+        --,("Peintre en bâtiment"
+        -- , [{ defArt |
+        --      name   = "Peuch Gérard"
+        --    , addr   = "rue de Groire 63790 MUROL"
+        --    , tel    = "04 7388 6033"
+        --    }]
+        -- )
+        , ( "Marché de demi-gros et détail"
+          , [ { defArt
+                | name = "Jallet Fruits et légumes"
+                , addr = "route de Besse 63790 MUROL"
+                , tel = "04 73 88 66 82"
+                , fax = "04 73 88 64 88"
+              }
+            ]
+          )
+        , ( "Quincaillerie"
+          , [ { defArt
+                | name = "Legoueix Père et Fils (SARL)"
+                , addr = "rue du Tartaret 63790 MUROL"
+                , tel = "04 7388 6621"
+                , fax = "04 73 88 80 39"
+              }
+            ]
+          )
+        , ( "Plâtrerie/peinture"
+          , [ { defArt
+                | name = "Sébastien Bouche"
+                , addr = "Beaune-le-Froid 63790 MUROL"
+                , tel = "06 18 70 41 71"
+              }
+            ]
+          )
+
+        --,(""
+        -- , [{ defArt |
+        --      name   = ""
+        --    , descr  = ""
+        --    , addr   = ""
+        --    , tel    = ""
+        --    , fax    = ""
+        --    }]
+        -- )
+        --,(""
+        -- , [{ defArt |
+        --      name   = ""
+        --    , descr  = ""
+        --    , addr   = ""
+        --    , tel    = ""
+        --    , fax    = ""
+        --    }]
+        -- )
+        --,("Reprographie"
+        -- , [{ defArt |
+        --      name   = "Chazay Yvon"
+        --    , descr  = ["création - impression - dépannage informatique"]
+        --    , addr   = "rue Georges Sand 63790 Murol"
+        --    , tel    = "06 2451 7696"
+        --    , mail   = "murol.repro@sfr.fr"
+        --    }]
+        -- )
+        --,("Taxi"
+        -- , [{ defArt |
+        --      name   = "Amblard Taxi"
+        --    , addr   = "La Chassagne 63790 MUROL"
+        --    , tel    = "04 7388 6937 ou 06 7455 1533"
+        --    }
+        --   ,
+        --    { defArt |
+        --      name   = "Miseroux Taxi"
+        --    , addr   = "Groire 63790 MUROL"
+        --    , tel    = "04 7388 8112"
+        --    , site   = "www.taxi-murol.com"
+        --    }]
+        -- )
+        --,("Boulanger"
+        -- , [{ defArt |
+        --      name   = "Bigand Michel"
+        --    , addr   = "Rue Chabrol - 63790 MUROL"
+        --    , tel    = "04 7388 6024"
+        --    }]
+        -- )
+        --,("Boucherie"
+        -- , [{ defArt |
+        --      addr   = "Rue Chabrol - 63790 MUROL"
+        --    , tel    = "04 7388 6905"
+        --    }]
+        -- )
+        --,("Coiffure"
+        -- , [{ defArt |
+        --      name   = "Béal Patricia"
+        --    , addr   = "rue Estaing 63790 MUROL"
+        --    , tel    = "04 7388 6059"
+        --    }]
+        -- )
+        --,("Création et travail du cuir"
+        -- , [{ defArt |
+        --      name   = "Peaux de vaches création"
+        --    , addr   = "Rue de Chabrol 63790 MUROL"
+        --    , tel    = "047378 1653"
+        --    , mail   = "marc.humbert.cuir@orange.fr"
+        --    , site   = "http://www.peaux-de-vaches-creation.com"
+        --    }]
+        -- )
+        ]
+
+
+commercesYL =
+    List.foldr (\( k, v ) acc -> List.map (commerceToFiche k TteAnnee) v ++ acc)
+        []
+        [ ( "Alimentation"
+          , [ { defCom
+                | name = "Petit Casino"
+                , descr = [ "Alimentation générale" ]
+                , addr = "rue Pierre Céleirol - 63790 MUROL"
+                , tel = "04 73 88 80 13"
+              }
+            , { defCom
+                | name = "Supermarché SPAR"
+                , refOt = Just ( "4662103", "https://www.sancy.com/commerce-service/spar/" )
+                , descr = [ "Alimentation générale", "Service drive et livraison: www.sparmurol.fr" ]
+                , addr = "Rue de Besse - 63790 MUROL"
+                , tel = "04 73 88 60 45 "
+                , fax = "04 73 88 66 60"
+              }
+            , { defCom
+                | name = "Vival"
+                , refOt = Just ( "4662124", "https://www.sancy.com/commerce-service/vival-2/" )
+                , descr = [ "Alimentation générale" ]
+                , addr = "Rue Chabrol - 63790 MUROL"
+                , tel = "04 73 88 61 56"
+              }
+            ]
+          )
+        , ( "Assurances"
+          , [ { defCom
+                | name = "AXA assurances Verdier"
+                , addr = "Rue George Sand 63790 MUROL"
+                , tel = "04 73 88 68 77"
+                , fax = "04 73 88 63 79"
+              }
+            ]
+          )
+        , ( "Poste banque distributeur"
+          , [ { defCom
+                | name = "La poste la Banque Postale"
+                , refOt = Just ( "6246", "http://www.sancy.com/activites/detail/6246/murol/la-poste" )
+                , descr = [ "services postaux et bancaires distributeur de billets" ]
+                , addr = "Rue George Sand 63790 MUROL"
+                , tel = "04 73 88 61 49 - National: 36 31"
+                , site = "http://www.laposte.fr"
+              }
+            , { defCom
+                | name = "Distributeur SPAR"
+                , refOt = Just ( "4700279", "https://www.sancy.com/commerce-service/distributeur-automatique-de-billets/" )
+                , descr = [ "Distributeur de billets" ]
+                , addr = "Route de Besse 63790 MUROL"
+              }
+            ]
+          )
+        , ( "Boucherie"
+          , [ { defCom
+                | name = "La Pièce du Boucher"
+                , refOt = Just ( "4662160", "https://www.sancy.com/commerce-service/la-piece-du-boucher/" )
+                , addr = "Rue George Sand 63790 MUROL"
+                , tel = "04 73 87 77 48"
+              }
+            ]
+          )
+        , ( "Prestataires"
+          , [ { defCom
+                | name = "Auvergne Escapade"
+                , refOt = Just ( "4716925", "https://www.sancy.com/commerce-service/auvergne-escapade/" )
+                , addr = "Beaune-le-Froid - 63790 MUROL"
+                , tel = "06 86 89 34 87"
+                , descr = [ "Randonnées pédestres guidées et raquettes à neige en hiver" ]
+                , site = "http://www.auvergne-escapade.com/"
+              }
+            , { defCom
+                | name = "Bureau Montagne Auvergne Sancy Volcans"
+                , refOt = Just ( "4716923", "https://www.sancy.com/commerce-service/bureau-montagne-auvergne-sancy-volcans/" )
+                , addr = "Bp 11 - 63790 MUROL"
+                , tel = "06 41 66 90 80"
+                , descr = [ "Raquettes à neige. Randonnées sur les volcans, lever de soleil, orientation, VTT, astronomie, tir à l'arc." ]
+                , site = "http://www.bureaumontagne.com/"
+              }
+            ]
+          )
+        , ( "Boulangerie"
+          , [ { defCom
+                | name = "Le fournil du château"
+                , addr = "Rue George Sand - 63790 MUROL"
+
+                --, tel    = "04 7388 6024"
+                , mail = "lefournilduchâteau.murol@gmail.com"
+                , descr = [ "Facebook: fb/lefournil.murol" ]
+              }
+            ]
+          )
+
+        --,("Café"
+        -- , [{ defCom |
+        --      name   = "Café de la côte"
+        --    , addr   = "Rue Chabrol - 63790 MUROL"
+        --    , tel    = "06 7941 0811"
+        --    }]
+        -- )
+        , ( "Art de la maison - cadeaux - souvenirs"
+          , [ { defCom
+                | name = "Le grenier du château"
+                , refOt = Just ( "4672387", "https://www.sancy.com/commerce-service/le-grenier-du-chateau/" )
+                , addr = "Rue Georges Sand - 63790 MUROL"
+                , tel = "04 73 88 95 28"
+                , mail = "le-grenier-du-chateau@sfr.fr"
+                , descr = [ "Art de la maison, cadeaux, souvenirs" ]
+              }
+            ]
+          )
+
+        --,("Coiffure"
+        -- , [{ defCom |
+        --      name   = "Beal Patricia"
+        --    , descr  = ["Coiffure mixte"]
+        --    , addr   = "Rue Estaing - 63790 MUROL"
+        --    , tel    = "04 73 88 60 59"
+        --    }]
+        -- )
+        , ( "Garage"
+          , [ { defCom
+                | name = "Garage de l'Avenir"
+                , descr = [ "Réparations toutes marques, carburants" ]
+                , addr = "Le Marais - 63790 MUROL"
+                , refOt = Just ( "4668358", "https://www.sancy.com/commerce-service/garage-de-lavenir/" )
+
+                --, tel    = "04 7388 6022"
+                --, fax    =  "04 73 88 61 33"
+              }
+            , { defCom
+                | name = "Murol Moto Sport"
+                , descr = [ "Vente réparations toutes marques" ]
+                , addr = "route de Besse - 63790 MUROL"
+                , tel = "06 78 08 35 74"
+                , fax = "04 76 88 66 60"
+                , mail = "cattarellisacha@orange.fr"
+
+                --, site   = "http://murolmotosport.wifeo.com"
+              }
+            , { defCom
+                | name = "Sancy Bike Service"
+                , descr = [ "Réparation et entretien de vélos, VTT, cyclos. Vente pièces et accessoires." ]
+                , addr = "Rue du Tartaret - 63790 MUROL"
+                , tel = "0676121929"
+                , refOt = Just ( "4768953", "https://www.sancy.com/commerce-service/sancy-bike-service/" )
+
+                --, fax    = "04 76 88 66 60"
+                , mail = "ebikeattitude@gmail.com"
+                , site = "https://www.sancybikeservice.com/"
+              }
+            ]
+          )
+        , ( "Laverie"
+          , [ { defCom
+                | name = "Laverie des Aloés"
+                , addr = "Rue Chabrol - 63790 MUROL"
+                , descr =
+                    [ "Ouvert 7 jours / 7 – toute l’année de 8h à 22h"
+                    , "lave-linge 6 et 18 kg/ sèche linge"
+                    ]
+                , tel = "06 72 16 78 46"
+                , mail = "laverielesaloes@gmail.com"
+              }
+            ]
+            --,
+            --{ defCom |
+            --  name   = "Blanchisserie et vente de linge de maison"
+            --, addr   = "Rue Chabrol - 63790 MUROL"
+            --, tel    = "06 52 43 52 52"
+            --, mail   = "lavaloes@gmail.com"
+            --, descr  = ["Ouvert toute l’année"
+            --           ,"Lundi et jeudi de 14h00 à 19h30 (juillet/août 22h00)"
+            --           ,"Mercredi de 09h00 à 13h00"
+            --           ,"Vendredi et samedi de 9h30 à 12h30 / 14h00 à 19h30"
+            --           ,"Dimanche de 9h30 à 12h30"]
+            --}]
+          )
+        , ( "Pharmacie"
+          , [ { defCom
+                | name = "Pharmacie Brassier"
+                , refOt = Just ( "4666016", "https://www.sancy.com/commerce-service/pharmacie-brassier/" )
+                , addr = "Rue Estaing - 63790 MUROL"
+                , tel = "04 73 88 60 42"
+              }
+            ]
+          )
+        , ( "Artisanat d'Art, galerie d'art, antiquité"
+          , [ { defCom
+                | name = "Atelier ST Christophe"
+                , addr = "Rue George Sand 63790 MUROL"
+                , refOt = Just ( "4681516", "https://www.sancy.com/commerce-service/atelier-saint-christophe-murol-feerie/" )
+                , tel = "04 63 22 68 15"
+                , descr = [ "Création de bijoux" ]
+              }
+            , { defCom
+                | name = "Atelier Hotantik by Fab"
+                , addr = "Rue Chabrol 63790 MUROL"
+                , tel = "06 80 00 11 09"
+                , descr = [ "Sculpture, ferronnerie" ]
+              }
+
+            --,
+            --{ defCom |
+            --   name   = "Galerie d'Art"
+            -- , addr   = "Rue George Sand 63790 MUROL"
+            --}
+            ]
+          )
+        , ( "Transport"
+          , [ { defCom
+                | name = "Amblard Taxi"
+                , refOt = Just ( "3922", "http://www.sancy.com/activites/detail/3922/murol/taxi-amblard" )
+                , addr = "La Chassagne 63790 MUROL"
+                , tel = "04 73 88 69 37 / 06 74 55 15 33"
+                , descr = [ "Taxi, transport malade assis" ]
+              }
+            , { defCom
+                | name = "Taxi Maryline"
+                , refOt = Just ( "4666800", "https://www.sancy.com/commerce-service/sancy-taxi-maryline-2/" )
+                , addr = "Le Bourg 63790 MUROL"
+                , tel = "04 73 88 81 12 / 06 89 56 25 94"
+                , mail = "sancytaxi@orange.fr"
+                , descr = [ "Taxi, transport malade assis" ]
+              }
+            , { defCom
+                | name = "Navette Azureva "
+                , refOt = Just ( "4849676", "https://www.sancy.com/commerce-service/navette-azureva-murol-besse-super-besse/" )
+                , tel = "04 73 88 58 58"
+                , descr = [ "ligne Murol Superbesse" ]
+              }
+
+            --,
+            --{ defCom |
+            --   name   = "Navette publique"
+            -- , refOt  = Just ("6505","http://www.sancy.com/activites/detail/6505/murol/ligne-reguliere-chambon-murol-st-nectaire-clermont")
+            -- , tel    = "04 73 88 62 62 / 04 73 88 60 67"
+            -- , descr  = ["ligne pour Clermont Ferrand"]
+            --}
+            ]
+          )
+        , ( " Informatique: dépannage, graphiste, créateur"
+          , [ { defCom
+                | name = "Volcanographics"
+                , descr = [ "Site internet, logo…" ]
+                , addr = "Groire 63790 MUROL"
+                , tel = "04 73 62 11 07 / 06 81 86 69 43"
+                , mail = "contact@volcanographics.com"
+                , site = "http://www.volcanographics.com"
+              }
+            , { defCom
+                | name = "Yvon CHAZEY"
+                , descr = [ "Création, reprographie, dépannage" ]
+                , addr = "Rue George Sand 63790 MUROL"
+                , tel = "06 24 51 76 96"
+                , mail = "murol.repro@sfr.fr"
+              }
+            ]
+          )
+
+        --, ( "Artisanat d'Art, galerie d'art, antiquité"
+        --  , [ { defCom
+        --        | name = "Atelier ST Christophe"
+        --        , addr = "Rue George Sand 63790 MUROL"
+        --        , tel = "04 63 22 68 15"
+        --        , descr = [ "Création de bijoux" ]
+        --      }
+        --    , { defCom
+        --        | name = "Atelier Hotantik by Fab"
+        --        , addr = "Rue Chabrol 63790 MUROL"
+        --        , tel = "06 80 00 11 09"
+        --        , descr = [ "Sculpture, ferronnerie" ]
+        --      }
+        --    --,
+        --    --{ defCom |
+        --    --   name   = "Galerie d'Art"
+        --    -- , addr   = "Rue George Sand 63790 MUROL"
+        --    --}
+        --    ]
+        --  )
+        , ( "Produit du terroir"
+          , [ { defCom
+                | name = "Les Caves du château"
+                , refOt = Just ( "4662107", "https://www.sancy.com/commerce-service/les-caves-du-chateau/" )
+                , descr = [ "caviste, fromager, produits du terroir" ]
+                , addr = "Place du pont - 63790 MUROL"
+                , tel = "04 73 88 63 34"
+              }
+            , { defCom
+                | name = "la Musardiere"
+                , descr = [ "Produits du terroir, souvenirs" ]
+                , addr = "Rue d'Estaing 63790 MUROL"
+                , tel = "04 73 88 69 09"
+              }
+            ]
+          )
+        ]
+
+
+commercesSummer =
+    List.foldr (\( k, v ) acc -> List.map (commerceToFiche k Saisoniere) v ++ acc)
+        []
+        [ ( "Art de la maison - cadeaux - souvenirs"
+          , [ { defCom
+                | name = "Legoueix père et fils (été)"
+                , refOt = Just ( "6111", "http://www.sancy.com/activites/detail/6111/murol/magasin-legoueix" )
+                , addr = "Rue du Tartaret 63790 MUROL"
+                , tel = "04 73 88 66 21"
+                , descr = [ "Souvenirs" ]
+              }
+            ]
+          )
+        , ( "Artisanat d'Art, galerie d'art, antiquité"
+          , [ { defCom
+                | name = "Cuir Cath"
+                , refOt = Just ( "4795036", "https://www.sancy.com/commerce-service/artisanat-dart-cuir-cath-2/" )
+                , addr = "Rue George Sand 63790 MUROL"
+                , tel = "06 11 89 14 52"
+                , mail = "cuircath63@orange.fr"
+                , descr = [ "Création maroquinerie" ]
+              }
+            ]
+          )
+        , ( "Produit du terroir"
+          , [ { defCom
+                | name = "Lou Cava'yo"
+                , refOt = Just ( "8059", "http://www.sancy.com/activites/detail/8059/murol/lou-cava-yo" )
+                , addr = "Rue Georges Sand - 63790 MUROL"
+                , tel = "06 31 44 19 80"
+                , descr = [ "Fromager, produits du terroir" ]
+              }
+            , { defCom
+                | name = "Les saveurs d'antan"
+                , descr = [ "Produits du terroir" ]
+                , addr = "Le Marais - 63790 MUROL"
+                , tel = "04 73 88 69 23"
+              }
+            ]
+          )
+        , ( "Alimentation"
+          , [ { defCom
+                | name = "Jallet"
+                , descr = [ "Fruits et légumes" ]
+                , addr = "Le Marais 63790 MUROL"
+              }
+            ]
+          )
+        , ( "Location de materiel skis raquettes"
+          , [ { defCom
+                | name = "Legoueix père et fils (hiver)"
+                , refOt = Just ( "4682148", "https://www.sancy.com/commerce-service/legoueix-skishop/" )
+                , descr = [ "" ]
+                , addr = "Rue du Tartaret 63790 MUROL"
+                , tel = "04 73 88 66 21"
+              }
+            ]
+          )
+        , ( "Location de Pedal’eau"
+          , [ { defCom
+                | name = "plage Murol du lac Chambon"
+                , refOt = Just ( "4716921", "https://www.sancy.com/commerce-service/location-de-pedaleau/" )
+                , descr = [ "" ]
+
+                --, addr  = "06 08 58 40 30"
+                , tel = "06 08 58 40 30"
+
+                --, site  = ""
+              }
+            ]
+          )
+        , ( "Vêtements"
+          , [ -- { defCom |
+              --   name   = "Altitude cottayshop"
+              -- , addr   = "rue Georges Sand - 63790 MUROL"
+              -- , tel    = ""
+              -- , descr  = ["Ouvert du 1 juillet au 30 septembre de 10h00 à 13h00 et de 15h00 à 20h00"
+              --            , "Chaussures de randonnée - vêtements divers"]
+              -- }
+              --,
+              { defCom
+                | name = "Toutiveti"
+                , addr = "Route de Besse - parking supermarché SPAR - 63790 MUROL"
+                , refOt = Just ( "4679489", "https://www.sancy.com/commerce-service/toutiveti-vetements/" )
+                , tel = "06 76 66 97 47"
+                , mail = "toutiveti@hotmail.fr"
+                , descr = [ "Vêtements/chaussures - hommes/femmes/enfants " ]
+              }
+            ]
+          )
+        , ( "Location poneys"
+          , [ { defCom
+                | name = "Western Poneys"
+                , refOt = Just ( "4716916", "https://www.sancy.com/commerce-service/western-poneys/" )
+                , descr =
+                    [ "Location poneys en main pour enfant accompagné d'un adulte."
+                    , "Automne hiver 2018-19"
+                    , ""
+                    , "Balades à poneys sur réservation le mercredi de 14h à 16h"
+                    , "Ouvertures ponctuelles week-ends et jours fériés ou vacances scolaires suivant vos demandes et suivant météo. "
+                    , "Consultez les horaires et jours d'ouverture sur notre site internet, régulièrement mis à jour :"
+                    ]
+                , addr = "Route de Besse 63790 MUROL, à coté du supermaché SPAR"
+                , tel = "06 66 85 24 10 ou 06 63 41 22 47"
+                , site = "http://western-poneys.wifeo.com/"
+              }
+            ]
+          )
+        ]
+
+
+
+-------------------------------------------------------------------------------
+------------------
+-- Associations --
+------------------
+
+
+associations =
+    List.map assocToFiche
+        [ { emptyAssoc
+            | nom = "Amicale des chasseurs murolais"
+            , domaine = "société de chasse"
+            , siege = "mairie de Murol 63790 MUROL"
+            , affil = "Fédération départementale des chasseurs du Puy-de-Dôme"
+            , resp =
+                [ { poste = "Coprésident"
+                  , nom = "Laurent GASCHON"
+                  , tel = "06 45 28 96 84"
+                  }
+                , { poste = "Coprésident"
+                  , nom = "Guy Roche"
+                  , tel = "04 73 88 65 99"
+                  }
+                ]
+
+            --, mails    = ["laurent.gaschon@laposte.net"]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Amicale des Sapeurs Pompiers"
+            , domaine = "actions en faveur des sapeurs pompiers, organisation de festivités sur la commune"
+            , siege = "Mairie de Murol"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Yannick COHERIER"
+                  , tel = "04 73 88 64 38"
+                  }
+                ]
+            , mails = [ "yannick632009@live.fr" ]
+            , sites = [ "http://pompiersdemurol.wifeo.com" ]
+          }
+        , { emptyAssoc
+            | nom = "Association Bougn’Arts"
+            , domaine = "organiser des festivals et des manifestations culturelles\n                - créer, organiser et promouvoir des animations et spectacles\n                de rues ainsi que des animations pédagogiques\n                - rassembler des artisans et des artistes à l’occasion de fêtes,\n                foires, marchés artisanaux et marchés à thèmes."
+            , siege = "« Les Aloès » Rue de Chabrol – 63790 Murol"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Bénédicte Manfri"
+                  , tel = "06 72 16 78 46"
+                  }
+                ]
+            , mails = [ "associationbougnarts@orange.fr" ]
+          }
+        , { emptyAssoc
+            | nom = "Association Culture et Patrimoine de la Vallée Verte ACPVV"
+            , domaine = "organisation de manifestations sur le massif du Sancy\n                 (fêtes de villages, Sancy Deuch…)"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Henri-Frédéric LEGRAND"
+                  , tel = "06 08 68 65 45"
+                  }
+                ]
+            , mails = [ "hfl63@orange.fr" ]
+
+            --, sites    = ["http://www.acme63.com"]
+          }
+        , { emptyAssoc
+            | nom = "Association Couleurs et motifs"
+            , domaine = "promouvoir, encourager, développer \n                 la pratique des arts, favoriser les talents\n                  par tous les moyens existants. "
+            , siege = "Allée de la Plage 63790 Murol"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Jacqueline GODARD"
+                  , tel = ""
+                  }
+                ]
+            , mails = [ "jacqueline.godard@free.fr" ]
+          }
+        , { emptyAssoc
+            | nom = "Association culturelle et sportive de Beaune-le-froid"
+            , domaine = "activité ski de fond"
+            , siege = "Beaune-le-Froid 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Yannick LATREILLE"
+                  , tel = "04 73 88 81 18"
+                  }
+                ]
+            , mails = [ "yannick-latreille@hotmail.fr" ]
+
+            --, cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Association culturelle et sportive de Beaune-le-froid"
+            , domaine = "activité ski de fond"
+            , siege = "Beaune-le-Froid 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Yannick LATREILLE"
+                  , tel = "04 73 88 81 18"
+                  }
+                ]
+            , mails = [ "yannick-latreille@hotmail.fr" ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Association de la Foire du Saint Nectaire de Beaune-le-Froid"
+            , domaine = "organisation de manifestations agricoles, promotion du \n                 Saint Nectaire fermier et des produits régionaux, activités d’animation dans la commune"
+            , siege = "Mairie de Murol"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Pierrette TOURREIX"
+                  , tel = "04 73 35 97 71"
+                  }
+                ]
+            , mails = [ "pierrette.tourreix@orange.fr" ]
+          }
+        , { emptyAssoc
+            | nom = "Association de parents d'élèves des écoles de Murol et de Chambon sur Lac"
+            , domaine = "contribuer et favoriser les activités scolaires et extra- scolaires"
+            , siege = "Mairie de Murol"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Dominique BIGAND"
+                  , tel = "06 89 59 22 94"
+                  }
+                ]
+            , mails = [ "ape.murolchambon@laposte.net" ]
+          }
+        , { emptyAssoc
+            | nom = "Association des Amis du Musée de Murol (AAMM)"
+            , domaine = "soutenir, faire connaître et promouvoir le musée des peintres de l’Ecole de Murol"
+            , siege = "rue de Chabrol, 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Dr Bernard LAPALUS"
+                  , tel = "04 73 37 10 88"
+                  }
+                ]
+            , mails = []
+          }
+        , { emptyAssoc
+            | nom = "Association des jeunes de Murol"
+            , siege = "La chassagne Murol"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Victor LAGEIX"
+                  , tel = ""
+                  }
+                ]
+            , mails = [ "victor.lageix@laposte.net" ]
+          }
+        , { emptyAssoc
+            | nom = "Association Intercommunale des Anciens Combattants"
+            , preci = "Section de Chambon sur Lac, Murol, Saint Nectaire"
+            , domaine = "transmettre le devoir de mémoire aux jeunes générations, assurer la solidarité"
+            , siege = "rue Charreton, 63790 MUROL"
+            , resp =
+                [ { poste = "Vice Président pour Murol"
+                  , nom = "Georges GAUFFIER"
+                  , tel = "04 73 83 62 02"
+                  }
+                ]
+          }
+        , { emptyAssoc
+            | nom = "Association Médiévale de Murol - Auvergne (AMMA)"
+            , domaine = "promouvoir et sauvegarder le patrimoine médiéval de la commune de Murol"
+            , siege = "La rivière route de Saint-Nectaire 63790 Murol"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Vincent Salesse"
+                  , tel = "06 09 04 67 92"
+                  }
+                ]
+            , mails = [ "amma.murol@laposte.net" ]
+          }
+        , { emptyAssoc
+            | nom = "Association Sancy Celtique"
+            , domaine = "organisation de festival"
+            , siege = "La rivière route de Saint-Nectaire 63790 Murol"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Jérôme GODARD"
+                  , tel = "04 73 26 02 00"
+                  }
+                ]
+            , mails = [ "amma.murol@laposte.net" ]
+          }
+        , { emptyAssoc
+            | nom = "Association Sportive des écoles de Murol et de Chambon sur Lac (A.S.E.M.C.)"
+            , domaine = "contribuer à l’éducation des enfants par la pratique d’activités physiques et sportives"
+            , siege = "école primaire de Chambon sur Lac"
+            , affil = "USEP Sancy, les Hermines"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Claude Bourret"
+                  , tel = "04 73 88 68 16"
+                  }
+                ]
+            , mails = [ "ecole.chambon-sur-lac.63@ac-clermont.fr" ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Bureau Montagne Auvergne Sancy Volcans"
+            , domaine = "activités sportives de pleine nature grand public"
+            , siege = "mairie de Murol Adresse : BP11 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Alexandre PRUNYI"
+                  , tel = ""
+                  }
+                ]
+            , mails = [ "bertrandgoimard@hotmail.com", "contact@guides-asv.com" ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Bureau Montagne Auvergne Sancy Volcans"
+            , domaine = "activités sportives de pleine nature grand public"
+            , siege = "mairie de Murol Adresse : BP11 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Alexandre PRUNYI"
+                  , tel = ""
+                  }
+                ]
+            , mails = [ "bertrandgoimard@hotmail.com", "contact@guides-asv.com" ]
+            , cat = Pro
+          }
+
+        --, { emptyAssoc |
+        --  nom     = "Chambre syndicale des commerçants des marchés du Puy de Dôme (CSCM du 63)"
+        --, domaine = "organisation de la Foire du Terroir de Murol"
+        --, siege   = "BP 30016 63401 CHAMALIERES"
+        --, affil   = ""
+        --, resp = [{ poste = "Vice-Président"
+        --          , nom   = "Rémy VALLAT"
+        --          , tel   = "04 7173 6263"
+        --          }]
+        --, mails    = ["remy.vallat@wanadoo.fr"]
+        --}
+        , { emptyAssoc
+            | nom = "Collectif développement des commerçants Murolais 63"
+            , domaine = "développement de l'activité commerciale"
+            , siege = "rue Georges Sand - 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Jean-Jacques ROUCHVARGER"
+                  , tel = "06 32 97 02 19"
+                  }
+                ]
+            , mails = [ "njrorganisation@orange.fr" ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "COSA63"
+            , domaine = "organisation de forums associatifs"
+            , resp =
+                [ { poste = "Contact"
+                  , nom = "Anne-marie DOTTE"
+                  , tel = "06 81 00 20 32"
+                  }
+                , { poste = "Contact"
+                  , nom = "Elisabeth CROZET"
+                  , tel = "06 30 03 80 69"
+                  }
+                ]
+            , mails = [ "lecosa63@gmail.com" ]
+          }
+        , { emptyAssoc
+            | nom = "COSA63"
+            , domaine = "organisation de forums associatifs"
+            , resp =
+                [ { poste = "Contact"
+                  , nom = "Anne-marie DOTTE"
+                  , tel = "06 81 00 20 32"
+                  }
+                , { poste = "Contact"
+                  , nom = "Elisabeth CROZET"
+                  , tel = "06 30 03 80 69"
+                  }
+                ]
+            , mails = [ "lecosa63@gmail.com" ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Don de Sang bénévole du Canton de Besse"
+            , domaine = "organiser les collectes de sang sur le canton"
+            , siege = "3, cour des miracles 63610 BESSE"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Pierre SOULIER "
+                  , tel = "04 73 79 50 70"
+                  }
+                ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "L'Ensemble Instrumental de la Vallée Verte (EIVV)"
+            , siege = "Lac Chambon - 63790 Chambon sur lac"
+            , domaine = "participer aux manifestations officielles, créer un tissu social \n                 entre les musiciens de la région du sancy \n                 et être fédérateur de toutes les personnes qui \n                 aiment la musique d’harmonie. "
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Jean-louis REBOUFFAT"
+                  , tel = "04 73 88 63 08"
+                  }
+                ]
+            , mails = [ "jeanlouis.rebouffat@sfr.fr" ]
+          }
+        , { emptyAssoc
+            | nom = "Elément Terre"
+            , domaine = "éducation à l’environnement des scolaires, organisation de classes de découvertes"
+            , siege = "Mairie de Murol BP 11- 63 790 MUROL "
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Claire FAYE"
+                  , tel = ""
+                  }
+                ]
+            , mails = [ "contact@element-terre.org" ]
+            , sites = [ "http://www.element-terre.org" ]
+          }
+        , { emptyAssoc
+            | nom = "Elément Terre"
+            , domaine = "éducation à l’environnement des scolaires, organisation de classes de découvertes"
+            , siege = "Mairie de Murol BP 11- 63 790 MUROL "
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Claire FAYE"
+                  , tel = ""
+                  }
+                ]
+            , mails = [ "contact@element-terre.org" ]
+            , sites = [ "http://www.element-terre.org" ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "Groupement de défense contre les ennemis des cultures"
+            , domaine = "lutte contre les nuisibles"
+            , siege = "Chautignat - 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Jean-Marie PEROL"
+                  , tel = "04 73 88 68 90"
+                  }
+                ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "Groupement pastorale de la Couialle"
+            , siege = "Mairie de Murol - 63 790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Angélique Lair"
+                  , tel = "04 73 88 81 10"
+                  }
+                ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "JEEP Appellation Origine Contrôlée (JEEP AOC)"
+            , domaine = "rassembler les amateurs de Jeep et véhicules assimilés"
+            , siege = "Groire - 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Bruno CATTARELLI "
+                  , tel = "06 70 02 06 28"
+                  }
+                ]
+            , mails = [ "jeepaoc@gmail.com, info@jeepaoc.com, jeepaoc.infoclub@orange.fr" ]
+            , sites = [ "http://www.jeepaoc.com" ]
+          }
+        , { emptyAssoc
+            | nom = "La Gaule Murolaise"
+            , domaine = "société de Pêche"
+            , siege = "Les rives - lac Chambon 63790 Chambon sur lac"
+            , affil = "fédération de pêche du Puy de Dôme et du milieu aquatique (LEMPDES)"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Emmanuel LABASSE"
+                  , tel = "04 73 88 64 09"
+                  }
+                ]
+            , cat = Sport
+          }
+
+        --,
+        --{ emptyAssoc |
+        --  nom     = "La Main Gauche"
+        --, domaine = "club sportif de pétanque"
+        --, siege   = "bar Intimyté, route de Besse, 63790 MUROL "
+        --, resp = [{ poste = "Président"
+        --          , nom   = "Christophe GUITTARD"
+        --          , tel   = "06 2851 2802"
+        --          }]
+        --, cat = Sport
+        --}
+        , { emptyAssoc
+            | nom = "Le XV de la Vallée Verte"
+            , domaine = "rugby"
+            , siege = "Restaurant « Les Baladins », 63790 St Nectaire"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Stéphane Crégut"
+                  , tel = "06 12 56 30 47"
+                  }
+                ]
+            , mails = [ "lexvdelavalleeverte@hotmail.fr", "julien.boucheix@orange.fr", "contact@stephane-cregut.fr" ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Les Amis du Vieux Murol"
+            , domaine = "association des personnes du troisième âge"
+            , affil = "fédération « les Aînés Ruraux » Clermont-Ferrand"
+            , siege = "mairie de Murol, 63790 MUROL"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Pierrette TOURREIX"
+                  , tel = "04 73 35 97 71"
+                  }
+                ]
+            , mails = [ "pierrette.tourreix@orange.fr" ]
+          }
+        , --{ emptyAssoc |
+          --  nom     = "Les Chevaucheurs"
+          --, domaine = "organisation de manifestations culturelles (reconstitution historique, combats, spectacle équestre…)"
+          --, siege   = "18 rue Guyot Dessaigne 63114 AUTHEZAT"
+          --, resp = [{ poste = "Président"
+          --          , nom   = "Pascal BONY"
+          --          , tel   = "07 7792 1530"
+          --          }]
+          --, mails    = ["hagranyms@hotmail.fr"]
+          --}
+          --,
+          { emptyAssoc
+            | nom = "Murol Remparts du Sancy"
+            , domaine = "organisation de festivals et de manifestations culturelles (fête du 14 juillet)"
+            , siege = "mairie, 63790 MUROL"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Bénédicte MANFRI "
+                  , tel = "06 72 16 78 46"
+                  }
+                ]
+            , mails = [ "assmurolrempart@gmail.com" ]
+          }
+        , { emptyAssoc
+            | nom = "Natur’ Sancy"
+            , domaine = "Activité de pleine nature, tout public\n                 Protection du patrimoine naturel en milieu montagnard,\n                 activités liées à la découverte du patrimoine."
+            , siege = "route de Besse, 63790 MUROL"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Véronique DEBOUT"
+                  , tel = "04 73 88 67 56"
+                  }
+                ]
+            , mails = [ "natur.sancy@gmail.com" ]
+            , sites = [ "http://natursancy.blogspot.fr/" ]
+          }
+        , { emptyAssoc
+            | nom = "Rencontre et détente"
+            , domaine = "activités gymniques"
+            , siege = "rue du Tartaret 63790 MUROL"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Sylvie Legoueix"
+                  , tel = "04 73 88 66 21"
+                  }
+                ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Société de Chasse"
+            , domaine = "société de chasse"
+            , siege = "Beaune le Froid 63790 MUROL"
+            , affil = "Fédération départementale des chasseurs du Puy-de-Dôme"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Laurent PLANEIX"
+                  , tel = "04 73 88 60 74"
+                  }
+                ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Syndicat agricole"
+            , domaine = "syndicat professionnel"
+            , siege = "mairie de Murol 63790 MUROL"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Angélique LAIR"
+                  , tel = "04 73 88 81 10"
+                  }
+                ]
+            , mails = [ "angelique.lair84@orange.fr" ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "Syndicat hôtelier"
+            , domaine = "syndicat professionnel"
+            , siege = "rue de la Vieille Tour 63790 MUROL"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Amélie DABERT"
+                  , tel = "04 73 88 61 06 "
+                  }
+                ]
+            , mails = [ "amelie.dabert@wanadoo.FR" ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "Système d'Echange Local \"S.SancyEL\""
+            , domaine = "association à caractère social permettant à ses membres de procéder\n                 à des échanges de biens, de services et de savoirs, sans avoir recours à la monnaie. "
+            , siege = "3 impasse de la Vernoze - Champeix"
+            , resp =
+                [ { poste = "Coprésidente"
+                  , nom = "Annie JONCOUX"
+                  , tel = "04 43 12 61 98 ou 06 9850 4297"
+                  }
+                , { poste = "Coprésidente"
+                  , nom = "Livia VAN EIJLE"
+                  , tel = "04 7388 6489"
+                  }
+                ]
+            , mails =
+                [ "annie.joncoux@sfr.fr"
+                , " Livia.vaneijle@wanadoo.fr"
+                , "j-p.lanaro@orange.fr"
+                ]
+          }
+
+        --,
+        --{ emptyAssoc |
+        --  nom     = "Les Scieurs d’Antan des Monts des Dômes"
+        --, domaine = "organisation de manifestations culturelles,
+        --             faire revivre les vieux métiers de la terre"
+        --, siege   = "6, allée de Rivassol 63 830 NOHANENT"
+        --, resp = [{ poste = "Président"
+        --          , nom   = "Maurice BARD"
+        --          , tel   = "04 7362 8487"
+        --          }]
+        --}
+        --,
+        --{ emptyAssoc |
+        --  nom     = "Académie de la Gentiane"
+        --, mails    = ["academiegentiane@orange.fr"]
+        --}
+        , { emptyAssoc
+            | nom = "Camping qualité Auvergne"
+            , domaine = "charte professionnelle de qualité"
+            , affil = "Camping Qualité national"
+            , siege = "Jassat 63790 MUROL"
+            , resp =
+                [ { poste = "Présidente"
+                  , nom = "Sylvie JORY"
+                  , tel = ""
+                  }
+                ]
+            , cat = Pro
+          }
+        , { emptyAssoc
+            | nom = "Auvergne Escapade"
+            , domaine = "Accompagnateurs en montagne"
+            , siege = "Beaune-le-Froid 63790 Murol"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Jean Luc Ranvier"
+                  , tel = "04 73 88 85 78 - 06 86 89 34 87"
+                  }
+                ]
+            , mails = [ "info@auvergne-escapade.com" ]
+            , sites = [ "http://www.auvergne-escapade.com" ]
+            , cat = Sport
+          }
+        , { emptyAssoc
+            | nom = "Auvergne Escapade"
+            , domaine = "Accompagnateurs en montagne"
+            , siege = "Beaune-le-Froid 63790 Murol"
+            , resp =
+                [ { poste = "Président"
+                  , nom = "Jean Luc Ranvier"
+                  , tel = "04 73 88 85 78 - 06 86 89 34 87"
+                  }
+                ]
+            , mails = [ "info@auvergne-escapade.com" ]
+            , sites = [ "http://www.auvergne-escapade.com" ]
+            , cat = Pro
           }
         ]
