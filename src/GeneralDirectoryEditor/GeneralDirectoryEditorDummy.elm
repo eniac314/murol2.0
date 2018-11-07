@@ -1,4 +1,4 @@
-module GeneralDirectoryEditor.GeneralDirectoryEditor exposing (..)
+module GeneralDirectoryEditor.GeneralDirectoryEditorDummy exposing (..)
 
 import Base64 exposing (..)
 import Dict exposing (..)
@@ -19,9 +19,19 @@ import List.Extra exposing (unique, uniqueBy)
 import Random exposing (..)
 import Set exposing (..)
 import UUID exposing (..)
+import Browser exposing (element)
 
 
-type alias Model msg =
+main =
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = (\_ -> Sub.none)
+        }
+
+
+type alias Model =
     { fiches : Dict String Fiche
     , categories : Dict String Categorie
     , activites : Set String
@@ -31,8 +41,9 @@ type alias Model msg =
     , activFilter : Maybe String
     , labelFilter : Maybe String
     , selectedFiche : Maybe String
-    , rightPanelDiplay : RightPanelDiplay
-    , externalMsg : Msg -> msg
+    , rightPanelDiplay :
+        RightPanelDiplay
+        --, externalMsg : Msg -> msg
     }
 
 
@@ -135,7 +146,8 @@ type alias Rank =
     }
 
 
-init externalMsg =
+init : () -> ( Model, Cmd Msg )
+init flags =
     let
         data =
             databaseRes (database (initialSeed 0))
@@ -183,14 +195,15 @@ init externalMsg =
           , activFilter = Nothing
           , labelFilter = Nothing
           , selectedFiche = Nothing
-          , rightPanelDiplay = PreviewFiche
-          , externalMsg = externalMsg
+          , rightPanelDiplay =
+                PreviewFiche
+                --, externalMsg = externalMsg
           }
         , Cmd.none
         )
 
 
-update : Msg -> Model msg -> ( Model msg, Cmd msg )
+update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     case msg of
         FilterByName nom ->
@@ -243,9 +256,10 @@ update msg model =
             ( model, Cmd.none )
 
 
-view : Model msg -> Element msg
+view : Model -> Html.Html Msg
 view model =
-    Element.map model.externalMsg <|
+    --Element.map model.externalMsg <|
+    Element.layout [ Font.size 16 ] <|
         row
             [ padding 15
             , spacing 15
@@ -397,7 +411,7 @@ ficheSelectorView model =
                 [ Border.width 2
                 , Border.color (rgb 0.8 0.8 0.8)
                 , width (px 630)
-                , height (px 500)
+                , height (px 250)
                 , scrollbars
                 ]
                 (filteredFiches
