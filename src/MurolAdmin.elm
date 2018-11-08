@@ -77,25 +77,25 @@ init flags =
         ( newGeneralDirectory, generalDirectoryCmds ) =
             GeneralDirectoryEditor.init GeneralDirectoryMsg
     in
-    ( { pageEditor = newPageEditor
-      , pageTreeEditor = newPageTreeEditor
-      , fileExplorer = newFileExplorer
-      , generalDirectory = newGeneralDirectory
-      , newsEditor = ()
-      , authTool = Auth.init AuthMsg
-      , loadingStatus = WaitingForLogin
-      , currentTool = AuthTool
-      , winWidth = 1920
-      , winHeight = 1080
-      , zone = Time.utc
-      }
-    , Cmd.batch
-        [ pageEditorCmds
-        , generalDirectoryCmds
-        , Task.perform CurrentViewport Dom.getViewport
-        , Task.perform SetZone Time.here
-        ]
-    )
+        ( { pageEditor = newPageEditor
+          , pageTreeEditor = newPageTreeEditor
+          , fileExplorer = newFileExplorer
+          , generalDirectory = newGeneralDirectory
+          , newsEditor = ()
+          , authTool = Auth.init AuthMsg
+          , loadingStatus = WaitingForLogin
+          , currentTool = AuthTool
+          , winWidth = 1920
+          , winHeight = 1080
+          , zone = Time.utc
+          }
+        , Cmd.batch
+            [ pageEditorCmds
+            , generalDirectoryCmds
+            , Task.perform CurrentViewport Dom.getViewport
+            , Task.perform SetZone Time.here
+            ]
+        )
 
 
 type LoadingStatus
@@ -147,9 +147,9 @@ update msg model =
                         fileExplorerMsg
                         model.fileExplorer
             in
-            ( { model | fileExplorer = newFileExplorer }
-            , Cmd.batch [ fileExplorerCmds ]
-            )
+                ( { model | fileExplorer = newFileExplorer }
+                , Cmd.batch [ fileExplorerCmds ]
+                )
 
         AuthMsg authToolMsg ->
             let
@@ -174,19 +174,19 @@ update msg model =
                     else
                         ( model.loadingStatus, [] )
             in
-            ( { model
-                | authTool = newAuthTool
-                , loadingStatus = newLoadingStatus
-                , currentTool =
-                    if mbToolResult == Just ToolQuit then
-                        PageEditorTool
-                    else
-                        model.currentTool
-              }
-            , Cmd.batch <|
-                [ authToolCmds ]
-                    ++ loadingCmds
-            )
+                ( { model
+                    | authTool = newAuthTool
+                    , loadingStatus = newLoadingStatus
+                    , currentTool =
+                        if mbToolResult == Just ToolQuit then
+                            PageEditorTool
+                        else
+                            model.currentTool
+                  }
+                , Cmd.batch <|
+                    [ authToolCmds ]
+                        ++ loadingCmds
+                )
 
         PageEditorMsg pageEditorMsg ->
             let
@@ -200,9 +200,9 @@ update msg model =
                         pageEditorMsg
                         model.pageEditor
             in
-            ( { model | pageEditor = newPageEditor }
-            , pageEditorCmds
-            )
+                ( { model | pageEditor = newPageEditor }
+                , pageEditorCmds
+                )
 
         PageTreeEditorMsg pageTreeEditorMsg ->
             let
@@ -215,22 +215,23 @@ update msg model =
                         pageTreeEditorMsg
                         model.pageTreeEditor
             in
-            ( { model | pageTreeEditor = newPageTreeEditor }
-            , pageTreeEditorCmds
-            )
+                ( { model | pageTreeEditor = newPageTreeEditor }
+                , pageTreeEditorCmds
+                )
 
         GeneralDirectoryMsg generalDirectoryMsg ->
             let
                 ( newGeneralDirectory, generalDirectoryCmds ) =
                     GeneralDirectoryEditor.update
+                        { logInfo = Auth.getLogInfo model.authTool }
                         generalDirectoryMsg
                         model.generalDirectory
             in
-            ( { model
-                | generalDirectory = newGeneralDirectory
-              }
-            , generalDirectoryCmds
-            )
+                ( { model
+                    | generalDirectory = newGeneralDirectory
+                  }
+                , generalDirectoryCmds
+                )
 
         SetCurrentTool t ->
             ( { model | currentTool = t }
@@ -270,9 +271,8 @@ view model =
             [ width fill
             , height (maximum model.winHeight fill)
             , Font.size 16
-
-            --, Font.family
-            --    [ Font.typeface "Ubuntu" ]
+              --, Font.family
+              --    [ Font.typeface "Ubuntu" ]
             ]
             (case model.loadingStatus of
                 WaitingForLogin ->
@@ -286,19 +286,19 @@ view model =
                                 , PageTreeEditor.loadingStatus model.pageTreeEditor
                                 ]
                     in
-                    column
-                        [ spacing 15
-                        , width fill
-                        , padding 15
-                        ]
-                        [ FileExplorer.loadingView model.fileExplorer
-                        , PageTreeEditor.loadingView model.pageTreeEditor
-                        , Input.button (buttonStyle loadingComplete)
-                            { onPress = Just Launch
-                            , label =
-                                text "Commencer"
-                            }
-                        ]
+                        column
+                            [ spacing 15
+                            , width fill
+                            , padding 15
+                            ]
+                            [ FileExplorer.loadingView model.fileExplorer
+                            , PageTreeEditor.loadingView model.pageTreeEditor
+                            , Input.button (buttonStyle loadingComplete)
+                                { onPress = Just Launch
+                                , label =
+                                    text "Commencer"
+                                }
+                            ]
 
                 Ready ->
                     column
@@ -311,8 +311,7 @@ view model =
                         , width fill
                         , height (maximum model.winHeight fill)
                         , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
-
-                        --, clip
+                          --, clip
                         ]
                         [ row
                             [ Border.widthEach

@@ -26,7 +26,7 @@ import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
-import Task exposing (perform)
+import Task exposing (perform, attempt)
 import Time exposing (here, now)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
@@ -121,8 +121,7 @@ subscriptions model =
     Sub.batch
         [ onResize WinResize
         , searchResult ProcessSearchResult
-
-        --, Time.every 500 Increment
+          --, Time.every 500 Increment
         ]
 
 
@@ -148,36 +147,36 @@ init flags url key =
             else
                 url
     in
-    ( { config = config
-      , key = key
-      , pageTree = Nothing
-      , pages = Dict.empty
-      , searchStr = ""
-      , results = Nothing
-      , searchEngineStatus = Standby
-      , url = url_
-      , debug = ""
-      , counter = 0
-      }
-    , Cmd.batch
-        [ getPages
-        , if url /= url_ then
-            Nav.pushUrl key (Url.toString url_)
-          else
-            Cmd.none
-        , Task.perform CurrentViewport Dom.getViewport
-        , Time.now
-            |> Task.andThen
-                (\t ->
-                    Time.here
-                        |> Task.andThen
-                            (\h ->
-                                Task.succeed (StyleSheets.timeToSeason h t)
-                            )
-                )
-            |> Task.perform SetSeason
-        ]
-    )
+        ( { config = config
+          , key = key
+          , pageTree = Nothing
+          , pages = Dict.empty
+          , searchStr = ""
+          , results = Nothing
+          , searchEngineStatus = Standby
+          , url = url_
+          , debug = ""
+          , counter = 0
+          }
+        , Cmd.batch
+            [ getPages
+            , if url /= url_ then
+                Nav.pushUrl key (Url.toString url_)
+              else
+                Cmd.none
+            , Task.perform CurrentViewport Dom.getViewport
+            , Time.now
+                |> Task.andThen
+                    (\t ->
+                        Time.here
+                            |> Task.andThen
+                                (\h ->
+                                    Task.succeed (StyleSheets.timeToSeason h t)
+                                )
+                    )
+                |> Task.perform SetSeason
+            ]
+        )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -208,7 +207,11 @@ update msg model =
                                 model.pages
                         , url = url
                       }
-                    , getContent ( url.path, cId, name )
+                    , Cmd.batch
+                        [ getContent ( url.path, cId, name )
+                        , Task.attempt (\_ -> NoOp)
+                            (Dom.setViewportOf "mainContainer" 0 0)
+                        ]
                     )
 
                 Just _ ->
@@ -238,25 +241,25 @@ update msg model =
                                 config =
                                     model.config
                             in
-                            ( { model
-                                | pages = pages
-                                , pageTree = Just pageTree
-                                , config = { config | pageIndex = pageIndex }
-                              }
-                            , case Dict.get model.url.path pages of
-                                Just ( cId, name, NotLoaded ) ->
-                                    getContent ( model.url.path, cId, name )
+                                ( { model
+                                    | pages = pages
+                                    , pageTree = Just pageTree
+                                    , config = { config | pageIndex = pageIndex }
+                                  }
+                                , case Dict.get model.url.path pages of
+                                    Just ( cId, name, NotLoaded ) ->
+                                        getContent ( model.url.path, cId, name )
 
-                                Just _ ->
-                                    Cmd.none
+                                    Just _ ->
+                                        Cmd.none
 
-                                Nothing ->
-                                    let
-                                        url =
-                                            model.url
-                                    in
-                                    Nav.pushUrl model.key (Url.toString { url | path = "/accueil" })
-                            )
+                                    Nothing ->
+                                        let
+                                            url =
+                                                model.url
+                                        in
+                                            Nav.pushUrl model.key (Url.toString { url | path = "/accueil" })
+                                )
 
                         _ ->
                             ( model, Cmd.none )
@@ -327,24 +330,28 @@ update msg model =
                 config =
                     model.config
             in
-            ( { model | config = { config | season = season } }
-            , Cmd.none
-            )
+                ( { model | config = { config | season = season } }
+                , Cmd.none
+                )
 
         CurrentViewport vp ->
             let
                 ws =
                     model.config
             in
-            ( { model
-                | config =
-                    { ws
-                        | width = round vp.viewport.width --+ 13
-                        , height = round vp.viewport.height --+ 13
-                    }
-              }
-            , Cmd.none
-            )
+                ( { model
+                    | config =
+                        { ws
+                            | width =
+                                round vp.viewport.width
+                                --+ 13
+                            , height =
+                                round vp.viewport.height
+                                --+ 13
+                        }
+                  }
+                , Cmd.none
+                )
 
         WinResize width height ->
             let
@@ -354,10 +361,10 @@ update msg model =
                 newConfig =
                     { cfg | width = width, height = height }
             in
-            ( { model | config = newConfig }
-            , Cmd.batch
-                []
-            )
+                ( { model | config = newConfig }
+                , Cmd.batch
+                    []
+                )
 
         NoOp ->
             ( model, Cmd.none )
@@ -379,32 +386,33 @@ view model =
                     False
                     model.config.previewMode
         in
-        [ Element.layout
-            [ width fill
-            , Font.size 16
-            ]
-            (el
-                [ width fill --(px model.config.width)
-                , height (px model.config.height)
-                , clip
-                , Background.image (StyleSheets.backgroundImage model.config.season)
+            [ Element.layout
+                [ width fill
+                , Font.size 16
                 ]
-                (column
+                (el
                     [ width fill
-                    , scrollbarY
+                      --(px model.config.width)
+                    , height (px model.config.height)
+                    , clip
+                    , Background.image (StyleSheets.backgroundImage model.config.season)
                     ]
-                    [ pageTitleView maxWidth model
-                    , subTitleView maxWidth model
-                    , searchEngineView maxWidth model
-
-                    --, topMenuView model
-                    , clickablePath maxWidth model
-                    , mainView maxWidth model
-                    , footerView model
-                    ]
+                    (column
+                        [ width fill
+                        , scrollbarY
+                        , htmlAttribute <| Attr.style "id" "mainContainer"
+                        ]
+                        [ pageTitleView maxWidth model
+                        , subTitleView maxWidth model
+                        , searchEngineView maxWidth model
+                          --, topMenuView model
+                        , clickablePath maxWidth model
+                        , mainView maxWidth model
+                        , footerView model
+                        ]
+                    )
                 )
-            )
-        ]
+            ]
     }
 
 
@@ -418,75 +426,75 @@ searchEngineView maxWidth model =
                 Dict.empty
                 model.pages
     in
-    column
-        [ spacing 15
-        , centerX
-        , width (maximum maxWidth fill)
-        , paddingXY 0 15
-        , Background.color (rgba 1 1 1 0.9)
-        ]
-        [ row
+        column
             [ spacing 15
+            , centerX
             , width (maximum maxWidth fill)
+            , paddingXY 0 15
+            , Background.color (rgba 1 1 1 0.9)
             ]
-            [ Input.text
-                [ paddingXY 5 5
-                , spacing 15
-                , focused [ Border.glow (rgb 1 1 1) 0 ]
-                , if model.config.width < 500 then
-                    width (px 150)
-                  else
-                    width (px 270)
-                , onKeyEvent
+            [ row
+                [ spacing 15
+                , width (maximum maxWidth fill)
                 ]
-                { onChange = SearchPromptInput
-                , text = model.searchStr
-                , placeholder =
-                    Just <| Input.placeholder [] (text "mot clés")
-                , label = Input.labelLeft [] Element.none
-                }
-            , Input.button
-                (buttonStyle
-                    ((model.searchStr /= "")
-                        && (model.searchEngineStatus /= Searching)
+                [ Input.text
+                    [ paddingXY 5 5
+                    , spacing 15
+                    , focused [ Border.glow (rgb 1 1 1) 0 ]
+                    , if model.config.width < 500 then
+                        width (px 150)
+                      else
+                        width (px 270)
+                    , onKeyEvent
+                    ]
+                    { onChange = SearchPromptInput
+                    , text = model.searchStr
+                    , placeholder =
+                        Just <| Input.placeholder [] (text "mot clés")
+                    , label = Input.labelLeft [] Element.none
+                    }
+                , Input.button
+                    (buttonStyle
+                        ((model.searchStr /= "")
+                            && (model.searchEngineStatus /= Searching)
+                        )
                     )
-                )
-                { onPress = Just Search
-                , label =
-                    el [] (text "Rechercher")
-                }
-            ]
-        , case model.searchEngineStatus of
-            Searching ->
-                el [ paddingXY 15 0 ] (text "recherche en cours...")
+                    { onPress = Just Search
+                    , label =
+                        el [] (text "Rechercher")
+                    }
+                ]
+            , case model.searchEngineStatus of
+                Searching ->
+                    el [ paddingXY 15 0 ] (text "recherche en cours...")
 
-            DisplayResult ->
-                case model.results of
-                    Just ( keywords, results ) ->
-                        if results == Dict.empty then
+                DisplayResult ->
+                    case model.results of
+                        Just ( keywords, results ) ->
+                            if results == Dict.empty then
+                                el
+                                    [ paddingXY 15 0 ]
+                                    (text "pas de resultats")
+                            else
+                                column
+                                    [ width fill
+                                    , height (maximum 200 fill)
+                                    , clip
+                                    , scrollbarY
+                                    , paddingXY 15 0
+                                    ]
+                                    (Dict.map (\cId v -> resView pagesIndex cId v) results
+                                        |> Dict.values
+                                    )
+
+                        Nothing ->
                             el
                                 [ paddingXY 15 0 ]
                                 (text "pas de resultats")
-                        else
-                            column
-                                [ width fill
-                                , height (maximum 200 fill)
-                                , clip
-                                , scrollbarY
-                                , paddingXY 15 0
-                                ]
-                                (Dict.map (\cId v -> resView pagesIndex cId v) results
-                                    |> Dict.values
-                                )
 
-                    Nothing ->
-                        el
-                            [ paddingXY 15 0 ]
-                            (text "pas de resultats")
-
-            _ ->
-                Element.none
-        ]
+                _ ->
+                    Element.none
+            ]
 
 
 
@@ -520,29 +528,29 @@ resView pagesIndex cId ( score, keywords ) =
                         ]
                         (text keyword)
             in
-            column
-                [ spacing 10
-                , width fill
-                , Border.widthEach
-                    { top = 1
-                    , bottom = 0
-                    , left = 0
-                    , right = 0
-                    }
-                , Border.color (rgb 0.8 0.8 0.8)
-                , paddingXY 0 10
-                ]
-                [ link
-                    []
-                    { url = path
-                    , label =
-                        el [ Font.color (rgb 0 0.5 0.5) ]
-                            (text name)
-                    }
-                , wrappedRow
-                    [ spacing 10 ]
-                    (List.map keywordView (Set.toList keywords))
-                ]
+                column
+                    [ spacing 10
+                    , width fill
+                    , Border.widthEach
+                        { top = 1
+                        , bottom = 0
+                        , left = 0
+                        , right = 0
+                        }
+                    , Border.color (rgb 0.8 0.8 0.8)
+                    , paddingXY 0 10
+                    ]
+                    [ link
+                        []
+                        { url = path
+                        , label =
+                            el [ Font.color (rgb 0 0.5 0.5) ]
+                                (text name)
+                        }
+                    , wrappedRow
+                        [ spacing 10 ]
+                        (List.map keywordView (Set.toList keywords))
+                    ]
 
         Nothing ->
             Element.none
@@ -573,28 +581,28 @@ clickablePath maxWidth model =
                     el [] (text (Maybe.withDefault n (Url.percentDecode n)))
                 }
     in
-    column
-        [ paddingXY 15 10
-        , Background.color (rgb 0.95 0.95 0.95)
-        , width (maximum maxWidth fill)
-        , centerX
-        ]
-        [ wrappedRow
-            [ width fill
-            , Background.color (rgb 1 1 1)
-            , padding 4
-            , Border.rounded 5
-            , Font.family
-                [ Font.monospace ]
+        column
+            [ paddingXY 15 10
+            , Background.color (rgb 0.95 0.95 0.95)
+            , width (maximum maxWidth fill)
+            , centerX
             ]
-            (String.split "/" (String.dropLeft 1 model.url.path)
-                |> List.reverse
-                |> getEveryPaths []
-                |> List.map linkView
-                |> List.intersperse (el [ Font.color (rgb 0.5 0.5 0.5) ] (text "/"))
-                |> (\res -> el [ Font.color (rgb 0.5 0.5 0.5) ] (text "/") :: res)
-            )
-        ]
+            [ wrappedRow
+                [ width fill
+                , Background.color (rgb 1 1 1)
+                , padding 4
+                , Border.rounded 5
+                , Font.family
+                    [ Font.monospace ]
+                ]
+                (String.split "/" (String.dropLeft 1 model.url.path)
+                    |> List.reverse
+                    |> getEveryPaths []
+                    |> List.map linkView
+                    |> List.intersperse (el [ Font.color (rgb 0.5 0.5 0.5) ] (text "/"))
+                    |> (\res -> el [ Font.color (rgb 0.5 0.5 0.5) ] (text "/") :: res)
+                )
+            ]
 
 
 pageTitleView maxWidth model =
@@ -613,26 +621,26 @@ pageTitleView maxWidth model =
                 Winter ->
                     [ Background.color (rgba255 0 0 51 255) ]
     in
-    el
-        ([ Font.size 45
-         , Font.center
-         , width (maximum maxWidth fill)
-         , centerX
-         , Font.italic
-         , Font.family
-            [ Font.typeface "lora"
-            , Font.serif
-            ]
-         , paddingEach
-            { top = 7
-            , bottom = 10
-            , left = 0
-            , right = 0
-            }
-         ]
-            ++ seasonAttr
-        )
-        (text "Murol")
+        el
+            ([ Font.size 45
+             , Font.center
+             , width (maximum maxWidth fill)
+             , centerX
+             , Font.italic
+             , Font.family
+                [ Font.typeface "lora"
+                , Font.serif
+                ]
+             , paddingEach
+                { top = 7
+                , bottom = 10
+                , left = 0
+                , right = 0
+                }
+             ]
+                ++ seasonAttr
+            )
+            (text "Murol")
 
 
 subTitleView maxWidth model =
@@ -657,23 +665,23 @@ subTitleView maxWidth model =
                     , Font.color (rgba255 0 0 51 255)
                     ]
     in
-    el
-        ([ Font.size 24
-         , Font.family
-            [ Font.typeface "lora"
-            , Font.serif
-            ]
-         , Font.center
-         , width (maximum maxWidth fill)
-         , centerX
-         , paddingXY 0 3
-         ]
-            ++ seasonAttr
-        )
-        (paragraph
-            []
-            [ text "La municipalité de Murol vous souhaite la bienvenue" ]
-        )
+        el
+            ([ Font.size 24
+             , Font.family
+                [ Font.typeface "lora"
+                , Font.serif
+                ]
+             , Font.center
+             , width (maximum maxWidth fill)
+             , centerX
+             , paddingXY 0 3
+             ]
+                ++ seasonAttr
+            )
+            (paragraph
+                []
+                [ text "La municipalité de Murol vous souhaite la bienvenue" ]
+            )
 
 
 mainView maxWidth model =
@@ -737,14 +745,13 @@ topMenuView model =
                                 (text pageInfo.name)
                         }
             in
-            wrappedRow
-                [ width fill
-                , centerX
-                , spaceEvenly
-
-                --, padding 15
-                ]
-                (List.map mainCatView xs_)
+                wrappedRow
+                    [ width fill
+                    , centerX
+                    , spaceEvenly
+                      --, padding 15
+                    ]
+                    (List.map mainCatView xs_)
 
         Nothing ->
             Element.none
@@ -794,13 +801,13 @@ footerView model =
                         False
                         model.config.previewMode
             in
-            wrappedRow
-                [ width (maximum maxWidth fill)
-                , centerX
-                , spaceEvenly
-                , Background.color (rgba 1 1 1 0.9)
-                ]
-                (List.map mainCatView xs_)
+                wrappedRow
+                    [ width (maximum maxWidth fill)
+                    , centerX
+                    , spaceEvenly
+                    , Background.color (rgba 1 1 1 0.9)
+                    ]
+                    (List.map mainCatView xs_)
 
         Nothing ->
             Element.none
@@ -824,7 +831,7 @@ getPages =
         request =
             Http.post "/getPageTree.php" body Decode.value
     in
-    Http.send LoadPages request
+        Http.send LoadPages request
 
 
 getContent : ( String, String, String ) -> Cmd Msg
@@ -838,7 +845,7 @@ getContent ( path, contentId, name ) =
         request =
             Http.post "/getContent.php" body Decode.value
     in
-    Http.send (LoadContent ( path, contentId, name )) request
+        Http.send (LoadContent ( path, contentId, name )) request
 
 
 
@@ -873,13 +880,14 @@ pageToPages page =
                             List.map Url.percentEncode path
                                 |> String.join "/"
                                 --String.join "/" path
-                                |> (\p -> "/" ++ p)
+                                |>
+                                    (\p -> "/" ++ p)
                     in
-                    ( strPath pageInfo.path, pageInfo.name, canonical contentId ) :: List.concatMap toList xs
+                        ( strPath pageInfo.path, pageInfo.name, canonical contentId ) :: List.concatMap toList xs
     in
-    toList page
-        |> List.map (\( p, n, cId ) -> ( p, ( cId, n, NotLoaded ) ))
-        |> Dict.fromList
+        toList page
+            |> List.map (\( p, n, cId ) -> ( p, ( cId, n, NotLoaded ) ))
+            |> Dict.fromList
 
 
 decodeSearchResults : Decode.Decoder SearchResult
@@ -890,10 +898,10 @@ decodeSearchResults =
                 |> Pipeline.required "score" Decode.int
                 |> Pipeline.required "keywords" (Decode.list Decode.string)
     in
-    Decode.succeed (\k r -> ( k, r ))
-        |> Pipeline.required "keywords" (Decode.list Decode.string)
-        |> Pipeline.required "results"
-            (Decode.dict decodeRes)
+        Decode.succeed (\k r -> ( k, r ))
+            |> Pipeline.required "keywords" (Decode.list Decode.string)
+            |> Pipeline.required "results"
+                (Decode.dict decodeRes)
 
 
 

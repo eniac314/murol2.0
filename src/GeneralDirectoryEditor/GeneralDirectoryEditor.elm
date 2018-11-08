@@ -13,12 +13,17 @@ import Html as Html
 import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode as D
+import Json.Encode as E
+import Json.Decode.Pipeline as P exposing (..)
 import List.Extra exposing (unique, uniqueBy)
 import Random exposing (..)
 import Set exposing (..)
 import UUID exposing (..)
+import Time exposing (..)
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
+import Http exposing (..)
+import Json.Decode.Extra
 
 
 type alias Model msg =
@@ -42,7 +47,16 @@ type Msg
     | FilterByActiv String
     | FilterByLabel String
     | SelectFiche String
+    | LoadGeneralDirectory (Result Http.Error GenDirData)
     | NoOp
+
+
+type alias GenDirData =
+    { fiches : Dict String Fiche
+    , categories : Dict String Categorie
+    , activites : Set String
+    , labels : List Label
+    }
 
 
 type alias Fiche =
@@ -62,7 +76,21 @@ type alias Fiche =
     , pjaun : Maybe String
     , visuel : String
     , description : List String
+    , linkedDocs : List LinkedDoc
     , ouverture : Maybe Ouverture
+    }
+
+
+type alias Label =
+    { nom : String
+    , logo : String
+    , lien : String
+    }
+
+
+type alias Rank =
+    { stars : Maybe Int
+    , epis : Maybe Int
     }
 
 
@@ -84,8 +112,18 @@ type Ouverture
     | TteAnnee
 
 
+type alias LinkedDoc =
+    { url : String
+    , label : String
+    , descr : Maybe String
+    , expiryDate : Posix
+    }
+
+
 type alias Categorie =
-    List { field : Field, fieldType : FieldType }
+    { name : String
+    , fields : List { field : Field, fieldType : FieldType }
+    }
 
 
 type Field
@@ -104,6 +142,7 @@ type Field
     | PjaunField
     | VisuelField
     | DescriptionField
+    | LinkedDocsField
     | OuvertureField
 
 
@@ -122,19 +161,6 @@ type RightPanelDiplay
     | EditLabel
 
 
-type alias Label =
-    { nom : String
-    , logo : String
-    , lien : String
-    }
-
-
-type alias Rank =
-    { stars : Maybe Int
-    , epis : Maybe Int
-    }
-
-
 init externalMsg =
     let
         data =
@@ -144,7 +170,9 @@ init externalMsg =
             Dict.foldr
                 (\_ f acc ->
                     List.foldr
-                        (\c acc_ -> Dict.insert c [] acc_)
+                        (\c acc_ ->
+                            Dict.insert c ({ name = c, fields = [] }) acc_
+                        )
                         acc
                         f.categories
                 )
@@ -190,8 +218,29 @@ init externalMsg =
         )
 
 
-update : Msg -> Model msg -> ( Model msg, Cmd msg )
-update msg model =
+update :
+    { a
+        | logInfo : LogInfo
+    }
+    -> Msg
+    -> Model msg
+    -> ( Model msg, Cmd msg )
+update config msg model =
+    let
+        ( newModel, cmds ) =
+            internalUpdate config msg model
+    in
+        ( newModel, Cmd.map model.externalMsg cmds )
+
+
+internalUpdate :
+    { a
+        | logInfo : LogInfo
+    }
+    -> Msg
+    -> Model msg
+    -> ( Model msg, Cmd Msg )
+internalUpdate config msg model =
     case msg of
         FilterByName nom ->
             ( { model | nameFilter = Just nom }
@@ -238,6 +287,9 @@ update msg model =
               }
             , Cmd.none
             )
+
+        LoadGeneralDirectory res ->
+            ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -644,46 +696,40 @@ telPreview tel =
 -------------------
 
 
-encodeFiche : Fiche -> Encode.Value
+encodeFiche : Fiche -> E.Value
 encodeFiche f =
-    Encode.object
-        [ ( "uuid", Encode.string (UUID.canonical f.uuid) )
-        , ( "categories", Encode.list Encode.string f.categories )
-        , ( "natureActiv", Encode.list Encode.string f.natureActiv )
+    E.object
+        [ ( "uuid", E.string (UUID.canonical f.uuid) )
+        , ( "categories", E.list E.string f.categories )
+        , ( "natureActiv", E.list E.string f.natureActiv )
         , ( "refOt"
-          , Maybe.map (\( n, s ) -> Encode.object [ ( "ref", Encode.int n ), ( "link", Encode.string s ) ]) f.refOt
-                |> Maybe.withDefault Encode.null
+          , Maybe.map (\( n, s ) -> E.object [ ( "ref", E.int n ), ( "link", E.string s ) ]) f.refOt
+                |> Maybe.withDefault E.null
           )
         , ( "label"
-          , Encode.list
-                (\{ nom, logo, lien } ->
-                    Encode.object
-                        [ ( "nom", Encode.string nom )
-                        , ( "logo", Encode.string logo )
-                        , ( "lien", Encode.string lien )
-                        ]
-                )
+          , E.list
+                encodeLabel
                 f.label
           )
         , ( "rank"
-          , Encode.object
+          , E.object
                 [ ( "stars"
-                  , Maybe.map Encode.int f.rank.stars
-                        |> Maybe.withDefault Encode.null
+                  , Maybe.map E.int f.rank.stars
+                        |> Maybe.withDefault E.null
                   )
                 , ( "epis"
-                  , Maybe.map Encode.int f.rank.epis
-                        |> Maybe.withDefault Encode.null
+                  , Maybe.map E.int f.rank.epis
+                        |> Maybe.withDefault E.null
                   )
                 ]
           )
-        , ( "nomEntite", Encode.string f.nomEntite )
+        , ( "nomEntite", E.string f.nomEntite )
         , ( "responsables"
-          , Encode.list
+          , E.list
                 (\r ->
-                    Encode.object
-                        [ ( "poste", Encode.string r.poste )
-                        , ( "nom", Encode.string r.nom )
+                    E.object
+                        [ ( "poste", E.string r.poste )
+                        , ( "nom", E.string r.nom )
                         , ( "tel"
                           , encodeTel r.tel
                           )
@@ -691,70 +737,454 @@ encodeFiche f =
                 )
                 f.responsables
           )
-        , ( "adresse", Encode.string f.adresse )
+        , ( "adresse", E.string f.adresse )
         , ( "telNumber"
           , Maybe.map encodeTel f.telNumber
-                |> Maybe.withDefault Encode.null
+                |> Maybe.withDefault E.null
           )
         , ( "fax"
-          , Maybe.map Encode.string f.fax
-                |> Maybe.withDefault Encode.null
+          , Maybe.map E.string f.fax
+                |> Maybe.withDefault E.null
           )
-        , ( "email", Encode.list Encode.string f.email )
+        , ( "email", E.list E.string f.email )
         , ( "site"
           , Maybe.map
                 (\( l, url ) ->
-                    Encode.object
-                        [ ( "label", Encode.string l )
-                        , ( "url", Encode.string url )
+                    E.object
+                        [ ( "label", E.string l )
+                        , ( "url", E.string url )
                         ]
                 )
                 f.site
-                |> Maybe.withDefault Encode.null
+                |> Maybe.withDefault E.null
           )
         , ( "pjaun"
-          , Maybe.map Encode.string f.pjaun
-                |> Maybe.withDefault Encode.null
+          , Maybe.map E.string f.pjaun
+                |> Maybe.withDefault E.null
           )
         , ( "visuel"
-          , Encode.string f.visuel
+          , E.string f.visuel
           )
         , ( "description"
-          , Encode.list Encode.string f.description
+          , E.list E.string f.description
+          )
+        , ( "linkedDocs"
+          , E.list
+                (\ld ->
+                    E.object
+                        [ ( "url", E.string ld.url )
+                        , ( "label", E.string ld.label )
+                        , ( "descr"
+                          , Maybe.map E.string ld.descr
+                                |> Maybe.withDefault E.null
+                          )
+                        , ( "expiryDate", E.int (posixToMillis ld.expiryDate) )
+                        ]
+                )
+                f.linkedDocs
           )
         , ( "ouverture"
           , Maybe.map
                 (\o ->
                     case o of
                         TteAnnee ->
-                            Encode.string "TteAnnee"
+                            E.string "TteAnnee"
 
                         Saisonniere ->
-                            Encode.string "Saisonniere"
+                            E.string "Saisonniere"
                 )
                 f.ouverture
-                |> Maybe.withDefault Encode.null
+                |> Maybe.withDefault E.null
           )
         ]
+
+
+encodeLabel =
+    (\{ nom, logo, lien } ->
+        E.object
+            [ ( "nom", E.string nom )
+            , ( "logo", E.string logo )
+            , ( "lien", E.string lien )
+            ]
+    )
 
 
 encodeTel tel =
     case tel of
         TelFixe s ->
-            Encode.object [ ( "TelFixe", Encode.string s ) ]
+            E.object [ ( "TelFixe", E.string s ) ]
 
         TelPortable s ->
-            Encode.object [ ( "TelPortable", Encode.string s ) ]
+            E.object [ ( "TelPortable", E.string s ) ]
 
         TelBoth ( s1, s2 ) ->
-            Encode.object
+            E.object
                 [ ( "TelBoth"
-                  , Encode.object
-                        [ ( "TelFixe", Encode.string s1 )
-                        , ( "TelPortable", Encode.string s2 )
+                  , E.object
+                        [ ( "TelFixe", E.string s1 )
+                        , ( "TelPortable", E.string s2 )
                         ]
                   )
                 ]
+
+
+encodeGenDirData : GenDirData -> E.Value
+encodeGenDirData { fiches, categories, activites, labels } =
+    E.object
+        [ ( "fiches"
+          , E.list encodeFiche
+                (Dict.values fiches)
+          )
+        , ( "categories"
+          , E.list encodeCategorie
+                (Dict.values categories)
+          )
+        , ( "activites", E.set E.string activites )
+        , ( "labels", E.list encodeLabel labels )
+        ]
+
+
+encodeCategorie { name, fields } =
+    E.object
+        [ ( "name", E.string name )
+        , ( "fields", E.list encodeFieldsMeta fields )
+        ]
+
+
+encodeFieldsMeta { field, fieldType } =
+    E.object
+        [ ( "field", encodeField field )
+        , ( "fieldType", encodeFieldType fieldType )
+        ]
+
+
+encodeField field =
+    case field of
+        CategoriesField ->
+            E.string "CategoriesField"
+
+        NatureActivField ->
+            E.string "NatureActivField"
+
+        RefOtField ->
+            E.string "RefOtField"
+
+        LabelField ->
+            E.string "LabelField"
+
+        RankField ->
+            E.string "RankField"
+
+        NomEntiteField ->
+            E.string "NomEntiteField"
+
+        ResponsablesField ->
+            E.string "ResponsablesField"
+
+        AdresseField ->
+            E.string "AdresseField"
+
+        TelNumberField ->
+            E.string "TelNumberField"
+
+        FaxField ->
+            E.string "FaxField"
+
+        EmailField ->
+            E.string "EmailField"
+
+        SiteField ->
+            E.string "SiteField"
+
+        PjaunField ->
+            E.string "PjaunField"
+
+        VisuelField ->
+            E.string "VisuelField"
+
+        DescriptionField ->
+            E.string "DescriptionField"
+
+        LinkedDocsField ->
+            E.string "LinkedDocsField"
+
+        OuvertureField ->
+            E.string "OuvertureField"
+
+
+encodeFieldType ft =
+    case ft of
+        Obligatoire ->
+            E.string "Obligatoire"
+
+        Optionel ->
+            E.string "Optionel"
+
+        SansObject ->
+            E.string "SansObject"
+
+
+
+-------------------------------------------------------------------------------
+--------------------
+-- Json decoding  --
+--------------------
+
+
+decodeGenDirData : D.Decoder GenDirData
+decodeGenDirData =
+    D.succeed GenDirData
+        |> P.required "fiches"
+            (D.list decodeFiche
+                |> D.map
+                    (List.map
+                        (\f -> ( canonical f.uuid, f ))
+                    )
+                |> D.map Dict.fromList
+            )
+        |> P.required "categories"
+            (D.list decodeCategorie
+                |> D.map (List.map (\c -> ( c.name, c )))
+                |> D.map Dict.fromList
+            )
+        |> P.required "activites"
+            (D.map Set.fromList
+                (D.list D.string)
+            )
+        |> P.required "labels" (D.list decodeLabel)
+
+
+decodeCategorie : D.Decoder Categorie
+decodeCategorie =
+    D.succeed Categorie
+        |> P.required "name" D.string
+        |> P.required "fields"
+            (D.list
+                (D.succeed (\f ft -> { field = f, fieldType = ft })
+                    |> P.required "field" decodeField
+                    |> P.required "fieldType" decodeFieldType
+                )
+            )
+
+
+decodeField : D.Decoder Field
+decodeField =
+    D.string
+        |> D.andThen
+            (\str ->
+                case str of
+                    "CategoriesField" ->
+                        D.succeed CategoriesField
+
+                    "NatureActivField" ->
+                        D.succeed NatureActivField
+
+                    "RefOtField" ->
+                        D.succeed RefOtField
+
+                    "LabelField" ->
+                        D.succeed LabelField
+
+                    "RankField" ->
+                        D.succeed RankField
+
+                    "NomEntiteField" ->
+                        D.succeed NomEntiteField
+
+                    "ResponsablesField" ->
+                        D.succeed ResponsablesField
+
+                    "AdresseField" ->
+                        D.succeed AdresseField
+
+                    "TelNumberField" ->
+                        D.succeed TelNumberField
+
+                    "FaxField" ->
+                        D.succeed FaxField
+
+                    "EmailField" ->
+                        D.succeed EmailField
+
+                    "SiteField" ->
+                        D.succeed SiteField
+
+                    "PjaunField" ->
+                        D.succeed PjaunField
+
+                    "VisuelField" ->
+                        D.succeed VisuelField
+
+                    "DescriptionField" ->
+                        D.succeed DescriptionField
+
+                    "LinkedDocsField" ->
+                        D.succeed LinkedDocsField
+
+                    "OuvertureField" ->
+                        D.succeed OuvertureField
+
+                    somethingElse ->
+                        D.fail <|
+                            "Unknown fieldType: "
+                                ++ somethingElse
+            )
+
+
+decodeFieldType : D.Decoder FieldType
+decodeFieldType =
+    D.string
+        |> D.andThen
+            (\str ->
+                case str of
+                    "Obligatoire" ->
+                        D.succeed Obligatoire
+
+                    "Optionel" ->
+                        D.succeed Optionel
+
+                    somethingElse ->
+                        D.fail <|
+                            "Unknown fieldType: "
+                                ++ somethingElse
+            )
+
+
+decodeFiche : D.Decoder Fiche
+decodeFiche =
+    D.succeed Fiche
+        |> P.required "uuid" decodeUUID
+        |> P.required "categories" (D.list D.string)
+        |> P.required "natureActiv" (D.list D.string)
+        |> P.required "refOt" decodeRefOt
+        |> P.required "label" (D.list decodeLabel)
+        |> P.required "rank" decodeRank
+        |> P.required "nomEntite" D.string
+        |> P.required "responsables" (D.list decodeResp)
+        |> P.required "adresse" D.string
+        |> P.required "telNumber" (D.nullable decodeTel)
+        |> P.required "fax" (D.nullable D.string)
+        |> P.required "email" (D.list D.string)
+        |> P.required "site" decodeSite
+        |> P.required "pjaun" (D.nullable D.string)
+        |> P.required "visuel" D.string
+        |> P.required "description" (D.list D.string)
+        |> P.required "linkedDocs" (D.list decodeLinkedDoc)
+        |> P.required "ouverture" (D.nullable decodeOuverture)
+
+
+decodeUUID : D.Decoder UUID
+decodeUUID =
+    D.string
+        |> D.andThen
+            (Json.Decode.Extra.fromResult << UUID.fromString)
+
+
+decodeRefOt =
+    D.nullable
+        (D.succeed Tuple.pair
+            |> P.required "ref" D.int
+            |> P.required "label" D.string
+        )
+
+
+decodeLabel : D.Decoder Label
+decodeLabel =
+    D.succeed Label
+        |> P.required "nom" D.string
+        |> P.required "logo" D.string
+        |> P.required "lien" D.string
+
+
+decodeRank : D.Decoder Rank
+decodeRank =
+    D.succeed Rank
+        |> P.required "stars" (D.nullable D.int)
+        |> P.required "epis" (D.nullable D.int)
+
+
+decodeResp : D.Decoder Responsable
+decodeResp =
+    D.succeed Responsable
+        |> P.required "poste" D.string
+        |> P.required "nom" D.string
+        |> P.required "tel" decodeTel
+
+
+decodeTel : D.Decoder TelNumber
+decodeTel =
+    D.oneOf
+        [ D.succeed TelFixe
+            |> P.required "TelFixe" D.string
+        , D.succeed TelPortable
+            |> P.required "TelPortable" D.string
+        , D.succeed TelBoth
+            |> P.required "TelBoth"
+                (D.succeed Tuple.pair
+                    |> P.required "TelFixe" D.string
+                    |> P.required "TelPortable" D.string
+                )
+        ]
+
+
+decodeSite =
+    D.nullable
+        (D.succeed Tuple.pair
+            |> P.required "label" D.string
+            |> P.required "url" D.string
+        )
+
+
+decodeLinkedDoc : D.Decoder LinkedDoc
+decodeLinkedDoc =
+    D.succeed LinkedDoc
+        |> P.required "url" D.string
+        |> P.required "label" D.string
+        |> P.required "descr" (D.nullable D.string)
+        |> P.required "expiryDate" (D.map millisToPosix D.int)
+
+
+decodeOuverture : D.Decoder Ouverture
+decodeOuverture =
+    D.string
+        |> D.andThen
+            (\str ->
+                case str of
+                    "Saisonniere" ->
+                        D.succeed Saisonniere
+
+                    "TteAnnee" ->
+                        D.succeed TteAnnee
+
+                    somethingElse ->
+                        D.fail <|
+                            "Unknown ouverture: "
+                                ++ somethingElse
+            )
+
+
+
+-------------------------------------------------------------------------------
+--------------------
+-- Http functions --
+--------------------
+
+
+getGeneralDirectory : String -> Cmd Msg
+getGeneralDirectory sessionId =
+    let
+        body =
+            E.object
+                [ ( "sessionId"
+                  , E.string sessionId
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "getGeneralDirectory.php" body decodeGenDirData
+    in
+        Http.send LoadGeneralDirectory request
 
 
 
@@ -864,10 +1294,11 @@ tableEntryToFiche cat activ tEntry =
             [ tEntry.mail ]
     , site =
         toMbStr tEntry.site
-            |> Maybe.map (\s -> ( "lien", s ))
+            |> Maybe.map (\s -> ( tEntry.name, s ))
     , pjaun = toMbStr tEntry.pjaun
     , visuel = ""
     , description = tEntry.descr
+    , linkedDocs = []
     , ouverture = Nothing
     }
 
@@ -911,10 +1342,11 @@ entrepriseToFiche activ e =
             [ e.mail ]
     , site =
         toMbStr e.site
-            |> Maybe.map (\s -> ( "lien", s ))
+            |> Maybe.map (\s -> ( e.name, s ))
     , pjaun = Nothing
     , visuel = ""
     , description = e.descr
+    , linkedDocs = []
     , ouverture = Nothing
     }
 
@@ -968,10 +1400,11 @@ commerceToFiche activ ouverture com =
             [ com.mail ]
     , site =
         toMbStr com.site
-            |> Maybe.map (\s -> ( "lien", s ))
+            |> Maybe.map (\s -> ( com.name, s ))
     , pjaun = toMbStr com.pjaun
     , visuel = ""
     , description = com.descr
+    , linkedDocs = []
     , ouverture = Just ouverture
     }
 
@@ -1036,12 +1469,13 @@ assocToFiche assoc =
 
             x :: xs ->
                 Just x
-                    |> Maybe.map (\s -> ( "lien", s ))
+                    |> Maybe.map (\s -> ( assoc.nom, s ))
     , pjaun = Nothing
     , visuel = ""
     , description =
         [ assoc.preci, assoc.domaine, assoc.affil ]
             |> List.filter (\s -> s /= "")
+    , linkedDocs = []
     , ouverture = Nothing
     }
 
@@ -1164,8 +1598,8 @@ fichesToJsonLink =
     database (initialSeed 0)
         |> (\( res, double, errors ) ->
                 List.map encodeFiche (Dict.values res)
-                    |> Encode.list identity
-                    |> Encode.encode 0
+                    |> E.list identity
+                    |> E.encode 0
                     |> (\data ->
                             el []
                                 (html <|
