@@ -16,7 +16,7 @@ import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as D
 import Json.Encode as E
 import Json.Decode.Pipeline as P exposing (..)
-import List.Extra exposing (unique, uniqueBy)
+import List.Extra exposing (unique, uniqueBy, remove)
 import Random exposing (..)
 import Set exposing (..)
 import UUID exposing (..)
@@ -24,6 +24,7 @@ import Time exposing (..)
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Http exposing (..)
 import Json.Decode.Extra
+import Element.Keyed as Keyed
 
 
 type alias Model msg =
@@ -37,6 +38,11 @@ type alias Model msg =
     , labelFilter : Maybe String
     , selectedFiche : Maybe String
     , rightPanelDiplay : RightPanelDiplay
+    , lockedFiches : List Fiche
+    , categoriesLocked : Bool
+    , activitesLocked : Bool
+    , labelsLocked : Bool
+    , debug : List String
     , externalMsg : Msg -> msg
     }
 
@@ -48,6 +54,11 @@ type Msg
     | FilterByLabel String
     | SelectFiche String
     | LoadGeneralDirectory (Result Http.Error GenDirData)
+    | FicheUpdated Fiche (Result Http.Error Bool)
+    | CategoriesUpdated (Dict String Categorie) (Result Http.Error Bool)
+    | ActivitesUpdated (Set String) (Result Http.Error Bool)
+    | LabelsUpdated (List Label) (Result Http.Error Bool)
+    | BatchUpdateFiches
     | NoOp
 
 
@@ -212,6 +223,11 @@ init externalMsg =
           , labelFilter = Nothing
           , selectedFiche = Nothing
           , rightPanelDiplay = PreviewFiche
+          , lockedFiches = []
+          , categoriesLocked = False
+          , activitesLocked = False
+          , labelsLocked = False
+          , debug = []
           , externalMsg = externalMsg
           }
         , Cmd.none
@@ -289,7 +305,102 @@ internalUpdate config msg model =
             )
 
         LoadGeneralDirectory res ->
-            ( model, Cmd.none )
+            case res of
+                Ok { fiches, categories, activites, labels } ->
+                    ( { model
+                        | fiches = fiches
+                        , categories = categories
+                        , activites = activites
+                        , labels = labels
+                      }
+                    , Cmd.none
+                    )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        FicheUpdated fiche res ->
+            case res of
+                Ok True ->
+                    ( { model
+                        | lockedFiches =
+                            List.Extra.remove fiche model.lockedFiches
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model
+                        | lockedFiches =
+                            List.Extra.remove fiche model.lockedFiches
+                        , fiches =
+                            Dict.insert
+                                (canonical fiche.uuid)
+                                fiche
+                                model.fiches
+                        , debug = fiche.nomEntite :: model.debug
+                      }
+                    , Cmd.none
+                    )
+
+        CategoriesUpdated backup res ->
+            case res of
+                Ok True ->
+                    ( { model | categoriesLocked = False }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model
+                        | categoriesLocked = False
+                        , categories = backup
+                      }
+                    , Cmd.none
+                    )
+
+        ActivitesUpdated backup res ->
+            case res of
+                Ok True ->
+                    ( { model | activitesLocked = False }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model
+                        | activitesLocked = False
+                        , activites = backup
+                      }
+                    , Cmd.none
+                    )
+
+        LabelsUpdated backup res ->
+            case res of
+                Ok True ->
+                    ( { model | labelsLocked = False }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( { model
+                        | labelsLocked = False
+                        , labels = backup
+                      }
+                    , Cmd.none
+                    )
+
+        BatchUpdateFiches ->
+            ( model
+            , Dict.values model.fiches
+                |> List.reverse
+                |> (List.map
+                        (\f ->
+                            cmdIfLogged
+                                config.logInfo
+                                (updateFiche f)
+                        )
+                   )
+                |> Cmd.batch
+            )
 
         NoOp ->
             ( model, Cmd.none )
@@ -320,7 +431,7 @@ ficheSelectorView model =
                         |> Maybe.withDefault False
 
         filterView selected handler entry =
-            el
+            Keyed.el
                 [ width fill
                 , paddingXY 5 5
                 , Events.onClick handler
@@ -331,7 +442,7 @@ ficheSelectorView model =
                   else
                     noAttr
                 ]
-                (text entry)
+                ( entry, (text entry) )
 
         nameFilterFun =
             case model.nameFilter of
@@ -380,7 +491,9 @@ ficheSelectorView model =
                 |> List.filter labelFilterFun
     in
         column
-            [ spacing 15 ]
+            [ spacing 15
+            , alignTop
+            ]
             [ Input.text
                 textInputStyle
                 { onChange =
@@ -470,7 +583,31 @@ formsView model =
         [ Maybe.andThen (\id -> Dict.get id model.fiches) model.selectedFiche
             |> Maybe.map fichePreview
             |> Maybe.withDefault Element.none
-          --, fichesToJsonLink
+        , fichesToJsonLink
+        , text <| "nbr Fiches: " ++ (String.fromInt <| Dict.size model.fiches)
+        , Input.button (buttonStyle True)
+            { onPress = Just BatchUpdateFiches
+            , label = text "batch update"
+            }
+        , text <| "nbr erreurs: " ++ (String.fromInt <| List.length model.debug)
+        , column
+            [ spacing 10
+            , height (px 250)
+            , scrollbarY
+            ]
+            (List.map text model.debug)
+        , column
+            [ spacing 10
+            , height (px 250)
+            , scrollbarY
+            ]
+            (Dict.filter
+                (\k v -> not <| (List.member v.nomEntite) model.debug)
+                model.fiches
+                |> Dict.values
+                |> List.map .nomEntite
+                |> List.map text
+            )
         ]
 
 
@@ -628,6 +765,25 @@ fichePreview f =
                 )
           else
             Element.none
+        , case f.ouverture of
+            Nothing ->
+                row [ spacing 15 ]
+                    [ el [ Font.bold ] (text "Ouvert:")
+                    , el [] (text "toute l'année")
+                    ]
+
+            Just TteAnnee ->
+                row [ spacing 15 ]
+                    [ el [ Font.bold ] (text "Ouvert:")
+                    , el [] (text "toute l'année")
+                    ]
+
+            Just Saisonniere ->
+                row [ spacing 15 ]
+                    [ el [ Font.bold ] (text "Ouvert:")
+                    , el [] (text "en saison")
+                    ]
+        , text <| canonical f.uuid
         ]
 
 
@@ -1187,6 +1343,94 @@ getGeneralDirectory sessionId =
         Http.send LoadGeneralDirectory request
 
 
+updateFiche : Fiche -> String -> Cmd Msg
+updateFiche fiche sessionId =
+    let
+        body =
+            E.object
+                [ ( "sessionId"
+                  , E.string sessionId
+                  )
+                , ( "fiche"
+                  , encodeFiche
+                        fiche
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "updateFiche.php" body decodeSuccess
+    in
+        Http.send (FicheUpdated fiche) request
+
+
+updateCategories : Dict String Categorie -> String -> Cmd Msg
+updateCategories categories sessionId =
+    let
+        body =
+            E.object
+                [ ( "sessionId"
+                  , E.string sessionId
+                  )
+                , ( "categories"
+                  , E.list encodeCategorie
+                        (Dict.values categories)
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "updateCategories.php" body decodeSuccess
+    in
+        Http.send (CategoriesUpdated categories) request
+
+
+updateActivites : Set String -> String -> Cmd Msg
+updateActivites activites sessionId =
+    let
+        body =
+            E.object
+                [ ( "sessionId"
+                  , E.string sessionId
+                  )
+                , ( "activites"
+                  , E.set E.string
+                        activites
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "updateActivites.php" body decodeSuccess
+    in
+        Http.send (ActivitesUpdated activites) request
+
+
+updateLabels : List Label -> String -> Cmd Msg
+updateLabels labels sessionId =
+    let
+        body =
+            E.object
+                [ ( "sessionId"
+                  , E.string sessionId
+                  )
+                , ( "labels"
+                  , E.list encodeLabel labels
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "updateLabels.php" body decodeSuccess
+    in
+        Http.send (LabelsUpdated labels) request
+
+
+decodeSuccess : D.Decoder Bool
+decodeSuccess =
+    D.at [ "message" ] (D.succeed True)
+
+
 
 -------------------------------------------------------------------------------
 -----------------------
@@ -1482,6 +1726,68 @@ assocToFiche assoc =
 
 
 -------------------------------------------------------------------------------
+-----------------
+-- Agriculture --
+-----------------
+
+
+type alias Agriculteur =
+    { name : String
+    , descr : List String
+    , addr : String
+    , tel : String
+    , fax : String
+    , mail : String
+    , site : String
+    , refOt : Maybe ( String, String )
+    }
+
+
+defAgri =
+    Agriculteur "" [] "" "" "" "" "" Nothing
+
+
+type alias AgriculteurMap =
+    Dict String (List Agriculteur)
+
+
+agriToFiche : Agriculteur -> Fiche
+agriToFiche agri =
+    { uuid = UUID.nil
+    , categories = [ "Agriculture" ]
+    , natureActiv = [ "Agriculteur & producteur de fromages" ]
+    , refOt =
+        Maybe.andThen
+            (\( ref, link ) ->
+                Just
+                    ( Maybe.withDefault 0 (String.toInt ref)
+                    , link
+                    )
+            )
+            agri.refOt
+    , label = []
+    , rank = { stars = Nothing, epis = Nothing }
+    , nomEntite = agri.name
+    , responsables = []
+    , adresse = agri.addr
+    , telNumber = Just <| toTelNbr agri.tel
+    , fax = toMbStr agri.fax
+    , email =
+        if agri.mail /= "" then
+            [ agri.mail ]
+        else
+            []
+    , site = Nothing
+    , pjaun = Nothing
+    , visuel = ""
+    , description = agri.descr
+    , linkedDocs = []
+    , ouverture = Nothing
+    }
+
+
+
+-------------------------------------------------------------------------------
 ----------------------
 -- Database builder --
 ----------------------
@@ -1579,6 +1885,7 @@ database seed =
                 ++ entreprises
                 ++ commerces
                 ++ associations
+                ++ agriculteurs
     in
         setUUIDS seed data
             |> Tuple.second
@@ -2980,7 +3287,7 @@ commercesSummer =
           , [ { defCom
                 | name = "Legoueix père et fils (hiver)"
                 , refOt = Just ( "4682148", "https://www.sancy.com/commerce-service/legoueix-skishop/" )
-                , descr = [ "" ]
+                , descr = []
                 , addr = "Rue du Tartaret 63790 MUROL"
                 , tel = "04 73 88 66 21"
               }
@@ -2991,8 +3298,8 @@ commercesSummer =
                 | name = "plage Murol du lac Chambon"
                 , refOt = Just ( "4716921", "https://www.sancy.com/commerce-service/location-de-pedaleau/" )
                 , descr =
-                    [ "" ]
-                    --, addr  = "06 08 58 40 30"
+                    []
+                , addr = "plage Murol du lac Chambon"
                 , tel =
                     "06 08 58 40 30"
                     --, site  = ""
@@ -3621,5 +3928,58 @@ associations =
             , mails = [ "info@auvergne-escapade.com" ]
             , sites = [ "http://www.auvergne-escapade.com" ]
             , cat = Pro
+          }
+        ]
+
+
+agriculteurs =
+    List.map agriToFiche
+        [ { defAgri
+            | name = "GAEC de Chautignat"
+            , addr = "Chautignat 63790 Murol"
+            , tel = "04 73 88 81 92"
+          }
+        , { defAgri
+            | name = "Tourreix Pascal"
+            , addr = "Beaune-le-Froid 63790 Murol"
+            , tel = "04 73 88 62 34"
+          }
+        , { defAgri
+            | name = "GAEC Tixier"
+            , addr = "Beaune-le-Froid 63790 Murol"
+            , tel = "04 73 88 81 10"
+            , refOt = Just ( "4658145", "https://www.sancy.com/producteur/gaec-tixier/" )
+          }
+        , { defAgri
+            | name = "GAEC des Monts Dores"
+            , addr = "Beaune-le-Froid 63790 Murol "
+            , tel = "04 73 88 64 75 "
+            , refOt = Just ( "4658139", "https://www.sancy.com/producteur/gaec-des-monts-dore/" )
+          }
+        , { defAgri
+            | name = "GAEC des Noisetiers"
+            , addr = "Beaune-le-Froid 63790 Murol"
+            , tel = "04 73 88 66 32 "
+          }
+        , { defAgri
+            | name = "GAEC de la route des caves"
+            , addr = "Beaune-le-Froid 63790 Murol "
+            , tel = "04 73 88 65 85"
+            , refOt = Just ( "4658143", "https://www.sancy.com/producteur/gaec-de-la-route-des-caves-ferme-roux/" )
+          }
+        , { defAgri
+            | name = "Laurent PLANEIX"
+            , addr = "Beaune-le-Froid 63790 Murol"
+            , tel = "04 73 88 60 74 "
+          }
+        , { defAgri
+            | name = "Philippe BEAL"
+            , addr = "Les Ballats 63790 Murol"
+            , tel = "04 73 88 60 47 "
+          }
+        , { defAgri
+            | name = "Daniel BOUCHE"
+            , addr = "Beaune-le-Froid 63790 Murol"
+            , tel = "04 73 88 67 28 "
           }
         ]
