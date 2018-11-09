@@ -15,7 +15,6 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 
   if (!$pageTree){
     logError("impossible de charger l'arborescence du site");
-    mysqli_close($db);
     exit(); 
   }  
   

@@ -58,6 +58,7 @@ type Msg
     | CategoriesUpdated (Dict String Categorie) (Result Http.Error Bool)
     | ActivitesUpdated (Set String) (Result Http.Error Bool)
     | LabelsUpdated (List Label) (Result Http.Error Bool)
+    | GetData
     | BatchUpdateFiches
     | NoOp
 
@@ -213,10 +214,10 @@ init externalMsg =
                 data
                 |> uniqueBy (\{ nom, logo, lien } -> nom ++ logo ++ lien)
     in
-        ( { fiches = data
-          , categories = cats
-          , activites = activ
-          , labels = labels
+        ( { fiches = Dict.empty
+          , categories = Dict.empty
+          , activites = Set.empty
+          , labels = []
           , nameFilter = Nothing
           , catFilter = Nothing
           , activFilter = Nothing
@@ -316,8 +317,8 @@ internalUpdate config msg model =
                     , Cmd.none
                     )
 
-                Err _ ->
-                    ( model, Cmd.none )
+                Err e ->
+                    ( { model | debug = [] }, Cmd.none )
 
         FicheUpdated fiche res ->
             case res of
@@ -388,6 +389,13 @@ internalUpdate config msg model =
                     , Cmd.none
                     )
 
+        GetData ->
+            ( model
+            , cmdIfLogged
+                config.logInfo
+                (getGeneralDirectory)
+            )
+
         BatchUpdateFiches ->
             ( model
             , Dict.values model.fiches
@@ -398,6 +406,19 @@ internalUpdate config msg model =
                                 config.logInfo
                                 (updateFiche f)
                         )
+                   )
+                |> (\cmds ->
+                        cmds
+                            ++ [ cmdIfLogged
+                                    config.logInfo
+                                    (updateCategories model.categories)
+                               , cmdIfLogged
+                                    config.logInfo
+                                    (updateActivites model.activites)
+                               , cmdIfLogged
+                                    config.logInfo
+                                    (updateLabels model.labels)
+                               ]
                    )
                 |> Cmd.batch
             )
@@ -584,30 +605,34 @@ formsView model =
             |> Maybe.map fichePreview
             |> Maybe.withDefault Element.none
         , fichesToJsonLink
-        , text <| "nbr Fiches: " ++ (String.fromInt <| Dict.size model.fiches)
+          --, text <| "nbr Fiches: " ++ (String.fromInt <| Dict.size model.fiches)
+        , Input.button (buttonStyle True)
+            { onPress = Just GetData
+            , label = text "get data"
+            }
         , Input.button (buttonStyle True)
             { onPress = Just BatchUpdateFiches
             , label = text "batch update"
             }
-        , text <| "nbr erreurs: " ++ (String.fromInt <| List.length model.debug)
-        , column
-            [ spacing 10
-            , height (px 250)
-            , scrollbarY
-            ]
-            (List.map text model.debug)
-        , column
-            [ spacing 10
-            , height (px 250)
-            , scrollbarY
-            ]
-            (Dict.filter
-                (\k v -> not <| (List.member v.nomEntite) model.debug)
-                model.fiches
-                |> Dict.values
-                |> List.map .nomEntite
-                |> List.map text
-            )
+          --, text <| "nbr erreurs: " ++ (String.fromInt <| List.length model.debug)
+          --, column
+          --    [ spacing 10
+          --    , height (px 250)
+          --    , scrollbarY
+          --    ]
+          --    (List.map text model.debug)
+          --, column
+          --    [ spacing 10
+          --    , height (px 250)
+          --    , scrollbarY
+          --    ]
+          --    (Dict.filter
+          --        (\k v -> not <| (List.member v.nomEntite) model.debug)
+          --        model.fiches
+          --        |> Dict.values
+          --        |> List.map .nomEntite
+          --        |> List.map text
+          --    )
         ]
 
 
@@ -783,7 +808,7 @@ fichePreview f =
                     [ el [ Font.bold ] (text "Ouvert:")
                     , el [] (text "en saison")
                     ]
-        , text <| canonical f.uuid
+          --, text <| canonical f.uuid
         ]
 
 
@@ -1240,7 +1265,7 @@ decodeRefOt =
     D.nullable
         (D.succeed Tuple.pair
             |> P.required "ref" D.int
-            |> P.required "label" D.string
+            |> P.required "link" D.string
         )
 
 
