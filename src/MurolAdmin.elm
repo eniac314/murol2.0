@@ -167,8 +167,9 @@ update msg model =
                             /= Auth.LoggedOut
                     then
                         ( Loading
-                        , [ FileExplorer.load model.fileExplorer logInfo
+                        , [ GeneralDirectoryEditor.load model.generalDirectory logInfo
                           , PageTreeEditor.load model.pageTreeEditor logInfo
+                          , FileExplorer.load model.fileExplorer logInfo
                           ]
                         )
                     else
@@ -223,7 +224,9 @@ update msg model =
             let
                 ( newGeneralDirectory, generalDirectoryCmds ) =
                     GeneralDirectoryEditor.update
-                        { logInfo = Auth.getLogInfo model.authTool }
+                        { logInfo = Auth.getLogInfo model.authTool
+                        , zone = model.zone
+                        }
                         generalDirectoryMsg
                         model.generalDirectory
             in
@@ -284,6 +287,7 @@ view model =
                             List.all (\ls -> ls == ToolLoadingSuccess)
                                 [ FileExplorer.loadingStatus model.fileExplorer
                                 , PageTreeEditor.loadingStatus model.pageTreeEditor
+                                , GeneralDirectoryEditor.loadingStatus model.generalDirectory
                                 ]
                     in
                         column
@@ -293,6 +297,7 @@ view model =
                             ]
                             [ FileExplorer.loadingView model.fileExplorer
                             , PageTreeEditor.loadingView model.pageTreeEditor
+                            , GeneralDirectoryEditor.loadingView model.generalDirectory
                             , Input.button (buttonStyle loadingComplete)
                                 { onPress = Just Launch
                                 , label =
