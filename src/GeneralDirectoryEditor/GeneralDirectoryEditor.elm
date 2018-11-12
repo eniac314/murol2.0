@@ -1,6 +1,9 @@
 module GeneralDirectoryEditor.GeneralDirectoryEditor exposing (..)
 
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Base64 exposing (..)
+import Derberos.Date.Core exposing (civilToPosix, newDateRecord)
+import Derberos.Date.Utils exposing (numberOfDaysInMonth, numberToMonth)
 import Dict exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -8,27 +11,23 @@ import Element.Border as Border
 import Element.Events as Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy)
 import Html as Html
 import Html.Attributes as HtmlAttr
+import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
+import Internals.ToolHelpers exposing (..)
 import Json.Decode as D
-import Json.Encode as E
+import Json.Decode.Extra
 import Json.Decode.Pipeline as P exposing (..)
-import List.Extra exposing (unique, uniqueBy, remove, swapAt, elemIndex)
+import Json.Encode as E
+import List.Extra exposing (elemIndex, remove, setIf, swapAt, unique, uniqueBy)
 import Random exposing (..)
 import Set exposing (..)
-import UUID exposing (..)
 import Time exposing (..)
-import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
-import Http exposing (..)
-import Json.Decode.Extra
-import Element.Keyed as Keyed
-import Internals.ToolHelpers exposing (..)
-import Time exposing (Zone)
-import Derberos.Date.Core exposing (newDateRecord, civilToPosix)
-import Derberos.Date.Utils exposing (numberToMonth, numberOfDaysInMonth)
+import UUID exposing (..)
 
 
 type alias Model msg =
@@ -49,9 +48,11 @@ type alias Model msg =
     , labelsLocked : Bool
     , debug : List String
     , loadingStatus : ToolLoadingStatus
-    , externalMsg :
-        Msg -> msg
-        --- MainForm variables
+    , externalMsg : Msg -> msg
+    , seed :
+        Maybe Random.Seed
+
+    --- MainForm variables
     , selectedCatInFiche : Maybe String
     , selectedAvailableCat : Maybe String
     , selectedActivInFiche : Maybe String
@@ -59,9 +60,13 @@ type alias Model msg =
     , selectedLabelInFiche : Maybe String
     , selectedAvailableLabel : Maybe String
     , selectedResp : Maybe Responsable
+    , respBuffer : Maybe Responsable
     , selectedEmail : Maybe String
+    , emailBuffer : Maybe String
     , selectedDescr : Maybe String
+    , descrBuffer : Maybe String
     , selectedLinkedDoc : Maybe LinkedDoc
+    , linkedDocBuffer : Maybe LinkedDoc
     }
 
 
@@ -113,8 +118,9 @@ type Msg
     | SetRespNom String
     | SetRespTelFixe String
     | SetRespTelPortable String
-    | AddResp String
-    | RemoveResp String
+    | ModifyResp
+    | AddResp
+    | RemoveResp
       ---
     | SetAddress String
     | SetTelFixe String
@@ -122,10 +128,13 @@ type Msg
     | SetFax String
       ---
     | SelectEmailInFiche String
-    | SetEmailFiche String
+    | SetEmail String
+    | ModifyEmail
     | AddEmail
     | RemoveEmail
       ---
+    | SetSiteUrl String
+    | SetSiteLabel String
     | SetPjaun String
     | ConfirmVisual String
       ---
@@ -300,10 +309,6 @@ type FieldType
 type RightPanelDisplay
     = PreviewFiche
     | EditFiche
-    | NewFiche
-    | EditCat
-    | EditActiv
-    | EditLabel
 
 
 init externalMsg =
@@ -324,9 +329,11 @@ init externalMsg =
       , labelsLocked = False
       , debug = []
       , loadingStatus = ToolLoadingWaiting
-      , externalMsg =
-            externalMsg
-            --- MainForm variables
+      , externalMsg = externalMsg
+      , seed =
+            Nothing
+
+      --- MainForm variables
       , selectedCatInFiche = Nothing
       , selectedAvailableCat = Nothing
       , selectedActivInFiche = Nothing
@@ -334,9 +341,13 @@ init externalMsg =
       , selectedLabelInFiche = Nothing
       , selectedAvailableLabel = Nothing
       , selectedResp = Nothing
+      , respBuffer = Nothing
       , selectedEmail = Nothing
+      , emailBuffer = Nothing
       , selectedDescr = Nothing
+      , descrBuffer = Nothing
       , selectedLinkedDoc = Nothing
+      , linkedDocBuffer = Nothing
       }
     , Cmd.none
     )
@@ -377,7 +388,7 @@ update config msg model =
         ( newModel, cmds ) =
             internalUpdate config msg model
     in
-        ( newModel, Cmd.map model.externalMsg cmds )
+    ( newModel, Cmd.map model.externalMsg cmds )
 
 
 internalUpdate :
@@ -436,9 +447,16 @@ internalUpdate config msg model =
                     else
                         Just s
                 , ficheBuffer =
-                    Dict.get s model.fiches
-                        |> Maybe.withDefault emptyFiche
-                , rightPanelDisplay = PreviewFiche
+                    if model.selectedFiche == Just s then
+                        emptyFiche
+                    else
+                        Dict.get s model.fiches
+                            |> Maybe.withDefault emptyFiche
+                , rightPanelDisplay =
+                    if model.selectedFiche == Just s then
+                        EditFiche
+                    else
+                        PreviewFiche
               }
             , Cmd.none
             )
@@ -579,12 +597,12 @@ internalUpdate config msg model =
                         | categories = newCats
                     }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedAvailableCat = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedAvailableCat = Nothing
+              }
+            , Cmd.none
+            )
 
         RemoveCatFromFiche ->
             let
@@ -600,12 +618,12 @@ internalUpdate config msg model =
                 newFb =
                     { fb | categories = newCats }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedCatInFiche = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedCatInFiche = Nothing
+              }
+            , Cmd.none
+            )
 
         --
         SelectActivInFiche s ->
@@ -651,12 +669,12 @@ internalUpdate config msg model =
                         | natureActiv = newActivs
                     }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedAvailableActiv = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedAvailableActiv = Nothing
+              }
+            , Cmd.none
+            )
 
         RemoveActivFromFiche ->
             let
@@ -672,12 +690,12 @@ internalUpdate config msg model =
                 newFb =
                     { fb | natureActiv = newActivs }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedActivInFiche = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedActivInFiche = Nothing
+              }
+            , Cmd.none
+            )
 
         --
         SelectLabelInFiche s ->
@@ -705,7 +723,7 @@ internalUpdate config msg model =
         AddLabelToFiche ->
             let
                 mbNewLabel =
-                    (Maybe.andThen
+                    Maybe.andThen
                         (\l ->
                             Dict.get l
                                 (model.labels
@@ -714,7 +732,6 @@ internalUpdate config msg model =
                                 )
                         )
                         model.selectedAvailableLabel
-                    )
 
                 newLabels =
                     Maybe.map
@@ -741,12 +758,12 @@ internalUpdate config msg model =
                         | label = newLabels
                     }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedAvailableLabel = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedAvailableLabel = Nothing
+              }
+            , Cmd.none
+            )
 
         RemoveLabelFromFiche ->
             let
@@ -754,7 +771,7 @@ internalUpdate config msg model =
                     model.ficheBuffer
 
                 mbLabel =
-                    (Maybe.andThen
+                    Maybe.andThen
                         (\l ->
                             Dict.get l
                                 (model.labels
@@ -763,7 +780,6 @@ internalUpdate config msg model =
                                 )
                         )
                         model.selectedLabelInFiche
-                    )
 
                 newLabels =
                     Maybe.map
@@ -774,12 +790,12 @@ internalUpdate config msg model =
                 newFb =
                     { fb | label = newLabels }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedLabelInFiche = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedLabelInFiche = Nothing
+              }
+            , Cmd.none
+            )
 
         --
         SetRefOtNbr s ->
@@ -787,38 +803,44 @@ internalUpdate config msg model =
                 fb =
                     model.ficheBuffer
 
+                baseRefOt =
+                    Maybe.withDefault ( 0, "" ) fb.refOt
+
                 newRefOt =
                     String.toInt s
                         |> Maybe.andThen
                             (\n ->
-                                Maybe.map
-                                    (Tuple.mapFirst (always n))
-                                    fb.refOt
+                                Just <|
+                                    Tuple.mapFirst (always n)
+                                        baseRefOt
                             )
 
                 newFb =
                     { fb | refOt = newRefOt }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetRefOtLink s ->
             let
                 fb =
                     model.ficheBuffer
 
+                baseRefOt =
+                    Maybe.withDefault ( 0, "" ) fb.refOt
+
                 newRefOt =
-                    Maybe.map
-                        (Tuple.mapSecond (always s))
-                        fb.refOt
+                    Just <|
+                        Tuple.mapSecond (always s)
+                            baseRefOt
 
                 newFb =
                     { fb | refOt = newRefOt }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SetStars s ->
@@ -835,9 +857,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | rank = newRank }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetEpis s ->
             let
@@ -853,9 +875,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | rank = newRank }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SetNomEntite s ->
@@ -866,14 +888,19 @@ internalUpdate config msg model =
                 newFb =
                     { fb | nomEntite = s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SelectRespInFiche r ->
             ( { model
                 | selectedResp =
+                    if model.selectedResp == Just r then
+                        Nothing
+                    else
+                        Just r
+                , respBuffer =
                     if model.selectedResp == Just r then
                         Nothing
                     else
@@ -885,33 +912,33 @@ internalUpdate config msg model =
         SetRespPoste s ->
             let
                 baseResp =
-                    model.selectedResp
+                    model.respBuffer
                         |> Maybe.withDefault emptyResp
 
                 newResp =
                     { baseResp | poste = s }
             in
-                ( { model | selectedResp = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
         SetRespNom s ->
             let
                 baseResp =
-                    model.selectedResp
+                    model.respBuffer
                         |> Maybe.withDefault emptyResp
 
                 newResp =
                     { baseResp | nom = s }
             in
-                ( { model | selectedResp = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
         SetRespTelFixe s ->
             let
                 baseResp =
-                    model.selectedResp
+                    model.respBuffer
                         |> Maybe.withDefault emptyResp
 
                 newTel =
@@ -928,14 +955,14 @@ internalUpdate config msg model =
                 newResp =
                     { baseResp | tel = newTel }
             in
-                ( { model | selectedResp = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
         SetRespTelPortable s ->
             let
                 baseResp =
-                    model.selectedResp
+                    model.respBuffer
                         |> Maybe.withDefault emptyResp
 
                 newTel =
@@ -952,12 +979,34 @@ internalUpdate config msg model =
                 newResp =
                     { baseResp | tel = newTel }
             in
-                ( { model | selectedResp = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
-        AddResp s ->
-            case model.selectedResp of
+        ModifyResp ->
+            case ( model.selectedResp, model.respBuffer ) of
+                ( Just r1, Just r2 ) ->
+                    let
+                        fb =
+                            model.ficheBuffer
+
+                        newFb =
+                            { fb
+                                | responsables =
+                                    setIf (\r -> r == r1) r2 fb.responsables
+                            }
+                    in
+                    ( { model
+                        | ficheBuffer = newFb
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        AddResp ->
+            case model.respBuffer of
                 Nothing ->
                     ( model, Cmd.none )
 
@@ -975,14 +1024,14 @@ internalUpdate config msg model =
                                         fb.responsables ++ [ r ]
                                 }
                         in
-                            ( { model
-                                | ficheBuffer = newFb
-                                , selectedResp = Nothing
-                              }
-                            , Cmd.none
-                            )
+                        ( { model
+                            | ficheBuffer = newFb
+                            , respBuffer = Nothing
+                          }
+                        , Cmd.none
+                        )
 
-        RemoveResp s ->
+        RemoveResp ->
             case model.selectedResp of
                 Nothing ->
                     ( model, Cmd.none )
@@ -998,12 +1047,12 @@ internalUpdate config msg model =
                                     List.Extra.remove r fb.responsables
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedResp = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedResp = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         --
         SetAddress s ->
@@ -1014,9 +1063,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | adresse = s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetTelFixe s ->
             let
@@ -1040,9 +1089,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | telNumber = newTel }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetTelPortable s ->
             let
@@ -1052,23 +1101,23 @@ internalUpdate config msg model =
                 newTel =
                     case fb.telNumber of
                         Just (TelFixe n) ->
-                            Just <| TelFixe s
+                            Just <| TelBoth ( n, s )
 
                         Just (TelPortable n) ->
-                            Just <| TelBoth ( s, n )
+                            Just <| TelPortable s
 
                         Just (TelBoth ( n1, n2 )) ->
-                            Just <| TelBoth ( s, n2 )
+                            Just <| TelBoth ( n1, s )
 
                         Nothing ->
-                            Just <| TelFixe s
+                            Just <| TelPortable s
 
                 newFb =
                     { fb | telNumber = newTel }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetFax s ->
             let
@@ -1078,9 +1127,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | fax = Just s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SelectEmailInFiche s ->
@@ -1090,17 +1139,41 @@ internalUpdate config msg model =
                         Nothing
                     else
                         Just s
+                , emailBuffer =
+                    if model.selectedEmail == Just s then
+                        Nothing
+                    else
+                        Just s
               }
             , Cmd.none
             )
 
-        SetEmailFiche s ->
-            ( { model | selectedEmail = Just s }
+        SetEmail s ->
+            ( { model | emailBuffer = Just s }
             , Cmd.none
             )
 
+        ModifyEmail ->
+            case ( model.selectedEmail, model.emailBuffer ) of
+                ( Just mail1, Just mail2 ) ->
+                    let
+                        fb =
+                            model.ficheBuffer
+
+                        newFb =
+                            { fb | email = setIf (\m -> m == mail1) mail2 fb.email }
+                    in
+                    ( { model
+                        | ficheBuffer = newFb
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         AddEmail ->
-            case model.selectedEmail of
+            case model.emailBuffer of
                 Just mail ->
                     if mail == "" then
                         ( model, Cmd.none )
@@ -1112,9 +1185,9 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | email = fb.email ++ [ mail ] }
                         in
-                            ( { model | ficheBuffer = newFb }
-                            , Cmd.none
-                            )
+                        ( { model | ficheBuffer = newFb }
+                        , Cmd.none
+                        )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -1132,9 +1205,9 @@ internalUpdate config msg model =
                         newFb =
                             { fb | email = List.Extra.remove mail fb.email }
                     in
-                        ( { model | ficheBuffer = newFb }
-                        , Cmd.none
-                        )
+                    ( { model | ficheBuffer = newFb }
+                    , Cmd.none
+                    )
 
         --
         SetPjaun s ->
@@ -1145,9 +1218,45 @@ internalUpdate config msg model =
                 newFb =
                     { fb | pjaun = Just s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
+
+        SetSiteUrl s ->
+            let
+                fb =
+                    model.ficheBuffer
+
+                baseSite =
+                    Maybe.withDefault ( "", "" ) fb.site
+
+                newFb =
+                    { fb
+                        | site =
+                            Just (Tuple.mapSecond (always s) baseSite)
+                    }
+            in
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
+
+        SetSiteLabel s ->
+            let
+                fb =
+                    model.ficheBuffer
+
+                baseSite =
+                    Maybe.withDefault ( "", "" ) fb.site
+
+                newFb =
+                    { fb
+                        | site =
+                            Just (Tuple.mapFirst (always s) baseSite)
+                    }
+            in
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         ConfirmVisual s ->
             ( model
@@ -1190,9 +1299,9 @@ internalUpdate config msg model =
                                         fb.description ++ [ d ]
                                 }
                         in
-                            ( { model | ficheBuffer = newFb }
-                            , Cmd.none
-                            )
+                        ( { model | ficheBuffer = newFb }
+                        , Cmd.none
+                        )
 
         RemoveDescription ->
             case model.selectedDescr of
@@ -1210,18 +1319,17 @@ internalUpdate config msg model =
                                     List.Extra.remove d fb.description
                             }
                     in
-                        ( { model | ficheBuffer = newFb }
-                        , Cmd.none
-                        )
+                    ( { model | ficheBuffer = newFb }
+                    , Cmd.none
+                    )
 
         MoveDescrUp ->
             case
-                (model.selectedDescr
+                model.selectedDescr
                     |> Maybe.andThen
                         (\d ->
                             elemIndex d model.ficheBuffer.description
                         )
-                )
             of
                 Nothing ->
                     ( model, Cmd.none )
@@ -1237,18 +1345,17 @@ internalUpdate config msg model =
                                     swapAt (n - 1) n fb.description
                             }
                     in
-                        ( { model | ficheBuffer = newFb }
-                        , Cmd.none
-                        )
+                    ( { model | ficheBuffer = newFb }
+                    , Cmd.none
+                    )
 
         MoveDescrDown ->
             case
-                (model.selectedDescr
+                model.selectedDescr
                     |> Maybe.andThen
                         (\d ->
                             elemIndex d model.ficheBuffer.description
                         )
-                )
             of
                 Nothing ->
                     ( model, Cmd.none )
@@ -1264,9 +1371,9 @@ internalUpdate config msg model =
                                     swapAt (n + 1) n fb.description
                             }
                     in
-                        ( { model | ficheBuffer = newFb }
-                        , Cmd.none
-                        )
+                    ( { model | ficheBuffer = newFb }
+                    , Cmd.none
+                    )
 
         --
         SelectLinkedDoc ld ->
@@ -1296,12 +1403,12 @@ internalUpdate config msg model =
                                     fb.linkedDocs ++ [ ld ]
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedLinkedDoc = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedLinkedDoc = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         RemoveLinkedDoc ->
             case model.selectedLinkedDoc of
@@ -1319,12 +1426,12 @@ internalUpdate config msg model =
                                     List.Extra.remove ld fb.linkedDocs
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedLinkedDoc = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedLinkedDoc = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         SetLinkedDocUrl s ->
             let
@@ -1335,9 +1442,9 @@ internalUpdate config msg model =
                 newLd =
                     { baseLD | url = s }
             in
-                ( { model | selectedLinkedDoc = Just newLd }
-                , Cmd.none
-                )
+            ( { model | selectedLinkedDoc = Just newLd }
+            , Cmd.none
+            )
 
         SetLinkedDocLabel s ->
             let
@@ -1348,9 +1455,9 @@ internalUpdate config msg model =
                 newLd =
                     { baseLD | label = s }
             in
-                ( { model | selectedLinkedDoc = Just newLd }
-                , Cmd.none
-                )
+            ( { model | selectedLinkedDoc = Just newLd }
+            , Cmd.none
+            )
 
         SetLinkedDocDescr s ->
             let
@@ -1361,9 +1468,9 @@ internalUpdate config msg model =
                 newLd =
                     { baseLD | descr = Just s }
             in
-                ( { model | selectedLinkedDoc = Just newLd }
-                , Cmd.none
-                )
+            ( { model | selectedLinkedDoc = Just newLd }
+            , Cmd.none
+            )
 
         SelectLinkedDocExpiry s ->
             case parseDate s of
@@ -1383,9 +1490,9 @@ internalUpdate config msg model =
                         newLd =
                             { baseLD | expiryDate = Just newTime }
                     in
-                        ( { model | selectedLinkedDoc = Just newLd }
-                        , Cmd.none
-                        )
+                    ( { model | selectedLinkedDoc = Just newLd }
+                    , Cmd.none
+                    )
 
         --
         SetOuverture o ->
@@ -1396,14 +1503,43 @@ internalUpdate config msg model =
                 newFb =
                     { fb | ouverture = Just o }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
-
-        SaveFiche ->
-            ( model
+            ( { model | ficheBuffer = newFb }
             , Cmd.none
             )
+
+        SaveFiche ->
+            case model.seed of
+                Just seed ->
+                    let
+                        ( uuid, newSeed ) =
+                            Random.step UUID.generator seed
+
+                        fb =
+                            model.ficheBuffer
+
+                        newFb =
+                            { fb | uuid = uuid }
+
+                        newFiches =
+                            Dict.insert
+                                (canonical uuid)
+                                newFb
+                                model.fiches
+                    in
+                    ( { model
+                        | fiches = newFiches
+                        , rightPanelDisplay = PreviewFiche
+                        , lockedFiches = newFb :: model.lockedFiches
+                        , selectedFiche = Just newFb.nomEntite
+                        , ficheBuffer = emptyFiche
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (updateFiche newFb)
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         RemoveFiche ->
             ( model
@@ -1414,12 +1550,12 @@ internalUpdate config msg model =
             ( { model
                 | rightPanelDisplay = d
                 , ficheBuffer =
-                    if d == NewFiche then
+                    if d == PreviewFiche then
                         emptyFiche
                     else
                         model.ficheBuffer
                 , selectedFiche =
-                    if d == NewFiche then
+                    if d == PreviewFiche then
                         Nothing
                     else
                         model.selectedFiche
@@ -1433,9 +1569,8 @@ internalUpdate config msg model =
 
 parseDate s =
     case
-        (String.split "/" s
+        String.split "/" s
             |> List.filterMap String.toInt
-        )
     of
         day :: month :: year :: [] ->
             if (year > 2000) && (year <= 2200) then
@@ -1463,7 +1598,7 @@ computeCats fiches =
         (\_ f acc ->
             List.foldr
                 (\c acc_ ->
-                    Dict.insert c ({ name = c, fields = [] }) acc_
+                    Dict.insert c { name = c, fields = [] } acc_
                 )
                 acc
                 f.categories
@@ -1504,16 +1639,23 @@ computeLabels fiches =
 --------------------
 
 
-view : Model msg -> Element msg
-view model =
+view : { config | maxHeight : Int } -> Model msg -> Element msg
+view config model =
     Element.map model.externalMsg <|
         row
             [ padding 15
             , spacing 15
             , width fill
+            , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+            , clip
+            , width fill
+            , height (maximum config.maxHeight fill)
             ]
-            [ ficheSelectorView model
-            , formsView model
+            [ if model.rightPanelDisplay == EditFiche then
+                Element.none
+              else
+                ficheSelectorView model
+            , formsView config model
             ]
 
 
@@ -1541,7 +1683,7 @@ ficheSelectorView model =
                   else
                     noAttr
                 ]
-                ( entry, (text entry) )
+                ( entry, text entry )
 
         nameFilterFun =
             case model.nameFilter of
@@ -1589,173 +1731,149 @@ ficheSelectorView model =
                 |> List.filter activFilterFun
                 |> List.filter labelFilterFun
     in
-        column
+    column
+        [ spacing 15
+        , alignTop
+        , Border.widthEach
+            { top = 0
+            , bottom = 0
+            , left = 0
+            , right = 2
+            }
+        , Border.color (rgb 0.8 0.8 0.8)
+        , paddingEach
+            { top = 0
+            , bottom = 0
+            , left = 0
+            , right = 15
+            }
+        ]
+        [ el
+            [ Font.bold
+            , Font.size 18
+            ]
+            (text "Selection fiche")
+        , Input.text
+            (textInputStyle ++ [ spacingXY 0 15 ])
+            { onChange =
+                FilterByName
+            , text =
+                model.nameFilter
+                    |> Maybe.withDefault ""
+            , placeholder =
+                Just <|
+                    Input.placeholder
+                        []
+                        (text "filtrer par nom entité")
+            , label =
+                Input.labelLeft [] Element.none
+            }
+        , row
             [ spacing 15
-            , alignTop
             ]
-            [ Input.text
-                textInputStyle
-                { onChange =
-                    FilterByName
-                , text =
-                    model.nameFilter
-                        |> Maybe.withDefault ""
-                , placeholder =
-                    Just <|
-                        Input.placeholder
-                            []
-                            (text "filtrer par nom entité")
-                , label =
-                    Input.labelLeft [] Element.none
-                }
-            , row
-                [ spacing 15
-                ]
-                [ column [ spacing 15 ]
-                    [ el [ Font.bold ] (text "Catégories")
-                    , column
-                        [ Border.width 2
-                        , Border.color (rgb 0.8 0.8 0.8)
-                        , width (px 150)
-                        , height (px 200)
-                        , scrollbars
-                        ]
-                        (Dict.keys model.categories
-                            |> List.map
-                                (\e -> filterView model.catFilter (FilterByCat e) e)
-                        )
+            [ column [ spacing 15 ]
+                [ el [ Font.bold ] (text "Catégories")
+                , column
+                    [ Border.width 2
+                    , Border.color (rgb 0.8 0.8 0.8)
+                    , width (px 150)
+                    , height (px 200)
+                    , scrollbars
                     ]
-                , column [ spacing 15 ]
-                    [ el [ Font.bold ] (text "Nature activités")
-                    , column
-                        [ Border.width 2
-                        , Border.color (rgb 0.8 0.8 0.8)
-                        , width (px 300)
-                        , height (px 200)
-                        , scrollbars
-                        ]
-                        (Set.toList model.activites
-                            |> List.map
-                                (\e -> filterView model.activFilter (FilterByActiv e) e)
-                        )
-                    ]
-                , column [ spacing 15 ]
-                    [ el [ Font.bold ] (text "Labels")
-                    , column
-                        [ Border.width 2
-                        , Border.color (rgb 0.8 0.8 0.8)
-                        , width (px 150)
-                        , height (px 200)
-                        , scrollbars
-                        ]
-                        (model.labels
-                            |> List.map .nom
-                            |> List.map
-                                (\e -> filterView model.labelFilter (FilterByLabel e) e)
-                        )
-                    ]
+                    (Dict.keys model.categories
+                        |> List.map
+                            (\e -> filterView model.catFilter (FilterByCat e) e)
+                    )
                 ]
-            , el [ Font.bold ]
-                (text "Nom fiche entité")
-            , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 630)
-                , height (px 500)
-                , scrollbars
+            , column [ spacing 15 ]
+                [ el [ Font.bold ] (text "Nature activités")
+                , column
+                    [ Border.width 2
+                    , Border.color (rgb 0.8 0.8 0.8)
+                    , width (px 300)
+                    , height (px 200)
+                    , scrollbars
+                    ]
+                    (Set.toList model.activites
+                        |> List.map
+                            (\e -> filterView model.activFilter (FilterByActiv e) e)
+                    )
                 ]
-                (filteredFiches
-                    |> List.map (\( k, v ) -> ( k, v.nomEntite ))
-                    |> List.map
-                        (\( k, n ) ->
-                            filterView model.selectedFiche (SelectFiche k) n
-                        )
-                )
+            , column [ spacing 15 ]
+                [ el [ Font.bold ] (text "Labels")
+                , column
+                    [ Border.width 2
+                    , Border.color (rgb 0.8 0.8 0.8)
+                    , width (px 150)
+                    , height (px 200)
+                    , scrollbars
+                    ]
+                    (model.labels
+                        |> List.map .nom
+                        |> List.map
+                            (\e -> filterView model.labelFilter (FilterByLabel e) e)
+                    )
+                ]
             ]
+        , el [ Font.bold ]
+            (text "Nom fiche entité")
+        , column
+            [ Border.width 2
+            , Border.color (rgb 0.8 0.8 0.8)
+            , width (px 630)
+            , height (px 480)
+            , scrollbars
+            ]
+            (filteredFiches
+                |> List.map (\( k, v ) -> ( k, v.nomEntite ))
+                |> List.map
+                    (\( k, n ) ->
+                        filterView model.selectedFiche (SelectFiche k) n
+                    )
+            )
+        ]
 
 
-formsView model =
+formsView config model =
     column
         [ alignTop
         , spacing 15
         , width fill
         ]
-        [ row
-            [ spacing 15
-              --, centerX
-            ]
-            [ Input.button
-                (buttonStyle True ++ [ width (px 100) ])
-                { onPress = (Just <| SetRightPanelDisplay NewFiche)
-                , label =
-                    case model.selectedFiche of
-                        Nothing ->
-                            paragraph [] [ text "Nouvelle fiche" ]
-
-                        Just fiche ->
-                            paragraph [] [ text "Modifier fiche" ]
-                }
-            , Input.button
-                (buttonStyle True ++ [ width (px 100) ])
-                { onPress = (Just <| SetRightPanelDisplay EditCat)
-                , label =
-                    case model.catFilter of
-                        Nothing ->
-                            paragraph [] [ text "Nouvelle catégorie" ]
-
-                        Just cat ->
-                            paragraph [] [ text "Modifier catégorie" ]
-                }
-            , Input.button
-                (buttonStyle True ++ [ width (px 100) ])
-                { onPress = (Just <| SetRightPanelDisplay EditActiv)
-                , label =
-                    case model.activFilter of
-                        Nothing ->
-                            paragraph [] [ text "Nouvelle activité" ]
-
-                        Just activ ->
-                            paragraph [] [ text "Modifier activité" ]
-                }
-            , Input.button
-                (buttonStyle True ++ [ width (px 100) ])
-                { onPress = (Just <| SetRightPanelDisplay EditLabel)
-                , label =
-                    case model.labelFilter of
-                        Nothing ->
-                            paragraph [] [ text "Nouveau label" ]
-
-                        Just label ->
-                            paragraph [] [ text "Mofifier label" ]
-                }
-            ]
-        , case model.rightPanelDisplay of
+        [ case model.rightPanelDisplay of
             PreviewFiche ->
                 previewFicheView model
 
             EditFiche ->
-                editFicheView model
-
-            NewFiche ->
-                newFicheView model
-
-            EditCat ->
-                editCatView model
-
-            EditActiv ->
-                editActivView model
-
-            EditLabel ->
-                editLabelView model
+                editFicheView config model
         ]
 
 
 previewFicheView model =
     column
         [ spacing 15 ]
-        [ Maybe.andThen (\id -> Dict.get id model.fiches) model.selectedFiche
+        [ el
+            [ Font.bold
+            , Font.size 18
+            ]
+            (text "Aperçu fiche")
+        , Maybe.andThen (\id -> Dict.get id model.fiches) model.selectedFiche
             |> Maybe.map fichePreview
             |> Maybe.withDefault Element.none
+        , case model.selectedFiche of
+            Nothing ->
+                Input.button
+                    (buttonStyle True)
+                    { onPress = Just (SetRightPanelDisplay EditFiche)
+                    , label = el [] (text "Nouvelle fiche")
+                    }
+
+            Just _ ->
+                Input.button
+                    (buttonStyle True)
+                    { onPress = Just (SetRightPanelDisplay EditFiche)
+                    , label = el [] (text "Modifier fiche")
+                    }
         ]
 
 
@@ -1765,34 +1883,807 @@ ficheForm model =
         []
 
 
-editFicheView model =
+editFicheView : { config | maxHeight : Int } -> Model msg -> Element Msg
+editFicheView config model =
+    let
+        selectView selected handler entry =
+            Keyed.el
+                [ width fill
+                , paddingXY 5 5
+                , Events.onClick handler
+                , pointer
+                , if Just entry == selected then
+                    Background.color
+                        (rgba 0 0 1 0.3)
+                  else
+                    noAttr
+                ]
+                ( entry, text entry )
+    in
     column
-        [ spacing 15 ]
-        []
+        [ spacing 20
+        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+        , clip
+        , width fill
+        , height fill
+        ]
+        [ el
+            [ Font.bold
+            , Font.size 18
+            ]
+            (text "Modification/création fiche")
+        , column
+            [ height (maximum (config.maxHeight - 120) fill)
+            , scrollbarY
+            , width fill
+            , spacing 20
+            ]
+            [ Input.text
+                textInputStyle
+                { onChange =
+                    SetNomEntite
+                , text =
+                    model.ficheBuffer.nomEntite
+
+                --|> Maybe.withDefault ""
+                , placeholder =
+                    Nothing
+                , label =
+                    Input.labelLeft
+                        [ centerY ]
+                        (el [ Font.bold ] (text "Nom entité:"))
+                }
+            , row
+                [ spacing 15 ]
+                [ column
+                    [ spacing 15
+                    , alignTop
+                    ]
+                    [ el [ Font.bold ] (text "Catégories disponibles")
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 150)
+                        , height (px 200)
+                        , scrollbars
+                        ]
+                        (Dict.keys model.categories
+                            |> List.map
+                                (\e -> selectView model.selectedAvailableCat (SelectAvailableCat e) e)
+                        )
+                    ]
+                , column
+                    [ spacing 15
+                    , alignTop
+                    ]
+                    [ el [ Font.bold ] (text "Catégories fiche")
+                    , Input.text
+                        (textInputStyle
+                            ++ [ spacingXY 0 15
+                               , width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SelectAvailableCat
+                        , text =
+                            model.selectedAvailableCat
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Nouvelle catégorie")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 180)
+                        , height (px 155)
+                        , scrollbars
+                        ]
+                        (model.ficheBuffer.categories
+                            |> List.map
+                                (\e -> selectView model.selectedCatInFiche (SelectCatInFiche e) e)
+                        )
+                    ]
+                , column
+                    [ spacing 15
+
+                    --, alignTop
+                    ]
+                    [ Input.button
+                        (buttonStyle (model.selectedAvailableCat /= Nothing))
+                        { onPress =
+                            Maybe.map (\_ -> AddCatToFiche)
+                                model.selectedAvailableCat
+                        , label = el [] (text "Ajouter catégorie")
+                        }
+                    , Input.button
+                        (buttonStyle (model.selectedCatInFiche /= Nothing))
+                        { onPress =
+                            Maybe.map (\_ -> RemoveCatFromFiche)
+                                model.selectedCatInFiche
+                        , label = el [] (text "Supprimer catégorie")
+                        }
+                    ]
+                ]
+            , row
+                [ spacing 15 ]
+                [ column
+                    [ spacing 15
+                    , alignTop
+                    ]
+                    [ el [ Font.bold ] (text "Activités disponibles")
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 150)
+                        , height (px 200)
+                        , scrollbars
+                        ]
+                        (Set.toList model.activites
+                            |> List.map
+                                (\e -> selectView model.selectedAvailableActiv (SelectAvailableActiv e) e)
+                        )
+                    ]
+                , column
+                    [ spacing 15
+                    , alignTop
+                    ]
+                    [ el [ Font.bold ] (text "Activités fiche")
+                    , Input.text
+                        (textInputStyle
+                            ++ [ spacingXY 0 15
+                               , width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SelectAvailableActiv
+                        , text =
+                            model.selectedAvailableActiv
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Nouvelle activité")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 180)
+                        , height (px 155)
+                        , scrollbars
+                        ]
+                        (model.ficheBuffer.natureActiv
+                            |> List.map
+                                (\e -> selectView model.selectedActivInFiche (SelectActivInFiche e) e)
+                        )
+                    ]
+                , column
+                    [ spacing 15
+
+                    --, alignTop
+                    ]
+                    [ Input.button
+                        (buttonStyle (model.selectedAvailableActiv /= Nothing))
+                        { onPress =
+                            Maybe.map (\_ -> AddActivToFiche)
+                                model.selectedAvailableActiv
+                        , label = el [] (text "Ajouter activité")
+                        }
+                    , Input.button
+                        (buttonStyle (model.selectedActivInFiche /= Nothing))
+                        { onPress =
+                            Maybe.map (\_ -> RemoveActivFromFiche)
+                                model.selectedActivInFiche
+                        , label = el [] (text "Supprimer activité")
+                        }
+                    ]
+                ]
+            , row
+                [ spacing 15 ]
+                [ column
+                    [ spacing 15
+                    , alignTop
+                    ]
+                    [ el [ Font.bold ] (text "Labels disponibles")
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 150)
+                        , height (px 200)
+                        , scrollbars
+                        ]
+                        (List.map .nom model.labels
+                            |> List.map
+                                (\e ->
+                                    selectView
+                                        model.selectedAvailableLabel
+                                        (SelectAvailableLabel e)
+                                        e
+                                )
+                        )
+                    ]
+                , column
+                    [ spacing 15
+                    , alignTop
+                    ]
+                    [ el [ Font.bold ] (text "Labels fiche")
+                    , Input.text
+                        (textInputStyle
+                            ++ [ spacingXY 0 15
+                               , width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SelectAvailableLabel
+                        , text =
+                            model.selectedAvailableLabel
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Nouveau label")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 180)
+                        , height (px 155)
+                        , scrollbars
+                        ]
+                        (model.ficheBuffer.label
+                            |> List.map .nom
+                            |> List.map
+                                (\e ->
+                                    selectView model.selectedLabelInFiche
+                                        (SelectLabelInFiche e)
+                                        e
+                                )
+                        )
+                    ]
+                , column
+                    [ spacing 15
+
+                    --, alignTop
+                    ]
+                    [ Input.button
+                        (buttonStyle (model.selectedAvailableLabel /= Nothing))
+                        { onPress =
+                            Maybe.map (\_ -> AddLabelToFiche)
+                                model.selectedAvailableLabel
+                        , label = el [] (text "Ajouter label")
+                        }
+                    , Input.button
+                        (buttonStyle (model.selectedLabelInFiche /= Nothing))
+                        { onPress =
+                            Maybe.map (\_ -> RemoveLabelFromFiche)
+                                model.selectedLabelInFiche
+                        , label = el [] (text "Supprimer label")
+                        }
+                    ]
+                ]
+            , row
+                [ spacing 15 ]
+                [ Input.text
+                    (textInputStyle
+                        ++ [ width (px 100)
+                           ]
+                    )
+                    { onChange =
+                        SetRefOtNbr
+                    , text =
+                        model.ficheBuffer.refOt
+                            |> Maybe.map Tuple.first
+                            |> Maybe.map String.fromInt
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ] (text "Référence OT"))
+                    }
+                , Input.text
+                    (textInputStyle
+                        ++ [ width (px 100)
+                           ]
+                    )
+                    { onChange =
+                        SetRefOtLink
+                    , text =
+                        model.ficheBuffer.refOt
+                            |> Maybe.map Tuple.second
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ] (text "Lien OT"))
+                    }
+                ]
+            , row
+                [ spacing 15 ]
+                [ Input.text
+                    (textInputStyle
+                        ++ [ width (px 100)
+                           ]
+                    )
+                    { onChange =
+                        SetStars
+                    , text =
+                        model.ficheBuffer.rank.stars
+                            |> Maybe.map String.fromInt
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ] (text "Etoiles"))
+                    }
+                , Input.text
+                    (textInputStyle
+                        ++ [ width (px 100)
+                           ]
+                    )
+                    { onChange =
+                        SetEpis
+                    , text =
+                        model.ficheBuffer.rank.epis
+                            |> Maybe.map String.fromInt
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ] (text "Epis"))
+                    }
+                ]
+            , Input.text
+                (textInputStyle
+                    ++ [ width (px 300)
+                       ]
+                )
+                { onChange =
+                    SetAddress
+                , text =
+                    model.ficheBuffer.adresse
+                , placeholder =
+                    Nothing
+                , label =
+                    Input.labelLeft
+                        [ centerY ]
+                        (el [ Font.bold ] (text "Adresse / Siège social"))
+                }
+            , row
+                [ spacing 15 ]
+                [ Input.text
+                    (textInputStyle
+                        ++ [ width (px 120)
+                           ]
+                    )
+                    { onChange =
+                        SetTelFixe
+                    , text =
+                        Maybe.andThen getTFixe model.ficheBuffer.telNumber
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ] (text "Tel. fixe"))
+                    }
+                , Input.text
+                    (textInputStyle
+                        ++ [ width (px 120)
+                           ]
+                    )
+                    { onChange =
+                        SetTelPortable
+                    , text =
+                        Maybe.andThen getTPortable model.ficheBuffer.telNumber
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ] (text "Tel. portable"))
+                    }
+                ]
+            , Input.text
+                (textInputStyle
+                    ++ [ width (px 300)
+                       ]
+                )
+                { onChange =
+                    SetFax
+                , text =
+                    model.ficheBuffer.fax
+                        |> Maybe.withDefault ""
+                , placeholder =
+                    Nothing
+                , label =
+                    Input.labelLeft
+                        [ centerY ]
+                        (el [ Font.bold ] (text "Fax"))
+                }
+            , row
+                [ spacing 15 ]
+                [ column
+                    [ spacing 15 ]
+                    [ el [ Font.bold ] (text "Emails")
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 180)
+                        , height (px 200)
+                        , scrollbars
+                        ]
+                        (model.ficheBuffer.email
+                            |> List.map
+                                (\s ->
+                                    selectView model.selectedEmail
+                                        (SelectEmailInFiche s)
+                                        s
+                                )
+                        )
+                    ]
+                , column
+                    [ spacing 15 ]
+                    (let
+                        isExistingEmail =
+                            Maybe.map
+                                (\e ->
+                                    List.member e model.ficheBuffer.email
+                                )
+                                model.emailBuffer
+                                == Just True
+
+                        canAddEmail =
+                            (model.emailBuffer
+                                /= Nothing
+                            )
+                                && (model.selectedEmail == Nothing)
+                                && not isExistingEmail
+
+                        canModify =
+                            model.selectedEmail
+                                /= Nothing
+                                && (model.emailBuffer /= Just "")
+                                && not isExistingEmail
+
+                        canDeleteEmail =
+                            model.selectedEmail
+                                /= Nothing
+                                && isExistingEmail
+                     in
+                     [ Input.text
+                        (textInputStyle
+                            ++ [ width (px 180)
+                               , spacingXY 0 15
+                               ]
+                        )
+                        { onChange =
+                            SetEmail
+                        , text =
+                            model.emailBuffer
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Nouvel Email")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                     , Input.button
+                        (buttonStyle canModify)
+                        { onPress =
+                            if canModify then
+                                Just ModifyEmail
+                            else
+                                Nothing
+                        , label = el [] (text "Modifier email")
+                        }
+                     , Input.button
+                        (buttonStyle canAddEmail)
+                        { onPress =
+                            if canAddEmail then
+                                Just AddEmail
+                            else
+                                Nothing
+                        , label = el [] (text "Ajouter email")
+                        }
+                     , Input.button
+                        (buttonStyle canDeleteEmail)
+                        { onPress =
+                            if canDeleteEmail then
+                                Just RemoveEmail
+                            else
+                                Nothing
+                        , label = el [] (text "Supprimer email")
+                        }
+                     ]
+                    )
+                ]
+            , row
+                [ spacing 15 ]
+                [ Input.text
+                    (textInputStyle
+                        ++ [ width (px 180)
+                           ]
+                    )
+                    { onChange =
+                        SetSiteLabel
+                    , text =
+                        model.ficheBuffer.site
+                            |> Maybe.map Tuple.first
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ]
+                                (text "Nom site")
+                            )
+                    }
+                , Input.text
+                    (textInputStyle
+                        ++ [ width (px 180)
+                           ]
+                    )
+                    { onChange =
+                        SetSiteUrl
+                    , text =
+                        model.ficheBuffer.site
+                            |> Maybe.map Tuple.second
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Nothing
+                    , label =
+                        Input.labelLeft
+                            [ centerY ]
+                            (el [ Font.bold ]
+                                (text "Url site")
+                            )
+                    }
+                ]
+            , row
+                [ spacing 15 ]
+                [ column
+                    [ spacing 15
+                    ]
+                    [ el [ Font.bold ] (text "Responsables")
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 180)
+                        , height (px 200)
+                        , scrollbars
+                        ]
+                        (model.ficheBuffer.responsables
+                            |> List.map (\r -> ( r, .nom r ))
+                            |> List.map
+                                (\( r, e ) ->
+                                    selectView (Maybe.map .nom model.selectedResp)
+                                        (SelectRespInFiche r)
+                                        e
+                                )
+                        )
+                    ]
+                , column
+                    [ spacing 15 ]
+                    [ Input.text
+                        (textInputStyle
+                            ++ [ width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SetRespNom
+                        , text =
+                            model.respBuffer
+                                |> Maybe.map .nom
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Nom")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                    , Input.text
+                        (textInputStyle
+                            ++ [ width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SetRespPoste
+                        , text =
+                            model.respBuffer
+                                |> Maybe.map .poste
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Poste")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                    , Input.text
+                        (textInputStyle
+                            ++ [ width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SetRespTelFixe
+                        , text =
+                            model.respBuffer
+                                |> Maybe.map .tel
+                                |> Maybe.andThen getTFixe
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Tel. fixe")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                    , Input.text
+                        (textInputStyle
+                            ++ [ width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SetRespTelPortable
+                        , text =
+                            model.respBuffer
+                                |> Maybe.map .tel
+                                |> Maybe.andThen getTPortable
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Tel. portable")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                    ]
+                , column
+                    [ spacing 15
+
+                    --, alignTop
+                    ]
+                    (let
+                        isExistingResp =
+                            Maybe.map
+                                (\r ->
+                                    List.member r model.ficheBuffer.responsables
+                                )
+                                model.respBuffer
+                                == Just True
+
+                        canAddResp =
+                            (model.respBuffer
+                                /= Nothing
+                            )
+                                && (model.selectedResp == Nothing)
+                                && not isExistingResp
+
+                        canModify =
+                            model.selectedResp
+                                /= Nothing
+                                && (model.respBuffer /= Just emptyResp)
+                                && not isExistingResp
+
+                        canDeleteResp =
+                            model.selectedResp
+                                /= Nothing
+                                && isExistingResp
+                     in
+                     [ Input.button
+                        (buttonStyle canModify)
+                        { onPress =
+                            if canModify then
+                                Just ModifyResp
+                            else
+                                Nothing
+                        , label = el [] (text "Modifier responsable")
+                        }
+                     , Input.button
+                        (buttonStyle canAddResp)
+                        { onPress =
+                            if canAddResp then
+                                Just AddResp
+                            else
+                                Nothing
+                        , label = el [] (text "Ajouter responsable")
+                        }
+                     , Input.button
+                        (buttonStyle canDeleteResp)
+                        { onPress =
+                            if canDeleteResp then
+                                Just RemoveResp
+                            else
+                                Nothing
+                        , label = el [] (text "Supprimer responsable")
+                        }
+                     ]
+                    )
+                ]
+            ]
+        , row
+            [ spacing 15
+            ]
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just (SetRightPanelDisplay PreviewFiche)
+                , label = el [] (text "Retour")
+                }
+            , Input.button
+                (buttonStyle True)
+                { onPress = Just SaveFiche
+                , label = el [] (text "Sauvegarder fiche")
+                }
+            ]
+        ]
 
 
-newFicheView model =
-    column
-        [ spacing 15 ]
-        []
+getTFixe tel =
+    case tel of
+        TelFixe n ->
+            Just n
+
+        TelPortable n ->
+            Nothing
+
+        TelBoth ( n1, n2 ) ->
+            Just n1
 
 
-editCatView model =
-    column
-        [ spacing 15 ]
-        []
+getTPortable tel =
+    case tel of
+        TelFixe n ->
+            Nothing
 
+        TelPortable n ->
+            Just n
 
-editActivView model =
-    column
-        [ spacing 15 ]
-        []
-
-
-editLabelView model =
-    column
-        [ spacing 15 ]
-        []
+        TelBoth ( n1, n2 ) ->
+            Just n2
 
 
 fichePreview : Fiche -> Element msg
@@ -1945,7 +2836,7 @@ fichePreview f =
                 ([ el [ Font.bold ]
                     (text "Description:")
                  ]
-                    ++ (List.map (\d -> paragraph [] [ text d ]) f.description)
+                    ++ List.map (\d -> paragraph [] [ text d ]) f.description
                 )
           else
             Element.none
@@ -1967,7 +2858,8 @@ fichePreview f =
                     [ el [ Font.bold ] (text "Ouvert:")
                     , el [] (text "en saison")
                     ]
-          --, text <| canonical f.uuid
+
+        --, text <| canonical f.uuid
         ]
 
 
@@ -2143,13 +3035,12 @@ encodeFiche f =
 
 
 encodeLabel =
-    (\{ nom, logo, lien } ->
+    \{ nom, logo, lien } ->
         E.object
             [ ( "nom", E.string nom )
             , ( "logo", E.string logo )
             , ( "lien", E.string lien )
             ]
-    )
 
 
 encodeTel tel =
@@ -2527,7 +3418,7 @@ getGeneralDirectory sessionId =
         request =
             Http.post "getGeneralDirectory.php" body decodeGenDirData
     in
-        Http.send LoadGeneralDirectory request
+    Http.send LoadGeneralDirectory request
 
 
 updateFiche : Fiche -> String -> Cmd Msg
@@ -2548,7 +3439,7 @@ updateFiche fiche sessionId =
         request =
             Http.post "updateFiche.php" body decodeSuccess
     in
-        Http.send (FicheUpdated fiche) request
+    Http.send (FicheUpdated fiche) request
 
 
 updateCategories : Dict String Categorie -> String -> Cmd Msg
@@ -2569,7 +3460,7 @@ updateCategories categories sessionId =
         request =
             Http.post "updateCategories.php" body decodeSuccess
     in
-        Http.send (CategoriesUpdated categories) request
+    Http.send (CategoriesUpdated categories) request
 
 
 updateActivites : Set String -> String -> Cmd Msg
@@ -2590,7 +3481,7 @@ updateActivites activites sessionId =
         request =
             Http.post "updateActivites.php" body decodeSuccess
     in
-        Http.send (ActivitesUpdated activites) request
+    Http.send (ActivitesUpdated activites) request
 
 
 updateLabels : List Label -> String -> Cmd Msg
@@ -2610,7 +3501,7 @@ updateLabels labels sessionId =
         request =
             Http.post "updateLabels.php" body decodeSuccess
     in
-        Http.send (LabelsUpdated labels) request
+    Http.send (LabelsUpdated labels) request
 
 
 decodeSuccess : D.Decoder Bool

@@ -390,6 +390,9 @@ view model =
 
                             GeneralDirectoryTool ->
                                 GeneralDirectoryEditor.view
+                                    { maxHeight =
+                                        model.winHeight - 35
+                                    }
                                     model.generalDirectory
 
                             NewsEditorTool ->
