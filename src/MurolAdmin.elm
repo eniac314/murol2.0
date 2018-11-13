@@ -396,6 +396,7 @@ view model =
                                         model.winHeight - 35
                                     , zone = model.zone
                                     , fileExplorer = model.fileExplorer
+                                    , logInfo = Auth.getLogInfo model.authTool
                                     }
                                     model.generalDirectory
 

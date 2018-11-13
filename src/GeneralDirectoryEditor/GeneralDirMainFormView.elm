@@ -23,6 +23,230 @@ import Set exposing (..)
 import Time exposing (..)
 
 
+selectView selected handler entry =
+    Keyed.el
+        [ width fill
+        , paddingXY 5 5
+        , Events.onClick handler
+        , pointer
+        , if Just entry == selected then
+            Background.color
+                grey4
+          else
+            noAttr
+        , Font.color grey2
+        ]
+        ( entry, text entry )
+
+
+editFicheView :
+    { config
+        | maxHeight : Int
+        , zone : Time.Zone
+        , fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+    }
+    -> Model msg
+    -> Element msg
+editFicheView config model =
+    column
+        [ spacing 20
+        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+        , clip
+        , width fill
+        , height fill
+        ]
+        [ el
+            [ Font.bold
+            , Font.color grey1
+            , Font.size 18
+            ]
+            (text "Modification/création fiche")
+        , column
+            [ height (maximum (config.maxHeight - 120) fill)
+            , scrollbarY
+            , width fill
+            , inFront <|
+                if not model.visualPickerOpen then
+                    Element.none
+                else
+                    el
+                        [ Background.color (rgb 1 1 1)
+                        , width (px 850)
+                        , Border.shadow
+                            { offset = ( 4, 4 )
+                            , size = 5
+                            , blur = 10
+                            , color = rgba 0 0 0 0.45
+                            }
+                        ]
+                        (visualPickerView config model)
+            ]
+            [ column
+                [ spacing 35 ]
+                ([ nameVisualCont config model ]
+                    ++ ([ catsActivsCont config model
+                        , labOtRankCont config model
+                        , contactsCont config model
+                        , descrCont config model
+                        ]
+                            |> List.map (Element.map model.externalMsg)
+                       )
+                    ++ [ linkDocsCont config model
+                       ]
+                )
+            ]
+        , row
+            [ spacing 15
+            ]
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just (model.externalMsg <| SetRightPanelDisplay PreviewFiche)
+                , label = el [] (text "Retour")
+                }
+            , Input.button
+                (buttonStyle True)
+                { onPress = Just (model.externalMsg SaveFiche)
+                , label = el [] (text "Sauvegarder fiche")
+                }
+            ]
+        ]
+
+
+
+-------------------------------------------------------------------------------
+----------------
+-- Containers --
+----------------
+
+
+containerStyle =
+    [ padding 15
+    , Background.color grey6
+    , Border.rounded 5
+    , width fill
+    ]
+
+
+nameVisualCont config model =
+    row
+        ([ spacing 20
+         ]
+            ++ containerStyle
+        )
+        [ Element.map model.externalMsg <| setNomEntite config model
+        , setVisual config model
+        ]
+
+
+catsActivsCont config model =
+    row
+        ([ spacing 20 ] ++ containerStyle)
+        [ setCats config model
+        , setActivs config model
+        ]
+
+
+labOtRankCont config model =
+    row
+        ([ spacing 20 ] ++ containerStyle)
+        [ setLabels config model
+        , column
+            [ spacing 15 ]
+            [ setOt config model
+            , setRank config model
+            ]
+        ]
+
+
+contactsCont config model =
+    column
+        ([ spacing 20 ] ++ containerStyle)
+        [ setAdresse config model
+        , row
+            ([ spacing 15 ] ++ formItemStyle)
+            [ setTel config model
+            , setFax config model
+            ]
+        , setEmails config model
+        , setSite config model
+        , setResponsables config model
+        ]
+
+
+descrCont config model =
+    row ([ spacing 20 ] ++ containerStyle)
+        [ setDescriptions config model ]
+
+
+linkDocsCont config model =
+    row ([ spacing 20 ] ++ containerStyle)
+        [ Element.map model.externalMsg <| setLinkedDocs config model ]
+
+
+
+-------------------------------------------------------------------------------
+----------------
+-- Form Items --
+----------------
+
+
+formItemStyle =
+    [ padding 15
+    , Background.color grey7
+    , Border.rounded 5
+    ]
+
+
+setNomEntite config model =
+    row
+        ([ spacing 15 ] ++ formItemStyle)
+        [ Input.text
+            (textInputStyle ++ [ width (px 400) ])
+            { onChange =
+                SetNomEntite
+            , text =
+                model.ficheBuffer.nomEntite
+
+            --|> Maybe.withDefault ""
+            , placeholder =
+                Nothing
+            , label =
+                Input.labelLeft
+                    [ centerY ]
+                    (el [ Font.bold, Font.color grey1 ] (text "Nom entité:"))
+            }
+        ]
+
+
+setVisual config model =
+    column
+        ([ spacing 15 ] ++ formItemStyle)
+        [ el
+            [ width (px 150)
+            , height (px 113)
+            , Background.color grey5
+            ]
+            (el
+                [ width (px 138)
+                , height (px 104)
+                , Background.image
+                    model.ficheBuffer.visuel
+                , centerX
+                , centerY
+                ]
+                Element.none
+            )
+        , Input.button
+            (buttonStyle True)
+            { onPress =
+                Just <| model.externalMsg OpenVisualPicker
+            , label =
+                el [] (text "Choisir visuel")
+            }
+        ]
+
+
 visualPickerView :
     { a
         | fileExplorer : FileExplorer.Model msg
@@ -44,7 +268,10 @@ visualPickerView config model =
         ]
         [ FileExplorer.view
             { maxHeight =
-                config.maxHeight - 50
+                if config.maxHeight < 800 then
+                    400
+                else
+                    500
             , zone = config.zone
             , logInfo = config.logInfo
             , mode = FileExplorer.ReadWrite FileExplorer.ImagesRoot
@@ -56,228 +283,81 @@ visualPickerView config model =
             ]
             [ Input.button
                 (buttonStyle True)
-                { onPress = Just (model.externalMsg CloseVisualPicker)
+                { onPress = Just (model.externalMsg <| CloseVisualPicker)
                 , label = text "Retour"
                 }
             , Input.button (buttonStyle (FileExplorer.getSelectedImage config.fileExplorer /= Nothing))
                 { onPress =
                     FileExplorer.getSelectedImage config.fileExplorer
-                        |> Maybe.map .src
-                        |> Maybe.map (model.externalMsg << ConfirmVisual)
+                        |> Maybe.map (model.externalMsg << ConfirmVisual << .src)
                 , label = text "Valider"
                 }
             ]
         ]
 
 
-
---styleSelector model =
---    row
---        []
---        [ Input.text
---            [ Events.onClick StyleSelectorClick
---            --, Events.onLoseFocus BlurStyleSelector
---            , width (px 150)
---            , below <|
---                if model.styleSelectorFocused then
---                    column []
---                        (List.map
---                            (\s ->
---                                el
---                                    [ Events.onClick (SetStyle s)
---                                    , pointer
---                                    , mouseOver
---                                        [ Font.color (rgb 1 1 1)
---                                        , Background.color (rgb 0.7 0.7 0.7)
---                                        ]
---                                    , Background.color (rgb 1 1 1)
---                                    , width (px 150)
---                                    , paddingXY 15 5
---                                    ]
---                                    (text s)
---                            )
---                            (Dict.keys tableStyles)
---                        )
---                else
---                    Element.none
---            , spacing 15
---            , paddingXY 15 5
---            , focused [ Border.glow (rgb 1 1 1) 0 ]
---            ]
---            { onChange =
---                SetStyle
---            , text = model.styleSelectorInput
---            , placeholder = Just (Input.placeholder [] (el [] (text model.currentStyle)))
---            , label =
---                Input.labelLeft [ centerY ] (el [] (text "Style"))
---            }
---        ]
-
-
-selectView selected handler entry =
-    Keyed.el
-        [ width fill
-        , paddingXY 5 5
-        , Events.onClick handler
-        , pointer
-        , if Just entry == selected then
-            Background.color
-                (rgba 0 0 1 0.3)
-          else
-            noAttr
-        ]
-        ( entry, text entry )
-
-
-editFicheView :
-    { config
-        | maxHeight : Int
-        , zone : Time.Zone
-        , fileExplorer : FileExplorer.Model msg
-    }
-    -> Model msg
-    -> Element Msg
-editFicheView config model =
-    let
-        linkedDocView { url, descr, label, expiryDate } =
-            column
-                [ spacing 15 ]
-                [ newTabLink
-                    []
-                    { url = url
-                    , label = el [ Font.bold ] (text label)
-                    }
-                , Maybe.map (\d -> el [] (text d)) descr
-                    |> Maybe.withDefault Element.none
-                , el [] (text <| expiryDateToStr config.zone expiryDate)
-                ]
-    in
+setCats config model =
     column
-        [ spacing 20
-        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
-        , clip
-        , width fill
-        , height fill
-        ]
-        [ el
-            [ Font.bold
-            , Font.size 18
-            ]
-            (text "Modification/création fiche")
-        , column
-            [ height (maximum (config.maxHeight - 120) fill)
-            , scrollbarY
-            , width fill
-            , spacing 20
-            ]
-            [ setNomEntite config model
-            , setCats config model
-            , setActivs config model
-            , setLabels config model
-            , setOt config model
-            , setRank config model
-            , setAdresse config model
-            , setTel config model
-            , setFax config model
-            , setEmails config model
-            , setSite config model
-            , setResponsables config model
-            , setDescriptions config model
+        ([ spacing 15 ] ++ formItemStyle)
+        [ row
+            [ spacing 15 ]
+            [ column
+                [ spacing 15
+                , alignTop
+                ]
+                [ el [ Font.bold, Font.color grey1 ] (text "Catégories disponibles")
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 150)
+                    , height (px 200)
+                    , scrollbars
+                    ]
+                    (Dict.keys model.categories
+                        |> List.map
+                            (\e -> selectView model.selectedAvailableCat (SelectAvailableCat e) e)
+                    )
+                ]
+            , column
+                [ spacing 15
+                , alignTop
+                ]
+                [ el [ Font.bold, Font.color grey1 ] (text "Catégories fiche")
+                , Input.text
+                    (textInputStyle
+                        ++ [ spacingXY 0 15
+                           , width (px 180)
+                           ]
+                    )
+                    { onChange =
+                        SelectAvailableCat
+                    , text =
+                        model.selectedAvailableCat
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Nouvelle catégorie")
+                    , label =
+                        Input.labelLeft
+                            []
+                            Element.none
+                    }
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 180)
+                    , height (px 155)
+                    , scrollbars
+                    ]
+                    (model.ficheBuffer.categories
+                        |> List.map
+                            (\e -> selectView model.selectedCatInFiche (SelectCatInFiche e) e)
+                    )
+                ]
             ]
         , row
-            [ spacing 15
-            ]
-            [ Input.button
-                (buttonStyle True)
-                { onPress = Just (SetRightPanelDisplay PreviewFiche)
-                , label = el [] (text "Retour")
-                }
-            , Input.button
-                (buttonStyle True)
-                { onPress = Just SaveFiche
-                , label = el [] (text "Sauvegarder fiche")
-                }
-            ]
-        ]
-
-
-setNomEntite config model =
-    Input.text
-        textInputStyle
-        { onChange =
-            SetNomEntite
-        , text =
-            model.ficheBuffer.nomEntite
-
-        --|> Maybe.withDefault ""
-        , placeholder =
-            Nothing
-        , label =
-            Input.labelLeft
-                [ centerY ]
-                (el [ Font.bold ] (text "Nom entité:"))
-        }
-
-
-setCats config model =
-    row
-        [ spacing 15 ]
-        [ column
-            [ spacing 15
-            , alignTop
-            ]
-            [ el [ Font.bold ] (text "Catégories disponibles")
-            , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 150)
-                , height (px 200)
-                , scrollbars
-                ]
-                (Dict.keys model.categories
-                    |> List.map
-                        (\e -> selectView model.selectedAvailableCat (SelectAvailableCat e) e)
-                )
-            ]
-        , column
-            [ spacing 15
-            , alignTop
-            ]
-            [ el [ Font.bold ] (text "Catégories fiche")
-            , Input.text
-                (textInputStyle
-                    ++ [ spacingXY 0 15
-                       , width (px 180)
-                       ]
-                )
-                { onChange =
-                    SelectAvailableCat
-                , text =
-                    model.selectedAvailableCat
-                        |> Maybe.withDefault ""
-                , placeholder =
-                    Just <|
-                        Input.placeholder
-                            []
-                            (text "Nouvelle catégorie")
-                , label =
-                    Input.labelLeft
-                        []
-                        Element.none
-                }
-            , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 180)
-                , height (px 155)
-                , scrollbars
-                ]
-                (model.ficheBuffer.categories
-                    |> List.map
-                        (\e -> selectView model.selectedCatInFiche (SelectCatInFiche e) e)
-                )
-            ]
-        , column
             [ spacing 15
 
             --, alignTop
@@ -296,69 +376,79 @@ setCats config model =
                         model.selectedCatInFiche
                 , label = el [] (text "Supprimer catégorie")
                 }
+            , Input.button
+                (buttonStyle (model.selectedCatInFiche /= Nothing))
+                { onPress =
+                    Maybe.map (\_ -> RemoveCatFromFiche)
+                        model.selectedCatInFiche
+                , label = el [] (text "Modifier catégorie")
+                }
             ]
         ]
 
 
 setActivs config model =
-    row
-        [ spacing 15 ]
-        [ column
-            [ spacing 15
-            , alignTop
-            ]
-            [ el [ Font.bold ] (text "Activités disponibles")
-            , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 150)
-                , height (px 200)
-                , scrollbars
+    column
+        ([ spacing 15 ] ++ formItemStyle)
+        [ row
+            [ spacing 15 ]
+            [ column
+                [ spacing 15
+                , alignTop
                 ]
-                (Set.toList model.activites
-                    |> List.map
-                        (\e -> selectView model.selectedAvailableActiv (SelectAvailableActiv e) e)
-                )
-            ]
-        , column
-            [ spacing 15
-            , alignTop
-            ]
-            [ el [ Font.bold ] (text "Activités fiche")
-            , Input.text
-                (textInputStyle
-                    ++ [ spacingXY 0 15
-                       , width (px 180)
-                       ]
-                )
-                { onChange =
-                    SelectAvailableActiv
-                , text =
-                    model.selectedAvailableActiv
-                        |> Maybe.withDefault ""
-                , placeholder =
-                    Just <|
-                        Input.placeholder
+                [ el [ Font.bold, Font.color grey1 ] (text "Activités disponibles")
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 350)
+                    , height (px 200)
+                    , scrollbars
+                    ]
+                    (Set.toList model.activites
+                        |> List.map
+                            (\e -> selectView model.selectedAvailableActiv (SelectAvailableActiv e) e)
+                    )
+                ]
+            , column
+                [ spacing 15
+                , alignTop
+                ]
+                [ el [ Font.bold, Font.color grey1 ] (text "Activités fiche")
+                , Input.text
+                    (textInputStyle
+                        ++ [ spacingXY 0 15
+                           , width (px 180)
+                           ]
+                    )
+                    { onChange =
+                        SelectAvailableActiv
+                    , text =
+                        model.selectedAvailableActiv
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Nouvelle activité")
+                    , label =
+                        Input.labelLeft
                             []
-                            (text "Nouvelle activité")
-                , label =
-                    Input.labelLeft
-                        []
-                        Element.none
-                }
-            , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 180)
-                , height (px 155)
-                , scrollbars
+                            Element.none
+                    }
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 180)
+                    , height (px 155)
+                    , scrollbars
+                    ]
+                    (model.ficheBuffer.natureActiv
+                        |> List.map
+                            (\e -> selectView model.selectedActivInFiche (SelectActivInFiche e) e)
+                    )
                 ]
-                (model.ficheBuffer.natureActiv
-                    |> List.map
-                        (\e -> selectView model.selectedActivInFiche (SelectActivInFiche e) e)
-                )
             ]
-        , column
+        , row
             [ spacing 15
 
             --, alignTop
@@ -377,79 +467,89 @@ setActivs config model =
                         model.selectedActivInFiche
                 , label = el [] (text "Supprimer activité")
                 }
+            , Input.button
+                (buttonStyle (model.selectedActivInFiche /= Nothing))
+                { onPress =
+                    Maybe.map (\_ -> RemoveActivFromFiche)
+                        model.selectedActivInFiche
+                , label = el [] (text "Modifier activité")
+                }
             ]
         ]
 
 
 setLabels config model =
-    row
-        [ spacing 15 ]
-        [ column
-            [ spacing 15
-            , alignTop
-            ]
-            [ el [ Font.bold ] (text "Labels disponibles")
-            , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 150)
-                , height (px 200)
-                , scrollbars
+    column
+        ([ spacing 15 ] ++ formItemStyle)
+        [ row
+            [ spacing 15 ]
+            [ column
+                [ spacing 15
+                , alignTop
                 ]
-                (List.map .nom model.labels
-                    |> List.map
-                        (\e ->
-                            selectView
-                                model.selectedAvailableLabel
-                                (SelectAvailableLabel e)
-                                e
-                        )
-                )
-            ]
-        , column
-            [ spacing 15
-            , alignTop
-            ]
-            [ el [ Font.bold ] (text "Labels fiche")
-            , Input.text
-                (textInputStyle
-                    ++ [ spacingXY 0 15
-                       , width (px 180)
-                       ]
-                )
-                { onChange =
-                    SelectAvailableLabel
-                , text =
-                    model.selectedAvailableLabel
-                        |> Maybe.withDefault ""
-                , placeholder =
-                    Just <|
-                        Input.placeholder
+                [ el [ Font.bold, Font.color grey1 ] (text "Labels disponibles")
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 150)
+                    , height (px 200)
+                    , scrollbars
+                    ]
+                    (List.map .nom model.labels
+                        |> List.map
+                            (\e ->
+                                selectView
+                                    model.selectedAvailableLabel
+                                    (SelectAvailableLabel e)
+                                    e
+                            )
+                    )
+                ]
+            , column
+                [ spacing 15
+                , alignTop
+                ]
+                [ el [ Font.bold, Font.color grey1 ] (text "Labels fiche")
+                , Input.text
+                    (textInputStyle
+                        ++ [ spacingXY 0 15
+                           , width (px 180)
+                           ]
+                    )
+                    { onChange =
+                        SelectAvailableLabel
+                    , text =
+                        model.selectedAvailableLabel
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Nouveau label")
+                    , label =
+                        Input.labelLeft
                             []
-                            (text "Nouveau label")
-                , label =
-                    Input.labelLeft
-                        []
-                        Element.none
-                }
-            , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 180)
-                , height (px 155)
-                , scrollbars
+                            Element.none
+                    }
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 180)
+                    , height (px 155)
+                    , scrollbars
+                    ]
+                    (model.ficheBuffer.label
+                        |> List.map .nom
+                        |> List.map
+                            (\e ->
+                                selectView model.selectedLabelInFiche
+                                    (SelectLabelInFiche e)
+                                    e
+                            )
+                    )
                 ]
-                (model.ficheBuffer.label
-                    |> List.map .nom
-                    |> List.map
-                        (\e ->
-                            selectView model.selectedLabelInFiche
-                                (SelectLabelInFiche e)
-                                e
-                        )
-                )
             ]
-        , column
+        , row
             [ spacing 15
 
             --, alignTop
@@ -474,7 +574,7 @@ setLabels config model =
 
 setOt config model =
     row
-        [ spacing 15 ]
+        ([ spacing 15 ] ++ formItemStyle)
         [ Input.text
             (textInputStyle
                 ++ [ width (px 100)
@@ -492,7 +592,7 @@ setOt config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ] (text "Référence OT"))
+                    (el [ Font.bold, Font.color grey1 ] (text "Référence OT"))
             }
         , Input.text
             (textInputStyle
@@ -510,14 +610,19 @@ setOt config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ] (text "Lien OT"))
+                    (el [ Font.bold, Font.color grey1 ] (text "Lien OT"))
             }
         ]
 
 
 setRank config model =
     row
-        [ spacing 15 ]
+        ([ spacing 15
+         , width fill
+         , alignTop
+         ]
+            ++ formItemStyle
+        )
         [ Input.text
             (textInputStyle
                 ++ [ width (px 100)
@@ -534,7 +639,7 @@ setRank config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ] (text "Etoiles"))
+                    (el [ Font.bold, Font.color grey1 ] (text "Etoiles"))
             }
         , Input.text
             (textInputStyle
@@ -552,28 +657,33 @@ setRank config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ] (text "Epis"))
+                    (el [ Font.bold, Font.color grey1 ] (text "Epis"))
             }
         ]
 
 
 setAdresse config model =
-    Input.text
-        (textInputStyle
-            ++ [ width (px 300)
-               ]
+    row
+        ([ width fill ]
+            ++ formItemStyle
         )
-        { onChange =
-            SetAddress
-        , text =
-            model.ficheBuffer.adresse
-        , placeholder =
-            Nothing
-        , label =
-            Input.labelLeft
-                [ centerY ]
-                (el [ Font.bold ] (text "Adresse / Siège social"))
-        }
+        [ Input.text
+            (textInputStyle
+                ++ [ width (px 300)
+                   ]
+            )
+            { onChange =
+                SetAddress
+            , text =
+                model.ficheBuffer.adresse
+            , placeholder =
+                Nothing
+            , label =
+                Input.labelLeft
+                    [ centerY ]
+                    (el [ Font.bold, Font.color grey1 ] (text "Adresse / Siège social"))
+            }
+        ]
 
 
 setTel config model =
@@ -594,7 +704,7 @@ setTel config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ] (text "Tel. fixe"))
+                    (el [ Font.bold, Font.color grey1 ] (text "Tel. fixe"))
             }
         , Input.text
             (textInputStyle
@@ -611,7 +721,7 @@ setTel config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ] (text "Tel. portable"))
+                    (el [ Font.bold, Font.color grey1 ] (text "Tel. portable"))
             }
         ]
 
@@ -619,7 +729,7 @@ setTel config model =
 setFax config model =
     Input.text
         (textInputStyle
-            ++ [ width (px 300)
+            ++ [ width (px 120)
                ]
         )
         { onChange =
@@ -632,19 +742,23 @@ setFax config model =
         , label =
             Input.labelLeft
                 [ centerY ]
-                (el [ Font.bold ] (text "Fax"))
+                (el [ Font.bold, Font.color grey1 ] (text "Fax"))
         }
 
 
 setEmails config model =
     row
-        [ spacing 15 ]
+        ([ spacing 15
+         , width fill
+         ]
+            ++ formItemStyle
+        )
         [ column
             [ spacing 15 ]
-            [ el [ Font.bold ] (text "Emails")
+            [ el [ Font.bold, Font.color grey1 ] (text "Emails")
             , column
                 [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
+                , Border.color grey3
                 , width (px 180)
                 , height (px 200)
                 , scrollbars
@@ -742,7 +856,7 @@ setEmails config model =
 
 setSite config model =
     row
-        [ spacing 15 ]
+        ([ spacing 15 ] ++ formItemStyle)
         [ Input.text
             (textInputStyle
                 ++ [ width (px 180)
@@ -759,7 +873,7 @@ setSite config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ]
+                    (el [ Font.bold, Font.color grey1 ]
                         (text "Nom site")
                     )
             }
@@ -779,7 +893,7 @@ setSite config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold ]
+                    (el [ Font.bold, Font.color grey1 ]
                         (text "Url site")
                     )
             }
@@ -788,14 +902,14 @@ setSite config model =
 
 setResponsables config model =
     row
-        [ spacing 15 ]
+        ([ spacing 15 ] ++ formItemStyle)
         [ column
             [ spacing 15
             ]
-            [ el [ Font.bold ] (text "Responsables")
+            [ el [ Font.bold, Font.color grey1 ] (text "Responsables")
             , column
                 [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
+                , Border.color grey3
                 , width (px 180)
                 , height (px 200)
                 , scrollbars
@@ -965,14 +1079,14 @@ setResponsables config model =
 
 setDescriptions config model =
     column
-        [ spacing 15 ]
+        ([ spacing 15 ] ++ formItemStyle)
         [ column
             [ spacing 15
             ]
-            [ el [ Font.bold ] (text "Descriptions")
+            [ el [ Font.bold, Font.color grey1 ] (text "Descriptions")
             , column
                 [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
+                , Border.color grey3
                 , width (px 400)
                 , height (px 200)
                 , scrollbars
@@ -1086,4 +1200,74 @@ setDescriptions config model =
                 }
              ]
             )
+        ]
+
+
+setLinkedDocs config model =
+    column
+        ([ spacing 15 ]
+            ++ formItemStyle
+        )
+        [ el
+            [ Font.bold
+            , Font.color grey1
+            ]
+            (text "Documents associés")
+        , row
+            [ spacing 15 ]
+            [ column
+                [ Border.width 2
+                , Border.color grey3
+                , width (px 400)
+                , height (px 200)
+                , scrollbars
+                ]
+                (model.ficheBuffer.linkedDocs
+                    |> List.map
+                        (\ld ->
+                            linkedDocView config.zone ld
+                        )
+                )
+            , column
+                [ spacing 15 ]
+                [ Input.text
+                    (textInputStyle
+                        ++ [ width (px 180)
+                           ]
+                    )
+                    { onChange =
+                        SetLinkedDocLabel
+                    , text =
+                        model.linkedDocBuffer
+                            |> Maybe.map .label
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Titre du document")
+                    , label =
+                        Input.labelLeft
+                            []
+                            Element.none
+                    }
+                ]
+            ]
+        ]
+
+
+linkedDocView zone ({ url, descr, label, expiryDate } as ld) =
+    column
+        [ spacing 15
+        , Events.onClick (SelectLinkedDoc ld)
+        ]
+        [ newTabLink
+            []
+            { url = url
+            , label = el [ Font.bold, Font.color grey1 ] (text label)
+            }
+        , Maybe.map (\d -> el [] (text d)) descr
+            |> Maybe.withDefault Element.none
+        , Maybe.map (\ed -> el [] (text <| expiryDateToStr zone ed)) expiryDate
+            |> Maybe.withDefault Element.none
         ]

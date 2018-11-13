@@ -1004,7 +1004,17 @@ internalUpdate config msg model =
             )
 
         ConfirmVisual s ->
-            ( model
+            let
+                fb =
+                    model.ficheBuffer
+
+                newFb =
+                    { fb | visuel = s }
+            in
+            ( { model
+                | visualPickerOpen = False
+                , ficheBuffer = newFb
+              }
             , Cmd.none
             )
 
@@ -1401,26 +1411,26 @@ view :
         | maxHeight : Int
         , zone : Time.Zone
         , fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
     }
     -> Model msg
     -> Element msg
 view config model =
-    Element.map model.externalMsg <|
-        row
-            [ padding 15
-            , spacing 15
-            , width fill
-            , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
-            , clip
-            , width fill
-            , height (maximum config.maxHeight fill)
-            ]
-            [ if model.rightPanelDisplay == EditFiche then
-                Element.none
-              else
-                ficheSelectorView model
-            , formsView config model
-            ]
+    row
+        [ padding 15
+        , spacing 15
+        , width fill
+        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+        , clip
+        , width fill
+        , height (maximum config.maxHeight fill)
+        ]
+        [ if model.rightPanelDisplay == EditFiche then
+            Element.none
+          else
+            Element.map model.externalMsg <| ficheSelectorView model
+        , formsView config model
+        ]
 
 
 ficheSelectorView model =
@@ -1494,6 +1504,7 @@ ficheSelectorView model =
                 |> List.filter catFilterFun
                 |> List.filter activFilterFun
                 |> List.filter labelFilterFun
+                |> List.sortBy (\( k, f ) -> String.toLower f.nomEntite)
     in
     column
         [ spacing 15
@@ -1606,7 +1617,7 @@ formsView config model =
         ]
         [ case model.rightPanelDisplay of
             PreviewFiche ->
-                previewFicheView model
+                Element.map model.externalMsg <| previewFicheView model
 
             EditFiche ->
                 editFicheView config model
