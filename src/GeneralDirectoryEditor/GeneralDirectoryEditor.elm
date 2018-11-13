@@ -2,7 +2,7 @@ module GeneralDirectoryEditor.GeneralDirectoryEditor exposing (..)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Base64 exposing (..)
-import Derberos.Date.Core exposing (civilToPosix, newDateRecord)
+import Derberos.Date.Core exposing (civilToPosix, newDateRecord, posixToCivil)
 import Derberos.Date.Utils exposing (numberOfDaysInMonth, numberToMonth)
 import Dict exposing (..)
 import Element exposing (..)
@@ -13,17 +13,20 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy)
+import FileExplorer.FileExplorer as FileExplorer
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
+import Internals.Icons exposing (chevronsDown, chevronsUp)
 import Internals.ToolHelpers exposing (..)
 import Json.Decode as D
 import Json.Decode.Extra
 import Json.Decode.Pipeline as P exposing (..)
 import Json.Encode as E
 import List.Extra exposing (elemIndex, remove, setIf, swapAt, unique, uniqueBy)
+import Murmur3 exposing (hashString)
 import Random exposing (..)
 import Set exposing (..)
 import Time exposing (..)
@@ -53,6 +56,7 @@ type alias Model msg =
         Maybe Random.Seed
 
     --- MainForm variables
+    , visualPickerOpen : Bool
     , selectedCatInFiche : Maybe String
     , selectedAvailableCat : Maybe String
     , selectedActivInFiche : Maybe String
@@ -136,10 +140,14 @@ type Msg
     | SetSiteUrl String
     | SetSiteLabel String
     | SetPjaun String
+      ---
+    | OpenVisualPicker
+    | CloseVisualPicker
     | ConfirmVisual String
       ---
     | SelectDescrInFiche String
     | SetDescription String
+    | ModifyDescr
     | AddDescription
     | RemoveDescription
     | MoveDescrUp
@@ -334,6 +342,7 @@ init externalMsg =
             Nothing
 
       --- MainForm variables
+      , visualPickerOpen = False
       , selectedCatInFiche = Nothing
       , selectedAvailableCat = Nothing
       , selectedActivInFiche = Nothing
@@ -452,11 +461,6 @@ internalUpdate config msg model =
                     else
                         Dict.get s model.fiches
                             |> Maybe.withDefault emptyFiche
-                , rightPanelDisplay =
-                    if model.selectedFiche == Just s then
-                        EditFiche
-                    else
-                        PreviewFiche
               }
             , Cmd.none
             )
@@ -1185,7 +1189,10 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | email = fb.email ++ [ mail ] }
                         in
-                        ( { model | ficheBuffer = newFb }
+                        ( { model
+                            | ficheBuffer = newFb
+                            , emailBuffer = Nothing
+                          }
                         , Cmd.none
                         )
 
@@ -1205,7 +1212,10 @@ internalUpdate config msg model =
                         newFb =
                             { fb | email = List.Extra.remove mail fb.email }
                     in
-                    ( { model | ficheBuffer = newFb }
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedEmail = Nothing
+                      }
                     , Cmd.none
                     )
 
@@ -1258,6 +1268,16 @@ internalUpdate config msg model =
             , Cmd.none
             )
 
+        OpenVisualPicker ->
+            ( { model | visualPickerOpen = True }
+            , Cmd.none
+            )
+
+        CloseVisualPicker ->
+            ( { model | visualPickerOpen = False }
+            , Cmd.none
+            )
+
         ConfirmVisual s ->
             ( model
             , Cmd.none
@@ -1271,17 +1291,48 @@ internalUpdate config msg model =
                         Nothing
                     else
                         Just s
+                , descrBuffer =
+                    if model.selectedDescr == Just s then
+                        Nothing
+                    else
+                        Just s
               }
             , Cmd.none
             )
 
         SetDescription s ->
-            ( { model | selectedDescr = Just s }
+            ( { model | descrBuffer = Just s }
             , Cmd.none
             )
 
+        ModifyDescr ->
+            case ( model.selectedDescr, model.descrBuffer ) of
+                ( Just d1, Just d2 ) ->
+                    let
+                        fb =
+                            model.ficheBuffer
+
+                        newFb =
+                            { fb
+                                | description =
+                                    setIf (\d -> d == d1)
+                                        d2
+                                        fb.description
+                            }
+                    in
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedDescr = Nothing
+                        , descrBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         AddDescription ->
-            case model.selectedDescr of
+            case model.descrBuffer of
                 Nothing ->
                     ( model, Cmd.none )
 
@@ -1299,7 +1350,10 @@ internalUpdate config msg model =
                                         fb.description ++ [ d ]
                                 }
                         in
-                        ( { model | ficheBuffer = newFb }
+                        ( { model
+                            | ficheBuffer = newFb
+                            , descrBuffer = Nothing
+                          }
                         , Cmd.none
                         )
 
@@ -1319,7 +1373,11 @@ internalUpdate config msg model =
                                     List.Extra.remove d fb.description
                             }
                     in
-                    ( { model | ficheBuffer = newFb }
+                    ( { model
+                        | ficheBuffer = newFb
+                        , descrBuffer = Nothing
+                        , selectedDescr = Nothing
+                      }
                     , Cmd.none
                     )
 
@@ -1567,6 +1625,7 @@ internalUpdate config msg model =
             ( model, Cmd.none )
 
 
+parseDate : String -> Maybe ( Int, Int, Int )
 parseDate s =
     case
         String.split "/" s
@@ -1591,6 +1650,19 @@ parseDate s =
 
         _ ->
             Nothing
+
+
+expiryDateToStr : Time.Zone -> Time.Posix -> String
+expiryDateToStr zone d =
+    let
+        dateRec =
+            posixToCivil d
+    in
+    String.fromInt dateRec.day
+        ++ "/"
+        ++ String.fromInt dateRec.month
+        ++ "/"
+        ++ String.fromInt dateRec.year
 
 
 computeCats fiches =
@@ -1639,7 +1711,14 @@ computeLabels fiches =
 --------------------
 
 
-view : { config | maxHeight : Int } -> Model msg -> Element msg
+view :
+    { config
+        | maxHeight : Int
+        , zone : Time.Zone
+        , fileExplorer : FileExplorer.Model msg
+    }
+    -> Model msg
+    -> Element msg
 view config model =
     Element.map model.externalMsg <|
         row
@@ -1877,13 +1956,61 @@ previewFicheView model =
         ]
 
 
-ficheForm model =
+visualPickerView :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+        , maxHeight : Int
+        , zone : Zone
+    }
+    -> Model msg
+    -> Element msg
+visualPickerView config model =
     column
-        [ spacing 15 ]
-        []
+        [ height fill
+        , paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
+            }
+        ]
+        [ FileExplorer.view
+            { maxHeight =
+                config.maxHeight - 50
+            , zone = config.zone
+            , logInfo = config.logInfo
+            , mode = FileExplorer.ReadWrite FileExplorer.ImagesRoot
+            }
+            config.fileExplorer
+        , row
+            [ spacing 15
+            , paddingXY 15 0
+            ]
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just (model.externalMsg CloseVisualPicker)
+                , label = text "Retour"
+                }
+            , Input.button (buttonStyle (FileExplorer.getSelectedImage config.fileExplorer /= Nothing))
+                { onPress =
+                    FileExplorer.getSelectedImage config.fileExplorer
+                        |> Maybe.map .src
+                        |> Maybe.map (model.externalMsg << ConfirmVisual)
+                , label = text "Valider"
+                }
+            ]
+        ]
 
 
-editFicheView : { config | maxHeight : Int } -> Model msg -> Element Msg
+editFicheView :
+    { config
+        | maxHeight : Int
+        , zone : Time.Zone
+        , fileExplorer : FileExplorer.Model msg
+    }
+    -> Model msg
+    -> Element Msg
 editFicheView config model =
     let
         selectView selected handler entry =
@@ -1899,6 +2026,19 @@ editFicheView config model =
                     noAttr
                 ]
                 ( entry, text entry )
+
+        linkedDocView { url, descr, label, expiryDate } =
+            column
+                [ spacing 15 ]
+                [ newTabLink
+                    []
+                    { url = url
+                    , label = el [ Font.bold ] (text label)
+                    }
+                , Maybe.map (\d -> el [] (text d)) descr
+                    |> Maybe.withDefault Element.none
+                , el [] (text <| expiryDateToStr config.zone expiryDate)
+                ]
     in
     column
         [ spacing 20
@@ -2644,6 +2784,129 @@ editFicheView config model =
                      ]
                     )
                 ]
+            , column
+                [ spacing 15 ]
+                [ column
+                    [ spacing 15
+                    ]
+                    [ el [ Font.bold ] (text "Descriptions")
+                    , column
+                        [ Border.width 2
+                        , Border.color (rgb 0.8 0.8 0.8)
+                        , width (px 400)
+                        , height (px 200)
+                        , scrollbars
+                        ]
+                        (model.ficheBuffer.description
+                            |> List.map
+                                (\d ->
+                                    selectView model.selectedDescr
+                                        (SelectDescrInFiche d)
+                                        d
+                                )
+                        )
+                    ]
+                , row [ spacing 15 ]
+                    [ Keyed.el
+                        []
+                        ( "descrMultilineKey"
+                            ++ (String.join "" model.ficheBuffer.description
+                                    |> (\s -> s ++ Maybe.withDefault "" model.selectedDescr)
+                                    |> hashString 0
+                                    |> String.fromInt
+                               )
+                        , Input.multiline
+                            [ width (px 400) ]
+                            { onChange = SetDescription
+                            , text =
+                                model.descrBuffer
+                                    |> Maybe.withDefault ""
+                            , placeholder =
+                                Just <|
+                                    Input.placeholder []
+                                        (text "Ajouter un paragraphe")
+                            , label =
+                                Input.labelHidden ""
+                            , spellcheck = False
+                            }
+                        )
+                    , column
+                        [ spacing 15 ]
+                        [ Input.button
+                            (buttonStyle (model.selectedDescr /= Nothing))
+                            { onPress =
+                                Maybe.map (\_ -> MoveDescrUp)
+                                    model.selectedDescr
+                            , label = el [] (html <| chevronsUp 18)
+                            }
+                        , Input.button
+                            (buttonStyle (model.selectedDescr /= Nothing))
+                            { onPress =
+                                Maybe.map (\_ -> MoveDescrDown)
+                                    model.selectedDescr
+                            , label = el [] (html <| chevronsDown 18)
+                            }
+                        ]
+                    ]
+                , row
+                    [ spacing 15 ]
+                    (let
+                        isExisting =
+                            Maybe.map
+                                (\r ->
+                                    List.member r model.ficheBuffer.description
+                                )
+                                model.descrBuffer
+                                == Just True
+
+                        canAdd =
+                            (model.descrBuffer
+                                /= Nothing
+                            )
+                                && (model.selectedDescr == Nothing)
+                                && not isExisting
+
+                        canModify =
+                            model.selectedDescr
+                                /= Nothing
+                                && (model.descrBuffer /= Just "")
+                                && not isExisting
+
+                        canDelete =
+                            model.selectedDescr
+                                /= Nothing
+                                && isExisting
+                     in
+                     [ Input.button
+                        (buttonStyle canModify)
+                        { onPress =
+                            if canModify then
+                                Just ModifyDescr
+                            else
+                                Nothing
+                        , label = el [] (text "Modifier description")
+                        }
+                     , Input.button
+                        (buttonStyle canAdd)
+                        { onPress =
+                            if canAdd then
+                                Just AddDescription
+                            else
+                                Nothing
+                        , label = el [] (text "Ajouter description")
+                        }
+                     , Input.button
+                        (buttonStyle canDelete)
+                        { onPress =
+                            if canDelete then
+                                Just RemoveDescription
+                            else
+                                Nothing
+                        , label = el [] (text "Supprimer description")
+                        }
+                     ]
+                    )
+                ]
             ]
         , row
             [ spacing 15
@@ -2723,7 +2986,7 @@ fichePreview f =
                     [ el
                         [ Font.bold ]
                         (text "Reférence Office de Tourisme:")
-                    , link []
+                    , newTabLink []
                         { url = s, label = el [] (text <| String.fromInt n) }
                     ]
             )
@@ -2811,7 +3074,7 @@ fichePreview f =
                     [ spacing 15 ]
                     [ el [ Font.bold ]
                         (text "Site web:")
-                    , link []
+                    , newTabLink []
                         { url = url
                         , label = el [] (text label)
                         }
