@@ -75,6 +75,7 @@ editFicheView config model =
                 , contactsCont config model
                 , descrCont config model
                 , linkDocsCont config model
+                , ouvertureCont config model
                 ]
             ]
         , row
@@ -176,6 +177,14 @@ linkDocsCont : ViewConfig config msg -> Model msg -> Element msg
 linkDocsCont config model =
     row ([ spacing 20 ] ++ containerStyle)
         [ setLinkedDocs config model ]
+
+
+ouvertureCont : ViewConfig config msg -> Model msg -> Element msg
+ouvertureCont config model =
+    Element.map model.externalMsg <|
+        column
+            containerStyle
+            [ setOuverture config model ]
 
 
 
@@ -1652,6 +1661,45 @@ linkedDocView externalMsg zone selected ({ url, descr, label, expiryDate } as ld
                 ]
             ]
         )
+
+
+
+-------------------------------------------------------------------------------
+---------------
+-- Ouverture --
+---------------
+
+
+setOuverture : ViewConfig config msg -> Model msg -> Element Msg
+setOuverture config model =
+    column
+        ([ spacing 15
+         , width fill
+         ]
+            ++ formItemStyle
+        )
+        [ el
+            [ Font.bold
+            , Font.color grey1
+            ]
+            (text "Période d'ouverture")
+        , Input.radioRow
+            [ spacing 15 ]
+            { onChange = SetOuverture
+            , options =
+                [ Input.option TteAnnee (text "Toute l'année")
+                , Input.option Saisonniere (text "Saisonniere")
+                ]
+            , selected =
+                case model.ficheBuffer.ouverture of
+                    Just o ->
+                        Just o
+
+                    Nothing ->
+                        Just TteAnnee
+            , label = Input.labelHidden ""
+            }
+        ]
 
 
 
