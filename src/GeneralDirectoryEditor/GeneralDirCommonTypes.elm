@@ -11,7 +11,7 @@ import UUID exposing (..)
 
 type alias Model msg =
     { fiches : Dict String Fiche
-    , categories : Dict String Categorie
+    , categories : Set String
     , activites : Set String
     , labels : List Label
     , nameFilter : Maybe String
@@ -22,9 +22,6 @@ type alias Model msg =
     , ficheBuffer : Fiche
     , rightPanelDisplay : RightPanelDisplay
     , lockedFiches : List Fiche
-    , categoriesLocked : Bool
-    , activitesLocked : Bool
-    , labelsLocked : Bool
     , debug : List String
     , loadingStatus : ToolLoadingStatus
     , externalMsg : Msg -> msg
@@ -69,9 +66,6 @@ type Msg
       ------------------
     | LoadGeneralDirectory (Result Http.Error GenDirData)
     | FicheUpdated Fiche (Result Http.Error Bool)
-    | CategoriesUpdated (Dict String Categorie) (Result Http.Error Bool)
-    | ActivitesUpdated (Set String) (Result Http.Error Bool)
-    | LabelsUpdated (List Label) (Result Http.Error Bool)
       ----------------------
       -- EditFicheFormMgs --
       ----------------------
@@ -166,9 +160,6 @@ type Msg
 
 type alias GenDirData =
     { fiches : Dict String Fiche
-    , categories : Dict String Categorie
-    , activites : Set String
-    , labels : List Label
     }
 
 
@@ -277,38 +268,6 @@ emptyLinkedDoc =
     , descr = Nothing
     , expiryDate = Nothing
     }
-
-
-type alias Categorie =
-    { name : String
-    , fields : List { field : Field, fieldType : FieldType }
-    }
-
-
-type Field
-    = CategoriesField
-    | NatureActivField
-    | RefOtField
-    | LabelField
-    | RankField
-    | NomEntiteField
-    | ResponsablesField
-    | AdresseField
-    | TelNumberField
-    | FaxField
-    | EmailField
-    | SiteField
-    | PjaunField
-    | VisuelField
-    | DescriptionField
-    | LinkedDocsField
-    | OuvertureField
-
-
-type FieldType
-    = Obligatoire
-    | Optionel
-    | SansObject
 
 
 type RightPanelDisplay

@@ -25,26 +25,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  $categoriesMeta = file_get_contents('./pages/categories');
-
-  if (!$categoriesMeta){
-    logError("impossible de charger les categories du site");
-    exit(); 
-  }
-
-  $activites = file_get_contents('./pages/activites');
-
-  if (!$activites){
-    logError("impossible de charger les activites du site");
-    exit(); 
-  }  
-
-  $labels = file_get_contents('./pages/labels');
-
-  if (!$labels){
-    logError("impossible de charger les labels du site");
-    exit(); 
-  }
+  
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);
@@ -92,9 +73,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 
     $genDirData = 
       array('fiches' => $fiches
-           ,'categories' => json_decode($categoriesMeta)
-           ,'activites' => json_decode($activites)
-           ,'labels' => json_decode($labels)
+           
            );
 
     $toJson = json_encode($genDirData);

@@ -288,7 +288,7 @@ setCats config model =
                     , height (px 200)
                     , scrollbars
                     ]
-                    (Dict.keys model.categories
+                    (Set.toList model.categories
                         |> List.map
                             (\e -> selectView model.selectedAvailableCat (SelectAvailableCat e) e)
                     )

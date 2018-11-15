@@ -153,102 +153,17 @@ encodeTel tel =
 
 
 encodeGenDirData : GenDirData -> E.Value
-encodeGenDirData { fiches, categories, activites, labels } =
+encodeGenDirData { fiches } =
     E.object
         [ ( "fiches"
           , E.list encodeFiche
                 (Dict.values fiches)
           )
-        , ( "categories"
-          , E.list encodeCategorie
-                (Dict.values categories)
-          )
-        , ( "activites", E.set E.string activites )
-        , ( "labels", E.list encodeLabel labels )
         ]
 
 
-encodeCategorie { name, fields } =
-    E.object
-        [ ( "name", E.string name )
-        , ( "fields", E.list encodeFieldsMeta fields )
-        ]
 
-
-encodeFieldsMeta { field, fieldType } =
-    E.object
-        [ ( "field", encodeField field )
-        , ( "fieldType", encodeFieldType fieldType )
-        ]
-
-
-encodeField field =
-    case field of
-        CategoriesField ->
-            E.string "CategoriesField"
-
-        NatureActivField ->
-            E.string "NatureActivField"
-
-        RefOtField ->
-            E.string "RefOtField"
-
-        LabelField ->
-            E.string "LabelField"
-
-        RankField ->
-            E.string "RankField"
-
-        NomEntiteField ->
-            E.string "NomEntiteField"
-
-        ResponsablesField ->
-            E.string "ResponsablesField"
-
-        AdresseField ->
-            E.string "AdresseField"
-
-        TelNumberField ->
-            E.string "TelNumberField"
-
-        FaxField ->
-            E.string "FaxField"
-
-        EmailField ->
-            E.string "EmailField"
-
-        SiteField ->
-            E.string "SiteField"
-
-        PjaunField ->
-            E.string "PjaunField"
-
-        VisuelField ->
-            E.string "VisuelField"
-
-        DescriptionField ->
-            E.string "DescriptionField"
-
-        LinkedDocsField ->
-            E.string "LinkedDocsField"
-
-        OuvertureField ->
-            E.string "OuvertureField"
-
-
-encodeFieldType ft =
-    case ft of
-        Obligatoire ->
-            E.string "Obligatoire"
-
-        Optionel ->
-            E.string "Optionel"
-
-        SansObject ->
-            E.string "SansObject"
-
-
-
+--encodeCategorie { name, fields } =
 -------------------------------------------------------------------------------
 --------------------
 -- Json decoding  --
@@ -265,112 +180,6 @@ decodeGenDirData =
                         (\f -> ( canonical f.uuid, f ))
                     )
                 |> D.map Dict.fromList
-            )
-        |> P.required "categories"
-            (D.list decodeCategorie
-                |> D.map (List.map (\c -> ( c.name, c )))
-                |> D.map Dict.fromList
-            )
-        |> P.required "activites"
-            (D.map Set.fromList
-                (D.list D.string)
-            )
-        |> P.required "labels" (D.list decodeLabel)
-
-
-decodeCategorie : D.Decoder Categorie
-decodeCategorie =
-    D.succeed Categorie
-        |> P.required "name" D.string
-        |> P.required "fields"
-            (D.list
-                (D.succeed (\f ft -> { field = f, fieldType = ft })
-                    |> P.required "field" decodeField
-                    |> P.required "fieldType" decodeFieldType
-                )
-            )
-
-
-decodeField : D.Decoder Field
-decodeField =
-    D.string
-        |> D.andThen
-            (\str ->
-                case str of
-                    "CategoriesField" ->
-                        D.succeed CategoriesField
-
-                    "NatureActivField" ->
-                        D.succeed NatureActivField
-
-                    "RefOtField" ->
-                        D.succeed RefOtField
-
-                    "LabelField" ->
-                        D.succeed LabelField
-
-                    "RankField" ->
-                        D.succeed RankField
-
-                    "NomEntiteField" ->
-                        D.succeed NomEntiteField
-
-                    "ResponsablesField" ->
-                        D.succeed ResponsablesField
-
-                    "AdresseField" ->
-                        D.succeed AdresseField
-
-                    "TelNumberField" ->
-                        D.succeed TelNumberField
-
-                    "FaxField" ->
-                        D.succeed FaxField
-
-                    "EmailField" ->
-                        D.succeed EmailField
-
-                    "SiteField" ->
-                        D.succeed SiteField
-
-                    "PjaunField" ->
-                        D.succeed PjaunField
-
-                    "VisuelField" ->
-                        D.succeed VisuelField
-
-                    "DescriptionField" ->
-                        D.succeed DescriptionField
-
-                    "LinkedDocsField" ->
-                        D.succeed LinkedDocsField
-
-                    "OuvertureField" ->
-                        D.succeed OuvertureField
-
-                    somethingElse ->
-                        D.fail <|
-                            "Unknown fieldType: "
-                                ++ somethingElse
-            )
-
-
-decodeFieldType : D.Decoder FieldType
-decodeFieldType =
-    D.string
-        |> D.andThen
-            (\str ->
-                case str of
-                    "Obligatoire" ->
-                        D.succeed Obligatoire
-
-                    "Optionel" ->
-                        D.succeed Optionel
-
-                    somethingElse ->
-                        D.fail <|
-                            "Unknown fieldType: "
-                                ++ somethingElse
             )
 
 
@@ -530,68 +339,6 @@ updateFiche fiche sessionId =
             Http.post "updateFiche.php" body decodeSuccess
     in
     Http.send (FicheUpdated fiche) request
-
-
-updateCategories : Dict String Categorie -> String -> Cmd Msg
-updateCategories categories sessionId =
-    let
-        body =
-            E.object
-                [ ( "sessionId"
-                  , E.string sessionId
-                  )
-                , ( "categories"
-                  , E.list encodeCategorie
-                        (Dict.values categories)
-                  )
-                ]
-                |> Http.jsonBody
-
-        request =
-            Http.post "updateCategories.php" body decodeSuccess
-    in
-    Http.send (CategoriesUpdated categories) request
-
-
-updateActivites : Set String -> String -> Cmd Msg
-updateActivites activites sessionId =
-    let
-        body =
-            E.object
-                [ ( "sessionId"
-                  , E.string sessionId
-                  )
-                , ( "activites"
-                  , E.set E.string
-                        activites
-                  )
-                ]
-                |> Http.jsonBody
-
-        request =
-            Http.post "updateActivites.php" body decodeSuccess
-    in
-    Http.send (ActivitesUpdated activites) request
-
-
-updateLabels : List Label -> String -> Cmd Msg
-updateLabels labels sessionId =
-    let
-        body =
-            E.object
-                [ ( "sessionId"
-                  , E.string sessionId
-                  )
-                , ( "labels"
-                  , E.list encodeLabel labels
-                  )
-                ]
-                |> Http.jsonBody
-
-        request =
-            Http.post "updateLabels.php" body decodeSuccess
-    in
-    Http.send (LabelsUpdated labels) request
 
 
 decodeSuccess : D.Decoder Bool

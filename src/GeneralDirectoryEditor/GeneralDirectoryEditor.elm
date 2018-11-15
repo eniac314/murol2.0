@@ -46,7 +46,7 @@ type alias Msg =
 
 init externalMsg =
     ( { fiches = Dict.empty
-      , categories = Dict.empty
+      , categories = Set.empty
       , activites = Set.empty
       , labels = []
       , nameFilter = Nothing
@@ -57,9 +57,6 @@ init externalMsg =
       , ficheBuffer = emptyFiche
       , rightPanelDisplay = PreviewFiche
       , lockedFiches = []
-      , categoriesLocked = False
-      , activitesLocked = False
-      , labelsLocked = False
       , debug = []
       , loadingStatus = ToolLoadingWaiting
       , externalMsg = externalMsg
@@ -197,7 +194,17 @@ internalUpdate config msg model =
 
         LoadGeneralDirectory res ->
             case res of
-                Ok { fiches, categories, activites, labels } ->
+                Ok { fiches } ->
+                    let
+                        categories =
+                            computeCats fiches
+
+                        activites =
+                            computeActivs fiches
+
+                        labels =
+                            computeLabels fiches
+                    in
                     ( { model
                         | fiches = fiches
                         , categories = categories
@@ -236,51 +243,6 @@ internalUpdate config msg model =
                                 fiche
                                 model.fiches
                         , debug = fiche.nomEntite :: model.debug
-                      }
-                    , Cmd.none
-                    )
-
-        CategoriesUpdated backup res ->
-            case res of
-                Ok True ->
-                    ( { model | categoriesLocked = False }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( { model
-                        | categoriesLocked = False
-                        , categories = backup
-                      }
-                    , Cmd.none
-                    )
-
-        ActivitesUpdated backup res ->
-            case res of
-                Ok True ->
-                    ( { model | activitesLocked = False }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( { model
-                        | activitesLocked = False
-                        , activites = backup
-                      }
-                    , Cmd.none
-                    )
-
-        LabelsUpdated backup res ->
-            case res of
-                Ok True ->
-                    ( { model | labelsLocked = False }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( { model
-                        | labelsLocked = False
-                        , labels = backup
                       }
                     , Cmd.none
                     )
@@ -1515,12 +1477,12 @@ computeCats fiches =
         (\_ f acc ->
             List.foldr
                 (\c acc_ ->
-                    Dict.insert c { name = c, fields = [] } acc_
+                    Set.insert c acc_
                 )
                 acc
                 f.categories
         )
-        Dict.empty
+        Set.empty
         fiches
 
 
@@ -1705,7 +1667,7 @@ ficheSelectorView model =
                     , height (px 200)
                     , scrollbars
                     ]
-                    (Dict.keys model.categories
+                    (Set.toList model.categories
                         |> List.map
                             (\e -> filterView model.catFilter (FilterByCat e) e)
                     )
