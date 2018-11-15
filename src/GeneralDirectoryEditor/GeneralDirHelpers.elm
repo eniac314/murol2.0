@@ -1,6 +1,6 @@
 module GeneralDirectoryEditor.GeneralDirHelpers exposing (..)
 
-import Derberos.Date.Core exposing (civilToPosix, newDateRecord, posixToCivil)
+import Derberos.Date.Core exposing (addTimezoneMilliseconds, civilToPosix, newDateRecord, posixToCivil)
 import Derberos.Date.Utils exposing (numberOfDaysInMonth, numberToMonth)
 import GeneralDirectoryEditor.GeneralDirCommonTypes as Types exposing (..)
 import Time exposing (..)
@@ -38,7 +38,7 @@ parseDate s =
     of
         day :: month :: year :: [] ->
             if (year > 2000) && (year <= 2200) then
-                case numberToMonth month of
+                case numberToMonth (month - 1) of
                     Just validMonth ->
                         if
                             (day >= 1)
@@ -61,10 +61,22 @@ expiryDateToStr : Time.Zone -> Time.Posix -> String
 expiryDateToStr zone d =
     let
         dateRec =
-            posixToCivil d
+            posixToCivil (addTimezoneMilliseconds zone d)
     in
-    String.fromInt dateRec.day
+    (String.fromInt dateRec.day
+        |> String.padLeft 2 '0'
+    )
         ++ "/"
-        ++ String.fromInt dateRec.month
+        ++ (String.fromInt dateRec.month
+                |> String.padLeft 2 '0'
+           )
         ++ "/"
         ++ String.fromInt dateRec.year
+
+
+validLinkedDoc { url, label } =
+    url /= "" && label /= ""
+
+
+validLabel { nom, logo, lien } =
+    (nom /= "") && (logo /= "") && (lien /= "")

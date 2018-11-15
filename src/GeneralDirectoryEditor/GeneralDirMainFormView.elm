@@ -13,7 +13,7 @@ import Element.Lazy exposing (lazy)
 import FileExplorer.FileExplorer as FileExplorer
 import GeneralDirectoryEditor.GeneralDirCommonTypes as Types exposing (..)
 import GeneralDirectoryEditor.GeneralDirHelpers exposing (..)
-import Html as Html
+import Html
 import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
@@ -23,31 +23,16 @@ import Set exposing (..)
 import Time exposing (..)
 
 
-selectView selected handler entry =
-    Keyed.el
-        [ width fill
-        , paddingXY 5 5
-        , Events.onClick handler
-        , pointer
-        , if Just entry == selected then
-            Background.color
-                grey4
-          else
-            noAttr
-        , Font.color grey2
-        ]
-        ( entry, text entry )
-
-
-editFicheView :
+type alias ViewConfig config msg =
     { config
         | maxHeight : Int
         , zone : Time.Zone
         , fileExplorer : FileExplorer.Model msg
         , logInfo : LogInfo
     }
-    -> Model msg
-    -> Element msg
+
+
+editFicheView : ViewConfig config msg -> Model msg -> Element msg
 editFicheView config model =
     column
         [ spacing 20
@@ -84,17 +69,13 @@ editFicheView config model =
             ]
             [ column
                 [ spacing 35 ]
-                ([ nameVisualCont config model ]
-                    ++ ([ catsActivsCont config model
-                        , labOtRankCont config model
-                        , contactsCont config model
-                        , descrCont config model
-                        ]
-                            |> List.map (Element.map model.externalMsg)
-                       )
-                    ++ [ linkDocsCont config model
-                       ]
-                )
+                [ nameVisualCont config model
+                , catsActivsCont config model
+                , labOtRankCont config model
+                , contactsCont config model
+                , descrCont config model
+                , linkDocsCont config model
+                ]
             ]
         , row
             [ spacing 15
@@ -115,19 +96,13 @@ editFicheView config model =
 
 
 -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 ----------------
 -- Containers --
 ----------------
 
 
-containerStyle =
-    [ padding 15
-    , Background.color grey6
-    , Border.rounded 5
-    , width fill
-    ]
-
-
+nameVisualCont : ViewConfig config msg -> Model msg -> Element msg
 nameVisualCont config model =
     row
         ([ spacing 20
@@ -139,76 +114,96 @@ nameVisualCont config model =
         ]
 
 
+catsActivsCont : ViewConfig config msg -> Model msg -> Element msg
 catsActivsCont config model =
-    row
-        ([ spacing 20 ] ++ containerStyle)
-        [ setCats config model
-        , setActivs config model
-        ]
+    Element.map model.externalMsg <|
+        row
+            ([ spacing 20 ] ++ containerStyle)
+            [ setCats config model
+            , setActivs config model
+            ]
 
 
+labOtRankCont : ViewConfig config msg -> Model msg -> Element msg
 labOtRankCont config model =
     row
-        ([ spacing 20 ] ++ containerStyle)
+        ([ spacing 20
+         ]
+            ++ containerStyle
+        )
         [ setLabels config model
-        , column
-            [ spacing 15 ]
-            [ setOt config model
-            , setRank config model
-            ]
+        , Element.map model.externalMsg <|
+            column
+                [ spacing 15
+                , alignTop
+                , alignRight
+                ]
+                [ setOt config model
+                , setRank config model
+                ]
         ]
 
 
+contactsCont : ViewConfig config msg -> Model msg -> Element msg
 contactsCont config model =
-    column
-        ([ spacing 20 ] ++ containerStyle)
-        [ setAdresse config model
-        , row
-            ([ spacing 15 ] ++ formItemStyle)
-            [ setTel config model
-            , setFax config model
+    Element.map model.externalMsg <|
+        column
+            ([ spacing 20 ] ++ containerStyle)
+            [ setAdresse config model
+            , row
+                ([ spacing 15
+                 , width fill
+                 ]
+                    ++ formItemStyle
+                )
+                [ setTel config model
+                , setFax config model
+                ]
+            , setEmails config model
+            , setSite config model
+            , setResponsables config model
             ]
-        , setEmails config model
-        , setSite config model
-        , setResponsables config model
-        ]
 
 
+descrCont : ViewConfig config msg -> Model msg -> Element msg
 descrCont config model =
-    row ([ spacing 20 ] ++ containerStyle)
-        [ setDescriptions config model ]
+    Element.map model.externalMsg <|
+        row ([ spacing 20 ] ++ containerStyle)
+            [ setDescriptions config model ]
 
 
+linkDocsCont : ViewConfig config msg -> Model msg -> Element msg
 linkDocsCont config model =
     row ([ spacing 20 ] ++ containerStyle)
-        [ Element.map model.externalMsg <| setLinkedDocs config model ]
+        [ setLinkedDocs config model ]
 
 
 
 -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 ----------------
 -- Form Items --
 ----------------
+-------------------------------------------------------------------------------
+-----------------
+-- Nom entitté --
+-----------------
 
 
-formItemStyle =
-    [ padding 15
-    , Background.color grey7
-    , Border.rounded 5
-    ]
-
-
+setNomEntite : ViewConfig config msg -> Model msg -> Element Msg
 setNomEntite config model =
     row
-        ([ spacing 15 ] ++ formItemStyle)
+        ([ spacing 15
+         , alignTop
+         ]
+            ++ formItemStyle
+        )
         [ Input.text
-            (textInputStyle ++ [ width (px 400) ])
+            (textInputStyle ++ [ width (px 500) ])
             { onChange =
                 SetNomEntite
             , text =
                 model.ficheBuffer.nomEntite
-
-            --|> Maybe.withDefault ""
             , placeholder =
                 Nothing
             , label =
@@ -219,9 +214,21 @@ setNomEntite config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+-----------------
+-- Main Visual --
+-----------------
+
+
+setVisual : ViewConfig config msg -> Model msg -> Element msg
 setVisual config model =
     column
-        ([ spacing 15 ] ++ formItemStyle)
+        ([ spacing 15
+         , alignRight
+         ]
+            ++ formItemStyle
+        )
         [ el
             [ width (px 150)
             , height (px 113)
@@ -247,55 +254,14 @@ setVisual config model =
         ]
 
 
-visualPickerView :
-    { a
-        | fileExplorer : FileExplorer.Model msg
-        , logInfo : LogInfo
-        , maxHeight : Int
-        , zone : Zone
-    }
-    -> Model msg
-    -> Element msg
-visualPickerView config model =
-    column
-        [ height fill
-        , paddingEach
-            { top = 0
-            , bottom = 15
-            , left = 0
-            , right = 0
-            }
-        ]
-        [ FileExplorer.view
-            { maxHeight =
-                if config.maxHeight < 800 then
-                    400
-                else
-                    500
-            , zone = config.zone
-            , logInfo = config.logInfo
-            , mode = FileExplorer.ReadWrite FileExplorer.ImagesRoot
-            }
-            config.fileExplorer
-        , row
-            [ spacing 15
-            , paddingXY 15 0
-            ]
-            [ Input.button
-                (buttonStyle True)
-                { onPress = Just (model.externalMsg <| CloseVisualPicker)
-                , label = text "Retour"
-                }
-            , Input.button (buttonStyle (FileExplorer.getSelectedImage config.fileExplorer /= Nothing))
-                { onPress =
-                    FileExplorer.getSelectedImage config.fileExplorer
-                        |> Maybe.map (model.externalMsg << ConfirmVisual << .src)
-                , label = text "Valider"
-                }
-            ]
-        ]
+
+-------------------------------------------------------------------------------
+----------------
+-- Categories --
+----------------
 
 
+setCats : ViewConfig config msg -> Model msg -> Element Msg
 setCats config model =
     column
         ([ spacing 15 ] ++ formItemStyle)
@@ -359,8 +325,6 @@ setCats config model =
             ]
         , row
             [ spacing 15
-
-            --, alignTop
             ]
             [ Input.button
                 (buttonStyle (model.selectedAvailableCat /= Nothing))
@@ -387,6 +351,14 @@ setCats config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+----------------------
+-- Nature activités --
+----------------------
+
+
+setActivs : ViewConfig config msg -> Model msg -> Element Msg
 setActivs config model =
     column
         ([ spacing 15 ] ++ formItemStyle)
@@ -478,100 +450,242 @@ setActivs config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+------------
+-- Labels --
+------------
+
+
+setLabels : ViewConfig config msg -> Model msg -> Element msg
 setLabels config model =
     column
-        ([ spacing 15 ] ++ formItemStyle)
-        [ row
-            [ spacing 15 ]
-            [ column
-                [ spacing 15
-                , alignTop
-                ]
-                [ el [ Font.bold, Font.color grey1 ] (text "Labels disponibles")
-                , column
-                    [ Border.width 2
-                    , Border.color grey3
-                    , width (px 150)
-                    , height (px 200)
-                    , scrollbars
+        ([ spacing 15
+         ]
+            ++ formItemStyle
+        )
+        [ el
+            [ below <|
+                if not model.labelVisualPickerOpen then
+                    Element.none
+                else
+                    el
+                        [ Background.color (rgb 1 1 1)
+                        , width (px 850)
+                        , Border.shadow
+                            { offset = ( 4, 4 )
+                            , size = 5
+                            , blur = 10
+                            , color = rgba 0 0 0 0.45
+                            }
+                        ]
+                        (labelVisualPickerView config model)
+            ]
+            Element.none
+        , row
+            [ spacing 15
+            ]
+            [ Element.map model.externalMsg <|
+                column
+                    [ spacing 15
+                    , alignTop
                     ]
-                    (List.map .nom model.labels
-                        |> List.map
-                            (\e ->
-                                selectView
-                                    model.selectedAvailableLabel
-                                    (SelectAvailableLabel e)
-                                    e
-                            )
-                    )
-                ]
+                    [ el [ Font.bold, Font.color grey1 ] (text "Labels disponibles")
+                    , column
+                        [ Border.width 2
+                        , Border.color grey3
+                        , width (px 150)
+                        , height (px 242)
+                        , scrollbars
+                        ]
+                        (List.map .nom model.labels
+                            |> List.map
+                                (\e ->
+                                    selectView
+                                        model.selectedAvailableLabel
+                                        (SelectAvailableLabel e)
+                                        e
+                                )
+                        )
+                    ]
+            , Element.map model.externalMsg <|
+                column
+                    [ spacing 15
+                    , alignTop
+                    ]
+                    [ el [ Font.bold, Font.color grey1 ] (text "Labels fiche")
+                    , column
+                        [ Border.width 2
+                        , Border.color grey3
+                        , width (px 180)
+                        , height (px 242)
+                        , scrollbars
+                        ]
+                        (model.ficheBuffer.label
+                            |> List.map .nom
+                            |> List.map
+                                (\e ->
+                                    selectView model.selectedLabelInFiche
+                                        (SelectLabelInFiche e)
+                                        e
+                                )
+                        )
+                    ]
             , column
                 [ spacing 15
                 , alignTop
                 ]
-                [ el [ Font.bold, Font.color grey1 ] (text "Labels fiche")
-                , Input.text
-                    (textInputStyle
-                        ++ [ spacingXY 0 15
-                           , width (px 180)
-                           ]
-                    )
-                    { onChange =
-                        SelectAvailableLabel
-                    , text =
-                        model.selectedAvailableLabel
-                            |> Maybe.withDefault ""
-                    , placeholder =
-                        Just <|
-                            Input.placeholder
-                                []
-                                (text "Nouveau label")
-                    , label =
-                        Input.labelLeft
-                            []
-                            Element.none
-                    }
-                , column
-                    [ Border.width 2
-                    , Border.color grey3
-                    , width (px 180)
-                    , height (px 155)
-                    , scrollbars
+                [ el
+                    [ Font.bold
+                    , Font.color grey1
                     ]
-                    (model.ficheBuffer.label
-                        |> List.map .nom
-                        |> List.map
-                            (\e ->
-                                selectView model.selectedLabelInFiche
-                                    (SelectLabelInFiche e)
-                                    e
-                            )
-                    )
+                    (text "Créer / Modifier label")
+                , Element.map model.externalMsg <|
+                    Input.text
+                        (textInputStyle
+                            ++ [ spacingXY 0 15
+                               , width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SetLabelName
+                        , text =
+                            model.labelBuffer
+                                |> Maybe.map .nom
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Nom label")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                , Element.map model.externalMsg <|
+                    Input.text
+                        (textInputStyle
+                            ++ [ spacingXY 0 15
+                               , width (px 180)
+                               ]
+                        )
+                        { onChange =
+                            SetLabelLink
+                        , text =
+                            model.labelBuffer
+                                |> Maybe.map .lien
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Lien label")
+                        , label =
+                            Input.labelLeft
+                                []
+                                Element.none
+                        }
+                , setLabelVisual config model
                 ]
             ]
-        , row
-            [ spacing 15
-
-            --, alignTop
-            ]
-            [ Input.button
-                (buttonStyle (model.selectedAvailableLabel /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> AddLabelToFiche)
-                        model.selectedAvailableLabel
-                , label = el [] (text "Ajouter label")
-                }
-            , Input.button
-                (buttonStyle (model.selectedLabelInFiche /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> RemoveLabelFromFiche)
-                        model.selectedLabelInFiche
-                , label = el [] (text "Supprimer label")
-                }
-            ]
+        , Element.map model.externalMsg <|
+            row
+                [ spacing 15
+                , width fill
+                ]
+                [ Input.button
+                    (buttonStyle (model.selectedAvailableLabel /= Nothing))
+                    { onPress =
+                        Maybe.map (\_ -> AddLabelToFiche)
+                            model.selectedAvailableLabel
+                    , label = el [] (text "Ajouter label")
+                    }
+                , Input.button
+                    (buttonStyle (model.selectedLabelInFiche /= Nothing))
+                    { onPress =
+                        Maybe.map (\_ -> RemoveLabelFromFiche)
+                            model.selectedLabelInFiche
+                    , label = el [] (text "Supprimer label")
+                    }
+                , el
+                    [ paddingEach
+                        { top = 0
+                        , right = 0
+                        , left = 103
+                        , bottom = 0
+                        }
+                    ]
+                    (Input.button
+                        ([]
+                            ++ buttonStyle
+                                (Maybe.map validLabel model.labelBuffer
+                                    |> (\res -> res == Just True)
+                                )
+                        )
+                        { onPress =
+                            Maybe.map validLabel model.labelBuffer
+                                |> Maybe.map
+                                    (\_ ->
+                                        if model.selectedAvailableLabel /= Nothing then
+                                            ModifyLabel
+                                        else
+                                            CreateNewLabel
+                                    )
+                        , label =
+                            el []
+                                (if model.selectedAvailableLabel /= Nothing then
+                                    text "Modifier label"
+                                 else
+                                    text "Créer label"
+                                )
+                        }
+                    )
+                ]
         ]
 
 
+setLabelVisual : ViewConfig config msg -> Model msg -> Element msg
+setLabelVisual config model =
+    column
+        [ spacing 15
+        ]
+        [ el
+            [ width (px 150)
+            , height (px 113)
+            , Background.color grey5
+            ]
+            (el
+                [ width (px 138)
+                , height (px 104)
+                , Background.uncropped
+                    (model.labelBuffer
+                        |> Maybe.map .logo
+                        |> Maybe.withDefault ""
+                    )
+                , centerX
+                , centerY
+                ]
+                Element.none
+            )
+        , Input.button
+            (buttonStyle True)
+            { onPress =
+                Just <| model.externalMsg OpenLabelVisualPicker
+            , label =
+                el [] (text "Choisir visuel")
+            }
+        ]
+
+
+
+-------------------------------------------------------------------------------
+------------------------
+-- Office de tourisme --
+------------------------
+
+
+setOt : ViewConfig config msg -> Model msg -> Element Msg
 setOt config model =
     row
         ([ spacing 15 ] ++ formItemStyle)
@@ -615,6 +729,14 @@ setOt config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+-----------------------
+-- Rank (stars, epis)--
+-----------------------
+
+
+setRank : ViewConfig config msg -> Model msg -> Element Msg
 setRank config model =
     row
         ([ spacing 15
@@ -662,6 +784,14 @@ setRank config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+-------------
+-- Address --
+-------------
+
+
+setAdresse : ViewConfig config msg -> Model msg -> Element Msg
 setAdresse config model =
     row
         ([ width fill ]
@@ -669,7 +799,7 @@ setAdresse config model =
         )
         [ Input.text
             (textInputStyle
-                ++ [ width (px 300)
+                ++ [ width (px 400)
                    ]
             )
             { onChange =
@@ -686,6 +816,14 @@ setAdresse config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+-----------------
+-- Tel numbers --
+-----------------
+
+
+setTel : ViewConfig config msg -> Model msg -> Element Msg
 setTel config model =
     row
         [ spacing 15 ]
@@ -726,6 +864,14 @@ setTel config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+---------
+-- fax --
+---------
+
+
+setFax : ViewConfig config msg -> Model msg -> Element Msg
 setFax config model =
     Input.text
         (textInputStyle
@@ -746,6 +892,14 @@ setFax config model =
         }
 
 
+
+-------------------------------------------------------------------------------
+------------
+-- Emails --
+------------
+
+
+setEmails : ViewConfig config msg -> Model msg -> Element Msg
 setEmails config model =
     row
         ([ spacing 15
@@ -759,7 +913,7 @@ setEmails config model =
             , column
                 [ Border.width 2
                 , Border.color grey3
-                , width (px 180)
+                , width (px 400)
                 , height (px 200)
                 , scrollbars
                 ]
@@ -854,9 +1008,21 @@ setEmails config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+----------
+-- Site --
+----------
+
+
+setSite : ViewConfig config msg -> Model msg -> Element Msg
 setSite config model =
     row
-        ([ spacing 15 ] ++ formItemStyle)
+        ([ spacing 15
+         , width fill
+         ]
+            ++ formItemStyle
+        )
         [ Input.text
             (textInputStyle
                 ++ [ width (px 180)
@@ -900,9 +1066,21 @@ setSite config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+------------------
+-- Responsables --
+------------------
+
+
+setResponsables : ViewConfig config msg -> Model msg -> Element Msg
 setResponsables config model =
     row
-        ([ spacing 15 ] ++ formItemStyle)
+        ([ spacing 15
+         , width fill
+         ]
+            ++ formItemStyle
+        )
         [ column
             [ spacing 15
             ]
@@ -910,7 +1088,7 @@ setResponsables config model =
             , column
                 [ Border.width 2
                 , Border.color grey3
-                , width (px 180)
+                , width (px 400)
                 , height (px 200)
                 , scrollbars
                 ]
@@ -1014,10 +1192,7 @@ setResponsables config model =
                 }
             ]
         , column
-            [ spacing 15
-
-            --, alignTop
-            ]
+            [ spacing 15 ]
             (let
                 isExistingResp =
                     Maybe.map
@@ -1077,9 +1252,21 @@ setResponsables config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+------------------
+-- Descriptions --
+------------------
+
+
+setDescriptions : ViewConfig config msg -> Model msg -> Element Msg
 setDescriptions config model =
     column
-        ([ spacing 15 ] ++ formItemStyle)
+        ([ spacing 15
+         , width fill
+         ]
+            ++ formItemStyle
+        )
         [ column
             [ spacing 15
             ]
@@ -1203,9 +1390,19 @@ setDescriptions config model =
         ]
 
 
+
+-------------------------------------------------------------------------------
+---------------
+-- LinkedDocs--
+---------------
+
+
+setLinkedDocs : ViewConfig config msg -> Model msg -> Element msg
 setLinkedDocs config model =
     column
-        ([ spacing 15 ]
+        ([ spacing 15
+         , width fill
+         ]
             ++ formItemStyle
         )
         [ el
@@ -1218,25 +1415,26 @@ setLinkedDocs config model =
             [ column
                 [ Border.width 2
                 , Border.color grey3
-                , width (px 400)
+                , width (px 600)
                 , height (px 200)
                 , scrollbars
                 ]
                 (model.ficheBuffer.linkedDocs
                     |> List.map
                         (\ld ->
-                            linkedDocView config.zone ld
+                            linkedDocView model.externalMsg config.zone model.selectedLinkedDoc ld
                         )
                 )
             , column
                 [ spacing 15 ]
                 [ Input.text
                     (textInputStyle
-                        ++ [ width (px 180)
+                        ++ [ width (px 220)
+                           , spacingXY 0 15
                            ]
                     )
                     { onChange =
-                        SetLinkedDocLabel
+                        model.externalMsg << SetLinkedDocLabel
                     , text =
                         model.linkedDocBuffer
                             |> Maybe.map .label
@@ -1251,23 +1449,349 @@ setLinkedDocs config model =
                             []
                             Element.none
                     }
+                , Input.text
+                    (textInputStyle
+                        ++ [ width (px 220)
+                           , spacingXY 0 15
+                           ]
+                    )
+                    { onChange =
+                        model.externalMsg << SetLinkedDocDescr
+                    , text =
+                        model.linkedDocBuffer
+                            |> Maybe.andThen .descr
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Remarques/commentaires")
+                    , label =
+                        Input.labelLeft
+                            []
+                            Element.none
+                    }
+                , Input.text
+                    (textInputStyle
+                        ++ [ width (px 220)
+                           , if Maybe.andThen .expiryDate model.linkedDocBuffer /= Nothing then
+                                Font.color green4
+                             else
+                                Font.color red4
+                           , spacingXY 0 15
+                           ]
+                    )
+                    { onChange =
+                        model.externalMsg << SetLinkedDocExpiry
+                    , text =
+                        case Maybe.andThen .expiryDate model.linkedDocBuffer of
+                            Nothing ->
+                                model.expiryDateBuffer
+                                    |> Maybe.withDefault ""
+
+                            Just t ->
+                                expiryDateToStr config.zone t
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Date expiration (jj/mm/aaaa))")
+                    , label =
+                        Input.labelLeft
+                            []
+                            Element.none
+                    }
+                , el
+                    []
+                    (Input.button
+                        (buttonStyle True)
+                        { onPress =
+                            Just (model.externalMsg OpenDocPicker)
+                        , label = el [] (text "Sélectionner document")
+                        }
+                    )
                 ]
             ]
+        , row
+            [ spacing 15
+            , above <|
+                if not model.docPickerOpen then
+                    Element.none
+                else
+                    el
+                        [ Background.color (rgb 1 1 1)
+                        , width (px 850)
+                        , Border.shadow
+                            { offset = ( 4, 4 )
+                            , size = 5
+                            , blur = 10
+                            , color = rgba 0 0 0 0.45
+                            }
+                        ]
+                        (docPickerView config model)
+            ]
+            (let
+                isExisting =
+                    Maybe.map
+                        (\ld ->
+                            List.member ld model.ficheBuffer.linkedDocs
+                        )
+                        model.linkedDocBuffer
+                        == Just True
+
+                canAdd =
+                    (Maybe.map validLinkedDoc model.linkedDocBuffer
+                        |> (\res -> res == Just True)
+                    )
+                        && (model.selectedLinkedDoc == Nothing)
+                        && not isExisting
+
+                canModify =
+                    model.selectedLinkedDoc
+                        /= Nothing
+                        && (model.linkedDocBuffer /= Just emptyLinkedDoc)
+                        && not isExisting
+
+                canDelete =
+                    model.selectedLinkedDoc
+                        /= Nothing
+                        && isExisting
+             in
+             [ Input.button
+                (buttonStyle canModify)
+                { onPress =
+                    if canModify then
+                        Just (model.externalMsg ModifyLinkedDoc)
+                    else
+                        Nothing
+                , label = el [] (text "Modifier document")
+                }
+             , Input.button
+                (buttonStyle canAdd)
+                { onPress =
+                    if canAdd then
+                        Just (model.externalMsg AddLinkedDoc)
+                    else
+                        Nothing
+                , label = el [] (text "Ajouter document")
+                }
+             , Input.button
+                (buttonStyle canDelete)
+                { onPress =
+                    if canDelete then
+                        Just (model.externalMsg RemoveLinkedDoc)
+                    else
+                        Nothing
+                , label = el [] (text "Supprimer document")
+                }
+             ]
+            )
         ]
 
 
-linkedDocView zone ({ url, descr, label, expiryDate } as ld) =
-    column
+linkedDocView : (Msg -> msg) -> Time.Zone -> Maybe LinkedDoc -> LinkedDoc -> Element msg
+linkedDocView externalMsg zone selected ({ url, descr, label, expiryDate } as ld) =
+    let
+        fileName =
+            String.split "/" url
+                |> List.filter (\x -> x /= "")
+                |> List.reverse
+                |> List.head
+                |> Maybe.withDefault ""
+
+        expiryDateStr =
+            Maybe.map (expiryDateToStr zone) expiryDate
+
+        key =
+            Maybe.map hashLinkedDoc selected
+                |> Maybe.withDefault "NoLinkedDoc"
+                |> (\res -> res ++ hashLinkedDoc ld)
+    in
+    Keyed.column
         [ spacing 15
-        , Events.onClick (SelectLinkedDoc ld)
+        , Events.onClick (externalMsg <| SelectLinkedDoc ld)
+        , pointer
+        , padding 5
+        , if Just ld == selected then
+            Background.color
+                grey4
+          else
+            noAttr
+        , width fill
+        , height shrink
         ]
-        [ newTabLink
-            []
-            { url = url
-            , label = el [ Font.bold, Font.color grey1 ] (text label)
+        (List.map (\e -> ( key, e )) <|
+            [ row
+                [ width fill ]
+                [ el
+                    [ Font.bold
+                    , Font.color grey1
+                    , width (px 300)
+                    , clip
+                    ]
+                    (text label)
+                , el
+                    [ Font.size 12
+                    , alignRight
+                    , width (maximum 300 fill)
+                    , clip
+                    ]
+                    (text fileName)
+                ]
+            , row
+                [ width fill ]
+                [ Maybe.map (\d -> el [] (text d)) descr
+                    |> Maybe.withDefault Element.none
+                , Maybe.map
+                    (\ed ->
+                        el [ alignRight ]
+                            (text <| ed)
+                    )
+                    expiryDateStr
+                    |> Maybe.withDefault Element.none
+                ]
+            ]
+        )
+
+
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+----------------------
+-- Helper functions --
+----------------------
+
+
+selectView : Maybe String -> Msg -> String -> Element Msg
+selectView selected handler entry =
+    Keyed.el
+        [ width fill
+        , paddingXY 5 5
+        , Events.onClick handler
+        , pointer
+        , if Just entry == selected then
+            Background.color
+                grey4
+          else
+            noAttr
+        , Font.color grey2
+        ]
+        ( entry, text entry )
+
+
+containerStyle : List (Attribute msg)
+containerStyle =
+    [ padding 15
+    , Background.color grey6
+    , Border.rounded 5
+    , width fill
+    ]
+
+
+formItemStyle : List (Attribute msg)
+formItemStyle =
+    [ padding 15
+    , Background.color grey7
+    , Border.rounded 5
+    ]
+
+
+hashLinkedDoc : LinkedDoc -> String
+hashLinkedDoc { url, descr, label, expiryDate } =
+    ("linkedDocViewKey: "
+        ++ url
+        ++ label
+        ++ Maybe.withDefault "descr" descr
+        ++ (Maybe.map (toMillis utc) expiryDate
+                |> Maybe.map String.fromInt
+                |> Maybe.withDefault "expiryDate"
+           )
+    )
+        |> hashString 0
+        |> String.fromInt
+
+
+visualPickerView : ViewConfig config msg -> Model msg -> Element msg
+visualPickerView config model =
+    pickerView
+        CloseVisualPicker
+        ConfirmVisual
+        FileExplorer.ImagesRoot
+        config
+        model
+
+
+labelVisualPickerView : ViewConfig config msg -> Model msg -> Element msg
+labelVisualPickerView config model =
+    pickerView
+        CloseLabelVisualPicker
+        SetLabelVisual
+        FileExplorer.ImagesRoot
+        config
+        model
+
+
+docPickerView : ViewConfig config msg -> Model msg -> Element msg
+docPickerView config model =
+    pickerView
+        CloseDocPicker
+        SetLinkedDocUrl
+        FileExplorer.DocsRoot
+        config
+        model
+
+
+pickerView :
+    Msg
+    -> (String -> Msg)
+    -> FileExplorer.Root
+    -> ViewConfig config msg
+    -> Model msg
+    -> Element msg
+pickerView backMsg confirmMsg root config model =
+    let
+        selector =
+            case root of
+                FileExplorer.ImagesRoot ->
+                    Maybe.map .src << FileExplorer.getSelectedImage
+
+                FileExplorer.DocsRoot ->
+                    FileExplorer.getSelectedDoc
+    in
+    column
+        [ height fill
+        , paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
             }
-        , Maybe.map (\d -> el [] (text d)) descr
-            |> Maybe.withDefault Element.none
-        , Maybe.map (\ed -> el [] (text <| expiryDateToStr zone ed)) expiryDate
-            |> Maybe.withDefault Element.none
+        ]
+        [ FileExplorer.view
+            { maxHeight =
+                if config.maxHeight < 800 then
+                    400
+                else
+                    500
+            , zone = config.zone
+            , logInfo = config.logInfo
+            , mode = FileExplorer.ReadWrite root
+            }
+            config.fileExplorer
+        , row
+            [ spacing 15
+            , paddingXY 15 0
+            ]
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just (model.externalMsg <| backMsg)
+                , label = text "Retour"
+                }
+            , Input.button (buttonStyle (selector config.fileExplorer /= Nothing))
+                { onPress =
+                    selector config.fileExplorer
+                        |> Maybe.map (model.externalMsg << confirmMsg)
+                , label = text "Valider"
+                }
+            ]
         ]

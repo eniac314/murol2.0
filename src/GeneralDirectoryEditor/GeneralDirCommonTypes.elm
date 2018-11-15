@@ -33,11 +33,15 @@ type alias Model msg =
 
     --- MainForm variables
     , visualPickerOpen : Bool
+    , docPickerOpen : Bool
+    , labelVisualPickerOpen : Bool
+    , labelPickerOpen : Bool
     , selectedCatInFiche : Maybe String
     , selectedAvailableCat : Maybe String
     , selectedActivInFiche : Maybe String
     , selectedAvailableActiv : Maybe String
     , selectedLabelInFiche : Maybe String
+    , labelBuffer : Maybe Label
     , selectedAvailableLabel : Maybe String
     , selectedResp : Maybe Responsable
     , respBuffer : Maybe Responsable
@@ -47,6 +51,7 @@ type alias Model msg =
     , descrBuffer : Maybe String
     , selectedLinkedDoc : Maybe LinkedDoc
     , linkedDocBuffer : Maybe LinkedDoc
+    , expiryDateBuffer : Maybe String
     }
 
 
@@ -72,18 +77,25 @@ type Msg
       ----------------------
     | SelectCatInFiche String
     | SelectAvailableCat String
+    | ModifyCat
     | AddCatToFiche
     | RemoveCatFromFiche
       ---
     | SelectActivInFiche String
     | SelectAvailableActiv String
+    | ModifyActiv
     | AddActivToFiche
     | RemoveActivFromFiche
       ---
     | SelectLabelInFiche String
     | SelectAvailableLabel String
+    | SetLabelName String
+    | SetLabelLink String
+    | SetLabelVisual String
     | AddLabelToFiche
     | RemoveLabelFromFiche
+    | ModifyLabel
+    | CreateNewLabel
       ---
     | SetRefOtNbr String
     | SetRefOtLink String
@@ -119,6 +131,10 @@ type Msg
       ---
     | OpenVisualPicker
     | CloseVisualPicker
+    | OpenLabelVisualPicker
+    | CloseLabelVisualPicker
+    | OpenDocPicker
+    | CloseDocPicker
     | ConfirmVisual String
       ---
     | SelectDescrInFiche String
@@ -130,12 +146,13 @@ type Msg
     | MoveDescrDown
       ---
     | SelectLinkedDoc LinkedDoc
+    | ModifyLinkedDoc
     | AddLinkedDoc
     | RemoveLinkedDoc
     | SetLinkedDocUrl String
     | SetLinkedDocLabel String
     | SetLinkedDocDescr String
-    | SelectLinkedDocExpiry String
+    | SetLinkedDocExpiry String
       ---
     | SetOuverture Ouverture
     | SaveFiche
@@ -204,6 +221,10 @@ type alias Label =
     , logo : String
     , lien : String
     }
+
+
+emptyLabel =
+    Label "" "" ""
 
 
 type alias Rank =

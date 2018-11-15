@@ -68,11 +68,15 @@ init externalMsg =
 
       --- MainForm variables
       , visualPickerOpen = False
+      , docPickerOpen = False
+      , labelVisualPickerOpen = False
+      , labelPickerOpen = False
       , selectedCatInFiche = Nothing
       , selectedAvailableCat = Nothing
       , selectedActivInFiche = Nothing
       , selectedAvailableActiv = Nothing
       , selectedLabelInFiche = Nothing
+      , labelBuffer = Nothing
       , selectedAvailableLabel = Nothing
       , selectedResp = Nothing
       , respBuffer = Nothing
@@ -82,6 +86,7 @@ init externalMsg =
       , descrBuffer = Nothing
       , selectedLinkedDoc = Nothing
       , linkedDocBuffer = Nothing
+      , expiryDateBuffer = Nothing
       }
     , Cmd.none
     )
@@ -305,6 +310,9 @@ internalUpdate config msg model =
             , Cmd.none
             )
 
+        ModifyCat ->
+            ( model, Cmd.none )
+
         AddCatToFiche ->
             let
                 newCats =
@@ -377,6 +385,9 @@ internalUpdate config msg model =
             , Cmd.none
             )
 
+        ModifyActiv ->
+            ( model, Cmd.none )
+
         AddActivToFiche ->
             let
                 newActivs =
@@ -445,6 +456,51 @@ internalUpdate config msg model =
                         Nothing
                     else
                         Just s
+                , labelBuffer =
+                    List.filter (\l -> l.nom == s) model.labels
+                        |> List.head
+              }
+            , Cmd.none
+            )
+
+        SetLabelName s ->
+            let
+                baseLabel =
+                    model.labelBuffer
+                        |> Maybe.withDefault emptyLabel
+
+                newLabel =
+                    { baseLabel | nom = s }
+            in
+            ( { model | labelBuffer = Just newLabel }
+            , Cmd.none
+            )
+
+        SetLabelLink s ->
+            let
+                baseLabel =
+                    model.labelBuffer
+                        |> Maybe.withDefault emptyLabel
+
+                newLabel =
+                    { baseLabel | lien = s }
+            in
+            ( { model | labelBuffer = Just newLabel }
+            , Cmd.none
+            )
+
+        SetLabelVisual s ->
+            let
+                baseLabel =
+                    model.labelBuffer
+                        |> Maybe.withDefault emptyLabel
+
+                newLabel =
+                    { baseLabel | logo = s }
+            in
+            ( { model
+                | labelBuffer = Just newLabel
+                , labelVisualPickerOpen = False
               }
             , Cmd.none
             )
@@ -525,6 +581,22 @@ internalUpdate config msg model =
               }
             , Cmd.none
             )
+
+        ModifyLabel ->
+            ( model, Cmd.none )
+
+        CreateNewLabel ->
+            case ( model.labelBuffer, Maybe.map validLabel model.labelBuffer ) of
+                ( Just newLabel, Just True ) ->
+                    ( { model
+                        | labels = model.labels ++ [ newLabel ]
+                        , labelBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         --
         SetRefOtNbr s ->
@@ -1003,6 +1075,26 @@ internalUpdate config msg model =
             , Cmd.none
             )
 
+        OpenLabelVisualPicker ->
+            ( { model | labelVisualPickerOpen = True }
+            , Cmd.none
+            )
+
+        CloseLabelVisualPicker ->
+            ( { model | labelVisualPickerOpen = False }
+            , Cmd.none
+            )
+
+        OpenDocPicker ->
+            ( { model | docPickerOpen = True }
+            , Cmd.none
+            )
+
+        CloseDocPicker ->
+            ( { model | docPickerOpen = False }
+            , Cmd.none
+            )
+
         ConfirmVisual s ->
             let
                 fb =
@@ -1176,16 +1268,19 @@ internalUpdate config msg model =
                         Nothing
                     else
                         Just ld
+                , linkedDocBuffer =
+                    if model.selectedLinkedDoc == Just ld then
+                        Nothing
+                    else
+                        Just ld
+                , expiryDateBuffer = Nothing
               }
             , Cmd.none
             )
 
-        AddLinkedDoc ->
-            case model.selectedLinkedDoc of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just ld ->
+        ModifyLinkedDoc ->
+            case ( model.selectedLinkedDoc, model.linkedDocBuffer ) of
+                ( Just ld1, Just ld2 ) ->
                     let
                         fb =
                             model.ficheBuffer
@@ -1193,15 +1288,49 @@ internalUpdate config msg model =
                         newFb =
                             { fb
                                 | linkedDocs =
-                                    fb.linkedDocs ++ [ ld ]
+                                    setIf (\ld -> ld == ld1)
+                                        ld2
+                                        fb.linkedDocs
                             }
                     in
                     ( { model
                         | ficheBuffer = newFb
                         , selectedLinkedDoc = Nothing
+                        , linkedDocBuffer = Nothing
+                        , expiryDateBuffer = Nothing
                       }
                     , Cmd.none
                     )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        AddLinkedDoc ->
+            case model.linkedDocBuffer of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just ld ->
+                    if not (validLinkedDoc ld) then
+                        ( model, Cmd.none )
+                    else
+                        let
+                            fb =
+                                model.ficheBuffer
+
+                            newFb =
+                                { fb
+                                    | linkedDocs =
+                                        fb.linkedDocs ++ [ ld ]
+                                }
+                        in
+                        ( { model
+                            | ficheBuffer = newFb
+                            , linkedDocBuffer = Nothing
+                            , expiryDateBuffer = Nothing
+                          }
+                        , Cmd.none
+                        )
 
         RemoveLinkedDoc ->
             case model.selectedLinkedDoc of
@@ -1222,6 +1351,8 @@ internalUpdate config msg model =
                     ( { model
                         | ficheBuffer = newFb
                         , selectedLinkedDoc = Nothing
+                        , linkedDocBuffer = Nothing
+                        , expiryDateBuffer = Nothing
                       }
                     , Cmd.none
                     )
@@ -1229,46 +1360,62 @@ internalUpdate config msg model =
         SetLinkedDocUrl s ->
             let
                 baseLD =
-                    model.selectedLinkedDoc
+                    model.linkedDocBuffer
                         |> Maybe.withDefault emptyLinkedDoc
 
                 newLd =
                     { baseLD | url = s }
             in
-            ( { model | selectedLinkedDoc = Just newLd }
+            ( { model
+                | linkedDocBuffer = Just newLd
+                , docPickerOpen = False
+              }
             , Cmd.none
             )
 
         SetLinkedDocLabel s ->
             let
                 baseLD =
-                    model.selectedLinkedDoc
+                    model.linkedDocBuffer
                         |> Maybe.withDefault emptyLinkedDoc
 
                 newLd =
                     { baseLD | label = s }
             in
-            ( { model | selectedLinkedDoc = Just newLd }
+            ( { model | linkedDocBuffer = Just newLd }
             , Cmd.none
             )
 
         SetLinkedDocDescr s ->
             let
                 baseLD =
-                    model.selectedLinkedDoc
+                    model.linkedDocBuffer
                         |> Maybe.withDefault emptyLinkedDoc
 
                 newLd =
                     { baseLD | descr = Just s }
             in
-            ( { model | selectedLinkedDoc = Just newLd }
+            ( { model | linkedDocBuffer = Just newLd }
             , Cmd.none
             )
 
-        SelectLinkedDocExpiry s ->
+        SetLinkedDocExpiry s ->
             case parseDate s of
                 Nothing ->
-                    ( model, Cmd.none )
+                    let
+                        baseLD =
+                            model.linkedDocBuffer
+                                |> Maybe.withDefault emptyLinkedDoc
+
+                        newLd =
+                            { baseLD | expiryDate = Nothing }
+                    in
+                    ( { model
+                        | expiryDateBuffer = Just s
+                        , linkedDocBuffer = Just newLd
+                      }
+                    , Cmd.none
+                    )
 
                 Just ( day, month, year ) ->
                     let
@@ -1277,13 +1424,16 @@ internalUpdate config msg model =
                                 |> civilToPosix
 
                         baseLD =
-                            model.selectedLinkedDoc
+                            model.linkedDocBuffer
                                 |> Maybe.withDefault emptyLinkedDoc
 
                         newLd =
                             { baseLD | expiryDate = Just newTime }
                     in
-                    ( { model | selectedLinkedDoc = Just newLd }
+                    ( { model
+                        | linkedDocBuffer = Just newLd
+                        , expiryDateBuffer = Nothing
+                      }
                     , Cmd.none
                     )
 
