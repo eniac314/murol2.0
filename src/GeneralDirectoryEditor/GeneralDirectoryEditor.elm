@@ -32,6 +32,7 @@ import Json.Encode as E
 import List.Extra exposing (elemIndex, remove, setIf, swapAt, unique, uniqueBy)
 import Random exposing (..)
 import Set exposing (..)
+import Task exposing (..)
 import Time exposing (..)
 import UUID exposing (..)
 
@@ -1438,9 +1439,24 @@ internalUpdate config msg model =
                         , selectedFiche = Just newFb.nomEntite
                         , ficheBuffer = emptyFiche
                       }
-                    , cmdIfLogged
-                        config.logInfo
-                        (updateFiche newFb)
+                    , case config.logInfo of
+                        LoggedIn { sessionId } ->
+                            Task.attempt (FicheUpdated newFb) <|
+                                (Time.now
+                                    |> Task.andThen
+                                        (\t ->
+                                            let
+                                                datedFb =
+                                                    { newFb | lastEdit = t }
+                                            in
+                                            updateFicheTask
+                                                datedFb
+                                                sessionId
+                                        )
+                                )
+
+                        _ ->
+                            Cmd.none
                     )
 
                 _ ->

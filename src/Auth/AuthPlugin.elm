@@ -95,7 +95,8 @@ type Msg
     | Logout
     | ConfirmLogout (Result Http.Error Bool)
     | ChangePluginMode PluginMode
-    | AddLog (Posix -> Log) Posix
+      --| AddLog (Posix -> Log) Posix
+    | AddLog Log
     | Quit
     | NoOp
 
@@ -223,8 +224,8 @@ internalUpdate msg model =
             , Nothing
             )
 
-        AddLog l t ->
-            ( { model | logs = l t :: model.logs }
+        AddLog log ->
+            ( { model | logs = log :: model.logs }
             , Cmd.none
             , Nothing
             )

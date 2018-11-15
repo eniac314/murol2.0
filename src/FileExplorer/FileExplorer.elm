@@ -230,7 +230,7 @@ type Msg
       ----------
       -- Logs --
       ----------
-    | AddLog (Posix -> Log) Posix
+    | AddLog Log
     | ToogleLogsView
       ----------
       -- Misc --
@@ -881,8 +881,8 @@ internalUpdate config msg model =
         ----------
         -- Logs --
         ----------
-        AddLog l t ->
-            ( { model | logs = l t :: model.logs }
+        AddLog log ->
+            ( { model | logs = log :: model.logs }
             , Cmd.none
             , Nothing
             )

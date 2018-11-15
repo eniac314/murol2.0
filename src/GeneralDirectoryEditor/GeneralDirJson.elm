@@ -121,6 +121,10 @@ encodeFiche f =
                 f.ouverture
                 |> Maybe.withDefault E.null
           )
+        , ( "lastEdit"
+          , posixToMillis f.lastEdit
+                |> E.int
+          )
         ]
 
 
@@ -204,6 +208,7 @@ decodeFiche =
         |> P.required "description" (D.list D.string)
         |> P.required "linkedDocs" (D.list decodeLinkedDoc)
         |> P.required "ouverture" (D.nullable decodeOuverture)
+        |> P.required "lastEdit" (D.map millisToPosix D.int)
 
 
 decodeUUID : D.Decoder UUID
@@ -339,6 +344,26 @@ updateFiche fiche sessionId =
             Http.post "updateFiche.php" body decodeSuccess
     in
     Http.send (FicheUpdated fiche) request
+
+
+updateFicheTask fiche sessionId =
+    let
+        body =
+            E.object
+                [ ( "sessionId"
+                  , E.string sessionId
+                  )
+                , ( "fiche"
+                  , encodeFiche
+                        fiche
+                  )
+                ]
+                |> Http.jsonBody
+
+        request =
+            Http.post "updateFiche.php" body decodeSuccess
+    in
+    Http.toTask request
 
 
 decodeSuccess : D.Decoder Bool

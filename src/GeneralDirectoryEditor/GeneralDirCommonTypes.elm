@@ -182,6 +182,7 @@ type alias Fiche =
     , description : List String
     , linkedDocs : List LinkedDoc
     , ouverture : Maybe Ouverture
+    , lastEdit : Time.Posix
     }
 
 
@@ -204,6 +205,7 @@ emptyFiche =
     , description = []
     , linkedDocs = []
     , ouverture = Nothing
+    , lastEdit = Time.millisToPosix 0
     }
 
 

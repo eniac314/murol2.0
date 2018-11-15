@@ -53,10 +53,11 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $description = serialize($fiche->description);
   $linkedDocs = serialize($fiche->linkedDocs);
   $ouverture = is_null($fiche->ouverture) ? null : serialize($fiche->ouverture);
+  $lastEdit = $fiche->lastEdit;
 
   $query = 
-    "INSERT INTO fiches(uuid, categories, natureActiv, refOt, label, rank, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    "INSERT INTO fiches(uuid, categories, natureActiv, refOt, label, rank, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture,lastEdit)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       categories = VALUES(categories),
       natureActiv = VALUES(natureActiv),
@@ -74,10 +75,11 @@ if(getenv('REQUEST_METHOD') == 'POST') {
       visuel = VALUES(visuel),
       description = VALUES(description),
       linkedDocs = VALUES(linkedDocs),
-      ouverture = VALUES(ouverture)";
+      ouverture = VALUES(ouverture)
+      lastEdit = VALUES(lastEdit)";
 
     mysqli_stmt_prepare($stmt, $query);
-    mysqli_stmt_bind_param($stmt, 'ssssssssssssssssss', $uuid, $categories, $natureActiv, $refOt, $label, $rank, $nomEntite, $responsables, $adresse, $telNumber, $fax, $email, $site, $pjaun, $visuel, $description, $linkedDocs, $ouverture);
+    mysqli_stmt_bind_param($stmt, 'ssssssssssssssssss', $uuid, $categories, $natureActiv, $refOt, $label, $rank, $nomEntite, $responsables, $adresse, $telNumber, $fax, $email, $site, $pjaun, $visuel, $description, $linkedDocs, $ouverture,$lastEdit);
     mysqli_stmt_execute($stmt);
 
     if (mysqli_stmt_affected_rows($stmt) == 0){

@@ -38,14 +38,14 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   
 
   $query = 
-    "SELECT uuid, categories, natureActiv, refOt, label, rank, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture FROM fiches";
+    "SELECT uuid, categories, natureActiv, refOt, label, rank, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture, lastEdit FROM fiches";
     
 
     mysqli_stmt_prepare($stmt, $query);
     
     mysqli_stmt_execute($stmt);
 
-    mysqli_stmt_bind_result($stmt, $uuid, $categories, $natureActiv, $refOt, $label, $rank, $nomEntite, $responsables, $adresse, $telNumber, $fax, $email, $site, $pjaun, $visuel, $description, $linkedDocs, $ouverture);
+    mysqli_stmt_bind_result($stmt, $uuid, $categories, $natureActiv, $refOt, $label, $rank, $nomEntite, $responsables, $adresse, $telNumber, $fax, $email, $site, $pjaun, $visuel, $description, $linkedDocs, $ouverture, $lastEdit);
 
     $fiches = [];
 
@@ -68,6 +68,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
                           , 'description' => unserialize($description)
                           , 'linkedDocs' => unserialize($linkedDocs)
                           , 'ouverture' => is_null($ouverture) ? null : unserialize($ouverture) 
+                          ,'lastEdit' => $lastEdit
                           ]);
     }
 

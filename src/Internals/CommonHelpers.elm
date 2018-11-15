@@ -60,16 +60,19 @@ break p xs =
     helper xs []
 
 
-newLog :
-    ((Time.Posix -> Log) -> Time.Posix -> msg)
-    -> String
-    -> Maybe String
-    -> Bool
-    -> Cmd msg
+newLog : (Log -> msg) -> String -> Maybe String -> Bool -> Cmd msg
 newLog addLogMsg logMsg details isError =
-    Task.perform
-        (addLogMsg (Log logMsg details isError))
-        Time.now
+    Task.perform addLogMsg <|
+        (Time.now
+            |> Task.andThen
+                (\t ->
+                    Task.succeed <|
+                        Log logMsg
+                            details
+                            isError
+                            t
+                )
+        )
 
 
 logsView : List Log -> Time.Zone -> Element msg
