@@ -305,9 +305,9 @@ setCats config model =
                            ]
                     )
                     { onChange =
-                        SelectAvailableCat
+                        SetCategorie
                     , text =
-                        model.selectedAvailableCat
+                        model.catBuffer
                             |> Maybe.withDefault ""
                     , placeholder =
                         Just <|
@@ -335,28 +335,59 @@ setCats config model =
         , row
             [ spacing 15
             ]
-            [ Input.button
-                (buttonStyle (model.selectedAvailableCat /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> AddCatToFiche)
-                        model.selectedAvailableCat
-                , label = el [] (text "Ajouter catégorie")
-                }
-            , Input.button
-                (buttonStyle (model.selectedCatInFiche /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> RemoveCatFromFiche)
-                        model.selectedCatInFiche
-                , label = el [] (text "Supprimer catégorie")
-                }
-            , Input.button
-                (buttonStyle (model.selectedCatInFiche /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> RemoveCatFromFiche)
-                        model.selectedCatInFiche
-                , label = el [] (text "Modifier catégorie")
-                }
-            ]
+            (let
+                canAdd =
+                    case ( model.selectedAvailableCat, model.catBuffer ) of
+                        ( Just avCat, Just newCat ) ->
+                            avCat == newCat
+
+                        ( Nothing, Just newCat ) ->
+                            True
+
+                        _ ->
+                            False
+
+                canRemove =
+                    (model.selectedCatInFiche /= Nothing)
+                        && (model.selectedAvailableCat == Nothing)
+
+                canModify =
+                    case ( model.selectedAvailableCat, model.catBuffer ) of
+                        ( Just avCat, Just newCat ) ->
+                            avCat /= newCat
+
+                        _ ->
+                            False
+             in
+                [ Input.button
+                    (buttonStyle canAdd)
+                    { onPress =
+                        if canAdd then
+                            Just AddCatToFiche
+                        else
+                            Nothing
+                    , label = el [] (text "Ajouter catégorie")
+                    }
+                , Input.button
+                    (buttonStyle canRemove)
+                    { onPress =
+                        if canRemove then
+                            Just RemoveCatFromFiche
+                        else
+                            Nothing
+                    , label = el [] (text "Supprimer catégorie")
+                    }
+                , Input.button
+                    (buttonStyle canModify)
+                    { onPress =
+                        if canModify then
+                            Just ModifyCat
+                        else
+                            Nothing
+                    , label = el [] (text "Modifier catégorie")
+                    }
+                ]
+            )
         ]
 
 
@@ -431,8 +462,7 @@ setActivs config model =
             ]
         , row
             [ spacing 15
-
-            --, alignTop
+              --, alignTop
             ]
             [ Input.button
                 (buttonStyle (model.selectedAvailableActiv /= Nothing))
@@ -964,55 +994,55 @@ setEmails config model =
                         /= Nothing
                         && isExistingEmail
              in
-             [ Input.text
-                (textInputStyle
-                    ++ [ width (px 180)
-                       , spacingXY 0 15
-                       ]
-                )
-                { onChange =
-                    SetEmail
-                , text =
-                    model.emailBuffer
-                        |> Maybe.withDefault ""
-                , placeholder =
-                    Just <|
-                        Input.placeholder
+                [ Input.text
+                    (textInputStyle
+                        ++ [ width (px 180)
+                           , spacingXY 0 15
+                           ]
+                    )
+                    { onChange =
+                        SetEmail
+                    , text =
+                        model.emailBuffer
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Nouvel Email")
+                    , label =
+                        Input.labelLeft
                             []
-                            (text "Nouvel Email")
-                , label =
-                    Input.labelLeft
-                        []
-                        Element.none
-                }
-             , Input.button
-                (buttonStyle canModify)
-                { onPress =
-                    if canModify then
-                        Just ModifyEmail
-                    else
-                        Nothing
-                , label = el [] (text "Modifier email")
-                }
-             , Input.button
-                (buttonStyle canAddEmail)
-                { onPress =
-                    if canAddEmail then
-                        Just AddEmail
-                    else
-                        Nothing
-                , label = el [] (text "Ajouter email")
-                }
-             , Input.button
-                (buttonStyle canDeleteEmail)
-                { onPress =
-                    if canDeleteEmail then
-                        Just RemoveEmail
-                    else
-                        Nothing
-                , label = el [] (text "Supprimer email")
-                }
-             ]
+                            Element.none
+                    }
+                , Input.button
+                    (buttonStyle canModify)
+                    { onPress =
+                        if canModify then
+                            Just ModifyEmail
+                        else
+                            Nothing
+                    , label = el [] (text "Modifier email")
+                    }
+                , Input.button
+                    (buttonStyle canAddEmail)
+                    { onPress =
+                        if canAddEmail then
+                            Just AddEmail
+                        else
+                            Nothing
+                    , label = el [] (text "Ajouter email")
+                    }
+                , Input.button
+                    (buttonStyle canDeleteEmail)
+                    { onPress =
+                        if canDeleteEmail then
+                            Just RemoveEmail
+                        else
+                            Nothing
+                    , label = el [] (text "Supprimer email")
+                    }
+                ]
             )
         ]
 
@@ -1229,34 +1259,34 @@ setResponsables config model =
                         /= Nothing
                         && isExistingResp
              in
-             [ Input.button
-                (buttonStyle canModify)
-                { onPress =
-                    if canModify then
-                        Just ModifyResp
-                    else
-                        Nothing
-                , label = el [] (text "Modifier responsable")
-                }
-             , Input.button
-                (buttonStyle canAddResp)
-                { onPress =
-                    if canAddResp then
-                        Just AddResp
-                    else
-                        Nothing
-                , label = el [] (text "Ajouter responsable")
-                }
-             , Input.button
-                (buttonStyle canDeleteResp)
-                { onPress =
-                    if canDeleteResp then
-                        Just RemoveResp
-                    else
-                        Nothing
-                , label = el [] (text "Supprimer responsable")
-                }
-             ]
+                [ Input.button
+                    (buttonStyle canModify)
+                    { onPress =
+                        if canModify then
+                            Just ModifyResp
+                        else
+                            Nothing
+                    , label = el [] (text "Modifier responsable")
+                    }
+                , Input.button
+                    (buttonStyle canAddResp)
+                    { onPress =
+                        if canAddResp then
+                            Just AddResp
+                        else
+                            Nothing
+                    , label = el [] (text "Ajouter responsable")
+                    }
+                , Input.button
+                    (buttonStyle canDeleteResp)
+                    { onPress =
+                        if canDeleteResp then
+                            Just RemoveResp
+                        else
+                            Nothing
+                    , label = el [] (text "Supprimer responsable")
+                    }
+                ]
             )
         ]
 
@@ -1367,34 +1397,34 @@ setDescriptions config model =
                         /= Nothing
                         && isExisting
              in
-             [ Input.button
-                (buttonStyle canModify)
-                { onPress =
-                    if canModify then
-                        Just ModifyDescr
-                    else
-                        Nothing
-                , label = el [] (text "Modifier description")
-                }
-             , Input.button
-                (buttonStyle canAdd)
-                { onPress =
-                    if canAdd then
-                        Just AddDescription
-                    else
-                        Nothing
-                , label = el [] (text "Ajouter description")
-                }
-             , Input.button
-                (buttonStyle canDelete)
-                { onPress =
-                    if canDelete then
-                        Just RemoveDescription
-                    else
-                        Nothing
-                , label = el [] (text "Supprimer description")
-                }
-             ]
+                [ Input.button
+                    (buttonStyle canModify)
+                    { onPress =
+                        if canModify then
+                            Just ModifyDescr
+                        else
+                            Nothing
+                    , label = el [] (text "Modifier description")
+                    }
+                , Input.button
+                    (buttonStyle canAdd)
+                    { onPress =
+                        if canAdd then
+                            Just AddDescription
+                        else
+                            Nothing
+                    , label = el [] (text "Ajouter description")
+                    }
+                , Input.button
+                    (buttonStyle canDelete)
+                    { onPress =
+                        if canDelete then
+                            Just RemoveDescription
+                        else
+                            Nothing
+                    , label = el [] (text "Supprimer description")
+                    }
+                ]
             )
         ]
 
@@ -1566,34 +1596,34 @@ setLinkedDocs config model =
                         /= Nothing
                         && isExisting
              in
-             [ Input.button
-                (buttonStyle canModify)
-                { onPress =
-                    if canModify then
-                        Just (model.externalMsg ModifyLinkedDoc)
-                    else
-                        Nothing
-                , label = el [] (text "Modifier document")
-                }
-             , Input.button
-                (buttonStyle canAdd)
-                { onPress =
-                    if canAdd then
-                        Just (model.externalMsg AddLinkedDoc)
-                    else
-                        Nothing
-                , label = el [] (text "Ajouter document")
-                }
-             , Input.button
-                (buttonStyle canDelete)
-                { onPress =
-                    if canDelete then
-                        Just (model.externalMsg RemoveLinkedDoc)
-                    else
-                        Nothing
-                , label = el [] (text "Supprimer document")
-                }
-             ]
+                [ Input.button
+                    (buttonStyle canModify)
+                    { onPress =
+                        if canModify then
+                            Just (model.externalMsg ModifyLinkedDoc)
+                        else
+                            Nothing
+                    , label = el [] (text "Modifier document")
+                    }
+                , Input.button
+                    (buttonStyle canAdd)
+                    { onPress =
+                        if canAdd then
+                            Just (model.externalMsg AddLinkedDoc)
+                        else
+                            Nothing
+                    , label = el [] (text "Ajouter document")
+                    }
+                , Input.button
+                    (buttonStyle canDelete)
+                    { onPress =
+                        if canDelete then
+                            Just (model.externalMsg RemoveLinkedDoc)
+                        else
+                            Nothing
+                    , label = el [] (text "Supprimer document")
+                    }
+                ]
             )
         ]
 
@@ -1616,51 +1646,51 @@ linkedDocView externalMsg zone selected ({ url, descr, label, expiryDate } as ld
                 |> Maybe.withDefault "NoLinkedDoc"
                 |> (\res -> res ++ hashLinkedDoc ld)
     in
-    Keyed.column
-        [ spacing 15
-        , Events.onClick (externalMsg <| SelectLinkedDoc ld)
-        , pointer
-        , padding 5
-        , if Just ld == selected then
-            Background.color
-                grey4
-          else
-            noAttr
-        , width fill
-        , height shrink
-        ]
-        (List.map (\e -> ( key, e )) <|
-            [ row
-                [ width fill ]
-                [ el
-                    [ Font.bold
-                    , Font.color grey1
-                    , width (px 300)
-                    , clip
-                    ]
-                    (text label)
-                , el
-                    [ Font.size 12
-                    , alignRight
-                    , width (maximum 300 fill)
-                    , clip
-                    ]
-                    (text fileName)
-                ]
-            , row
-                [ width fill ]
-                [ Maybe.map (\d -> el [] (text d)) descr
-                    |> Maybe.withDefault Element.none
-                , Maybe.map
-                    (\ed ->
-                        el [ alignRight ]
-                            (text <| ed)
-                    )
-                    expiryDateStr
-                    |> Maybe.withDefault Element.none
-                ]
+        Keyed.column
+            [ spacing 15
+            , Events.onClick (externalMsg <| SelectLinkedDoc ld)
+            , pointer
+            , padding 5
+            , if Just ld == selected then
+                Background.color
+                    grey4
+              else
+                noAttr
+            , width fill
+            , height shrink
             ]
-        )
+            (List.map (\e -> ( key, e )) <|
+                [ row
+                    [ width fill ]
+                    [ el
+                        [ Font.bold
+                        , Font.color grey1
+                        , width (px 300)
+                        , clip
+                        ]
+                        (text label)
+                    , el
+                        [ Font.size 12
+                        , alignRight
+                        , width (maximum 300 fill)
+                        , clip
+                        ]
+                        (text fileName)
+                    ]
+                , row
+                    [ width fill ]
+                    [ Maybe.map (\d -> el [] (text d)) descr
+                        |> Maybe.withDefault Element.none
+                    , Maybe.map
+                        (\ed ->
+                            el [ alignRight ]
+                                (text <| ed)
+                        )
+                        expiryDateStr
+                        |> Maybe.withDefault Element.none
+                    ]
+                ]
+            )
 
 
 
@@ -1806,40 +1836,40 @@ pickerView backMsg confirmMsg root config model =
                 FileExplorer.DocsRoot ->
                     FileExplorer.getSelectedDoc
     in
-    column
-        [ height fill
-        , paddingEach
-            { top = 0
-            , bottom = 15
-            , left = 0
-            , right = 0
-            }
-        ]
-        [ FileExplorer.view
-            { maxHeight =
-                if config.maxHeight < 800 then
-                    400
-                else
-                    500
-            , zone = config.zone
-            , logInfo = config.logInfo
-            , mode = FileExplorer.ReadWrite root
-            }
-            config.fileExplorer
-        , row
-            [ spacing 15
-            , paddingXY 15 0
-            ]
-            [ Input.button
-                (buttonStyle True)
-                { onPress = Just (model.externalMsg <| backMsg)
-                , label = text "Retour"
-                }
-            , Input.button (buttonStyle (selector config.fileExplorer /= Nothing))
-                { onPress =
-                    selector config.fileExplorer
-                        |> Maybe.map (model.externalMsg << confirmMsg)
-                , label = text "Valider"
+        column
+            [ height fill
+            , paddingEach
+                { top = 0
+                , bottom = 15
+                , left = 0
+                , right = 0
                 }
             ]
-        ]
+            [ FileExplorer.view
+                { maxHeight =
+                    if config.maxHeight < 800 then
+                        400
+                    else
+                        500
+                , zone = config.zone
+                , logInfo = config.logInfo
+                , mode = FileExplorer.ReadWrite root
+                }
+                config.fileExplorer
+            , row
+                [ spacing 15
+                , paddingXY 15 0
+                ]
+                [ Input.button
+                    (buttonStyle True)
+                    { onPress = Just (model.externalMsg <| backMsg)
+                    , label = text "Retour"
+                    }
+                , Input.button (buttonStyle (selector config.fileExplorer /= Nothing))
+                    { onPress =
+                        selector config.fileExplorer
+                            |> Maybe.map (model.externalMsg << confirmMsg)
+                    , label = text "Valider"
+                    }
+                ]
+            ]

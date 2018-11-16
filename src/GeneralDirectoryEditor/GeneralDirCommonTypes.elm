@@ -27,16 +27,17 @@ type alias Model msg =
     , externalMsg : Msg -> msg
     , seed :
         Maybe Random.Seed
-
-    --- MainForm variables
+        --- MainForm variables
     , visualPickerOpen : Bool
     , docPickerOpen : Bool
     , labelVisualPickerOpen : Bool
     , labelPickerOpen : Bool
     , selectedCatInFiche : Maybe String
     , selectedAvailableCat : Maybe String
+    , catBuffer : Maybe String
     , selectedActivInFiche : Maybe String
     , selectedAvailableActiv : Maybe String
+    , activBuffer : Maybe String
     , selectedLabelInFiche : Maybe String
     , labelBuffer : Maybe Label
     , selectedAvailableLabel : Maybe String
@@ -71,6 +72,7 @@ type Msg
       ----------------------
     | SelectCatInFiche String
     | SelectAvailableCat String
+    | SetCategorie String
     | ModifyCat
     | AddCatToFiche
     | RemoveCatFromFiche

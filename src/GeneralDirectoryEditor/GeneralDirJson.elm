@@ -346,6 +346,14 @@ updateFiche fiche sessionId =
     Http.send (FicheUpdated fiche) request
 
 
+
+--Http.post
+--    { url = "updateFiche.php"
+--    , body = body
+--    , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
+--    }
+
+
 updateFicheTask fiche sessionId =
     let
         body =
@@ -364,6 +372,32 @@ updateFicheTask fiche sessionId =
             Http.post "updateFiche.php" body decodeSuccess
     in
     Http.toTask request
+
+
+
+--updateFicheTask fiche sessionId =
+--    let
+--        body =
+--            E.object
+--                [ ( "sessionId"
+--                  , E.string sessionId
+--                  )
+--                , ( "fiche"
+--                  , encodeFiche
+--                        fiche
+--                  )
+--                ]
+--                |> Http.jsonBody
+--    in
+--    Http.task
+--        { method = "Post"
+--        , headers = []
+--        , url = "updateFiche.php"
+--        , body = body
+--        , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
+--        , timeout = Nothing
+--        , tracker = Nothing
+--        }
 
 
 decodeSuccess : D.Decoder Bool
