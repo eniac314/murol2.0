@@ -6,6 +6,10 @@ import Json.Encode exposing (..)
 import Set exposing (toList)
 
 
+--import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
+--import GeneralDirectoryEditor.GeneralDirJson exposing (encodeFiche)
+
+
 encodeDocument : Document -> Value
 encodeDocument doc =
     case doc of
@@ -80,6 +84,9 @@ encodeCellContent cellContent =
 
         BlockLinks blLinks ->
             object [ ( "BlockLinks", list encodeBlockLink blLinks ) ]
+
+        Fiches fiches ->
+            object [ ( "Fiches", list string fiches ) ]
 
         TextBlock tbElems ->
             object [ ( "TextBlock", list encodeTextBlockElement tbElems ) ]

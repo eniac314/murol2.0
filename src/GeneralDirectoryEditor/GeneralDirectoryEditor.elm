@@ -98,6 +98,7 @@ load model logInfo =
             Cmd.map model.externalMsg <|
                 Cmd.batch
                     [ getGeneralDirectory sessionId
+                    , Task.perform SetInitialSeed Time.now
                     ]
 
         LoggedOut ->
@@ -293,24 +294,7 @@ internalUpdate config msg model =
                     else
                         let
                             ( newFiches, fichesToUpdate ) =
-                                Dict.foldr
-                                    (\k f ( newDict, toUpdate ) ->
-                                        if List.member avCat f.categories then
-                                            let
-                                                newFiche =
-                                                    { f
-                                                        | categories =
-                                                            setIf (\c -> c == avCat) newCat f.categories
-                                                    }
-                                            in
-                                                ( Dict.insert k newFiche newDict
-                                                , newFiche :: toUpdate
-                                                )
-                                        else
-                                            ( Dict.insert k f newDict, toUpdate )
-                                    )
-                                    ( Dict.empty, [] )
-                                    model.fiches
+                                filterAndUpdate model .categories setFicheCat avCat newCat
 
                             fb =
                                 model.ficheBuffer
@@ -323,30 +307,11 @@ internalUpdate config msg model =
                                 , ficheBuffer = newFb
                                 , categories = computeCats newFiches
                                 , lockedFiches = model.lockedFiches ++ fichesToUpdate
+                                , selectedCatInFiche = Nothing
+                                , catBuffer = Nothing
+                                , selectedAvailableCat = Nothing
                               }
-                            , case config.logInfo of
-                                LoggedIn { sessionId } ->
-                                    Cmd.batch <|
-                                        List.map
-                                            (\f ->
-                                                Task.attempt (FicheUpdated f) <|
-                                                    (Time.now
-                                                        |> Task.andThen
-                                                            (\t ->
-                                                                let
-                                                                    datedFb =
-                                                                        { f | lastEdit = t }
-                                                                in
-                                                                    updateFicheTask
-                                                                        datedFb
-                                                                        sessionId
-                                                            )
-                                                    )
-                                            )
-                                            fichesToUpdate
-
-                                _ ->
-                                    Cmd.none
+                            , batchFichesUpdate config.logInfo fichesToUpdate
                             )
 
                 _ ->
@@ -432,6 +397,8 @@ internalUpdate config msg model =
                         Nothing
                     else
                         Just s
+                , selectedAvailableActiv = Nothing
+                , activBuffer = Nothing
               }
             , Cmd.none
             )
@@ -443,40 +410,98 @@ internalUpdate config msg model =
                         Nothing
                     else
                         Just s
+                , activBuffer =
+                    if model.selectedAvailableActiv == Just s then
+                        Nothing
+                    else
+                        Just s
+                , selectedActivInFiche = Nothing
               }
             , Cmd.none
             )
 
+        SetActivite s ->
+            ( { model | activBuffer = Just s }, Cmd.none )
+
         ModifyActiv ->
-            ( model, Cmd.none )
+            case ( model.selectedAvailableActiv, model.activBuffer ) of
+                ( Just avActiv, Just newActiv ) ->
+                    if avActiv == newActiv then
+                        ( model, Cmd.none )
+                    else
+                        let
+                            ( newFiches, fichesToUpdate ) =
+                                filterAndUpdate model .natureActiv setFicheActiv avActiv newActiv
+
+                            fb =
+                                model.ficheBuffer
+
+                            newFb =
+                                { fb | natureActiv = setIf (\c -> c == avActiv) newActiv fb.natureActiv }
+                        in
+                            ( { model
+                                | fiches = newFiches
+                                , ficheBuffer = newFb
+                                , activites = computeActivs newFiches
+                                , lockedFiches = model.lockedFiches ++ fichesToUpdate
+                                , selectedActivInFiche = Nothing
+                                , activBuffer = Nothing
+                                , selectedAvailableActiv = Nothing
+                              }
+                            , batchFichesUpdate config.logInfo fichesToUpdate
+                            )
+
+                _ ->
+                    ( model, Cmd.none )
 
         AddActivToFiche ->
-            let
-                newActivs =
-                    Maybe.map
-                        (\a ->
-                            unique <|
-                                List.append
-                                    model.ficheBuffer.natureActiv
-                                    [ a ]
+            case ( model.selectedAvailableActiv, model.activBuffer ) of
+                ( Just avActiv, Just newActiv ) ->
+                    if avActiv == newActiv then
+                        let
+                            newActivFiche =
+                                model.ficheBuffer.natureActiv ++ [ newActiv ]
+
+                            fb =
+                                model.ficheBuffer
+
+                            newFb =
+                                { fb | natureActiv = newActivFiche }
+                        in
+                            ( { model
+                                | ficheBuffer = newFb
+                                , selectedAvailableActiv = Nothing
+                                , activBuffer = Nothing
+                              }
+                            , Cmd.none
+                            )
+                    else
+                        ( model, Cmd.none )
+
+                ( Nothing, Just newActiv ) ->
+                    let
+                        newActivFiche =
+                            model.ficheBuffer.natureActiv ++ [ newActiv ]
+
+                        newActivs =
+                            Set.insert newActiv model.activites
+
+                        fb =
+                            model.ficheBuffer
+
+                        newFb =
+                            { fb | natureActiv = newActivFiche }
+                    in
+                        ( { model
+                            | ficheBuffer = newFb
+                            , activBuffer = Nothing
+                            , activites = newActivs
+                          }
+                        , Cmd.none
                         )
-                        model.selectedAvailableActiv
-                        |> Maybe.withDefault model.ficheBuffer.natureActiv
 
-                fb =
-                    model.ficheBuffer
-
-                newFb =
-                    { fb
-                        | natureActiv = newActivs
-                    }
-            in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedAvailableActiv = Nothing
-                  }
-                , Cmd.none
-                )
+                _ ->
+                    ( model, Cmd.none )
 
         RemoveActivFromFiche ->
             let
@@ -487,7 +512,7 @@ internalUpdate config msg model =
                     Maybe.map
                         (\a -> List.Extra.remove a fb.natureActiv)
                         model.selectedActivInFiche
-                        |> Maybe.withDefault fb.natureActiv
+                        |> Maybe.withDefault fb.categories
 
                 newFb =
                     { fb | natureActiv = newActivs }
@@ -495,6 +520,8 @@ internalUpdate config msg model =
                 ( { model
                     | ficheBuffer = newFb
                     , selectedActivInFiche = Nothing
+                    , activBuffer = Nothing
+                    , selectedAvailableActiv = Nothing
                   }
                 , Cmd.none
                 )
@@ -507,6 +534,8 @@ internalUpdate config msg model =
                         Nothing
                     else
                         Just s
+                , selectedAvailableLabel = Nothing
+                , labelBuffer = Nothing
               }
             , Cmd.none
             )
@@ -521,6 +550,7 @@ internalUpdate config msg model =
                 , labelBuffer =
                     List.filter (\l -> l.nom == s) model.labels
                         |> List.head
+                , selectedLabelInFiche = Nothing
               }
             , Cmd.none
             )
@@ -570,44 +600,30 @@ internalUpdate config msg model =
         AddLabelToFiche ->
             let
                 mbNewLabel =
-                    Maybe.andThen
-                        (\l ->
-                            Dict.get l
-                                (model.labels
-                                    |> List.map (\l_ -> ( l_.nom, l_ ))
-                                    |> Dict.fromList
-                                )
-                        )
-                        model.selectedAvailableLabel
+                    extractLabel model model.selectedAvailableLabel
+
+                newFicheLabels =
+                    appendLabel
+                        mbNewLabel
+                        model.ficheBuffer.label
 
                 newLabels =
-                    Maybe.map
-                        (\l ->
-                            uniqueBy
-                                (\l_ ->
-                                    .nom l_
-                                        ++ .logo l_
-                                        ++ .lien l_
-                                )
-                            <|
-                                List.append
-                                    model.ficheBuffer.label
-                                    [ l ]
-                        )
+                    appendLabel
                         mbNewLabel
-                        |> Maybe.withDefault model.ficheBuffer.label
+                        model.labels
 
                 fb =
                     model.ficheBuffer
 
                 newFb =
                     { fb
-                        | label = newLabels
+                        | label = newFicheLabels
                     }
             in
                 ( { model
                     | ficheBuffer = newFb
-                    , selectedAvailableLabel = Nothing
+                    , labelBuffer = Nothing
+                    , labels = newLabels
                   }
                 , Cmd.none
                 )
@@ -618,15 +634,7 @@ internalUpdate config msg model =
                     model.ficheBuffer
 
                 mbLabel =
-                    Maybe.andThen
-                        (\l ->
-                            Dict.get l
-                                (model.labels
-                                    |> List.map (\l_ -> ( l_.nom, l_ ))
-                                    |> Dict.fromList
-                                )
-                        )
-                        model.selectedLabelInFiche
+                    extractLabel model model.selectedLabelInFiche
 
                 newLabels =
                     Maybe.map
@@ -640,12 +648,47 @@ internalUpdate config msg model =
                 ( { model
                     | ficheBuffer = newFb
                     , selectedLabelInFiche = Nothing
+                    , labelBuffer = Nothing
+                    , selectedAvailableLabel = Nothing
                   }
                 , Cmd.none
                 )
 
         ModifyLabel ->
-            ( model, Cmd.none )
+            --( model, Cmd.none )
+            case
+                ( extractLabel model model.selectedAvailableLabel
+                , model.labelBuffer
+                )
+            of
+                ( Just avLabel, Just newLabel ) ->
+                    if avLabel == newLabel then
+                        ( model, Cmd.none )
+                    else
+                        let
+                            ( newFiches, fichesToUpdate ) =
+                                filterAndUpdate model .label setFicheLabel avLabel newLabel
+
+                            fb =
+                                model.ficheBuffer
+
+                            newFb =
+                                { fb | label = setIf (\l -> l == avLabel) newLabel fb.label }
+                        in
+                            ( { model
+                                | fiches = newFiches
+                                , ficheBuffer = newFb
+                                , labels = computeLabels newFiches
+                                , lockedFiches = model.lockedFiches ++ fichesToUpdate
+                                , selectedLabelInFiche = Nothing
+                                , labelBuffer = Nothing
+                                , selectedAvailableLabel = Nothing
+                              }
+                            , batchFichesUpdate config.logInfo fichesToUpdate
+                            )
+
+                _ ->
+                    ( model, Cmd.none )
 
         CreateNewLabel ->
             case ( model.labelBuffer, Maybe.map validLabel model.labelBuffer ) of
@@ -1516,11 +1559,14 @@ internalUpdate config msg model =
             case model.seed of
                 Just seed ->
                     let
-                        ( uuid, newSeed ) =
-                            Random.step UUID.generator seed
-
                         fb =
                             model.ficheBuffer
+
+                        ( uuid, newSeed ) =
+                            if fb.uuid == UUID.nil then
+                                Random.step UUID.generator seed
+                            else
+                                ( fb.uuid, seed )
 
                         newFb =
                             { fb | uuid = uuid }
@@ -1535,8 +1581,9 @@ internalUpdate config msg model =
                             | fiches = newFiches
                             , rightPanelDisplay = PreviewFiche
                             , lockedFiches = newFb :: model.lockedFiches
-                            , selectedFiche = Just newFb.nomEntite
-                            , ficheBuffer = emptyFiche
+                            , selectedFiche = Just <| canonical newFb.uuid
+                            , ficheBuffer = newFb
+                            , seed = Just newSeed
                           }
                         , case config.logInfo of
                             LoggedIn { sessionId } ->
@@ -1579,6 +1626,37 @@ internalUpdate config msg model =
                         Nothing
                     else
                         model.selectedFiche
+                , visualPickerOpen = False
+                , docPickerOpen = False
+                , labelVisualPickerOpen = False
+                , labelPickerOpen = False
+                , selectedCatInFiche = Nothing
+                , selectedAvailableCat = Nothing
+                , catBuffer = Nothing
+                , selectedActivInFiche = Nothing
+                , selectedAvailableActiv = Nothing
+                , selectedLabelInFiche = Nothing
+                , activBuffer = Nothing
+                , labelBuffer = Nothing
+                , selectedAvailableLabel = Nothing
+                , selectedResp = Nothing
+                , respBuffer = Nothing
+                , selectedEmail = Nothing
+                , emailBuffer = Nothing
+                , selectedDescr = Nothing
+                , descrBuffer = Nothing
+                , selectedLinkedDoc = Nothing
+                , linkedDocBuffer = Nothing
+                , expiryDateBuffer = Nothing
+              }
+            , Cmd.none
+            )
+
+        SetInitialSeed t ->
+            ( { model
+                | seed =
+                    Just <|
+                        Random.initialSeed (posixToMillis t)
               }
             , Cmd.none
             )
@@ -1693,7 +1771,7 @@ ficheSelectorView model =
 
                 Just name ->
                     \( k, f ) ->
-                        String.startsWith
+                        String.contains
                             (String.toLower name)
                             (String.toLower f.nomEntite)
 

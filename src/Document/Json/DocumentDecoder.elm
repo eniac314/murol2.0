@@ -7,6 +7,10 @@ import Json.Decode.Pipeline exposing (..)
 import Set exposing (fromList)
 
 
+--import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
+--import GeneralDirectoryEditor.GeneralDirJson exposing (decodeFiche)
+
+
 decodeDocument : Decoder Document
 decodeDocument =
     oneOf
@@ -78,6 +82,8 @@ decodeCellContent =
             |> required "CustomElement" string
         , succeed BlockLinks
             |> required "BlockLinks" (list decodeBlockLink)
+        , succeed Fiches
+            |> required "Fiches" (list string)
         , succeed TextBlock
             |> required "TextBlock" (list decodeTextBlockElement)
         , string

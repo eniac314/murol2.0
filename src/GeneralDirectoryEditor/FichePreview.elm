@@ -31,12 +31,7 @@ fichePreview f =
         , Border.color (rgb255 127 127 127)
         , Border.width 2
         ]
-        [ el
-            [ width fill
-            , Font.center
-            , Font.bold
-            ]
-            (text f.nomEntite)
+        [ visualPreview f
         , row
             [ spacing 15 ]
             [ el [ Font.bold ]
@@ -194,8 +189,7 @@ fichePreview f =
                     [ el [ Font.bold ] (text "Ouvert:")
                     , el [] (text "en saison")
                     ]
-
-        --, text <| canonical f.uuid
+          --, text <| canonical f.uuid
         ]
 
 
@@ -254,4 +248,40 @@ telPreview tel =
                     , el [] (text s2)
                     ]
                 ]
+        )
+
+
+visualPreview { nomEntite, visuel } =
+    el
+        [ width (px 440)
+        , height (px 330)
+        , Background.color (blockLinkGrey)
+        , mouseOver
+            [ Background.color (blockLinkGreyAlpha 0.5) ]
+        ]
+        (el
+            [ width (px 428)
+            , height (px 318)
+            , centerX
+            , centerY
+            , Background.image visuel
+            , inFront
+                (el
+                    [ alignBottom
+                    , width fill
+                    , padding 10
+                    , Background.color (blockLinkGreyAlpha 0.8)
+                    , Font.color aliceBlue
+                    ]
+                    (el
+                        ([ Font.center
+                         , width fill
+                         ]
+                            ++ unselectable
+                        )
+                        (paragraph [] [ text nomEntite ])
+                    )
+                )
+            ]
+            Element.none
         )

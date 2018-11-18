@@ -46,92 +46,95 @@ responsivePreFormat config document =
         device =
             classifyDevice config
     in
-    case document of
-        Container ({ containerLabel, id, attrs } as nv) children ->
-            case containerLabel of
-                DocColumn ->
-                    let
-                        addColImgClass doc =
-                            case doc of
-                                (Cell lv) as l ->
-                                    case lv.cellContent of
-                                        Image meta ->
-                                            let
-                                                lId =
-                                                    lv.id
-                                            in
-                                            Cell
-                                                { cellContent = lv.cellContent
-                                                , id = { lId | classes = Set.insert "colImg" lId.classes }
-                                                , attrs = lv.attrs
-                                                }
+        case document of
+            Container ({ containerLabel, id, attrs } as nv) children ->
+                case containerLabel of
+                    DocColumn ->
+                        let
+                            addColImgClass doc =
+                                case doc of
+                                    (Cell lv) as l ->
+                                        case lv.cellContent of
+                                            Image meta ->
+                                                let
+                                                    lId =
+                                                        lv.id
+                                                in
+                                                    Cell
+                                                        { cellContent = lv.cellContent
+                                                        , id = { lId | classes = Set.insert "colImg" lId.classes }
+                                                        , attrs = lv.attrs
+                                                        }
 
-                                        _ ->
-                                            l
+                                            _ ->
+                                                l
 
-                                doc_ ->
-                                    doc_
+                                    doc_ ->
+                                        doc_
 
-                        children_ =
-                            List.map addColImgClass children
-                    in
-                    Container nv (List.map (responsivePreFormat config) children_)
+                            children_ =
+                                List.map addColImgClass children
+                        in
+                            Container nv (List.map (responsivePreFormat config) children_)
 
-                DocRow ->
-                    if
-                        hasClass "sameHeightImgsRow" document
-                            && containsOnly isImage document
-                    then
-                        renderSameHeightImgRow document
-                    else if device.class == Phone || device.class == Tablet then
-                        responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
-                    else
+                    DocRow ->
+                        if
+                            hasClass "sameHeightImgsRow" document
+                                && containsOnly isImage document
+                        then
+                            renderSameHeightImgRow document
+                        else if device.class == Phone || device.class == Tablet then
+                            responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
+                        else
+                            Container nv (List.map (responsivePreFormat config) children)
+
+                    --Container nv (List.map (responsivePreFormat config) children)
+                    TextColumn ->
+                        if device.class == Phone || device.class == Tablet then
+                            responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
+                        else
+                            Container nv (List.map (responsivePreFormat config) children)
+
+                    ResponsiveBloc ->
                         Container nv (List.map (responsivePreFormat config) children)
 
-                --Container nv (List.map (responsivePreFormat config) children)
-                TextColumn ->
-                    if device.class == Phone || device.class == Tablet then
-                        responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
-                    else
-                        Container nv (List.map (responsivePreFormat config) children)
-
-                ResponsiveBloc ->
-                    Container nv (List.map (responsivePreFormat config) children)
-
-        (Cell { cellContent, id, attrs }) as l ->
-            case cellContent of
-                Image meta ->
-                    l
-
-                Video meta ->
-                    l
-
-                BlockLinks meta ->
-                    l
-
-                TextBlock xs ->
-                    l
-
-                Table meta ->
-                    if
-                        (device.class == Phone || device.class == Tablet)
-                            && meta.nbrCols
-                            > meta.nbrRows
-                    then
-                        Cell
-                            { cellContent =
-                                Table (flipTable meta)
-                            , id = id
-                            , attrs = attrs
-                            }
-                    else
+            (Cell { cellContent, id, attrs }) as l ->
+                case cellContent of
+                    Image meta ->
                         l
 
-                CustomElement s ->
-                    l
+                    Video meta ->
+                        l
 
-                EmptyCell ->
-                    l
+                    BlockLinks meta ->
+                        l
+
+                    Fiches f ->
+                        l
+
+                    TextBlock xs ->
+                        l
+
+                    Table meta ->
+                        if
+                            (device.class == Phone || device.class == Tablet)
+                                && meta.nbrCols
+                                > meta.nbrRows
+                        then
+                            Cell
+                                { cellContent =
+                                    Table (flipTable meta)
+                                , id = id
+                                , attrs = attrs
+                                }
+                        else
+                            l
+
+                    CustomElement s ->
+                        l
+
+                    EmptyCell ->
+                        l
 
 
 renderSameHeightImgRow : Document -> Document
@@ -192,24 +195,24 @@ renderSameHeightImgRow document =
                                     / toFloat meta.size.imgHeight
                             }
                     in
-                    List.map scale images
+                        List.map scale images
 
                 totalImgWidth =
                     List.foldr (\i n -> i.newWidth + n) 0 imgsScaledToMinHeight
             in
-            Container { id_ | attrs = id_.attrs ++ [ SpacingXY 15 0 ] } <|
-                List.map
-                    (\im ->
-                        Cell
-                            { cellContent = Image im.meta
-                            , id = im.id
-                            , attrs =
-                                [ FillPortion (floor <| 10000 * im.newWidth / totalImgWidth)
-                                ]
-                                    ++ im.attrs
-                            }
-                    )
-                    imgsScaledToMinHeight
+                Container { id_ | attrs = id_.attrs ++ [ SpacingXY 15 0 ] } <|
+                    List.map
+                        (\im ->
+                            Cell
+                                { cellContent = Image im.meta
+                                , id = im.id
+                                , attrs =
+                                    [ FillPortion (floor <| 10000 * im.newWidth / totalImgWidth)
+                                    ]
+                                        ++ im.attrs
+                                }
+                        )
+                        imgsScaledToMinHeight
 
 
 flipTable : TableMeta -> TableMeta
@@ -244,15 +247,15 @@ flipTable { style, nbrRows, nbrCols, data } =
                             else
                                 tails
                     in
-                    inverse (heads :: acc) tails_
+                        inverse (heads :: acc) tails_
 
         newData =
             List.map Array.toList data
                 |> inverse []
                 |> List.map Array.fromList
     in
-    { style = style
-    , nbrRows = nbrCols
-    , nbrCols = nbrRows
-    , data = newData
-    }
+        { style = style
+        , nbrRows = nbrCols
+        , nbrCols = nbrRows
+        , data = newData
+        }

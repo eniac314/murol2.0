@@ -30,6 +30,7 @@ import Task exposing (perform, attempt)
 import Time exposing (here, now)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
+import GeneralDirectoryEditor.GeneralDirJson exposing (..)
 
 
 port toSearchEngine : String -> Cmd msg
@@ -138,6 +139,7 @@ init flags url key =
             , zipperHandlers = Nothing
             , season = StyleSheets.Spring
             , pageIndex = Dict.empty
+            , fiches = Dict.empty
             , previewMode = PreviewScreen
             }
 
@@ -272,12 +274,27 @@ update msg model =
                 Ok jsonVal ->
                     case Decode.decodeValue PageTreeEditor.decodeContent jsonVal of
                         Ok { contentId, docContent } ->
-                            ( { model
-                                | pages =
-                                    Dict.insert path ( cId, name, Loaded docContent ) model.pages
-                              }
-                            , Cmd.none
-                            )
+                            let
+                                fichesIds =
+                                    Document.gatherFichesIds docContent
+
+                                fichesToDownload =
+                                    List.foldr
+                                        (\id acc ->
+                                            if Dict.member id model.config.fiches then
+                                                acc
+                                            else
+                                                id :: acc
+                                        )
+                                        []
+                                        fichesIds
+                            in
+                                ( { model
+                                    | pages =
+                                        Dict.insert path ( cId, name, Loaded docContent ) model.pages
+                                  }
+                                , Cmd.none
+                                )
 
                         _ ->
                             ( model, Cmd.none )

@@ -1,11 +1,1 @@
-importScripts('/js/SearchEngine.js');
-
-var app = Elm.SearchEngine.init();
-
-self.addEventListener('message', function(e) {
-  app.ports.inbound.send(e.data);
-}, false);
-
-app.ports.outbound.subscribe(function(data) {
-  self.postMessage(data);
-});
+importScripts("/js/SearchEngine.js");var app=Elm.SearchEngine.init();self.addEventListener("message",function(s){app.ports.inbound.send(s.data)},!1),app.ports.outbound.subscribe(function(s){self.postMessage(s)});

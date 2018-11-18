@@ -8,6 +8,8 @@ import Html.Attributes as Attr
 import Html.Events exposing (on)
 import Json.Decode as Decode
 import Set exposing (..)
+import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
+import List.Extra exposing (unique)
 
 
 ----------------------------
@@ -47,6 +49,7 @@ type CellContent
     | Table TableMeta
     | CustomElement String
     | BlockLinks (List BlockLinkMeta)
+    | Fiches (List String)
     | TextBlock (List TextBlockElement)
     | EmptyCell
 
@@ -100,6 +103,10 @@ type alias BlockLinkMeta =
     }
 
 
+
+--type alias FicheMeta =
+
+
 type TextBlockElement
     = Paragraph (List DocAttribute) (List TextBlockPrimitive)
     | UList (List DocAttribute) (List Li)
@@ -143,6 +150,7 @@ type alias Config msg =
     , containersBkgColors : Bool
     , season : Season
     , pageIndex : Dict String String
+    , fiches : Dict String Fiche
     }
 
 
@@ -381,12 +389,12 @@ addClass class document =
                     Set.insert class id.classes
             }
     in
-    case document of
-        Container nv children ->
-            Container { nv | id = newId nv.id } children
+        case document of
+            Container nv children ->
+                Container { nv | id = newId nv.id } children
 
-        Cell lv ->
-            Cell { lv | id = newId lv.id }
+            Cell lv ->
+                Cell { lv | id = newId lv.id }
 
 
 toogleClass : String -> Document -> Document
@@ -401,12 +409,12 @@ toogleClass class document =
                         Set.insert class id.classes
             }
     in
-    case document of
-        Container nv children ->
-            Container { nv | id = newId nv.id } children
+        case document of
+            Container nv children ->
+                Container { nv | id = newId nv.id } children
 
-        Cell lv ->
-            Cell { lv | id = newId lv.id }
+            Cell lv ->
+                Cell { lv | id = newId lv.id }
 
 
 getAttrs doc =
@@ -435,3 +443,23 @@ addAttrs doc newAttrs =
                         newAttrs ++ attrs
                 }
                 children
+
+
+gatherFichesIds : Document -> List String
+gatherFichesIds document =
+    let
+        helper doc =
+            case doc of
+                Cell { cellContent } ->
+                    case cellContent of
+                        Fiches ids ->
+                            ids
+
+                        _ ->
+                            []
+
+                Container _ children ->
+                    List.concatMap helper children
+    in
+        helper document
+            |> List.Extra.unique

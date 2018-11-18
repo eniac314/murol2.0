@@ -4,6 +4,11 @@ import Derberos.Date.Core exposing (addTimezoneMilliseconds, civilToPosix, newDa
 import Derberos.Date.Utils exposing (numberOfDaysInMonth, numberToMonth)
 import GeneralDirectoryEditor.GeneralDirCommonTypes as Types exposing (..)
 import Time exposing (..)
+import Dict exposing (..)
+import List.Extra exposing (uniqueBy, setIf)
+import Task exposing (..)
+import Auth.AuthPlugin exposing (LogInfo(..))
+import GeneralDirectoryEditor.GeneralDirJson exposing (updateFicheTask)
 
 
 getTFixe tel =
@@ -57,21 +62,21 @@ parseDate s =
             Nothing
 
 
-expiryDateToStr : Time.Zone -> Time.Posix -> String
-expiryDateToStr zone d =
+dateToStr : Time.Zone -> Time.Posix -> String
+dateToStr zone d =
     let
         dateRec =
             posixToCivil (addTimezoneMilliseconds zone d)
     in
-    (String.fromInt dateRec.day
-        |> String.padLeft 2 '0'
-    )
-        ++ "/"
-        ++ (String.fromInt dateRec.month
-                |> String.padLeft 2 '0'
-           )
-        ++ "/"
-        ++ String.fromInt dateRec.year
+        (String.fromInt dateRec.day
+            |> String.padLeft 2 '0'
+        )
+            ++ "/"
+            ++ (String.fromInt dateRec.month
+                    |> String.padLeft 2 '0'
+               )
+            ++ "/"
+            ++ String.fromInt dateRec.year
 
 
 validLinkedDoc { url, label } =
@@ -80,3 +85,104 @@ validLinkedDoc { url, label } =
 
 validLabel { nom, logo, lien } =
     (nom /= "") && (logo /= "") && (lien /= "")
+
+
+extractLabel model mbLabelName =
+    Maybe.andThen
+        (\l ->
+            Dict.get l
+                (model.labels
+                    |> List.map (\l_ -> ( l_.nom, l_ ))
+                    |> Dict.fromList
+                )
+        )
+        mbLabelName
+
+
+appendLabel mbLabel labelList =
+    Maybe.map
+        (\l ->
+            uniqueBy
+                (\l_ ->
+                    .nom l_
+                        ++ .logo l_
+                        ++ .lien l_
+                )
+            <|
+                List.append
+                    labelList
+                    [ l ]
+        )
+        mbLabel
+        |> Maybe.withDefault labelList
+
+
+batchFichesUpdate logInfo fichesToUpdate =
+    case logInfo of
+        LoggedIn { sessionId } ->
+            Cmd.batch <|
+                List.map
+                    (\f ->
+                        Task.attempt (FicheUpdated f) <|
+                            (Time.now
+                                |> Task.andThen
+                                    (\t ->
+                                        let
+                                            datedFb =
+                                                { f | lastEdit = t }
+                                        in
+                                            updateFicheTask
+                                                datedFb
+                                                sessionId
+                                    )
+                            )
+                    )
+                    fichesToUpdate
+
+        _ ->
+            Cmd.none
+
+
+filterAndUpdate model getter setter original new =
+    Dict.foldr
+        (\k f ( newDict, toUpdate ) ->
+            if List.member original (getter f) then
+                let
+                    newVal =
+                        setIf (\l -> l == original) new (getter f)
+
+                    newFiche =
+                        setter f newVal
+                in
+                    ( Dict.insert k newFiche newDict
+                    , newFiche :: toUpdate
+                    )
+            else
+                ( Dict.insert k f newDict, toUpdate )
+        )
+        ( Dict.empty, [] )
+        model.fiches
+
+
+setFicheLabel fiche val =
+    { fiche | label = val }
+
+
+setFicheCat fiche val =
+    { fiche | categories = val }
+
+
+setFicheActiv fiche val =
+    { fiche | natureActiv = val }
+
+
+isValidFiche : Fiche -> Bool
+isValidFiche f =
+    (List.length f.categories >= 1)
+        && (List.length f.natureActiv >= 1)
+        && (f.nomEntite /= "")
+        && (f.adresse /= "")
+        && ((f.telNumber /= Nothing)
+                || (List.length f.responsables >= 1)
+           )
+        && (f.visuel /= "")

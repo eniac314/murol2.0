@@ -41,12 +41,27 @@ editFicheView config model =
         , width fill
         , height fill
         ]
-        [ el
-            [ Font.bold
-            , Font.color grey1
-            , Font.size 18
+        [ row
+            [ width fill ]
+            [ el
+                [ Font.bold
+                , Font.color grey1
+                , Font.size 18
+                ]
+                (text "Modification/création fiche")
+            , if model.ficheBuffer.lastEdit /= Time.millisToPosix 0 then
+                row [ alignRight ]
+                    [ el
+                        [ Font.bold
+                        , Font.color grey1
+                        ]
+                        (text "Date dernière modification: ")
+                    , el []
+                        (text <| dateToStr config.zone model.ficheBuffer.lastEdit)
+                    ]
+              else
+                Element.none
             ]
-            (text "Modification/création fiche")
         , column
             [ height (maximum (config.maxHeight - 120) fill)
             , scrollbarY
@@ -84,11 +99,15 @@ editFicheView config model =
             [ Input.button
                 (buttonStyle True)
                 { onPress = Just (model.externalMsg <| SetRightPanelDisplay PreviewFiche)
-                , label = el [] (text "Retour")
+                , label = el [] (text "Annuler")
                 }
             , Input.button
-                (buttonStyle True)
-                { onPress = Just (model.externalMsg SaveFiche)
+                (buttonStyle (isValidFiche model.ficheBuffer))
+                { onPress =
+                    if isValidFiche model.ficheBuffer then
+                        Just (model.externalMsg SaveFiche)
+                    else
+                        Nothing
                 , label = el [] (text "Sauvegarder fiche")
                 }
             ]
@@ -208,7 +227,11 @@ setNomEntite config model =
             ++ formItemStyle
         )
         [ Input.text
-            (textInputStyle ++ [ width (px 500) ])
+            (textInputStyle
+                ++ [ width (px 500)
+                   , Font.color teal3
+                   ]
+            )
             { onChange =
                 SetNomEntite
             , text =
@@ -218,7 +241,12 @@ setNomEntite config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold, Font.color grey1 ] (text "Nom entité:"))
+                    (row
+                        []
+                        [ el [ Font.bold, Font.color grey1 ] (text "Nom entité")
+                        , redStar
+                        ]
+                    )
             }
         ]
 
@@ -258,7 +286,11 @@ setVisual config model =
             { onPress =
                 Just <| model.externalMsg OpenVisualPicker
             , label =
-                el [] (text "Choisir visuel")
+                row
+                    []
+                    [ el [] (text "Choisir visuel")
+                    , redStar
+                    ]
             }
         ]
 
@@ -290,18 +322,28 @@ setCats config model =
                     ]
                     (Set.toList model.categories
                         |> List.map
-                            (\e -> selectView model.selectedAvailableCat (SelectAvailableCat e) e)
+                            (\e ->
+                                selectView
+                                    False
+                                    model.selectedAvailableCat
+                                    (SelectAvailableCat e)
+                                    e
+                            )
                     )
                 ]
             , column
                 [ spacing 15
                 , alignTop
                 ]
-                [ el [ Font.bold, Font.color grey1 ] (text "Catégories fiche")
+                [ row []
+                    [ el [ Font.bold, Font.color grey1 ] (text "Catégories fiche")
+                    , redStar
+                    ]
                 , Input.text
                     (textInputStyle
                         ++ [ spacingXY 0 15
                            , width (px 180)
+                           , Font.color teal3
                            ]
                     )
                     { onChange =
@@ -328,7 +370,13 @@ setCats config model =
                     ]
                     (model.ficheBuffer.categories
                         |> List.map
-                            (\e -> selectView model.selectedCatInFiche (SelectCatInFiche e) e)
+                            (\e ->
+                                selectView
+                                    True
+                                    model.selectedCatInFiche
+                                    (SelectCatInFiche e)
+                                    e
+                            )
                     )
                 ]
             ]
@@ -418,24 +466,34 @@ setActivs config model =
                     ]
                     (Set.toList model.activites
                         |> List.map
-                            (\e -> selectView model.selectedAvailableActiv (SelectAvailableActiv e) e)
+                            (\e ->
+                                selectView False
+                                    model.selectedAvailableActiv
+                                    (SelectAvailableActiv e)
+                                    e
+                            )
                     )
                 ]
             , column
                 [ spacing 15
                 , alignTop
                 ]
-                [ el [ Font.bold, Font.color grey1 ] (text "Activités fiche")
+                [ row
+                    []
+                    [ el [ Font.bold, Font.color grey1 ] (text "Activités fiche")
+                    , redStar
+                    ]
                 , Input.text
                     (textInputStyle
                         ++ [ spacingXY 0 15
                            , width (px 180)
+                           , Font.color teal3
                            ]
                     )
                     { onChange =
-                        SelectAvailableActiv
+                        SetActivite
                     , text =
-                        model.selectedAvailableActiv
+                        model.activBuffer
                             |> Maybe.withDefault ""
                     , placeholder =
                         Just <|
@@ -456,7 +514,12 @@ setActivs config model =
                     ]
                     (model.ficheBuffer.natureActiv
                         |> List.map
-                            (\e -> selectView model.selectedActivInFiche (SelectActivInFiche e) e)
+                            (\e ->
+                                selectView True
+                                    model.selectedActivInFiche
+                                    (SelectActivInFiche e)
+                                    e
+                            )
                     )
                 ]
             ]
@@ -464,28 +527,59 @@ setActivs config model =
             [ spacing 15
               --, alignTop
             ]
-            [ Input.button
-                (buttonStyle (model.selectedAvailableActiv /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> AddActivToFiche)
-                        model.selectedAvailableActiv
-                , label = el [] (text "Ajouter activité")
-                }
-            , Input.button
-                (buttonStyle (model.selectedActivInFiche /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> RemoveActivFromFiche)
-                        model.selectedActivInFiche
-                , label = el [] (text "Supprimer activité")
-                }
-            , Input.button
-                (buttonStyle (model.selectedActivInFiche /= Nothing))
-                { onPress =
-                    Maybe.map (\_ -> RemoveActivFromFiche)
-                        model.selectedActivInFiche
-                , label = el [] (text "Modifier activité")
-                }
-            ]
+            (let
+                canAdd =
+                    case ( model.selectedAvailableActiv, model.activBuffer ) of
+                        ( Just avActiv, Just newActiv ) ->
+                            avActiv == newActiv
+
+                        ( Nothing, Just newActiv ) ->
+                            True
+
+                        _ ->
+                            False
+
+                canRemove =
+                    (model.selectedActivInFiche /= Nothing)
+                        && (model.selectedAvailableActiv == Nothing)
+
+                canModify =
+                    case ( model.selectedAvailableActiv, model.activBuffer ) of
+                        ( Just avActiv, Just newActiv ) ->
+                            avActiv /= newActiv
+
+                        _ ->
+                            False
+             in
+                [ Input.button
+                    (buttonStyle canAdd)
+                    { onPress =
+                        if canAdd then
+                            Just AddActivToFiche
+                        else
+                            Nothing
+                    , label = el [] (text "Ajouter activité")
+                    }
+                , Input.button
+                    (buttonStyle canRemove)
+                    { onPress =
+                        if canRemove then
+                            Just RemoveActivFromFiche
+                        else
+                            Nothing
+                    , label = el [] (text "Supprimer activité")
+                    }
+                , Input.button
+                    (buttonStyle canModify)
+                    { onPress =
+                        if canModify then
+                            Just ModifyActiv
+                        else
+                            Nothing
+                    , label = el [] (text "Modifier activité")
+                    }
+                ]
+            )
         ]
 
 
@@ -541,6 +635,7 @@ setLabels config model =
                             |> List.map
                                 (\e ->
                                     selectView
+                                        False
                                         model.selectedAvailableLabel
                                         (SelectAvailableLabel e)
                                         e
@@ -564,7 +659,9 @@ setLabels config model =
                             |> List.map .nom
                             |> List.map
                                 (\e ->
-                                    selectView model.selectedLabelInFiche
+                                    selectView
+                                        True
+                                        model.selectedLabelInFiche
                                         (SelectLabelInFiche e)
                                         e
                                 )
@@ -584,6 +681,7 @@ setLabels config model =
                         (textInputStyle
                             ++ [ spacingXY 0 15
                                , width (px 180)
+                               , Font.color teal3
                                ]
                         )
                         { onChange =
@@ -607,6 +705,7 @@ setLabels config model =
                         (textInputStyle
                             ++ [ spacingXY 0 15
                                , width (px 180)
+                               , Font.color teal3
                                ]
                         )
                         { onChange =
@@ -633,54 +732,79 @@ setLabels config model =
                 [ spacing 15
                 , width fill
                 ]
-                [ Input.button
-                    (buttonStyle (model.selectedAvailableLabel /= Nothing))
-                    { onPress =
-                        Maybe.map (\_ -> AddLabelToFiche)
-                            model.selectedAvailableLabel
-                    , label = el [] (text "Ajouter label")
-                    }
-                , Input.button
-                    (buttonStyle (model.selectedLabelInFiche /= Nothing))
-                    { onPress =
-                        Maybe.map (\_ -> RemoveLabelFromFiche)
-                            model.selectedLabelInFiche
-                    , label = el [] (text "Supprimer label")
-                    }
-                , el
-                    [ paddingEach
-                        { top = 0
-                        , right = 0
-                        , left = 103
-                        , bottom = 0
-                        }
-                    ]
-                    (Input.button
-                        ([]
-                            ++ buttonStyle
-                                (Maybe.map validLabel model.labelBuffer
-                                    |> (\res -> res == Just True)
-                                )
-                        )
+                (let
+                    canAdd =
+                        case
+                            ( extractLabel model model.selectedAvailableLabel
+                            , model.labelBuffer
+                            )
+                        of
+                            ( Just avLabel, Just newLabel ) ->
+                                avLabel == newLabel
+
+                            ( Nothing, Just newLabel ) ->
+                                True
+
+                            _ ->
+                                False
+
+                    canRemove =
+                        (model.selectedLabelInFiche /= Nothing)
+                            && (model.selectedAvailableLabel == Nothing)
+                 in
+                    [ Input.button
+                        (buttonStyle canAdd)
                         { onPress =
-                            Maybe.map validLabel model.labelBuffer
-                                |> Maybe.map
-                                    (\_ ->
-                                        if model.selectedAvailableLabel /= Nothing then
-                                            ModifyLabel
-                                        else
-                                            CreateNewLabel
-                                    )
-                        , label =
-                            el []
-                                (if model.selectedAvailableLabel /= Nothing then
-                                    text "Modifier label"
-                                 else
-                                    text "Créer label"
-                                )
+                            if canAdd then
+                                Just AddLabelToFiche
+                            else
+                                Nothing
+                        , label = el [] (text "Ajouter label")
                         }
-                    )
-                ]
+                    , Input.button
+                        (buttonStyle canRemove)
+                        { onPress =
+                            if canRemove then
+                                Just RemoveLabelFromFiche
+                            else
+                                Nothing
+                        , label = el [] (text "Supprimer label")
+                        }
+                    , el
+                        [ paddingEach
+                            { top = 0
+                            , right = 0
+                            , left = 103
+                            , bottom = 0
+                            }
+                        ]
+                        (Input.button
+                            ([]
+                                ++ buttonStyle
+                                    (Maybe.map validLabel model.labelBuffer
+                                        |> (\res -> res == Just True)
+                                    )
+                            )
+                            { onPress =
+                                Maybe.map validLabel model.labelBuffer
+                                    |> Maybe.map
+                                        (\_ ->
+                                            if model.selectedAvailableLabel /= Nothing then
+                                                ModifyLabel
+                                            else
+                                                CreateNewLabel
+                                        )
+                            , label =
+                                el []
+                                    (if model.selectedAvailableLabel /= Nothing then
+                                        text "Modifier label"
+                                     else
+                                        text "Créer label"
+                                    )
+                            }
+                        )
+                    ]
+                )
         ]
 
 
@@ -731,6 +855,7 @@ setOt config model =
         [ Input.text
             (textInputStyle
                 ++ [ width (px 100)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -750,6 +875,7 @@ setOt config model =
         , Input.text
             (textInputStyle
                 ++ [ width (px 100)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -787,6 +913,7 @@ setRank config model =
         [ Input.text
             (textInputStyle
                 ++ [ width (px 100)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -805,6 +932,7 @@ setRank config model =
         , Input.text
             (textInputStyle
                 ++ [ width (px 100)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -839,6 +967,7 @@ setAdresse config model =
         [ Input.text
             (textInputStyle
                 ++ [ width (px 400)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -850,7 +979,12 @@ setAdresse config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold, Font.color grey1 ] (text "Adresse / Siège social"))
+                    (row
+                        []
+                        [ el [ Font.bold, Font.color grey1 ] (text "Adresse / Siège social")
+                        , redStar
+                        ]
+                    )
             }
         ]
 
@@ -869,6 +1003,7 @@ setTel config model =
         [ Input.text
             (textInputStyle
                 ++ [ width (px 120)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -881,11 +1016,18 @@ setTel config model =
             , label =
                 Input.labelLeft
                     [ centerY ]
-                    (el [ Font.bold, Font.color grey1 ] (text "Tel. fixe"))
+                    (row
+                        []
+                        [ el [ Font.bold, Font.color grey1 ] (text "Tel. fixe")
+                        , redStar
+                        ]
+                    )
             }
+        , text "et / ou"
         , Input.text
             (textInputStyle
                 ++ [ width (px 120)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -915,6 +1057,7 @@ setFax config model =
     Input.text
         (textInputStyle
             ++ [ width (px 120)
+               , Font.color teal3
                ]
         )
         { onChange =
@@ -959,7 +1102,8 @@ setEmails config model =
                 (model.ficheBuffer.email
                     |> List.map
                         (\s ->
-                            selectView model.selectedEmail
+                            selectView True
+                                model.selectedEmail
                                 (SelectEmailInFiche s)
                                 s
                         )
@@ -998,6 +1142,7 @@ setEmails config model =
                     (textInputStyle
                         ++ [ width (px 180)
                            , spacingXY 0 15
+                           , Font.color teal3
                            ]
                     )
                     { onChange =
@@ -1065,6 +1210,7 @@ setSite config model =
         [ Input.text
             (textInputStyle
                 ++ [ width (px 180)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -1085,6 +1231,7 @@ setSite config model =
         , Input.text
             (textInputStyle
                 ++ [ width (px 180)
+                   , Font.color teal3
                    ]
             )
             { onChange =
@@ -1135,7 +1282,8 @@ setResponsables config model =
                     |> List.map (\r -> ( r, .nom r ))
                     |> List.map
                         (\( r, e ) ->
-                            selectView (Maybe.map .nom model.selectedResp)
+                            selectView True
+                                (Maybe.map .nom model.selectedResp)
                                 (SelectRespInFiche r)
                                 e
                         )
@@ -1146,6 +1294,7 @@ setResponsables config model =
             [ Input.text
                 (textInputStyle
                     ++ [ width (px 180)
+                       , Font.color teal3
                        ]
                 )
                 { onChange =
@@ -1167,6 +1316,7 @@ setResponsables config model =
             , Input.text
                 (textInputStyle
                     ++ [ width (px 180)
+                       , Font.color teal3
                        ]
                 )
                 { onChange =
@@ -1188,6 +1338,7 @@ setResponsables config model =
             , Input.text
                 (textInputStyle
                     ++ [ width (px 180)
+                       , Font.color teal3
                        ]
                 )
                 { onChange =
@@ -1210,6 +1361,7 @@ setResponsables config model =
             , Input.text
                 (textInputStyle
                     ++ [ width (px 180)
+                       , Font.color teal3
                        ]
                 )
                 { onChange =
@@ -1320,7 +1472,8 @@ setDescriptions config model =
                 (model.ficheBuffer.description
                     |> List.map
                         (\d ->
-                            selectView model.selectedDescr
+                            selectView True
+                                model.selectedDescr
                                 (SelectDescrInFiche d)
                                 d
                         )
@@ -1336,7 +1489,9 @@ setDescriptions config model =
                             |> String.fromInt
                        )
                 , Input.multiline
-                    [ width (px 400) ]
+                    [ width (px 400)
+                    , Font.color teal3
+                    ]
                     { onChange = SetDescription
                     , text =
                         model.descrBuffer
@@ -1470,6 +1625,7 @@ setLinkedDocs config model =
                     (textInputStyle
                         ++ [ width (px 220)
                            , spacingXY 0 15
+                           , Font.color teal3
                            ]
                     )
                     { onChange =
@@ -1492,6 +1648,7 @@ setLinkedDocs config model =
                     (textInputStyle
                         ++ [ width (px 220)
                            , spacingXY 0 15
+                           , Font.color teal3
                            ]
                     )
                     { onChange =
@@ -1529,7 +1686,7 @@ setLinkedDocs config model =
                                     |> Maybe.withDefault ""
 
                             Just t ->
-                                expiryDateToStr config.zone t
+                                dateToStr config.zone t
                     , placeholder =
                         Just <|
                             Input.placeholder
@@ -1639,7 +1796,7 @@ linkedDocView externalMsg zone selected ({ url, descr, label, expiryDate } as ld
                 |> Maybe.withDefault ""
 
         expiryDateStr =
-            Maybe.map (expiryDateToStr zone) expiryDate
+            Maybe.map (dateToStr zone) expiryDate
 
         key =
             Maybe.map hashLinkedDoc selected
@@ -1740,8 +1897,16 @@ setOuverture config model =
 ----------------------
 
 
-selectView : Maybe String -> Msg -> String -> Element Msg
-selectView selected handler entry =
+redStar =
+    el
+        [ Font.color red4
+        , Font.size 18
+        ]
+        (text "*")
+
+
+selectView : Bool -> Maybe String -> Msg -> String -> Element Msg
+selectView isFicheData selected handler entry =
     Keyed.el
         [ width fill
         , paddingXY 5 5
@@ -1752,7 +1917,10 @@ selectView selected handler entry =
                 grey4
           else
             noAttr
-        , Font.color grey2
+        , if isFicheData then
+            Font.color teal3
+          else
+            Font.color grey2
         ]
         ( entry, text entry )
 

@@ -79,6 +79,7 @@ type Msg
       ---
     | SelectActivInFiche String
     | SelectAvailableActiv String
+    | SetActivite String
     | ModifyActiv
     | AddActivToFiche
     | RemoveActivFromFiche
@@ -156,6 +157,7 @@ type Msg
       ----------
       -- Misc --
       ----------
+    | SetInitialSeed Time.Posix
     | SetRightPanelDisplay RightPanelDisplay
     | NoOp
 
