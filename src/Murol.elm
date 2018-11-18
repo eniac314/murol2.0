@@ -844,11 +844,12 @@ getPages =
             Encode.object
                 []
                 |> Http.jsonBody
-
-        request =
-            Http.post "/getPageTree.php" body Decode.value
     in
-        Http.send LoadPages request
+        Http.post
+            { url = "getPageTree.php"
+            , body = body
+            , expect = Http.expectJson LoadPages Decode.value
+            }
 
 
 getContent : ( String, String, String ) -> Cmd Msg
@@ -858,11 +859,15 @@ getContent ( path, contentId, name ) =
             Encode.object
                 [ ( "contentId", Encode.string contentId ) ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "/getContent.php" body Decode.value
     in
-        Http.send (LoadContent ( path, contentId, name )) request
+        Http.post
+            { url = "getContent.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    (LoadContent ( path, contentId, name ))
+                    Decode.value
+            }
 
 
 

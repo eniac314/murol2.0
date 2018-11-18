@@ -89,12 +89,12 @@ update msg model =
                 wrds =
                     String.words lower
             in
-            ( { model
-                | searchStr = lower
-                , searchWords = wrds
-              }
-            , Cmd.none
-            )
+                ( { model
+                    | searchStr = lower
+                    , searchWords = wrds
+                  }
+                , Cmd.none
+                )
 
         Search ->
             ( model
@@ -140,10 +140,10 @@ search meta key =
                 score =
                     sift3Distance w key
             in
-            if score < 1.5 then
-                ( k, 15 - (round score * 10) ) :: acc
-            else
-                acc
+                if score < 1.5 then
+                    ( k, 15 - (round score * 10) ) :: acc
+                else
+                    acc
 
         trimmed =
             List.foldr
@@ -159,19 +159,19 @@ search meta key =
                 Just ( n, keySet ) ->
                     Just ( n + 5, Set.insert k keySet )
     in
-    ( List.map Tuple.first trimmed
-    , List.foldr
-        (\( k, m ) acc ->
-            case Dict.get k meta of
-                Nothing ->
-                    acc
+        ( List.map Tuple.first trimmed
+        , List.foldr
+            (\( k, m ) acc ->
+                case Dict.get k meta of
+                    Nothing ->
+                        acc
 
-                Just vs ->
-                    List.foldr (\uuid acc_ -> Dict.update uuid (incrOccur k m) acc_) acc vs
+                    Just vs ->
+                        List.foldr (\uuid acc_ -> Dict.update uuid (incrOccur k m) acc_) acc vs
+            )
+            Dict.empty
+            trimmed
         )
-        Dict.empty
-        trimmed
-    )
 
 
 searchM : Metadata -> List String -> ( List String, Dict String ( Int, Set String ) )
@@ -191,7 +191,7 @@ searchM meta keys =
                 onlyRight k v2 acc =
                     Dict.insert k v2 acc
             in
-            Dict.merge onlyLeft inBoth onlyRight oldDict newDict Dict.empty
+                Dict.merge onlyLeft inBoth onlyRight oldDict newDict Dict.empty
 
         ( keySet, combRes ) =
             List.foldr
@@ -201,7 +201,7 @@ searchM meta keys =
                 ( Set.empty, Dict.empty )
                 results
     in
-    ( Set.toList keySet, combRes )
+        ( Set.toList keySet, combRes )
 
 
 sift3Distance : String -> String -> Float
@@ -213,16 +213,16 @@ sift3Distance s1 s2 =
         s2Len =
             String.length s2
     in
-    if s1Len == 0 then
-        toFloat s2Len
-    else if s2Len == 0 then
-        toFloat s1Len
-    else
-        let
-            common =
-                lcs (String.toList s1) (String.toList s2)
-        in
-        (toFloat (s1Len + s2Len) / 2) - toFloat (List.length common)
+        if s1Len == 0 then
+            toFloat s2Len
+        else if s2Len == 0 then
+            toFloat s1Len
+        else
+            let
+                common =
+                    lcs (String.toList s1) (String.toList s2)
+            in
+                (toFloat (s1Len + s2Len) / 2) - toFloat (List.length common)
 
 
 lcs : List a -> List a -> List a
@@ -255,7 +255,7 @@ lcsHelper xs ys position memo =
                         (get nextYPos newMemo)
                         |> consIfEqual x y
             in
-            Dict.insert position best newMemo
+                Dict.insert position best newMemo
 
         _ ->
             memo
@@ -359,11 +359,15 @@ getKeywords =
             Encode.object
                 []
                 |> Http.jsonBody
-
-        request =
-            Http.post "/getKeywords.php" body decodeKeywords
     in
-    Http.send LoadKeywords request
+        Http.post
+            { url = "/getKeywords.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    LoadKeywords
+                    decodeKeywords
+            }
 
 
 decodeKeywords : Decode.Decoder (Set.Set ( String, String ))

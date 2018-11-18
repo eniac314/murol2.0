@@ -293,7 +293,7 @@ update config msg model =
         ( newModel, cmds, mbPluginAction ) =
             internalUpdate config msg model
     in
-    ( newModel, Cmd.map model.externalMsg cmds, mbPluginAction )
+        ( newModel, Cmd.map model.externalMsg cmds, mbPluginAction )
 
 
 internalUpdate : { a | logInfo : LogInfo } -> Msg -> Model msg -> ( Model msg, Cmd Msg, Maybe a )
@@ -320,10 +320,10 @@ internalUpdate config msg model =
                         , selectedFsItem = Nothing
                     }
             in
-            ( updateFilesys mode newModel f
-            , Cmd.none
-            , Nothing
-            )
+                ( updateFilesys mode newModel f
+                , Cmd.none
+                , Nothing
+                )
 
         GoNext mode ->
             case model.lastLocation of
@@ -345,10 +345,10 @@ internalUpdate config msg model =
                                 , selectedFsItem = Nothing
                             }
                     in
-                    ( updateFilesys mode newModel f
-                    , Cmd.none
-                    , Nothing
-                    )
+                        ( updateFilesys mode newModel f
+                        , Cmd.none
+                        , Nothing
+                        )
 
         GoPrev mode ->
             let
@@ -369,10 +369,10 @@ internalUpdate config msg model =
                         , selectedFsItem = Nothing
                     }
             in
-            ( updateFilesys mode newModel f
-            , Cmd.none
-            , Nothing
-            )
+                ( updateFilesys mode newModel f
+                , Cmd.none
+                , Nothing
+                )
 
         GoTo mode path ->
             let
@@ -391,10 +391,10 @@ internalUpdate config msg model =
                         , selectedFsItem = Nothing
                     }
             in
-            ( updateFilesys mode newModel f
-            , Cmd.none
-            , Nothing
-            )
+                ( updateFilesys mode newModel f
+                , Cmd.none
+                , Nothing
+                )
 
         SelectFsItem mode fsItem ->
             if model.selectedFsItem == Just fsItem then
@@ -598,30 +598,30 @@ internalUpdate config msg model =
                                             newFilesys
                                     )
                     in
-                    ( { model
-                        | mbIFilesys = mbIFilesys
-                        , mbDFilesys = mbDFilesys
-                        , imageFiles = newImageFiles
-                        , docFiles = newDocFiles
-                        , root = root
-                        , loadingStatus =
-                            case ( newImageFiles, newDocFiles ) of
-                                ( Just _, Just _ ) ->
-                                    ToolLoadingSuccess
+                        ( { model
+                            | mbIFilesys = mbIFilesys
+                            , mbDFilesys = mbDFilesys
+                            , imageFiles = newImageFiles
+                            , docFiles = newDocFiles
+                            , root = root
+                            , loadingStatus =
+                                case ( newImageFiles, newDocFiles ) of
+                                    ( Just _, Just _ ) ->
+                                        ToolLoadingSuccess
 
-                                _ ->
-                                    model.loadingStatus
-                        , lockedFsItems =
-                            Maybe.map (\f -> List.Extra.remove f model.lockedFsItems) mbToUnlock
-                                |> Maybe.withDefault model.lockedFsItems
-                      }
-                    , newLog
-                        AddLog
-                        log
-                        Nothing
-                        False
-                    , Nothing
-                    )
+                                    _ ->
+                                        model.loadingStatus
+                            , lockedFsItems =
+                                Maybe.map (\f -> List.Extra.remove f model.lockedFsItems) mbToUnlock
+                                    |> Maybe.withDefault model.lockedFsItems
+                          }
+                        , newLog
+                            AddLog
+                            log
+                            Nothing
+                            False
+                        , Nothing
+                        )
 
                 Err e ->
                     ( { model
@@ -647,23 +647,23 @@ internalUpdate config msg model =
                 uploadDone =
                     List.all identity (List.map .success files)
             in
-            ( { model
-                | filesToUpload = files
-                , canUpload = True
-                , needToUpload =
-                    if uploadDone then
-                        False
-                    else
-                        model.needToUpload
-              }
-            , if uploadDone then
-                cmdIfLogged
-                    config.logInfo
-                    (getFileList (modeRoot mode model.root))
-              else
-                Cmd.none
-            , Nothing
-            )
+                ( { model
+                    | filesToUpload = files
+                    , canUpload = True
+                    , needToUpload =
+                        if uploadDone then
+                            False
+                        else
+                            model.needToUpload
+                  }
+                , if uploadDone then
+                    cmdIfLogged
+                        config.logInfo
+                        (getFileList (modeRoot mode model.root))
+                  else
+                    Cmd.none
+                , Nothing
+                )
 
         UploadFiles ->
             ( { model | needToUpload = True }
@@ -684,14 +684,14 @@ internalUpdate config msg model =
                         LogsDisplay ->
                             FilesysDisplay
             in
-            ( { model
-                | mainPanelDisplay = mainPanelDisplay
-                , canUpload = False
-                , needToUpload = False
-              }
-            , Cmd.none
-            , Nothing
-            )
+                ( { model
+                    | mainPanelDisplay = mainPanelDisplay
+                    , canUpload = False
+                    , needToUpload = False
+                  }
+                , Cmd.none
+                , Nothing
+                )
 
         SetImageUploadType ut ->
             ( { model
@@ -749,17 +749,17 @@ internalUpdate config msg model =
                     , filesize = data.filesize
                     }
             in
-            ( { model
-                | mbImageFromFile = Just newImage
-                , imageControllerMode = Editor
-                , mbOriImageWidth = Just data.width
-                , mbOriImageHeight = Just data.height
-                , mbOriFileSize = Just data.filesize
-                , needToResize = False
-              }
-            , Cmd.none
-            , Nothing
-            )
+                ( { model
+                    | mbImageFromFile = Just newImage
+                    , imageControllerMode = Editor
+                    , mbOriImageWidth = Just data.width
+                    , mbOriImageHeight = Just data.height
+                    , mbOriFileSize = Just data.filesize
+                    , needToResize = False
+                  }
+                , Cmd.none
+                , Nothing
+                )
 
         ImageRead data ->
             let
@@ -771,16 +771,16 @@ internalUpdate config msg model =
                     , filesize = data.filesize
                     }
             in
-            ( { model
-                | mbImageFromFile = Just newImage
-                , imageControllerMode = Editor
-                , needToResize = False
-                , needToRotate = False
-                , canResize = False
-              }
-            , Cmd.none
-            , Nothing
-            )
+                ( { model
+                    | mbImageFromFile = Just newImage
+                    , imageControllerMode = Editor
+                    , needToResize = False
+                    , needToRotate = False
+                    , canResize = False
+                  }
+                , Cmd.none
+                , Nothing
+                )
 
         UploadResult (Ok ()) ->
             ( model
@@ -835,17 +835,17 @@ internalUpdate config msg model =
                         desiredHeight =
                             desiredWidth / ratio
                     in
-                    ( { model
-                        | sliderValue = n
-                        , desiredWidth =
-                            Just <| round desiredWidth
-                        , desiredHeight =
-                            Just <| round desiredHeight
-                        , canResize = True
-                      }
-                    , Cmd.none
-                    , Nothing
-                    )
+                        ( { model
+                            | sliderValue = n
+                            , desiredWidth =
+                                Just <| round desiredWidth
+                            , desiredHeight =
+                                Just <| round desiredHeight
+                            , canResize = True
+                          }
+                        , Cmd.none
+                        , Nothing
+                        )
 
                 _ ->
                     ( model, Cmd.none, Nothing )
@@ -900,12 +900,12 @@ internalUpdate config msg model =
                         LogsDisplay ->
                             FilesysDisplay
             in
-            ( { model
-                | mainPanelDisplay = mainPanelDisplay
-              }
-            , Cmd.none
-            , Nothing
-            )
+                ( { model
+                    | mainPanelDisplay = mainPanelDisplay
+                  }
+                , Cmd.none
+                , Nothing
+                )
 
         ----------
         -- Misc --
@@ -975,82 +975,82 @@ mainInterface config model =
         iconSize =
             22
     in
-    row
-        [ spacing 15
-        , width fill
-        , Background.color (rgb 0.95 0.95 0.95)
-        , paddingXY 15 10
-        ]
-        [ if config.mode == Full then
-            Input.button
-                (toogleButtonStyle (model.root == DocsRoot) True)
-                { onPress =
-                    Just <| SetRoot DocsRoot
-                , label =
-                    row [ spacing 10 ]
-                        [ html <| Icons.fileText iconSize
-                        ]
-                }
-          else
-            Element.none
-        , if config.mode == Full then
-            Input.button
-                (toogleButtonStyle (model.root == ImagesRoot) True)
-                { onPress =
-                    Just <| SetRoot ImagesRoot
-                , label =
-                    row [ spacing 10 ]
-                        [ html <| Icons.imageIcon iconSize
-                        ]
-                }
-          else
-            Element.none
-        , Input.button (buttonStyle True)
-            { onPress =
-                Just <| GoPrev config.mode
-            , label =
-                row [ spacing 10 ]
-                    [ html <| Icons.chevronLeft iconSize
-                    ]
-            }
-        , Input.button (buttonStyle (model.lastLocation /= Nothing))
-            { onPress =
-                if model.lastLocation /= Nothing then
-                    Just <| GoNext config.mode
-                else
-                    Nothing
-            , label =
-                row [ spacing 10 ]
-                    [ html <| Icons.chevronRight iconSize
-                    ]
-            }
-        , Input.button (buttonStyle True)
-            { onPress =
-                Just <| GoHome config.mode
-            , label =
-                row [ spacing 10 ]
-                    [ html <| Icons.home iconSize
-                    ]
-            }
-        , clickablePath config model
-        , case config.mode of
-            ReadOnly _ ->
-                Element.none
-
-            _ ->
+        row
+            [ spacing 15
+            , width fill
+            , Background.color (rgb 0.95 0.95 0.95)
+            , paddingXY 15 10
+            ]
+            [ if config.mode == Full then
                 Input.button
-                    (toogleButtonStyle
-                        (model.mainPanelDisplay == LogsDisplay)
-                        (model.mainPanelDisplay /= UploadDisplay)
-                    )
+                    (toogleButtonStyle (model.root == DocsRoot) True)
                     { onPress =
-                        Just <| ToogleLogsView
+                        Just <| SetRoot DocsRoot
                     , label =
                         row [ spacing 10 ]
-                            [ html <| Icons.list iconSize
+                            [ html <| Icons.fileText iconSize
                             ]
                     }
-        ]
+              else
+                Element.none
+            , if config.mode == Full then
+                Input.button
+                    (toogleButtonStyle (model.root == ImagesRoot) True)
+                    { onPress =
+                        Just <| SetRoot ImagesRoot
+                    , label =
+                        row [ spacing 10 ]
+                            [ html <| Icons.imageIcon iconSize
+                            ]
+                    }
+              else
+                Element.none
+            , Input.button (buttonStyle True)
+                { onPress =
+                    Just <| GoPrev config.mode
+                , label =
+                    row [ spacing 10 ]
+                        [ html <| Icons.chevronLeft iconSize
+                        ]
+                }
+            , Input.button (buttonStyle (model.lastLocation /= Nothing))
+                { onPress =
+                    if model.lastLocation /= Nothing then
+                        Just <| GoNext config.mode
+                    else
+                        Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ html <| Icons.chevronRight iconSize
+                        ]
+                }
+            , Input.button (buttonStyle True)
+                { onPress =
+                    Just <| GoHome config.mode
+                , label =
+                    row [ spacing 10 ]
+                        [ html <| Icons.home iconSize
+                        ]
+                }
+            , clickablePath config model
+            , case config.mode of
+                ReadOnly _ ->
+                    Element.none
+
+                _ ->
+                    Input.button
+                        (toogleButtonStyle
+                            (model.mainPanelDisplay == LogsDisplay)
+                            (model.mainPanelDisplay /= UploadDisplay)
+                        )
+                        { onPress =
+                            Just <| ToogleLogsView
+                        , label =
+                            row [ spacing 10 ]
+                                [ html <| Icons.list iconSize
+                                ]
+                        }
+            ]
 
 
 clickablePath : { a | mode : Mode } -> Model msg -> Element Msg
@@ -1074,21 +1074,21 @@ clickablePath config model =
                 ]
                 (text f)
     in
-    wrappedRow
-        [ width fill
-        , Background.color (rgb 1 1 1)
-        , padding 4
-        , Border.rounded 5
-        ]
-        (Maybe.map extractFsItem (getCurrentFilesys config.mode model)
-            |> Maybe.map getPath
-            |> Maybe.withDefault []
-            |> List.reverse
-            |> getEveryPaths []
-            |> List.map fsItemView
-            |> List.intersperse (text "/")
-            |> (\res -> text "/" :: res)
-        )
+        wrappedRow
+            [ width fill
+            , Background.color (rgb 1 1 1)
+            , padding 4
+            , Border.rounded 5
+            ]
+            (Maybe.map extractFsItem (getCurrentFilesys config.mode model)
+                |> Maybe.map getPath
+                |> Maybe.withDefault []
+                |> List.reverse
+                |> getEveryPaths []
+                |> List.map fsItemView
+                |> List.intersperse (text "/")
+                |> (\res -> text "/" :: res)
+            )
 
 
 sidePanelView : { a | mode : Mode } -> Model msg -> Element Msg
@@ -1146,18 +1146,18 @@ sidePanelView config model =
                 folderInfo =
                     compileFolderInfo fsItem
             in
-            column [ spacing 15 ]
-                [ el [ Font.center ]
-                    (text <| Filesize.format folderInfo.size)
-                , el [ Font.center ]
-                    (text <|
-                        "Nbr fichiers: "
-                            ++ String.fromInt folderInfo.nbrFiles
-                    )
-                , text <|
-                    "Nbr dossiers: "
-                        ++ String.fromInt folderInfo.nbrFolders
-                ]
+                column [ spacing 15 ]
+                    [ el [ Font.center ]
+                        (text <| Filesize.format folderInfo.size)
+                    , el [ Font.center ]
+                        (text <|
+                            "Nbr fichiers: "
+                                ++ String.fromInt folderInfo.nbrFiles
+                        )
+                    , text <|
+                        "Nbr dossiers: "
+                            ++ String.fromInt folderInfo.nbrFolders
+                    ]
 
         regFilePreviewPanel meta =
             Element.none
@@ -1317,50 +1317,50 @@ sidePanelView config model =
                     Element.none
                 ]
     in
-    column
-        [ if
-            config.mode
-                == ReadOnly DocsRoot
-                || (model.mainPanelDisplay == UploadDisplay && config.mode /= Full)
-          then
-            width (px 180)
-          else
-            width (px 330)
-        , padding 15
-        , alignTop
-        , Background.color (rgb 0.95 0.95 0.95)
-        , height fill
-        , spacing 15
-        , clip
-        ]
-        (case model.mainPanelDisplay of
-            UploadDisplay ->
-                []
+        column
+            [ if
+                config.mode
+                    == ReadOnly DocsRoot
+                    || (model.mainPanelDisplay == UploadDisplay && config.mode /= Full)
+              then
+                width (px 180)
+              else
+                width (px 330)
+            , padding 15
+            , alignTop
+            , Background.color (rgb 0.95 0.95 0.95)
+            , height fill
+            , spacing 15
+            , clip
+            ]
+            (case model.mainPanelDisplay of
+                UploadDisplay ->
+                    []
 
-            _ ->
-                case model.selectedFsItem of
-                    Nothing ->
-                        [ noSelectionControlsPanel ]
+                _ ->
+                    case model.selectedFsItem of
+                        Nothing ->
+                            [ noSelectionControlsPanel ]
 
-                    Just fsItem ->
-                        case fsItem of
-                            Folder meta _ ->
-                                [ selectionControlsPanel
-                                , folderInfoPanel fsItem
-                                ]
+                        Just fsItem ->
+                            case fsItem of
+                                Folder meta _ ->
+                                    [ selectionControlsPanel
+                                    , folderInfoPanel fsItem
+                                    ]
 
-                            File meta ->
-                                case meta.fileType of
-                                    ImageFile imgSize ->
-                                        [ selectionControlsPanel
-                                        , imagePreviewPanel meta imgSize
-                                        ]
+                                File meta ->
+                                    case meta.fileType of
+                                        ImageFile imgSize ->
+                                            [ selectionControlsPanel
+                                            , imagePreviewPanel meta imgSize
+                                            ]
 
-                                    RegFile ->
-                                        [ selectionControlsPanel
-                                        , regFilePreviewPanel meta
-                                        ]
-        )
+                                        RegFile ->
+                                            [ selectionControlsPanel
+                                            , regFilePreviewPanel meta
+                                            ]
+            )
 
 
 filesysView : { a | mode : Mode } -> Model msg -> Element Msg
@@ -1496,43 +1496,43 @@ filesysView config model =
                 Folder meta _ ->
                     folderView fsItem meta
     in
-    case getCurrentFilesys config.mode model of
-        Nothing ->
-            el [ alignTop ] (text "Erreur système de fichier")
+        case getCurrentFilesys config.mode model of
+            Nothing ->
+                el [ alignTop ] (text "Erreur système de fichier")
 
-        Just filesys ->
-            case extractFsItem filesys of
-                File meta ->
-                    fileView (File meta) meta
+            Just filesys ->
+                case extractFsItem filesys of
+                    File meta ->
+                        fileView (File meta) meta
 
-                Folder meta contents ->
-                    column
-                        [ scrollbarY
-                        , height fill
-                        , width fill
-                        , alignTop
-                        , padding 15
-                        ]
-                        [ paragraph
-                            [ spacing 5
+                    Folder meta contents ->
+                        column
+                            [ scrollbarY
+                            , height fill
+                            , width fill
+                            , alignTop
+                            , padding 15
                             ]
-                            (List.partition
-                                (\f ->
-                                    case f of
-                                        File _ ->
-                                            True
+                            [ paragraph
+                                [ spacing 5
+                                ]
+                                (List.partition
+                                    (\f ->
+                                        case f of
+                                            File _ ->
+                                                True
 
-                                        _ ->
-                                            False
+                                            _ ->
+                                                False
+                                    )
+                                    contents
+                                    |> (\( files, folders ) ->
+                                            List.sortBy getName folders
+                                                ++ List.sortBy getName files
+                                       )
+                                    |> List.map contentView
                                 )
-                                contents
-                                |> (\( files, folders ) ->
-                                        List.sortBy getName folders
-                                            ++ List.sortBy getName files
-                                   )
-                                |> List.map contentView
-                            )
-                        ]
+                            ]
 
 
 logsView : { a | mode : Mode, zone : Zone } -> Model msg -> Element Msg
@@ -1689,30 +1689,29 @@ uploadView config model =
                      else
                         text "pret"
                     )
-
-                --, el [] (text <| String.fromFloat total)
+                  --, el [] (text <| String.fromFloat total)
                 ]
     in
-    column
-        [ scrollbarY
-        , height fill
-        , width fill
-        , alignTop
-        , padding 15
-        , Font.family
-            [ Font.typeface "Arial" ]
-        ]
-        [ case model.root of
-            ImagesRoot ->
-                imagesUploadView
+        column
+            [ scrollbarY
+            , height fill
+            , width fill
+            , alignTop
+            , padding 15
+            , Font.family
+                [ Font.typeface "Arial" ]
+            ]
+            [ case model.root of
+                ImagesRoot ->
+                    imagesUploadView
 
-            DocsRoot ->
-                column
-                    [ spacing 15 ]
-                    [ text "Mettre des documents en ligne: "
-                    , bulkUploadView
-                    ]
-        ]
+                DocsRoot ->
+                    column
+                        [ spacing 15 ]
+                        [ text "Mettre des documents en ligne: "
+                        , bulkUploadView
+                        ]
+            ]
 
 
 uploadController : List (Html.Attribute msg) -> Element msg
@@ -1824,156 +1823,154 @@ editView config model =
         iconSize =
             18
     in
-    case ( model.mbImageFromFile, model.mbOriImageWidth, model.mbOriImageHeight ) of
-        ( Just f, Just oriW, Just oriH ) ->
-            column
-                [ spacing 15 ]
-                [ row
+        case ( model.mbImageFromFile, model.mbOriImageWidth, model.mbOriImageHeight ) of
+            ( Just f, Just oriW, Just oriH ) ->
+                column
                     [ spacing 15 ]
                     [ row
-                        [ spacing 10
-                        , width (px 500)
-                        ]
-                        [ Input.text textInputStyle
-                            { onChange =
-                                SetFilename
-                            , text =
-                                Maybe.withDefault f.filename model.desiredFilename
-                            , placeholder = Nothing
-                            , label =
-                                Input.labelLeft [ centerY ]
-                                    (el [ width (px 110) ] (text "Nom de fichier: "))
-                            }
-                        ]
-                    , Input.button (buttonStyle True)
-                        { onPress = Just RotateLeft
-                        , label = el [] (html <| rotateCcw iconSize)
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just RotateRight
-                        , label = el [] (html <| rotateCw iconSize)
-                        }
-
-                    -- text "Nom de fichier: "
-                    --, text f.filename
-                    ]
-                , row
-                    [ spacing 15 ]
-                    [ row
-                        [ spacing 10
-                        , width (px 500)
-                        ]
-                        [ el [ width (px 110) ] (text "Dimensions: ")
-                        , Input.slider
-                            [ Element.height (Element.px 30)
-                            , Element.width (px 250)
-
-                            -- Here is where we're creating/styling the "track"
-                            , Element.behindContent
-                                (Element.el
-                                    [ Element.width fill
-                                    , Element.height (Element.px 2)
-                                    , Element.centerY
-                                    , Background.color (rgb 0.9 0.9 0.9)
-                                    , Border.rounded 2
-                                    ]
-                                    Element.none
-                                )
+                        [ spacing 15 ]
+                        [ row
+                            [ spacing 10
+                            , width (px 500)
                             ]
-                            { onChange = Resize
-                            , label = Input.labelLeft [ centerY ] Element.none
-                            , min = 0
-                            , max = 100
-                            , step = Just 1
-                            , value = model.sliderValue
-                            , thumb =
-                                Input.defaultThumb
+                            [ Input.text textInputStyle
+                                { onChange =
+                                    SetFilename
+                                , text =
+                                    Maybe.withDefault f.filename model.desiredFilename
+                                , placeholder = Nothing
+                                , label =
+                                    Input.labelLeft [ centerY ]
+                                        (el [ width (px 110) ] (text "Nom de fichier: "))
+                                }
+                            ]
+                        , Input.button (buttonStyle True)
+                            { onPress = Just RotateLeft
+                            , label = el [] (html <| rotateCcw iconSize)
                             }
-                        , el [ width (px 100) ]
-                            (text <|
-                                (model.desiredWidth
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.withDefault (String.fromInt oriW)
-                                )
-                                    ++ "x"
-                                    ++ (model.desiredHeight
-                                            |> Maybe.map String.fromInt
-                                            |> Maybe.withDefault (String.fromInt oriH)
-                                       )
-                            )
-                        ]
-                    , Input.button (buttonStyle model.canResize)
-                        { onPress =
-                            if model.canResize then
-                                Just SetResize
-                            else
-                                Nothing
-                        , label = text "Redimensionner"
-                        }
-                    ]
-                , row
-                    [ spacing 15 ]
-                    [ row
-                        [ spacing 5 ]
-                        [ el [] (text "Taille originale: ")
-                        , el []
-                            (text
-                                (model.mbOriFileSize
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.map (\s -> s ++ " kb")
-                                    |> Maybe.withDefault "0 kb"
-                                )
-                            )
+                        , Input.button (buttonStyle True)
+                            { onPress = Just RotateRight
+                            , label = el [] (html <| rotateCw iconSize)
+                            }
+                          -- text "Nom de fichier: "
+                          --, text f.filename
                         ]
                     , row
-                        [ spacing 5 ]
-                        [ el [] (text "Taille actuelle: ")
-                        , el []
-                            (text
-                                (model.mbImageFromFile
-                                    |> Maybe.map .filesize
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.map (\s -> s ++ " kb")
-                                    |> Maybe.withDefault "0 kb"
+                        [ spacing 15 ]
+                        [ row
+                            [ spacing 10
+                            , width (px 500)
+                            ]
+                            [ el [ width (px 110) ] (text "Dimensions: ")
+                            , Input.slider
+                                [ Element.height (Element.px 30)
+                                , Element.width (px 250)
+                                  -- Here is where we're creating/styling the "track"
+                                , Element.behindContent
+                                    (Element.el
+                                        [ Element.width fill
+                                        , Element.height (Element.px 2)
+                                        , Element.centerY
+                                        , Background.color (rgb 0.9 0.9 0.9)
+                                        , Border.rounded 2
+                                        ]
+                                        Element.none
+                                    )
+                                ]
+                                { onChange = Resize
+                                , label = Input.labelLeft [ centerY ] Element.none
+                                , min = 0
+                                , max = 100
+                                , step = Just 1
+                                , value = model.sliderValue
+                                , thumb =
+                                    Input.defaultThumb
+                                }
+                            , el [ width (px 100) ]
+                                (text <|
+                                    (model.desiredWidth
+                                        |> Maybe.map String.fromInt
+                                        |> Maybe.withDefault (String.fromInt oriW)
+                                    )
+                                        ++ "x"
+                                        ++ (model.desiredHeight
+                                                |> Maybe.map String.fromInt
+                                                |> Maybe.withDefault (String.fromInt oriH)
+                                           )
                                 )
-                            )
+                            ]
+                        , Input.button (buttonStyle model.canResize)
+                            { onPress =
+                                if model.canResize then
+                                    Just SetResize
+                                else
+                                    Nothing
+                            , label = text "Redimensionner"
+                            }
                         ]
-                    ]
-                , row
-                    [ spacing 15 ]
-                    [ Input.button (buttonStyle True)
-                        { onPress = Just ResetImageController
-                        , label = text "Nouveau fichier"
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just ToogleUploadView
-                        , label = text "Retour"
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress =
-                            Maybe.map extractFsItem (getCurrentFilesys config.mode model)
-                                |> Maybe.map UploadImage
-                        , label = text "Valider et envoyer"
-                        }
-                    ]
-                , text "Aperçu: "
-                , el
-                    [ width (maximum 650 fill)
-                    , height (maximum 550 fill)
-                    , scrollbars
-                    ]
-                    (image
-                        [ centerY
-                        , centerX
+                    , row
+                        [ spacing 15 ]
+                        [ row
+                            [ spacing 5 ]
+                            [ el [] (text "Taille originale: ")
+                            , el []
+                                (text
+                                    (model.mbOriFileSize
+                                        |> Maybe.map String.fromInt
+                                        |> Maybe.map (\s -> s ++ " kb")
+                                        |> Maybe.withDefault "0 kb"
+                                    )
+                                )
+                            ]
+                        , row
+                            [ spacing 5 ]
+                            [ el [] (text "Taille actuelle: ")
+                            , el []
+                                (text
+                                    (model.mbImageFromFile
+                                        |> Maybe.map .filesize
+                                        |> Maybe.map String.fromInt
+                                        |> Maybe.map (\s -> s ++ " kb")
+                                        |> Maybe.withDefault "0 kb"
+                                    )
+                                )
+                            ]
                         ]
-                        { src = f.contents
-                        , description = f.filename
-                        }
-                    )
-                ]
+                    , row
+                        [ spacing 15 ]
+                        [ Input.button (buttonStyle True)
+                            { onPress = Just ResetImageController
+                            , label = text "Nouveau fichier"
+                            }
+                        , Input.button (buttonStyle True)
+                            { onPress = Just ToogleUploadView
+                            , label = text "Retour"
+                            }
+                        , Input.button (buttonStyle True)
+                            { onPress =
+                                Maybe.map extractFsItem (getCurrentFilesys config.mode model)
+                                    |> Maybe.map UploadImage
+                            , label = text "Valider et envoyer"
+                            }
+                        ]
+                    , text "Aperçu: "
+                    , el
+                        [ width (maximum 650 fill)
+                        , height (maximum 550 fill)
+                        , scrollbars
+                        ]
+                        (image
+                            [ centerY
+                            , centerX
+                            ]
+                            { src = f.contents
+                            , description = f.filename
+                            }
+                        )
+                    ]
 
-        _ ->
-            text "no file data"
+            _ ->
+                text "no file data"
 
 
 
@@ -1995,11 +1992,19 @@ getFileList root sessionId =
                 , encodeRoot root
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "getFiles.php" body decodeFiles
     in
-    Http.send (RefreshFilesys Nothing "Téléchargement info fichiers" root) request
+        Http.post
+            { url = "getFiles.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    (RefreshFilesys
+                        Nothing
+                        "Téléchargement info fichiers"
+                        root
+                    )
+                    decodeFiles
+            }
 
 
 decodeFiles : Decode.Decoder (List FsItem)
@@ -2058,17 +2063,19 @@ deleteFile fsItem root sessionId =
                 , ( "path", encodeFsItemPath fsItem )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "deleteFile.php" body decodeFiles
     in
-    Http.send
-        (RefreshFilesys
-            (Just fsItem)
-            ("Suppression: " ++ getName fsItem)
-            root
-        )
-        request
+        Http.post
+            { url = "deleteFile.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    (RefreshFilesys
+                        (Just fsItem)
+                        ("Suppression: " ++ getName fsItem)
+                        root
+                    )
+                    decodeFiles
+            }
 
 
 
@@ -2090,17 +2097,19 @@ renameFile fsItem newName root sessionId =
                 , ( "path", encodeFsItemPath fsItem )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "renameFile.php" body decodeFiles
     in
-    Http.send
-        (RefreshFilesys
-            (Just fsItem)
-            ("Renommage: " ++ getName fsItem)
-            root
-        )
-        request
+        Http.post
+            { url = "renameFile.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    (RefreshFilesys
+                        (Just fsItem)
+                        ("Renommage: " ++ getName fsItem)
+                        root
+                    )
+                    decodeFiles
+            }
 
 
 
@@ -2120,17 +2129,19 @@ pasteFile src dest root sessionId =
                 , ( "destPath", encodeFsItemPath dest )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "pasteFile.php" body decodeFiles
     in
-    Http.send
-        (RefreshFilesys
-            (Just src)
-            ("Collage: " ++ getName src)
-            root
-        )
-        request
+        Http.post
+            { url = "pasteFile.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    (RefreshFilesys
+                        (Just src)
+                        ("Collage: " ++ getName src)
+                        root
+                    )
+                    decodeFiles
+            }
 
 
 
@@ -2150,17 +2161,19 @@ makeNewFolder fsItem folderName root sessionId =
                 , ( "folderName", Encode.string folderName )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "newFolder.php" body decodeFiles
     in
-    Http.send
-        (RefreshFilesys
-            (Just fsItem)
-            ("Création dossier: " ++ folderName)
-            root
-        )
-        request
+        Http.post
+            { url = "newFolder.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    (RefreshFilesys
+                        (Just fsItem)
+                        ("Création dossier: " ++ folderName)
+                        root
+                    )
+                    decodeFiles
+            }
 
 
 encodeFsItemPath : FsItem -> Encode.Value
@@ -2211,17 +2224,19 @@ uploadImage fsItem filename contents sessionId =
                 , ( "contents", Encode.string contents )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "uploadBase64Pic.php" body decodeFiles
     in
-    Http.send
-        (RefreshFilesys
-            (Just fsItem)
-            ("Mise en ligne image base64: " ++ filename)
-            ImagesRoot
-        )
-        request
+        Http.post
+            { url = "uploadBase64Pic.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    (RefreshFilesys
+                        (Just fsItem)
+                        ("Mise en ligne image base64: " ++ filename)
+                        ImagesRoot
+                    )
+                    decodeFiles
+            }
 
 
 decodeFilesToUpload : (List FileToUpload -> Msg) -> Decode.Decoder Msg
@@ -2371,21 +2386,21 @@ zipDownFilesys p filesys =
                 ( l, r ) =
                     break p cs
             in
-            case r of
-                [] ->
-                    Nothing
+                case r of
+                    [] ->
+                        Nothing
 
-                f :: fs ->
-                    Just
-                        { filesys
-                            | current = f
-                            , contexts =
-                                { parent = meta
-                                , left = l
-                                , right = fs
-                                }
-                                    :: filesys.contexts
-                        }
+                    f :: fs ->
+                        Just
+                            { filesys
+                                | current = f
+                                , contexts =
+                                    { parent = meta
+                                    , left = l
+                                    , right = fs
+                                    }
+                                        :: filesys.contexts
+                            }
 
 
 zipToFsItem : Path -> Filesys -> Maybe Filesys
@@ -2409,7 +2424,7 @@ zipToFsItem path filesys =
                         zipDownFilesys (\fsItem -> getName fsItem == next) filesys_
                             |> Maybe.andThen (helper (next :: rest))
     in
-    helper path filesys
+        helper path filesys
 
 
 delete : Filesys -> Maybe Filesys
@@ -2472,7 +2487,7 @@ compileFolderInfo fsItem =
                         { acc | nbrFolders = acc.nbrFolders + 1 }
                         children
     in
-    helper fsItem { nbrFiles = 0, nbrFolders = -1, size = 0 }
+        helper fsItem { nbrFiles = 0, nbrFolders = -1, size = 0 }
 
 
 insert : FsItem -> String -> Maybe FsItem -> Maybe FsItem
@@ -2527,33 +2542,33 @@ insert f rootName mbFsItem_ =
                                     ( l, r ) =
                                         break (\f_ -> getName f_ == next) children
                                 in
-                                case r of
-                                    [] ->
-                                        let
-                                            newFolder =
-                                                Folder
-                                                    { defMeta
-                                                        | name = next
-                                                        , path = meta.path ++ [ next ]
-                                                    }
-                                                    []
-                                        in
-                                        helper (next :: rest) (Just newFolder)
-                                            |> Maybe.andThen
-                                                (\nsbt -> Just <| Folder meta (nsbt :: children))
+                                    case r of
+                                        [] ->
+                                            let
+                                                newFolder =
+                                                    Folder
+                                                        { defMeta
+                                                            | name = next
+                                                            , path = meta.path ++ [ next ]
+                                                        }
+                                                        []
+                                            in
+                                                helper (next :: rest) (Just newFolder)
+                                                    |> Maybe.andThen
+                                                        (\nsbt -> Just <| Folder meta (nsbt :: children))
 
-                                    next_ :: rest_ ->
-                                        helper (next :: rest) (Just next_)
-                                            |> Maybe.andThen
-                                                (\nsbt -> Just <| Folder meta (l ++ nsbt :: rest_))
+                                        next_ :: rest_ ->
+                                            helper (next :: rest) (Just next_)
+                                                |> Maybe.andThen
+                                                    (\nsbt -> Just <| Folder meta (l ++ nsbt :: rest_))
 
                 _ ->
                     Nothing
     in
-    List.reverse (getPath f)
-        |> List.tail
-        |> Maybe.map List.reverse
-        |> Maybe.andThen (\p -> helper p mbFsItem_)
+        List.reverse (getPath f)
+            |> List.tail
+            |> Maybe.map List.reverse
+            |> Maybe.andThen (\p -> helper p mbFsItem_)
 
 
 
@@ -2617,7 +2632,7 @@ break p xs =
                     else
                         helper ys_ (y :: left)
     in
-    helper xs []
+        helper xs []
 
 
 onDoubleClick : Msg -> Attribute Msg
@@ -2632,8 +2647,8 @@ onDoubleClick msg =
             else
                 ( NoOp, False )
     in
-    preventDefaultOn "mousedown" (Decode.map preventIfDoubleClick decodeNbrClicks)
-        |> htmlAttribute
+        preventDefaultOn "mousedown" (Decode.map preventIfDoubleClick decodeNbrClicks)
+            |> htmlAttribute
 
 
 prettyName : String -> Int -> String
@@ -2645,12 +2660,12 @@ prettyName name n =
                     l =
                         String.length s
                 in
-                if l >= n then
-                    String.split "." s
-                        |> String.join " ."
-                        |> String.words
-                else
-                    [ s ]
+                    if l >= n then
+                        String.split "." s
+                            |> String.join " ."
+                            |> String.words
+                    else
+                        [ s ]
             )
         |> List.concatMap
             (String.Extra.break

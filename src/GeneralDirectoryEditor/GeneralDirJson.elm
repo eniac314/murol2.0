@@ -9,6 +9,7 @@ import Json.Decode.Pipeline as P exposing (..)
 import Json.Encode as E
 import Set exposing (..)
 import Time exposing (..)
+import Internals.CommonHelpers exposing (jsonResolver)
 import UUID exposing (..)
 
 
@@ -318,11 +319,12 @@ getGeneralDirectory sessionId =
                   )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "getGeneralDirectory.php" body decodeGenDirData
     in
-    Http.send LoadGeneralDirectory request
+        Http.post
+            { url = "getGeneralDirectory.php"
+            , body = body
+            , expect = Http.expectJson LoadGeneralDirectory decodeGenDirData
+            }
 
 
 updateFiche : Fiche -> String -> Cmd Msg
@@ -339,19 +341,12 @@ updateFiche fiche sessionId =
                   )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "updateFiche.php" body decodeSuccess
     in
-    Http.send (FicheUpdated fiche) request
-
-
-
---Http.post
---    { url = "updateFiche.php"
---    , body = body
---    , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
---    }
+        Http.post
+            { url = "updateFiche.php"
+            , body = body
+            , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
+            }
 
 
 updateFicheTask fiche sessionId =
@@ -367,37 +362,15 @@ updateFicheTask fiche sessionId =
                   )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "updateFiche.php" body decodeSuccess
     in
-    Http.toTask request
-
-
-
---updateFicheTask fiche sessionId =
---    let
---        body =
---            E.object
---                [ ( "sessionId"
---                  , E.string sessionId
---                  )
---                , ( "fiche"
---                  , encodeFiche
---                        fiche
---                  )
---                ]
---                |> Http.jsonBody
---    in
---    Http.task
---        { method = "Post"
---        , headers = []
---        , url = "updateFiche.php"
---        , body = body
---        , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
---        , timeout = Nothing
---        , tracker = Nothing
---        }
+        Http.task
+            { method = "Post"
+            , headers = []
+            , url = "updateFiche.php"
+            , body = body
+            , resolver = jsonResolver decodeSuccess
+            , timeout = Nothing
+            }
 
 
 decodeSuccess : D.Decoder Bool

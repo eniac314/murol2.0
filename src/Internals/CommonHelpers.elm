@@ -12,6 +12,8 @@ import Http exposing (Error(..))
 import Internals.CommonStyleHelpers exposing (..)
 import Task exposing (perform)
 import Time exposing (Posix, now)
+import Http exposing (..)
+import Json.Decode as D
 
 
 type Status
@@ -40,7 +42,7 @@ chunks n xs =
                 _ ->
                     helper (List.take n ys :: acc) (List.drop n ys)
     in
-    helper [] xs
+        helper [] xs
 
 
 break : (a -> Bool) -> List a -> ( List a, List a )
@@ -57,7 +59,7 @@ break p xs =
                     else
                         helper ys_ (y :: left)
     in
-    helper xs []
+        helper xs []
 
 
 newLog : (Log -> msg) -> String -> Maybe String -> Bool -> Cmd msg
@@ -119,8 +121,8 @@ logsView logs zone =
                             [ text details ]
                 ]
     in
-    column [ spacing 15 ]
-        (List.map logView logs)
+        column [ spacing 15 ]
+            (List.map logView logs)
 
 
 httpErrorToString : Http.Error -> String
@@ -135,11 +137,34 @@ httpErrorToString e =
         NetworkError ->
             "Erreur de réseau"
 
-        BadStatus resp ->
+        BadStatus statusCode ->
             "Erreur serveur: "
-                ++ String.fromInt resp.status.code
-                ++ " - "
-                ++ resp.status.message
+                ++ String.fromInt statusCode
 
-        BadPayload decodingError resp ->
-            "Erreur décodage: " ++ decodingError
+        BadBody details ->
+            "Erreur décodage: " ++ details
+
+
+jsonResolver decoder =
+    stringResolver <|
+        \response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err (Http.BadUrl url)
+
+                Http.Timeout_ ->
+                    Err Http.Timeout
+
+                Http.NetworkError_ ->
+                    Err Http.NetworkError
+
+                Http.BadStatus_ metadata body ->
+                    Err (Http.BadStatus metadata.statusCode)
+
+                Http.GoodStatus_ metadata body ->
+                    case D.decodeString decoder body of
+                        Ok value ->
+                            Ok value
+
+                        Err err ->
+                            Err (Http.BadBody (D.errorToString err))

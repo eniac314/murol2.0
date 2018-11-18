@@ -42,9 +42,9 @@ type alias Model msg =
     , confirmPassword : String
     , logInfo : LogInfo
     , pluginMode : PluginMode
-    , logs : List Log
-
-    --, zone : Time.Zone
+    , logs :
+        List Log
+        --, zone : Time.Zone
     , externalMsg : Msg -> msg
     }
 
@@ -55,9 +55,9 @@ init externalMsg =
     , confirmPassword = ""
     , logInfo = LoggedOut
     , pluginMode = LoginMode Initial
-    , logs = []
-
-    --, zone = Time.utc
+    , logs =
+        []
+        --, zone = Time.utc
     , externalMsg = externalMsg
     }
 
@@ -106,7 +106,7 @@ update msg model =
         ( newModel, cmds, mbToolResult ) =
             internalUpdate msg model
     in
-    ( newModel, Cmd.map model.externalMsg cmds, mbToolResult )
+        ( newModel, Cmd.map model.externalMsg cmds, mbToolResult )
 
 
 internalUpdate msg model =
@@ -250,11 +250,12 @@ login model =
                   )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "login.php" body decodeLoginResult
     in
-    Http.send ConfirmLogin request
+        Http.post
+            { url = "login.php"
+            , body = body
+            , expect = Http.expectJson ConfirmLogin decodeLoginResult
+            }
 
 
 decodeLoginResult : Decode.Decoder LogInfo
@@ -277,11 +278,12 @@ signUp model =
                   )
                 ]
                 |> Http.jsonBody
-
-        request =
-            Http.post "signup.php" body decodeSignupResult
     in
-    Http.send ConfirmSignUp request
+        Http.post
+            { url = "signup.php"
+            , body = body
+            , expect = Http.expectJson ConfirmSignUp decodeSignupResult
+            }
 
 
 decodeSignupResult =
@@ -290,11 +292,10 @@ decodeSignupResult =
 
 logout : Cmd Msg
 logout =
-    let
-        request =
-            Http.get "logout.php" decodeLogoutResult
-    in
-    Http.send ConfirmLogout request
+    Http.get
+        { url = "logout.php"
+        , expect = Http.expectJson ConfirmLogout decodeLogoutResult
+        }
 
 
 decodeLogoutResult =
@@ -409,26 +410,26 @@ signUpView config status model =
                     ]
                 ]
     in
-    column
-        [ padding 15
-        , spacing 15
-        , Font.size 16
-        , alignTop
-        ]
-        [ text "Nouvel utilisateur: "
-        , case status of
-            Initial ->
-                initialView
+        column
+            [ padding 15
+            , spacing 15
+            , Font.size 16
+            , alignTop
+            ]
+            [ text "Nouvel utilisateur: "
+            , case status of
+                Initial ->
+                    initialView
 
-            Waiting ->
-                waitingView
+                Waiting ->
+                    waitingView
 
-            Success ->
-                successView
+                Success ->
+                    successView
 
-            Failure ->
-                failureView
-        ]
+                Failure ->
+                    failureView
+            ]
 
 
 loginView config status model =
@@ -508,26 +509,26 @@ loginView config status model =
                     ]
                 ]
     in
-    column
-        [ padding 15
-        , spacing 15
-        , Font.size 16
-        , alignTop
-        ]
-        [ text "Connexion: "
-        , case status of
-            Initial ->
-                initialView
+        column
+            [ padding 15
+            , spacing 15
+            , Font.size 16
+            , alignTop
+            ]
+            [ text "Connexion: "
+            , case status of
+                Initial ->
+                    initialView
 
-            Waiting ->
-                waitingView
+                Waiting ->
+                    waitingView
 
-            Success ->
-                successView
+                Success ->
+                    successView
 
-            Failure ->
-                failureView
-        ]
+                Failure ->
+                    failureView
+            ]
 
 
 logoutView config status model =
@@ -580,23 +581,23 @@ logoutView config status model =
                     ]
                 ]
     in
-    column
-        [ padding 15
-        , spacing 15
-        , Font.size 16
-        , alignTop
-        ]
-        [ text "Déconnexion: "
-        , case status of
-            Initial ->
-                initialView
+        column
+            [ padding 15
+            , spacing 15
+            , Font.size 16
+            , alignTop
+            ]
+            [ text "Déconnexion: "
+            , case status of
+                Initial ->
+                    initialView
 
-            Waiting ->
-                waitingView
+                Waiting ->
+                    waitingView
 
-            Success ->
-                successView
+                Success ->
+                    successView
 
-            Failure ->
-                failureView
-        ]
+                Failure ->
+                    failureView
+            ]
