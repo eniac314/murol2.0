@@ -65,6 +65,7 @@ type EditorPlugin
     | BlockLinksPlugin
     | PersistencePlugin
     | PageTreeEditorPlugin PageTreeEditor.Mode
+    | FichesPlugin
 
 
 findAlignment : List DocAttribute -> Alignment
@@ -84,7 +85,7 @@ findAlignment attrs =
                 y :: ys ->
                     helper ys
     in
-    helper attrs
+        helper attrs
 
 
 setAligment : Alignment -> List DocAttribute -> List DocAttribute
@@ -115,7 +116,7 @@ setAligment a attrs =
                 ALeft ->
                     [ AlignLeft ]
     in
-    newAlignment ++ removeOldAlignment [] attrs
+        newAlignment ++ removeOldAlignment [] attrs
 
 
 
@@ -195,7 +196,7 @@ maxUid doc =
                         (max id.uid acc)
                         xs
     in
-    helper 0 doc
+        helper 0 doc
 
 
 
@@ -279,12 +280,12 @@ buildYoutubeUrl src videoMeta =
                             "?" ++ s
                    )
     in
-    "https://www.youtube"
-        ++ (if videoMeta.privacy then
-                "-nocookie"
-            else
-                ""
-           )
-        ++ ".com/embed/"
-        ++ src
-        ++ params
+        "https://www.youtube"
+            ++ (if videoMeta.privacy then
+                    "-nocookie"
+                else
+                    ""
+               )
+            ++ ".com/embed/"
+            ++ src
+            ++ params

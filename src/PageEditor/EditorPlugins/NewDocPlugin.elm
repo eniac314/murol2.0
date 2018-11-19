@@ -59,16 +59,15 @@ view config =
                             [ text "Créer colonne de texte"
                             ]
                     }
-
-                --, Input.button (buttonStyle True)
-                --    { onPress =
-                --        Just <|
-                --            config.createNewContainer ResponsiveBloc
-                --    , label =
-                --        row [ spacing 10 ]
-                --            [ text "Créer bloc réactif"
-                --            ]
-                --    }
+                  --, Input.button (buttonStyle True)
+                  --    { onPress =
+                  --        Just <|
+                  --            config.createNewContainer ResponsiveBloc
+                  --    , label =
+                  --        row [ spacing 10 ]
+                  --            [ text "Créer bloc réactif"
+                  --            ]
+                  --    }
                 ]
             ]
         , column
@@ -97,6 +96,15 @@ view config =
                     , label =
                         row [ spacing 10 ]
                             [ text "Zone blocs de liens"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.createNewCell FichesPlugin
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Zone de fiches"
                             ]
                     }
                 , Input.button (buttonStyle True)

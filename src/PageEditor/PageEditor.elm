@@ -18,6 +18,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
 import FileExplorer.FileExplorer as FileExplorer
+import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (Model)
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
 import Internals.CommonStyleHelpers exposing (..)
@@ -32,6 +33,7 @@ import PageEditor.EditorPlugins.SidePanels.DocumentStructView exposing (..)
 import PageEditor.EditorPlugins.TablePlugin as TablePlugin
 import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
 import PageEditor.EditorPlugins.VideoPlugin as VideoPlugin
+import PageEditor.EditorPlugins.FichesPlugin as FichesPlugin exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageEditor.Internals.DocumentZipper exposing (..)
 import PageEditor.Internals.PersistencePlugin as PersistencePlugin
@@ -157,6 +159,7 @@ type alias Model msg =
     , imagePlugin : ImagePlugin.Model msg
     , videoPlugin : VideoPlugin.Model msg
     , blockLinksPlugin : BlockLinksPlugin.Model msg
+    , fichesPlugin : FichesPlugin.Model msg
     , externalMsg : Msg -> msg
     }
 
@@ -216,6 +219,7 @@ type Msg
     | ImagePluginMsg ImagePlugin.Msg
     | VideoPluginMsg VideoPlugin.Msg
     | BlockLinksPluginMsg BlockLinksPlugin.Msg
+    | FichesPluginMsg FichesPlugin.Msg
       -------------------
       -- Persistence   --
       -------------------
@@ -299,6 +303,7 @@ reset mbDoc externalMsg =
           , imagePlugin = newImagePlugin
           , videoPlugin = VideoPlugin.init Nothing (externalMsg << VideoPluginMsg)
           , blockLinksPlugin = BlockLinksPlugin.init Nothing (externalMsg << BlockLinksPluginMsg)
+          , fichesPlugin = FichesPlugin.init [] (externalMsg << FichesPluginMsg)
           , externalMsg = externalMsg
           }
         , Cmd.batch
@@ -329,7 +334,10 @@ reset mbDoc externalMsg =
 
 
 update :
-    { config | pageTreeEditor : PageTreeEditor.Model msg }
+    { config
+        | pageTreeEditor : PageTreeEditor.Model msg
+        , genDirEditor : GeneralDirectoryEditor.Model msg
+    }
     -> Msg
     -> Model msg
     -> ( Model msg, Cmd msg, Maybe a )
@@ -342,7 +350,10 @@ update config msg model =
 
 
 internalUpdate :
-    { config | pageTreeEditor : PageTreeEditor.Model msg }
+    { config
+        | pageTreeEditor : PageTreeEditor.Model msg
+        , genDirEditor : GeneralDirectoryEditor.Model msg
+    }
     -> Msg
     -> Model msg
     -> ( Model msg, Cmd msg )
@@ -944,6 +955,50 @@ internalUpdate config msg model =
                                 ]
                             )
 
+        FichesPluginMsg fichesPluginMsg ->
+            let
+                ( newFichesPlugin, mbEditorPluginResult ) =
+                    FichesPlugin.update config fichesPluginMsg model.fichesPlugin
+            in
+                case mbEditorPluginResult of
+                    Nothing ->
+                        ( { model | fichesPlugin = newFichesPlugin }
+                        , Cmd.none
+                        )
+
+                    Just EditorPluginQuit ->
+                        ( { model
+                            | fichesPlugin = newFichesPlugin
+                            , currentPlugin = Nothing
+                          }
+                        , Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        )
+
+                    Just (EditorPluginData newFichesIds) ->
+                        let
+                            newDoc =
+                                updateCurrent
+                                    (Cell
+                                        { id = getId (extractDoc model.document)
+                                        , cellContent = Fiches newFichesIds
+                                        , attrs = []
+                                        }
+                                    )
+                                    model.document
+                        in
+                            ( { model
+                                | document = newDoc
+                                , currentPlugin = Nothing
+                              }
+                            , Cmd.batch
+                                [ Cmd.map model.externalMsg <|
+                                    scrollTo <|
+                                        getHtmlId (extractDoc model.document)
+                                ]
+                            )
+
         LoadLocalStorageDocument ->
             case Maybe.map (Decode.decodeValue decodeDocument) model.localStorageValue of
                 Just (Ok newDoc) ->
@@ -1145,14 +1200,17 @@ internalUpdate config msg model =
 -------------------
 
 
-view :
-    { logInfo : LogInfo
-    , fileExplorer : FileExplorer.Model msg
-    , pageTreeEditor : PageTreeEditor.Model msg
-    , zone : Time.Zone
+type alias ViewConfig config msg =
+    { config
+        | logInfo : LogInfo
+        , fileExplorer : FileExplorer.Model msg
+        , pageTreeEditor : PageTreeEditor.Model msg
+        , genDirEditor : GeneralDirectoryEditor.Model msg
+        , zone : Time.Zone
     }
-    -> Model msg
-    -> Element msg
+
+
+view : ViewConfig config msg -> Model msg -> Element msg
 view config model =
     column
         ([ width fill
@@ -1249,15 +1307,7 @@ documentView model =
 -------------------------------
 
 
-pluginView :
-    { logInfo : LogInfo
-    , fileExplorer : FileExplorer.Model msg
-    , pageTreeEditor : PageTreeEditor.Model msg
-    , zone : Time.Zone
-    }
-    -> Model msg
-    -> EditorPlugin
-    -> Element msg
+pluginView : ViewConfig config msg -> Model msg -> EditorPlugin -> Element msg
 pluginView config model plugin =
     case plugin of
         ImagePlugin ->
@@ -1320,6 +1370,12 @@ pluginView config model plugin =
                 }
                 model.config
                 model.blockLinksPlugin
+
+        FichesPlugin ->
+            FichesPlugin.view
+                { genDirEditor = config.genDirEditor
+                }
+                model.fichesPlugin
 
         PersistencePlugin ->
             Element.map model.externalMsg <|
@@ -1449,6 +1505,19 @@ openNewPlugin config model =
                 , Cmd.none
                 )
 
+        Just FichesPlugin ->
+            let
+                newFichesPlugin =
+                    FichesPlugin.init
+                        []
+                        (model.externalMsg << FichesPluginMsg)
+            in
+                ( { model
+                    | fichesPlugin = newFichesPlugin
+                  }
+                , Cmd.none
+                )
+
         _ ->
             ( model, Cmd.none )
 
@@ -1531,6 +1600,20 @@ openPlugin config model =
                         ( { model
                             | currentPlugin = Just BlockLinksPlugin
                             , blockLinksPlugin = newBlockLinksPlugin
+                          }
+                        , Cmd.none
+                        )
+
+                Fiches fichesId ->
+                    let
+                        newFichesPlugin =
+                            FichesPlugin.init
+                                fichesId
+                                (model.externalMsg << FichesPluginMsg)
+                    in
+                        ( { model
+                            | currentPlugin = Just FichesPlugin
+                            , fichesPlugin = newFichesPlugin
                           }
                         , Cmd.none
                         )

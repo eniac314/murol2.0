@@ -31,6 +31,7 @@ import Time exposing (here, now)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
 import GeneralDirectoryEditor.GeneralDirJson exposing (..)
+import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 
 
 port toSearchEngine : String -> Cmd msg
@@ -88,6 +89,7 @@ type Msg
     | ClickedLink UrlRequest
     | LoadContent ( PathStr, ContentIdStr, PageName ) (Result Http.Error Decode.Value)
     | LoadPages (Result Http.Error Decode.Value)
+    | LoadFiches (Result Http.Error (List Fiche))
     | SearchPromptInput String
     | Search
     | ResetSearchEngine
@@ -122,7 +124,6 @@ subscriptions model =
     Sub.batch
         [ onResize WinResize
         , searchResult ProcessSearchResult
-          --, Time.every 500 Increment
         ]
 
 
@@ -293,7 +294,10 @@ update msg model =
                                     | pages =
                                         Dict.insert path ( cId, name, Loaded docContent ) model.pages
                                   }
-                                , Cmd.none
+                                , if fichesToDownload /= [] then
+                                    getFiches fichesToDownload
+                                  else
+                                    Cmd.none
                                 )
 
                         _ ->
@@ -301,6 +305,9 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        LoadFiches res ->
+            ( model, Cmd.none )
 
         SearchPromptInput s ->
             ( { model
@@ -867,6 +874,25 @@ getContent ( path, contentId, name ) =
                 Http.expectJson
                     (LoadContent ( path, contentId, name ))
                     Decode.value
+            }
+
+
+getFiches : List String -> Cmd Msg
+getFiches fichesIds =
+    let
+        body =
+            Encode.object
+                [ ( "fichesIds", Encode.list Encode.string fichesIds )
+                ]
+                |> Http.jsonBody
+    in
+        Http.post
+            { url = "getFiches.php"
+            , body = body
+            , expect =
+                Http.expectJson
+                    LoadFiches
+                    (Decode.list decodeFiche)
             }
 
 

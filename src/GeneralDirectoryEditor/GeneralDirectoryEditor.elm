@@ -114,6 +114,10 @@ loadingView model =
         { loadingStatus = loadingStatus model }
 
 
+fichesData model =
+    model.fiches
+
+
 update :
     { a
         | logInfo : LogInfo
@@ -1663,45 +1667,6 @@ internalUpdate config msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
-computeCats fiches =
-    Dict.foldr
-        (\_ f acc ->
-            List.foldr
-                (\c acc_ ->
-                    Set.insert c acc_
-                )
-                acc
-                f.categories
-        )
-        Set.empty
-        fiches
-
-
-computeActivs fiches =
-    Dict.foldr
-        (\_ f acc ->
-            List.foldr
-                (\a acc_ -> Set.insert a acc_)
-                acc
-                f.natureActiv
-        )
-        Set.empty
-        fiches
-
-
-computeLabels fiches =
-    Dict.foldr
-        (\_ f acc ->
-            List.foldr
-                (\l acc_ -> l :: acc_)
-                acc
-                f.label
-        )
-        []
-        fiches
-        |> uniqueBy (\{ nom, logo, lien } -> nom ++ logo ++ lien)
 
 
 

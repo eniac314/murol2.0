@@ -21,6 +21,7 @@ import Json.Decode as Decode
 import Murmur3 exposing (hashString)
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
 import Set exposing (..)
+import List.Extra exposing (splitAt)
 
 
 renderDoc : Config msg -> Document -> List (Element msg)
@@ -55,8 +56,8 @@ renderDoc config document =
                     BlockLinks meta ->
                         renderBlockLinks config id attrs meta
 
-                    Fiches fiches ->
-                        renderFiches config id attrs fiches
+                    Fiches fichesId ->
+                        renderFiches config id attrs fichesId
 
                     TextBlock xs ->
                         renderTextBlock config id attrs xs
@@ -207,8 +208,26 @@ renderBlocksLinksMeta config id attrs { image, label, targetBlank, url } =
                 }
 
 
-renderFiches config id attrs fiches =
-    []
+renderFiches config id attrs fichesId =
+    let
+        fiches =
+            List.filterMap
+                (\fId -> Dict.get fId config.fiches)
+                fichesId
+
+        ( right, left ) =
+            List.Extra.splitAt (List.length fiches // 2) fiches
+    in
+        [ wrappedRow
+            []
+            [ column
+                [ alignTop ]
+                []
+            , column
+                [ alignTop ]
+                []
+            ]
+        ]
 
 
 renderTextBlock config id attrs xs =
