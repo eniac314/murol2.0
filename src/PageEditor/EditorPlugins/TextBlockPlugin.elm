@@ -125,55 +125,55 @@ init attrs mbInput externalMsg =
                     mbInput
                 )
     in
-    case run textBlock resultString of
-        Ok res ->
-            let
-                newTrackedData =
-                    updateTrackedData (Dict.fromList trackedData) res
-            in
-            ( { rawInput = resultString
-              , parsedInput = Ok res
-              , selected = Nothing
-              , cursorPos = Nothing
-              , output =
-                    List.filterMap (toTextBlocElement newTrackedData) res
-              , setSelection = Nothing
-              , trackedData = newTrackedData
-              , currentTrackedData = Nothing
-              , nextUid = nextUid
-              , wholeTextBlocAttr =
-                    case List.filter isFontSizeAttr attrs of
-                        [] ->
-                            FontSize 16 :: attrs
+        case run textBlock resultString of
+            Ok res ->
+                let
+                    newTrackedData =
+                        updateTrackedData (Dict.fromList trackedData) res
+                in
+                    ( { rawInput = resultString
+                      , parsedInput = Ok res
+                      , selected = Nothing
+                      , cursorPos = Nothing
+                      , output =
+                            List.filterMap (toTextBlocElement newTrackedData) res
+                      , setSelection = Nothing
+                      , trackedData = newTrackedData
+                      , currentTrackedData = Nothing
+                      , nextUid = nextUid
+                      , wholeTextBlocAttr =
+                            case List.filter isFontSizeAttr attrs of
+                                [] ->
+                                    FontSize 16 :: attrs
 
-                        _ ->
-                            attrs
-              , headingLevel = Nothing
-              , internalUrlSelectorOpen = False
-              , colorPickerOpen = Nothing
-              , externalMsg = externalMsg
-              }
-            , Cmd.map externalMsg Cmd.none
-            )
+                                _ ->
+                                    attrs
+                      , headingLevel = Nothing
+                      , internalUrlSelectorOpen = False
+                      , colorPickerOpen = Nothing
+                      , externalMsg = externalMsg
+                      }
+                    , Cmd.map externalMsg Cmd.none
+                    )
 
-        Err _ ->
-            ( { rawInput = resultString
-              , parsedInput = Ok []
-              , selected = Nothing
-              , cursorPos = Nothing
-              , output = []
-              , setSelection = Nothing
-              , trackedData = Dict.empty
-              , currentTrackedData = Nothing
-              , nextUid = 0
-              , wholeTextBlocAttr = attrs
-              , headingLevel = Nothing
-              , internalUrlSelectorOpen = False
-              , colorPickerOpen = Nothing
-              , externalMsg = externalMsg
-              }
-            , Cmd.map externalMsg Cmd.none
-            )
+            Err _ ->
+                ( { rawInput = resultString
+                  , parsedInput = Ok []
+                  , selected = Nothing
+                  , cursorPos = Nothing
+                  , output = []
+                  , setSelection = Nothing
+                  , trackedData = Dict.empty
+                  , currentTrackedData = Nothing
+                  , nextUid = 0
+                  , wholeTextBlocAttr = attrs
+                  , headingLevel = Nothing
+                  , internalUrlSelectorOpen = False
+                  , colorPickerOpen = Nothing
+                  , externalMsg = externalMsg
+                  }
+                , Cmd.map externalMsg Cmd.none
+                )
 
 
 update :
@@ -193,19 +193,19 @@ update config msg model =
                         newTrackedData =
                             updateTrackedData model.trackedData res
                     in
-                    ( { model
-                        | rawInput = s
-                        , parsedInput = Ok res
-                        , trackedData = newTrackedData
-                        , currentTrackedData =
-                            getSelectedTrackedData model.cursorPos newTrackedData
-                        , nextUid = findNextAvailableUid newTrackedData
-                        , output = List.filterMap (toTextBlocElement newTrackedData) res
-                      }
-                    , Cmd.batch
-                        []
-                    , Nothing
-                    )
+                        ( { model
+                            | rawInput = s
+                            , parsedInput = Ok res
+                            , trackedData = newTrackedData
+                            , currentTrackedData =
+                                getSelectedTrackedData model.cursorPos newTrackedData
+                            , nextUid = findNextAvailableUid newTrackedData
+                            , output = List.filterMap (toTextBlocElement newTrackedData) res
+                          }
+                        , Cmd.batch
+                            []
+                        , Nothing
+                        )
 
                 Err _ ->
                     ( model, Cmd.none, Nothing )
@@ -224,27 +224,27 @@ update config msg model =
                             Result.map (updateTrackedData model.trackedData) newParsedInput
                                 |> Result.withDefault model.trackedData
                     in
-                    ( { model
-                        | rawInput = newRawInput
-                        , parsedInput = newParsedInput
-                        , trackedData = newTrackedData
-                        , nextUid = findNextAvailableUid newTrackedData
-                        , currentTrackedData =
-                            getSelectedTrackedData (Maybe.map (\s -> s.start + 1) model.selected) newTrackedData
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedData)
-                                )
-                                newParsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.batch
-                        [ after 5 Millisecond SetSelection
-                        ]
-                        |> Cmd.map model.externalMsg
-                    , Nothing
-                    )
+                        ( { model
+                            | rawInput = newRawInput
+                            , parsedInput = newParsedInput
+                            , trackedData = newTrackedData
+                            , nextUid = findNextAvailableUid newTrackedData
+                            , currentTrackedData =
+                                getSelectedTrackedData (Maybe.map (\s -> s.start + 1) model.selected) newTrackedData
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedData)
+                                    )
+                                    newParsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.batch
+                            [ after 5 Millisecond SetSelection
+                            ]
+                            |> Cmd.map model.externalMsg
+                        , Nothing
+                        )
 
         NewSelection s ->
             let
@@ -254,36 +254,36 @@ update config msg model =
                     else
                         Nothing
             in
-            ( { model
-                | selected =
-                    if s.start == s.finish then
-                        Nothing
-                    else
-                        Just s
-                , cursorPos =
-                    if s.start == s.finish then
-                        Just s.start
-                    else
-                        Nothing
-                , currentTrackedData = currentTrackedData
-                , setSelection =
-                    if s.start == s.finish then
-                        Maybe.map
-                            (\td -> encodeSelection td.meta.start td.meta.stop)
-                            (getSelectedTrackedData (Just s.start) model.trackedData)
-                    else
-                        Nothing
-              }
-            , Cmd.batch
-                [ case Maybe.map .dataKind currentTrackedData of
-                    Just (InternalLink False path) ->
-                        PageTreeEditor.setInternalPageSelection config.pageTreeEditor path
+                ( { model
+                    | selected =
+                        if s.start == s.finish then
+                            Nothing
+                        else
+                            Just s
+                    , cursorPos =
+                        if s.start == s.finish then
+                            Just s.start
+                        else
+                            Nothing
+                    , currentTrackedData = currentTrackedData
+                    , setSelection =
+                        if s.start == s.finish then
+                            Maybe.map
+                                (\td -> encodeSelection td.meta.start td.meta.stop)
+                                (getSelectedTrackedData (Just s.start) model.trackedData)
+                        else
+                            Nothing
+                  }
+                , Cmd.batch
+                    [ case Maybe.map .dataKind currentTrackedData of
+                        Just (InternalLink False path) ->
+                            PageTreeEditor.setInternalPageSelection config.pageTreeEditor path
 
-                    _ ->
-                        Cmd.none
-                ]
-            , Nothing
-            )
+                        _ ->
+                            Cmd.none
+                    ]
+                , Nothing
+                )
 
         SetSelection ->
             ( { model
@@ -386,21 +386,21 @@ update config msg model =
                                         newTrackedData
                                         model.trackedData
                             in
-                            ( { model
-                                | trackedData = newTrackedDataDict
-                                , currentTrackedData = Just newTrackedData
-                                , headingLevel = Nothing
-                                , output =
-                                    Result.map
-                                        (List.filterMap
-                                            (toTextBlocElement newTrackedDataDict)
-                                        )
-                                        model.parsedInput
-                                        |> Result.withDefault model.output
-                              }
-                            , Cmd.none
-                            , Nothing
-                            )
+                                ( { model
+                                    | trackedData = newTrackedDataDict
+                                    , currentTrackedData = Just newTrackedData
+                                    , headingLevel = Nothing
+                                    , output =
+                                        Result.map
+                                            (List.filterMap
+                                                (toTextBlocElement newTrackedDataDict)
+                                            )
+                                            model.parsedInput
+                                            |> Result.withDefault model.output
+                                  }
+                                , Cmd.none
+                                , Nothing
+                                )
 
         -----------------------------
         -- External Links messages --
@@ -421,21 +421,21 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.batch
-                        []
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.batch
+                            []
+                        , Nothing
+                        )
 
         -----------------------------
         -- Internal Links messages --
@@ -458,13 +458,13 @@ update config msg model =
                                         newTrackedData
                                         model.trackedData
                             in
-                            ( { model
-                                | trackedData = newTrackedDataDict
-                                , currentTrackedData = Just newTrackedData
-                              }
-                            , Cmd.none
-                            , Nothing
-                            )
+                                ( { model
+                                    | trackedData = newTrackedDataDict
+                                    , currentTrackedData = Just newTrackedData
+                                  }
+                                , Cmd.none
+                                , Nothing
+                                )
 
                         _ ->
                             ( model, Cmd.none, Nothing )
@@ -503,21 +503,21 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , internalUrlSelectorOpen = False
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.none
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , internalUrlSelectorOpen = False
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.none
+                        , Nothing
+                        )
 
         ConfirmFileUrl uid url ->
             case Dict.get uid model.trackedData of
@@ -535,21 +535,21 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , internalUrlSelectorOpen = False
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.none
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , internalUrlSelectorOpen = False
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.none
+                        , Nothing
+                        )
 
         ---------------------------
         -- Inline Style messages --
@@ -573,22 +573,22 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , colorPickerOpen = Nothing
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.batch
-                        []
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , colorPickerOpen = Nothing
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.batch
+                            []
+                        , Nothing
+                        )
 
         SetBackgroundColor uid color ->
             case Dict.get uid model.trackedData of
@@ -609,22 +609,22 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , colorPickerOpen = Nothing
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.batch
-                        []
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , colorPickerOpen = Nothing
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.batch
+                            []
+                        , Nothing
+                        )
 
         SetInlineFont uid font ->
             case Dict.get uid model.trackedData of
@@ -645,21 +645,21 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.batch
-                        []
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.batch
+                            []
+                        , Nothing
+                        )
 
         SetInlineFontSize uid fontSize ->
             case String.toInt fontSize of
@@ -685,20 +685,20 @@ update config msg model =
                                         newTrackedData
                                         model.trackedData
                             in
-                            ( { model
-                                | trackedData = newTrackedDataDict
-                                , currentTrackedData = Just newTrackedData
-                                , output =
-                                    Result.map
-                                        (List.filterMap
-                                            (toTextBlocElement newTrackedDataDict)
-                                        )
-                                        model.parsedInput
-                                        |> Result.withDefault model.output
-                              }
-                            , Cmd.none
-                            , Nothing
-                            )
+                                ( { model
+                                    | trackedData = newTrackedDataDict
+                                    , currentTrackedData = Just newTrackedData
+                                    , output =
+                                        Result.map
+                                            (List.filterMap
+                                                (toTextBlocElement newTrackedDataDict)
+                                            )
+                                            model.parsedInput
+                                            |> Result.withDefault model.output
+                                  }
+                                , Cmd.none
+                                , Nothing
+                                )
 
         SetInlineBold uid ->
             case Dict.get uid model.trackedData of
@@ -719,21 +719,21 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.batch
-                        []
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.batch
+                            []
+                        , Nothing
+                        )
 
         SetInlineItalic uid ->
             case Dict.get uid model.trackedData of
@@ -754,21 +754,21 @@ update config msg model =
                                 newTrackedData
                                 model.trackedData
                     in
-                    ( { model
-                        | trackedData = newTrackedDataDict
-                        , currentTrackedData = Just newTrackedData
-                        , output =
-                            Result.map
-                                (List.filterMap
-                                    (toTextBlocElement newTrackedDataDict)
-                                )
-                                model.parsedInput
-                                |> Result.withDefault model.output
-                      }
-                    , Cmd.batch
-                        []
-                    , Nothing
-                    )
+                        ( { model
+                            | trackedData = newTrackedDataDict
+                            , currentTrackedData = Just newTrackedData
+                            , output =
+                                Result.map
+                                    (List.filterMap
+                                        (toTextBlocElement newTrackedDataDict)
+                                    )
+                                    model.parsedInput
+                                    |> Result.withDefault model.output
+                          }
+                        , Cmd.batch
+                            []
+                        , Nothing
+                        )
 
         ----------
         -- Misc --
@@ -914,100 +914,100 @@ interfaceView config model =
                 && (not <| selectionContainsTrackedData model.selected model.trackedData)
                 && (not <| selectionInTrackedData model.selected model.trackedData)
     in
-    column
-        [ spacing 15
-        ]
-        [ row
+        column
             [ spacing 15
-            , Font.size 16
-            , width fill
             ]
-            [ Input.button
-                (buttonStyle isActive)
-                { onPress =
-                    if isActive then
-                        Just (model.externalMsg <| InsertTrackingTag <| Heading 1)
-                    else
-                        Nothing
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| type_ iconSize)
-                        , el [] (text "Titre")
-                        ]
-                }
-            , Input.button
-                (buttonStyle isActive)
-                { onPress =
-                    if isActive then
-                        Just (model.externalMsg <| InsertTrackingTag <| InternalLink False "")
-                    else
-                        Nothing
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| link2 iconSize)
-                        , el [] (text "Lien interne")
-                        ]
-                }
-            , Input.button
-                (buttonStyle isActive)
-                { onPress =
-                    if isActive then
-                        Just (model.externalMsg <| InsertTrackingTag <| ExternalLink "")
-                    else
-                        Nothing
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| Icons.externalLink iconSize)
-                        , el [] (text "lien externe")
-                        ]
-                }
-            , Input.button
-                (buttonStyle isActive)
-                { onPress =
-                    if isActive then
-                        Just (model.externalMsg <| InsertTrackingTag <| InlineStyled)
-                    else
-                        Nothing
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| tag iconSize)
-                        , el [] (text "Tag")
-                        ]
-                }
+            [ row
+                [ spacing 15
+                , Font.size 16
+                , width fill
+                ]
+                [ Input.button
+                    (buttonStyle isActive)
+                    { onPress =
+                        if isActive then
+                            Just (model.externalMsg <| InsertTrackingTag <| Heading 1)
+                        else
+                            Nothing
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| type_ iconSize)
+                            , el [] (text "Titre")
+                            ]
+                    }
+                , Input.button
+                    (buttonStyle isActive)
+                    { onPress =
+                        if isActive then
+                            Just (model.externalMsg <| InsertTrackingTag <| InternalLink False "")
+                        else
+                            Nothing
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| link2 iconSize)
+                            , el [] (text "Lien interne")
+                            ]
+                    }
+                , Input.button
+                    (buttonStyle isActive)
+                    { onPress =
+                        if isActive then
+                            Just (model.externalMsg <| InsertTrackingTag <| ExternalLink "")
+                        else
+                            Nothing
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| Icons.externalLink iconSize)
+                            , el [] (text "lien externe")
+                            ]
+                    }
+                , Input.button
+                    (buttonStyle isActive)
+                    { onPress =
+                        if isActive then
+                            Just (model.externalMsg <| InsertTrackingTag <| InlineStyled)
+                        else
+                            Nothing
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| tag iconSize)
+                            , el [] (text "Tag")
+                            ]
+                    }
+                ]
+            , row
+                [ width fill
+                , height (px 30)
+                , Font.size 16
+                ]
+                [ case model.currentTrackedData of
+                    Nothing ->
+                        textBlockStyleView model
+
+                    Just ({ meta, attrs, dataKind } as td) ->
+                        case dataKind of
+                            Heading level ->
+                                headingView model.externalMsg model.headingLevel td
+
+                            InternalLink isDoc url ->
+                                internalLinkView model.externalMsg
+                                    { isDoc = isDoc
+                                    , url = url
+                                    , selectorOpen = model.internalUrlSelectorOpen
+                                    , td = td
+                                    , fileExplorer = config.fileExplorer
+                                    , pageTreeEditor = config.pageTreeEditor
+                                    , zone = config.zone
+                                    , logInfo = config.logInfo
+                                    }
+
+                            ExternalLink url ->
+                                externalLinkView model.externalMsg url td
+
+                            InlineStyled ->
+                                inlineStyleView model td
+                ]
             ]
-        , row
-            [ width fill
-            , height (px 30)
-            , Font.size 16
-            ]
-            [ case model.currentTrackedData of
-                Nothing ->
-                    textBlockStyleView model
-
-                Just ({ meta, attrs, dataKind } as td) ->
-                    case dataKind of
-                        Heading level ->
-                            headingView model.externalMsg model.headingLevel td
-
-                        InternalLink isDoc url ->
-                            internalLinkView model.externalMsg
-                                { isDoc = isDoc
-                                , url = url
-                                , selectorOpen = model.internalUrlSelectorOpen
-                                , td = td
-                                , fileExplorer = config.fileExplorer
-                                , pageTreeEditor = config.pageTreeEditor
-                                , zone = config.zone
-                                , logInfo = config.logInfo
-                                }
-
-                        ExternalLink url ->
-                            externalLinkView model.externalMsg url td
-
-                        InlineStyled ->
-                            inlineStyleView model td
-            ]
-        ]
 
 
 textBlockStyleView : Model msg -> Element.Element msg
@@ -1027,79 +1027,79 @@ textBlockStyleView model =
                         |> Maybe.map (\fs_ -> selectedSize == (Just <| FontSize fs_))
                         |> Maybe.withDefault False
             in
-            Html.option
-                [ HtmlAttr.value fs
-                , HtmlAttr.selected selected
-                ]
-                [ Html.text fs ]
+                Html.option
+                    [ HtmlAttr.value fs
+                    , HtmlAttr.selected selected
+                    ]
+                    [ Html.text fs ]
     in
-    Element.map model.externalMsg <|
-        row
-            [ spacing 15 ]
-            [ el
-                []
-                (html <|
-                    Html.select
-                        [ HtmlEvents.onInput SetTextBlocFont
-                        ]
-                        (List.map
-                            (fontOptionView
-                                (List.filter isFontAttr model.wholeTextBlocAttr
-                                    |> List.head
+        Element.map model.externalMsg <|
+            row
+                [ spacing 15 ]
+                [ el
+                    []
+                    (html <|
+                        Html.select
+                            [ HtmlEvents.onInput SetTextBlocFont
+                            ]
+                            (List.map
+                                (fontOptionView
+                                    (List.filter isFontAttr model.wholeTextBlocAttr
+                                        |> List.head
+                                    )
                                 )
+                                fonts
                             )
-                            fonts
-                        )
-                )
-            , el
-                []
-                (html <|
-                    Html.select
-                        [ HtmlEvents.onInput SetTextBlocFontSize
-                        ]
-                        (List.map
-                            (fontSizeOptionView
-                                (List.filter isFontSizeAttr model.wholeTextBlocAttr
-                                    |> List.head
+                    )
+                , el
+                    []
+                    (html <|
+                        Html.select
+                            [ HtmlEvents.onInput SetTextBlocFontSize
+                            ]
+                            (List.map
+                                (fontSizeOptionView
+                                    (List.filter isFontSizeAttr model.wholeTextBlocAttr
+                                        |> List.head
+                                    )
                                 )
+                                fontSizes
                             )
-                            fontSizes
-                        )
-                )
-            , Input.button
-                (toogleButtonStyle
-                    (List.member Justify model.wholeTextBlocAttr)
-                    (model.selected == Nothing)
-                )
-                { onPress = Just SetTextBlocAlignment
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| alignJustify iconSize)
-                        ]
-                }
-            , Input.button
-                (toogleButtonStyle
-                    (List.member Bold model.wholeTextBlocAttr)
-                    (model.selected == Nothing)
-                )
-                { onPress = Just SetTextBlocBold
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| bold iconSize)
-                        ]
-                }
-            , Input.button
-                (toogleButtonStyle
-                    (List.member Italic model.wholeTextBlocAttr)
-                    (model.selected == Nothing)
-                )
-                { onPress = Just SetTextBlocItalic
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| italic iconSize)
-                        ]
-                }
-            ]
+                    )
+                , Input.button
+                    (toogleButtonStyle
+                        (List.member Justify model.wholeTextBlocAttr)
+                        (model.selected == Nothing)
+                    )
+                    { onPress = Just SetTextBlocAlignment
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| alignJustify iconSize)
+                            ]
+                    }
+                , Input.button
+                    (toogleButtonStyle
+                        (List.member Bold model.wholeTextBlocAttr)
+                        (model.selected == Nothing)
+                    )
+                    { onPress = Just SetTextBlocBold
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| bold iconSize)
+                            ]
+                    }
+                , Input.button
+                    (toogleButtonStyle
+                        (List.member Italic model.wholeTextBlocAttr)
+                        (model.selected == Nothing)
+                    )
+                    { onPress = Just SetTextBlocItalic
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| italic iconSize)
+                            ]
+                    }
+                ]
 
 
 headingView : (Msg -> msg) -> Maybe Int -> TrackedData -> Element.Element msg
@@ -1142,17 +1142,16 @@ headingView externalMsg level { meta, attrs, dataKind } =
 
 internalLinkView :
     (Msg -> msg)
-    ->
-        { c
-            | fileExplorer : FileExplorer.Model msg
-            , pageTreeEditor : PageTreeEditor.Model msg
-            , isDoc : Bool
-            , logInfo : Auth.AuthPlugin.LogInfo
-            , selectorOpen : Bool
-            , td : TrackedData
-            , url : String
-            , zone : Time.Zone
-        }
+    -> { c
+        | fileExplorer : FileExplorer.Model msg
+        , pageTreeEditor : PageTreeEditor.Model msg
+        , isDoc : Bool
+        , logInfo : Auth.AuthPlugin.LogInfo
+        , selectorOpen : Bool
+        , td : TrackedData
+        , url : String
+        , zone : Time.Zone
+       }
     -> Element.Element msg
 internalLinkView externalMsg config =
     row
@@ -1303,7 +1302,8 @@ chooseInternalPageView externalMsg uid pageTreeEditor zone logInfo =
                     PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor
                         --|> Maybe.map .path
                         --|> Maybe.map (\p -> "/" ++ String.join "/" p)
-                        |> Maybe.andThen .mbContentId
+                        |>
+                            Maybe.andThen .mbContentId
                         |> Maybe.map canonical
                         |> Maybe.map (externalMsg << ConfirmInternalPageUrl uid)
                 , label =
@@ -1367,83 +1367,83 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                         |> Maybe.map (\fs_ -> selectedSize == (Just <| FontSize fs_))
                         |> Maybe.withDefault False
             in
-            Html.option
-                [ HtmlAttr.value fs
-                , HtmlAttr.selected selected
-                ]
-                [ Html.text fs ]
+                Html.option
+                    [ HtmlAttr.value fs
+                    , HtmlAttr.selected selected
+                    ]
+                    [ Html.text fs ]
     in
-    Element.map model.externalMsg <|
-        row [ spacing 15 ]
-            [ Input.button
-                (toogleButtonStyle
-                    (List.member Bold attrs)
-                    True
-                )
-                { onPress = Just (SetInlineBold meta.uid)
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| bold iconSize)
-                        ]
-                }
-            , Input.button
-                (toogleButtonStyle
-                    (List.member Italic attrs)
-                    True
-                )
-                { onPress = Just (SetInlineItalic meta.uid)
-                , label =
-                    row [ spacing 5 ]
-                        [ el [] (html <| italic iconSize)
-                        ]
-                }
-            , el
-                []
-                (html <|
-                    Html.select
-                        [ HtmlEvents.onInput (SetInlineFont meta.uid)
-                        ]
-                        (List.map
-                            (fontOptionView
-                                (List.filter isFontAttr attrs
-                                    |> List.head
+        Element.map model.externalMsg <|
+            row [ spacing 15 ]
+                [ Input.button
+                    (toogleButtonStyle
+                        (List.member Bold attrs)
+                        True
+                    )
+                    { onPress = Just (SetInlineBold meta.uid)
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| bold iconSize)
+                            ]
+                    }
+                , Input.button
+                    (toogleButtonStyle
+                        (List.member Italic attrs)
+                        True
+                    )
+                    { onPress = Just (SetInlineItalic meta.uid)
+                    , label =
+                        row [ spacing 5 ]
+                            [ el [] (html <| italic iconSize)
+                            ]
+                    }
+                , el
+                    []
+                    (html <|
+                        Html.select
+                            [ HtmlEvents.onInput (SetInlineFont meta.uid)
+                            ]
+                            (List.map
+                                (fontOptionView
+                                    (List.filter isFontAttr attrs
+                                        |> List.head
+                                    )
                                 )
+                                fonts
                             )
-                            fonts
-                        )
-                )
-            , el
-                []
-                (html <|
-                    Html.select
-                        [ HtmlEvents.onInput (SetInlineFontSize meta.uid)
-                        ]
-                        (List.map
-                            (fontSizeOptionView
-                                (List.filter isFontSizeAttr attrs
-                                    |> List.head
+                    )
+                , el
+                    []
+                    (html <|
+                        Html.select
+                            [ HtmlEvents.onInput (SetInlineFontSize meta.uid)
+                            ]
+                            (List.map
+                                (fontSizeOptionView
+                                    (List.filter isFontSizeAttr attrs
+                                        |> List.head
+                                    )
                                 )
+                                fontSizes
                             )
-                            fontSizes
-                        )
-                )
-            , colorPicker
-                model.colorPickerOpen
-                (List.filter isFontColorAttr attrs
-                    |> List.head
-                )
-                "Couleur du texte"
-                SetTextColor
-                meta.uid
-            , colorPicker
-                model.colorPickerOpen
-                (List.filter isBackgroundColorAttr attrs
-                    |> List.head
-                )
-                "Couleur du fond"
-                SetBackgroundColor
-                meta.uid
-            ]
+                    )
+                , colorPicker
+                    model.colorPickerOpen
+                    (List.filter isFontColorAttr attrs
+                        |> List.head
+                    )
+                    "Couleur du texte"
+                    SetTextColor
+                    meta.uid
+                , colorPicker
+                    model.colorPickerOpen
+                    (List.filter isBackgroundColorAttr attrs
+                        |> List.head
+                    )
+                    "Couleur du fond"
+                    SetBackgroundColor
+                    meta.uid
+                ]
 
 
 customTextArea :
@@ -1563,42 +1563,42 @@ colorPicker colorPickerOpen currentColor label msg uid =
                             )
                     )
     in
-    el
-        [ below <|
-            el
-                [ Background.color (rgb 0.95 0.95 0.95) ]
-                (case colorPickerOpen of
-                    Just l ->
-                        if l == label then
-                            column
-                                [ spacing 3
-                                , padding 10
-                                ]
-                                colors
-                        else
-                            Element.none
+        el
+            [ below <|
+                el
+                    [ Background.color (rgb 0.95 0.95 0.95) ]
+                    (case colorPickerOpen of
+                        Just l ->
+                            if l == label then
+                                column
+                                    [ spacing 3
+                                    , padding 10
+                                    ]
+                                    colors
+                            else
+                                Element.none
 
-                    Nothing ->
-                        Element.none
-                )
-        ]
-        (Input.button
-            (buttonStyle True)
-            { onPress = Just (ColorPickerClick label)
-            , label =
-                row [ spacing 10 ]
-                    [ el [] (text label)
-                    , el
-                        [ width (px 14)
-                        , height (px 14)
-                        , Background.color currentColor_
-                        , Border.width 1
-                        , Border.color (rgb 0 0 0)
+                        Nothing ->
+                            Element.none
+                    )
+            ]
+            (Input.button
+                (buttonStyle True)
+                { onPress = Just (ColorPickerClick label)
+                , label =
+                    row [ spacing 10 ]
+                        [ el [] (text label)
+                        , el
+                            [ width (px 14)
+                            , height (px 14)
+                            , Background.color currentColor_
+                            , Border.width 1
+                            , Border.color (rgb 0 0 0)
+                            ]
+                            Element.none
                         ]
-                        Element.none
-                    ]
-            }
-        )
+                }
+            )
 
 
 
@@ -1647,7 +1647,7 @@ textBlock =
                     |= paragraph
                 ]
     in
-    loop [] helper
+        loop [] helper
 
 
 paragraph : Parser Element
@@ -1661,9 +1661,9 @@ paragraph =
                     |= primitive
                 ]
     in
-    loop [] helper
-        |> Parser.map groupWordsIntoText
-        |> Parser.map ParagraphElement
+        loop [] helper
+            |> Parser.map groupWordsIntoText
+            |> Parser.map ParagraphElement
 
 
 uList : Parser Element
@@ -1677,14 +1677,14 @@ uList =
                     |= primitive
                 ]
     in
-    succeed identity
-        |. spaces
-        |. keyword "*"
-        |. spaces
-        |= (loop [] helper
-                |> Parser.map groupWordsIntoText
-           )
-        |> Parser.map UListElement
+        succeed identity
+            |. spaces
+            |. keyword "*"
+            |. spaces
+            |= (loop [] helper
+                    |> Parser.map groupWordsIntoText
+               )
+            |> Parser.map UListElement
 
 
 heading : Parser Element
@@ -1870,12 +1870,12 @@ selectionContainsTrackedData mbSelection trackedData =
                 selectionContainsTd { meta } =
                     meta.start >= start && meta.stop <= finish
             in
-            Dict.foldr
-                (\k v acc ->
-                    selectionContainsTd v || acc
-                )
-                False
-                trackedData
+                Dict.foldr
+                    (\k v acc ->
+                        selectionContainsTd v || acc
+                    )
+                    False
+                    trackedData
 
 
 selectionInTrackedData : Maybe Selection -> Dict Int TrackedData -> Bool
@@ -1889,12 +1889,12 @@ selectionInTrackedData mbSelection trackedData =
                 selectionContainsTd { meta } =
                     meta.start <= start && meta.stop >= finish
             in
-            Dict.foldr
-                (\k v acc ->
-                    selectionContainsTd v || acc
-                )
-                False
-                trackedData
+                Dict.foldr
+                    (\k v acc ->
+                        selectionContainsTd v || acc
+                    )
+                    False
+                    trackedData
 
 
 type alias TrackedData =
@@ -1966,47 +1966,47 @@ updateTrackedData currentTrackedData elems =
                 elems
                 |> List.concat
     in
-    newTrackedDataList
-        |> List.map (\td -> ( td.meta.uid, td ))
-        |> (\tds ->
-                --NOTE: Keep existing attributes
-                List.foldr
-                    (\( uid, td ) acc ->
-                        Dict.update
-                            uid
-                            (\mbValue ->
-                                case mbValue of
-                                    Nothing ->
-                                        Just td
+        newTrackedDataList
+            |> List.map (\td -> ( td.meta.uid, td ))
+            |> (\tds ->
+                    --NOTE: Keep existing attributes
+                    List.foldr
+                        (\( uid, td ) acc ->
+                            Dict.update
+                                uid
+                                (\mbValue ->
+                                    case mbValue of
+                                        Nothing ->
+                                            Just td
 
-                                    Just { meta, attrs, dataKind } ->
-                                        Just
-                                            { meta = td.meta
-                                            , attrs = attrs
-                                            , dataKind = dataKind
-                                            }
+                                        Just { meta, attrs, dataKind } ->
+                                            Just
+                                                { meta = td.meta
+                                                , attrs = attrs
+                                                , dataKind = dataKind
+                                                }
+                                )
+                                acc
+                        )
+                        currentTrackedData
+                        tds
+               )
+            |> (\d ->
+                    -- NOTE: Remove obsolete tracked data
+                    let
+                        newKeys =
+                            List.map (.meta >> .uid) newTrackedDataList
+                    in
+                        List.foldr
+                            (\k acc ->
+                                if not (List.member k newKeys) then
+                                    Dict.remove k acc
+                                else
+                                    acc
                             )
-                            acc
-                    )
-                    currentTrackedData
-                    tds
-           )
-        |> (\d ->
-                -- NOTE: Remove obsolete tracked data
-                let
-                    newKeys =
-                        List.map (.meta >> .uid) newTrackedDataList
-                in
-                List.foldr
-                    (\k acc ->
-                        if not (List.member k newKeys) then
-                            Dict.remove k acc
-                        else
-                            acc
-                    )
-                    d
-                    (Dict.keys d)
-           )
+                            d
+                            (Dict.keys d)
+               )
 
 
 getSelectedTrackedData : Maybe Int -> Dict Int TrackedData -> Maybe TrackedData
@@ -2023,10 +2023,10 @@ getSelectedTrackedData mbCursorPos trackedDataDict =
                         && cursorPos
                         < td.meta.stop
             in
-            Dict.toList trackedDataDict
-                |> List.map Tuple.second
-                |> List.filter isCursorInTrackedData
-                |> List.head
+                Dict.toList trackedDataDict
+                    |> List.map Tuple.second
+                    |> List.filter isCursorInTrackedData
+                    |> List.head
 
 
 findNextAvailableUid : Dict Int TrackedData -> Int
@@ -2099,7 +2099,7 @@ insertTagHelper rawInput selection nextUid tagname =
                                 "</>"
                            )
             in
-            Just (firstHalf ++ newLink ++ secondHalf)
+                Just (firstHalf ++ newLink ++ secondHalf)
 
 
 
@@ -2224,25 +2224,25 @@ fromTextBloc tbes =
             String.replace " </> ." "</> ." s
                 |> String.replace " </> ," "</> ,"
     in
-    List.foldr
-        (\tbe { resultString, trackedData, nextUid } ->
-            let
-                newProcessedInput =
-                    fromTextBlocElement nextUid tbe
-            in
-            { resultString =
-                newProcessedInput.resultString ++ " " ++ resultString
-            , trackedData =
-                newProcessedInput.trackedData ++ trackedData
-            , nextUid = nextUid + List.length newProcessedInput.trackedData
+        List.foldr
+            (\tbe { resultString, trackedData, nextUid } ->
+                let
+                    newProcessedInput =
+                        fromTextBlocElement nextUid tbe
+                in
+                    { resultString =
+                        newProcessedInput.resultString ++ " " ++ resultString
+                    , trackedData =
+                        newProcessedInput.trackedData ++ trackedData
+                    , nextUid = nextUid + List.length newProcessedInput.trackedData
+                    }
+            )
+            { resultString = ""
+            , trackedData = []
+            , nextUid = 0
             }
-        )
-        { resultString = ""
-        , trackedData = []
-        , nextUid = 0
-        }
-        tbes
-        |> (\res -> { res | resultString = fixSymbols res.resultString })
+            tbes
+            |> (\res -> { res | resultString = fixSymbols res.resultString })
 
 
 fromTextBlocElement : Int -> TextBlockElement -> ProcessedInput
@@ -2255,12 +2255,12 @@ fromTextBlocElement nextUid_ tbe =
                         newProcessedInput =
                             fromTextBlocPrimitive nextUid tbp
                     in
-                    { resultString =
-                        newProcessedInput.resultString ++ " " ++ resultString
-                    , trackedData =
-                        newProcessedInput.trackedData ++ trackedData
-                    , nextUid = nextUid + List.length newProcessedInput.trackedData
-                    }
+                        { resultString =
+                            newProcessedInput.resultString ++ " " ++ resultString
+                        , trackedData =
+                            newProcessedInput.trackedData ++ trackedData
+                        , nextUid = nextUid + List.length newProcessedInput.trackedData
+                        }
                 )
                 { resultString = ""
                 , trackedData = []
@@ -2280,12 +2280,12 @@ fromTextBlocElement nextUid_ tbe =
                                 newProcessedInput =
                                     fromTextBlocPrimitive nextUid tbp
                             in
-                            { resultString =
-                                newProcessedInput.resultString ++ " " ++ resultString
-                            , trackedData =
-                                newProcessedInput.trackedData ++ trackedData
-                            , nextUid = nextUid + 1
-                            }
+                                { resultString =
+                                    newProcessedInput.resultString ++ " " ++ resultString
+                                , trackedData =
+                                    newProcessedInput.trackedData ++ trackedData
+                                , nextUid = nextUid + 1
+                                }
                         )
                         { resultString = ""
                         , trackedData = []
@@ -2296,24 +2296,24 @@ fromTextBlocElement nextUid_ tbe =
                                 { res | resultString = "* " ++ res.resultString ++ "\n" }
                            )
             in
-            List.foldr
-                (\li { resultString, trackedData, nextUid } ->
-                    let
-                        newProcessedInput =
-                            processLi li nextUid
-                    in
-                    { resultString =
-                        newProcessedInput.resultString ++ resultString
-                    , trackedData =
-                        newProcessedInput.trackedData ++ trackedData
-                    , nextUid = nextUid + newProcessedInput.nextUid
+                List.foldr
+                    (\li { resultString, trackedData, nextUid } ->
+                        let
+                            newProcessedInput =
+                                processLi li nextUid
+                        in
+                            { resultString =
+                                newProcessedInput.resultString ++ resultString
+                            , trackedData =
+                                newProcessedInput.trackedData ++ trackedData
+                            , nextUid = nextUid + newProcessedInput.nextUid
+                            }
+                    )
+                    { resultString = ""
+                    , trackedData = []
+                    , nextUid = nextUid_
                     }
-                )
-                { resultString = ""
-                , trackedData = []
-                , nextUid = nextUid_
-                }
-                tbps
+                    tbps
 
         Document.Heading _ ( level, value ) ->
             { resultString =
@@ -2438,7 +2438,7 @@ groupWordsIntoText prims =
                                         )
                                         xs_
     in
-    helper [] [] prims
+        helper [] [] prims
 
 
 encodeSelection : Int -> Int -> Encode.Value
@@ -2510,7 +2510,7 @@ hexToColor hexColor =
                 |> Result.withDefault 0
                 |> toFloat
     in
-    rgb (red / 255) (green / 255) (blue / 255)
+        rgb (red / 255) (green / 255) (blue / 255)
 
 
 hexColorToDocColor : String -> DocColor
@@ -2539,7 +2539,7 @@ hexColorToDocColor hexColor =
                 |> Result.withDefault 0
                 |> toFloat
     in
-    DocColor (red / 255) (green / 255) (blue / 255)
+        DocColor (red / 255) (green / 255) (blue / 255)
 
 
 updateAttrs :
@@ -2563,7 +2563,7 @@ updateAttrs p attrWrapper val attrs =
                     else
                         helper (x :: acc) xs_
     in
-    helper [] attrs
+        helper [] attrs
 
 
 isFontAttr : Document.DocAttribute -> Bool

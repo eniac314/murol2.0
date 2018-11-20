@@ -251,6 +251,27 @@ telPreview tel =
         )
 
 
+
+-------------------------------------------------------------------------------
+
+
+ficheView : Bool -> Fiche -> Element msg
+ficheView isOpen fiche =
+    column
+        [ spacing 15
+        , width (px 440)
+        ]
+        [ visualPreview fiche
+        , if isOpen then
+            column
+                wrapperStyle
+                [ activView fiche
+                ]
+          else
+            Element.none
+        ]
+
+
 visualPreview { nomEntite, visuel } =
     el
         [ width (px 440)
@@ -285,3 +306,36 @@ visualPreview { nomEntite, visuel } =
             ]
             Element.none
         )
+
+
+activView { natureActiv } =
+    paragraph
+        (subBlockStyle
+            ++ [ Font.bold
+               , Font.center
+               ]
+        )
+        [ text <| String.join ", " natureActiv ]
+
+
+
+--refView {refOt, label} =
+-------------------------------------------------------------------------------
+
+
+wrapperStyle : List (Attribute msg)
+wrapperStyle =
+    [ padding 10
+    , Background.color grey6
+    , Border.rounded 5
+    , width fill
+    ]
+
+
+subBlockStyle : List (Attribute msg)
+subBlockStyle =
+    [ padding 10
+    , Background.color grey7
+    , Border.rounded 5
+    , width fill
+    ]

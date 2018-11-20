@@ -92,7 +92,7 @@ type Msg
     | AddLabelToFiche
     | RemoveLabelFromFiche
     | ModifyLabel
-    | CreateNewLabel
+      --| CreateNewLabel
       ---
     | SetRefOtNbr String
     | SetRefOtLink String

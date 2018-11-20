@@ -72,7 +72,7 @@ editFicheView config model =
                 else
                     el
                         [ Background.color (rgb 1 1 1)
-                        , width (px 850)
+                        , width (minimum 850 (maximum 920 shrink))
                         , Border.shadow
                             { offset = ( 4, 4 )
                             , size = 5
@@ -604,7 +604,7 @@ setLabels config model =
                 else
                     el
                         [ Background.color (rgb 1 1 1)
-                        , width (px 850)
+                        , width (minimum 850 (maximum 920 shrink))
                         , Border.shadow
                             { offset = ( 4, 4 )
                             , size = 5
@@ -743,7 +743,7 @@ setLabels config model =
                                 avLabel == newLabel
 
                             ( Nothing, Just newLabel ) ->
-                                True
+                                validLabel newLabel
 
                             _ ->
                                 False
@@ -751,6 +751,18 @@ setLabels config model =
                     canRemove =
                         (model.selectedLabelInFiche /= Nothing)
                             && (model.selectedAvailableLabel == Nothing)
+
+                    canModify =
+                        case
+                            ( extractLabel model model.selectedAvailableLabel
+                            , model.labelBuffer
+                            )
+                        of
+                            ( Just avLabel, Just newLabel ) ->
+                                (avLabel /= newLabel) && (validLabel newLabel)
+
+                            _ ->
+                                False
                  in
                     [ Input.button
                         (buttonStyle canAdd)
@@ -770,39 +782,17 @@ setLabels config model =
                                 Nothing
                         , label = el [] (text "Supprimer label")
                         }
-                    , el
-                        [ paddingEach
-                            { top = 0
-                            , right = 0
-                            , left = 103
-                            , bottom = 0
-                            }
-                        ]
-                        (Input.button
-                            ([]
-                                ++ buttonStyle
-                                    (Maybe.map validLabel model.labelBuffer
-                                        |> (\res -> res == Just True)
-                                    )
-                            )
-                            { onPress =
-                                Maybe.map validLabel model.labelBuffer
-                                    |> Maybe.map
-                                        (\_ ->
-                                            if model.selectedAvailableLabel /= Nothing then
-                                                ModifyLabel
-                                            else
-                                                CreateNewLabel
-                                        )
-                            , label =
-                                el []
-                                    (if model.selectedAvailableLabel /= Nothing then
-                                        text "Modifier label"
-                                     else
-                                        text "Créer label"
-                                    )
-                            }
-                        )
+                    , Input.button
+                        (buttonStyle canModify)
+                        { onPress =
+                            if canModify then
+                                Just ModifyLabel
+                            else
+                                Nothing
+                        , label =
+                            el []
+                                (text "Modifier label")
+                        }
                     ]
                 )
         ]
@@ -1716,7 +1706,7 @@ setLinkedDocs config model =
                 else
                     el
                         [ Background.color (rgb 1 1 1)
-                        , width (px 850)
+                        , width (minimum 850 (maximum 920 shrink))
                         , Border.shadow
                             { offset = ( 4, 4 )
                             , size = 5

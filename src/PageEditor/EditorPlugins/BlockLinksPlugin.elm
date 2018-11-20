@@ -263,15 +263,15 @@ update msg model =
                             |> List.foldr (\k acc -> max k acc) 0
                           )
             in
-            ( { model
-                | blocks =
-                    Dict.insert
-                        nextId
-                        newBlock
-                        model.blocks
-              }
-            , Nothing
-            )
+                ( { model
+                    | blocks =
+                        Dict.insert
+                            nextId
+                            newBlock
+                            model.blocks
+                  }
+                , Nothing
+                )
 
         RemoveBlock ->
             case model.selectedBlock of
@@ -332,12 +332,12 @@ update msg model =
                             else
                                 Just <| n + 1
                     in
-                    ( { model
-                        | blocks = newBlocks
-                        , selectedBlock = selection
-                      }
-                    , Nothing
-                    )
+                        ( { model
+                            | blocks = newBlocks
+                            , selectedBlock = selection
+                          }
+                        , Nothing
+                        )
 
                 --        case dir of
                 --            Left ->
@@ -398,7 +398,7 @@ topInterfaceView config renderConfig model =
             else
                 el
                     [ Background.color (rgb 1 1 1)
-                    , width (px 850)
+                    , width (minimum 850 (maximum 920 shrink))
                     , Border.shadow
                         { offset = ( 4, 4 )
                         , size = 5

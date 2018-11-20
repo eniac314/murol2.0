@@ -605,35 +605,61 @@ internalUpdate config msg model =
                 )
 
         AddLabelToFiche ->
-            let
-                mbNewLabel =
-                    extractLabel model model.selectedAvailableLabel
+            case ( model.selectedAvailableLabel, model.labelBuffer ) of
+                ( Just _, Just _ ) ->
+                    let
+                        mbNewLabel =
+                            extractLabel model model.selectedAvailableLabel
 
-                newFicheLabels =
-                    appendLabel
-                        mbNewLabel
-                        model.ficheBuffer.label
+                        newFicheLabels =
+                            appendLabel
+                                mbNewLabel
+                                model.ficheBuffer.label
 
-                newLabels =
-                    appendLabel
-                        mbNewLabel
-                        model.labels
+                        newLabels =
+                            appendLabel
+                                mbNewLabel
+                                model.labels
 
-                fb =
-                    model.ficheBuffer
+                        fb =
+                            model.ficheBuffer
 
-                newFb =
-                    { fb
-                        | label = newFicheLabels
-                    }
-            in
-                ( { model
-                    | ficheBuffer = newFb
-                    , labelBuffer = Nothing
-                    , labels = newLabels
-                  }
-                , Cmd.none
-                )
+                        newFb =
+                            { fb
+                                | label = newFicheLabels
+                            }
+                    in
+                        ( { model
+                            | ficheBuffer = newFb
+                            , labelBuffer = Nothing
+                            , labels = newLabels
+                          }
+                        , Cmd.none
+                        )
+
+                ( Nothing, Just _ ) ->
+                    case ( model.labelBuffer, Maybe.map validLabel model.labelBuffer ) of
+                        ( Just newLabel, Just True ) ->
+                            let
+                                fb =
+                                    model.ficheBuffer
+
+                                newFb =
+                                    { fb | label = fb.label ++ [ newLabel ] }
+                            in
+                                ( { model
+                                    | labels = model.labels ++ [ newLabel ]
+                                    , labelBuffer = Nothing
+                                    , ficheBuffer = newFb
+                                  }
+                                , Cmd.none
+                                )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         RemoveLabelFromFiche ->
             let
@@ -697,20 +723,6 @@ internalUpdate config msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        CreateNewLabel ->
-            case ( model.labelBuffer, Maybe.map validLabel model.labelBuffer ) of
-                ( Just newLabel, Just True ) ->
-                    ( { model
-                        | labels = model.labels ++ [ newLabel ]
-                        , labelBuffer = Nothing
-                      }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        --
         SetRefOtNbr s ->
             let
                 fb =
