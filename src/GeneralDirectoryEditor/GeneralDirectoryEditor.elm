@@ -588,21 +588,32 @@ internalUpdate config msg model =
                 , Cmd.none
                 )
 
-        SetLabelVisual s ->
-            let
-                baseLabel =
-                    model.labelBuffer
-                        |> Maybe.withDefault emptyLabel
+        SetLabelVisual pr ->
+            case pr of
+                PickedImage { url, width, height } ->
+                    let
+                        baseLabel =
+                            model.labelBuffer
+                                |> Maybe.withDefault emptyLabel
 
-                newLabel =
-                    { baseLabel | logo = s }
-            in
-                ( { model
-                    | labelBuffer = Just newLabel
-                    , labelVisualPickerOpen = False
-                  }
-                , Cmd.none
-                )
+                        newLabel =
+                            { baseLabel
+                                | logo =
+                                    { url = url
+                                    , width = width
+                                    , height = height
+                                    }
+                            }
+                    in
+                        ( { model
+                            | labelBuffer = Just newLabel
+                            , labelVisualPickerOpen = False
+                          }
+                        , Cmd.none
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
 
         AddLabelToFiche ->
             case ( model.selectedAvailableLabel, model.labelBuffer ) of
@@ -1219,20 +1230,25 @@ internalUpdate config msg model =
             , Cmd.none
             )
 
-        ConfirmVisual s ->
-            let
-                fb =
-                    model.ficheBuffer
+        ConfirmVisual pr ->
+            case pr of
+                PickedImage { url } ->
+                    let
+                        fb =
+                            model.ficheBuffer
 
-                newFb =
-                    { fb | visuel = s }
-            in
-                ( { model
-                    | visualPickerOpen = False
-                    , ficheBuffer = newFb
-                  }
-                , Cmd.none
-                )
+                        newFb =
+                            { fb | visuel = url }
+                    in
+                        ( { model
+                            | visualPickerOpen = False
+                            , ficheBuffer = newFb
+                          }
+                        , Cmd.none
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
 
         --
         SelectDescrInFiche s ->
@@ -1481,21 +1497,26 @@ internalUpdate config msg model =
                         , Cmd.none
                         )
 
-        SetLinkedDocUrl s ->
-            let
-                baseLD =
-                    model.linkedDocBuffer
-                        |> Maybe.withDefault emptyLinkedDoc
+        SetLinkedDocUrl pr ->
+            case pr of
+                PickedDoc s ->
+                    let
+                        baseLD =
+                            model.linkedDocBuffer
+                                |> Maybe.withDefault emptyLinkedDoc
 
-                newLd =
-                    { baseLD | url = s }
-            in
-                ( { model
-                    | linkedDocBuffer = Just newLd
-                    , docPickerOpen = False
-                  }
-                , Cmd.none
-                )
+                        newLd =
+                            { baseLD | url = s }
+                    in
+                        ( { model
+                            | linkedDocBuffer = Just newLd
+                            , docPickerOpen = False
+                          }
+                        , Cmd.none
+                        )
+
+                _ ->
+                    ( model, Cmd.none )
 
         SetLinkedDocLabel s ->
             let

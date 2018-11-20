@@ -88,7 +88,7 @@ type Msg
     | SelectAvailableLabel String
     | SetLabelName String
     | SetLabelLink String
-    | SetLabelVisual String
+    | SetLabelVisual PickerResult
     | AddLabelToFiche
     | RemoveLabelFromFiche
     | ModifyLabel
@@ -132,7 +132,7 @@ type Msg
     | CloseLabelVisualPicker
     | OpenDocPicker
     | CloseDocPicker
-    | ConfirmVisual String
+    | ConfirmVisual PickerResult
       ---
     | SelectDescrInFiche String
     | SetDescription String
@@ -146,7 +146,7 @@ type Msg
     | ModifyLinkedDoc
     | AddLinkedDoc
     | RemoveLinkedDoc
-    | SetLinkedDocUrl String
+    | SetLinkedDocUrl PickerResult
     | SetLinkedDocLabel String
     | SetLinkedDocDescr String
     | SetLinkedDocExpiry String
@@ -213,15 +213,24 @@ emptyFiche =
     }
 
 
+type PickerResult
+    = PickedImage { url : String, width : Int, height : Int }
+    | PickedDoc String
+
+
 type alias Label =
     { nom : String
-    , logo : String
+    , logo :
+        { url : String
+        , width : Int
+        , height : Int
+        }
     , lien : String
     }
 
 
 emptyLabel =
-    Label "" "" ""
+    Label "" { url = "", width = 0, height = 0 } ""
 
 
 type alias Rank =

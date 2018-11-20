@@ -813,7 +813,7 @@ setLabelVisual config model =
                 , height (px 104)
                 , Background.uncropped
                     (model.labelBuffer
-                        |> Maybe.map .logo
+                        |> Maybe.map (.url << .logo)
                         |> Maybe.withDefault ""
                     )
                 , centerX
@@ -1979,20 +1979,29 @@ docPickerView config model =
 
 pickerView :
     Msg
-    -> (String -> Msg)
+    -> (PickerResult -> Msg)
     -> FileExplorer.Root
     -> ViewConfig config msg
     -> Model msg
     -> Element msg
 pickerView backMsg confirmMsg root config model =
     let
-        selector =
+        selector m =
             case root of
                 FileExplorer.ImagesRoot ->
-                    Maybe.map .src << FileExplorer.getSelectedImage
+                    FileExplorer.getSelectedImage m
+                        |> Maybe.map
+                            (\{ src, width, height } ->
+                                PickedImage
+                                    { url = src
+                                    , width = width
+                                    , height = height
+                                    }
+                            )
 
                 FileExplorer.DocsRoot ->
-                    FileExplorer.getSelectedDoc
+                    FileExplorer.getSelectedDoc m
+                        |> Maybe.map PickedDoc
     in
         column
             [ height fill

@@ -39,7 +39,7 @@
             "Janiczek/cmd-extra": "1.0.0",
             "TSFoster/elm-md5": "2.0.0",
             "TSFoster/elm-sha1": "1.0.0",
-            "elm/bytes": "1.0.4",
+            "elm/bytes": "1.0.6",
             "elm/file": "1.0.1",
             "elm/virtual-dom": "1.0.2",
             "elm-community/dict-extra": "2.3.1",

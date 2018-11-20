@@ -133,7 +133,13 @@ encodeLabel =
     \{ nom, logo, lien } ->
         E.object
             [ ( "nom", E.string nom )
-            , ( "logo", E.string logo )
+            , ( "logo"
+              , E.object
+                    [ ( "url", E.string logo.url )
+                    , ( "width", E.int logo.width )
+                    , ( "height", E.int logo.height )
+                    ]
+              )
             , ( "lien", E.string lien )
             ]
 
@@ -231,8 +237,16 @@ decodeLabel : D.Decoder Label
 decodeLabel =
     D.succeed Label
         |> P.required "nom" D.string
-        |> P.required "logo" D.string
+        |> P.required "logo" decodeLogo
         |> P.required "lien" D.string
+
+
+decodeLogo : D.Decoder { url : String, width : Int, height : Int }
+decodeLogo =
+    D.succeed (\u w h -> { url = u, width = w, height = h })
+        |> P.required "url" D.string
+        |> P.required "width" D.int
+        |> P.required "height" D.int
 
 
 decodeRank : D.Decoder Rank

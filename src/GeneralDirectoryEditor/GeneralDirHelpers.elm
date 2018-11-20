@@ -48,7 +48,7 @@ computeLabels fiches =
         )
         []
         fiches
-        |> uniqueBy (\{ nom, logo, lien } -> nom ++ logo ++ lien)
+        |> uniqueBy (\{ nom, logo, lien } -> nom ++ logo.url ++ lien)
 
 
 getTFixe tel =
@@ -124,7 +124,7 @@ validLinkedDoc { url, label } =
 
 
 validLabel { nom, logo, lien } =
-    (nom /= "") && (logo /= "") && (lien /= "")
+    (nom /= "") && (logo.url /= "") && (lien /= "")
 
 
 extractLabel model mbLabelName =
@@ -145,7 +145,7 @@ appendLabel mbLabel labelList =
             uniqueBy
                 (\l_ ->
                     .nom l_
-                        ++ .logo l_
+                        ++ (.url << .logo) l_
                         ++ .lien l_
                 )
             <|
