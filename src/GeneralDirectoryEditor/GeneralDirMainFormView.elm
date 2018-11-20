@@ -1623,7 +1623,7 @@ setLinkedDocs config model =
                 [ spacing 15 ]
                 [ Input.text
                     (textInputStyle
-                        ++ [ width (px 220)
+                        ++ [ width (px 230)
                            , spacingXY 0 15
                            , Font.color teal3
                            ]
@@ -1646,7 +1646,7 @@ setLinkedDocs config model =
                     }
                 , Input.text
                     (textInputStyle
-                        ++ [ width (px 220)
+                        ++ [ width (px 230)
                            , spacingXY 0 15
                            , Font.color teal3
                            ]
@@ -1669,7 +1669,7 @@ setLinkedDocs config model =
                     }
                 , Input.text
                     (textInputStyle
-                        ++ [ width (px 220)
+                        ++ [ width (px 230)
                            , if Maybe.andThen .expiryDate model.linkedDocBuffer /= Nothing then
                                 Font.color green4
                              else

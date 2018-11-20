@@ -552,8 +552,11 @@ internalUpdate config msg model =
                     else
                         Just s
                 , labelBuffer =
-                    List.filter (\l -> l.nom == s) model.labels
-                        |> List.head
+                    if model.selectedAvailableLabel == Just s then
+                        Nothing
+                    else
+                        List.filter (\l -> l.nom == s) model.labels
+                            |> List.head
                 , selectedLabelInFiche = Nothing
               }
             , Cmd.none
@@ -1792,90 +1795,158 @@ ficheSelectorView model =
                 , left = 0
                 , right = 15
                 }
+            , width (px 780)
+            , height fill
+            , scrollbarY
             ]
             [ el
                 [ Font.bold
                 , Font.size 18
                 ]
                 (text "Selection fiche")
-            , Input.text
-                (textInputStyle ++ [ spacingXY 0 15 ])
-                { onChange =
-                    FilterByName
-                , text =
-                    model.nameFilter
-                        |> Maybe.withDefault ""
-                , placeholder =
-                    Just <|
-                        Input.placeholder
-                            []
-                            (text "filtrer par nom entité")
-                , label =
-                    Input.labelLeft [] Element.none
-                }
+            , el containerStyle
+                (row
+                    formItemStyle
+                    [ Input.text
+                        (textInputStyle
+                            ++ [ spacingXY 0 15
+                               , width (px 400)
+                               ]
+                        )
+                        { onChange =
+                            FilterByName
+                        , text =
+                            model.nameFilter
+                                |> Maybe.withDefault ""
+                        , placeholder =
+                            Just <|
+                                Input.placeholder
+                                    []
+                                    (text "Filtrer par nom entité")
+                        , label =
+                            Input.labelLeft [] Element.none
+                        }
+                    ]
+                )
             , row
-                [ spacing 15
-                ]
-                [ column [ spacing 15 ]
-                    [ el [ Font.bold ] (text "Catégories")
+                ([ spacing 15 ]
+                    ++ containerStyle
+                )
+                [ column
+                    ([ spacing 15
+                     , alignTop
+                     ]
+                        ++ formItemStyle
+                    )
+                    [ el
+                        [ Font.bold
+                        , Font.color grey1
+                        ]
+                        (text "Catégories ")
                     , column
                         [ Border.width 2
-                        , Border.color (rgb 0.8 0.8 0.8)
+                        , Border.color grey3
                         , width (px 150)
                         , height (px 200)
                         , scrollbars
                         ]
                         (Set.toList model.categories
                             |> List.map
-                                (\e -> filterView model.catFilter (FilterByCat e) e)
+                                (\e ->
+                                    selectView
+                                        False
+                                        model.catFilter
+                                        (FilterByCat e)
+                                        e
+                                )
                         )
                     ]
-                , column [ spacing 15 ]
-                    [ el [ Font.bold ] (text "Nature activités")
+                , column
+                    ([ spacing 15
+                     , alignTop
+                     ]
+                        ++ formItemStyle
+                    )
+                    [ el
+                        [ Font.bold
+                        , Font.color grey1
+                        ]
+                        (text "Nature activité")
                     , column
                         [ Border.width 2
-                        , Border.color (rgb 0.8 0.8 0.8)
+                        , Border.color grey3
                         , width (px 300)
                         , height (px 200)
                         , scrollbars
                         ]
                         (Set.toList model.activites
                             |> List.map
-                                (\e -> filterView model.activFilter (FilterByActiv e) e)
+                                (\e ->
+                                    selectView False
+                                        model.activFilter
+                                        (FilterByActiv e)
+                                        e
+                                )
                         )
                     ]
-                , column [ spacing 15 ]
-                    [ el [ Font.bold ] (text "Labels")
+                , column
+                    ([ spacing 15
+                     , alignTop
+                     ]
+                        ++ formItemStyle
+                    )
+                    [ el
+                        [ Font.bold
+                        , Font.color grey1
+                        ]
+                        (text "Labels")
                     , column
                         [ Border.width 2
-                        , Border.color (rgb 0.8 0.8 0.8)
+                        , Border.color grey3
                         , width (px 150)
                         , height (px 200)
                         , scrollbars
                         ]
-                        (model.labels
-                            |> List.map .nom
+                        (List.map .nom model.labels
                             |> List.map
-                                (\e -> filterView model.labelFilter (FilterByLabel e) e)
+                                (\e ->
+                                    selectView
+                                        False
+                                        model.labelFilter
+                                        (FilterByLabel e)
+                                        e
+                                )
                         )
                     ]
                 ]
             , el [ Font.bold ]
                 (text "Nom fiche entité")
             , column
-                [ Border.width 2
-                , Border.color (rgb 0.8 0.8 0.8)
-                , width (px 630)
-                , height (px 480)
-                , scrollbars
-                ]
-                (filteredFiches
-                    |> List.map (\( k, v ) -> ( k, v.nomEntite ))
-                    |> List.map
-                        (\( k, n ) ->
-                            filterView model.selectedFiche (SelectFiche k) n
+                containerStyle
+                [ column
+                    (formItemStyle
+                        ++ [ spacing 15, width fill ]
+                    )
+                    [ el [ Font.bold ]
+                        (text "Nom fiche entité")
+                    , column
+                        ([ Border.width 2
+                         , Border.color grey3
+                         , width fill
+                         , height (px 480)
+                         , scrollbars
+                         ]
                         )
-                )
+                        ((filteredFiches
+                            |> List.map (\( k, v ) -> ( k, v.nomEntite ))
+                            |> List.map
+                                (\( k, n ) ->
+                                    filterView model.selectedFiche (SelectFiche k) n
+                                )
+                         )
+                        )
+                    ]
+                ]
             ]
 
 
@@ -1884,6 +1955,7 @@ formsView config model =
         [ alignTop
         , spacing 15
         , width fill
+        , height fill
         ]
         [ case model.rightPanelDisplay of
             PreviewFiche ->
@@ -1896,7 +1968,11 @@ formsView config model =
 
 previewFicheView model =
     column
-        [ spacing 15 ]
+        [ spacing 15
+        , width fill
+        , scrollbarY
+        , alignTop
+        ]
         [ el
             [ Font.bold
             , Font.size 18

@@ -30,6 +30,7 @@ type alias Model msg =
     , selectedFiche : Maybe String
     , selectedFiches : Set String
     , externalMsg : Msg -> msg
+    , groupSel : Maybe GroupSelection
     }
 
 
@@ -38,10 +39,16 @@ type Msg
     | FilterByCat String
     | FilterByActiv String
     | FilterByLabel String
-    | SelectFiche String
-    | ToogleAll
+    | GroupSel GroupSelection
     | ToogleFiche String
+    | Quit
+    | SaveAndQuit
     | NoOp
+
+
+type GroupSelection
+    = All
+    | None
 
 
 init : List String -> (Msg -> msg) -> Model msg
@@ -53,6 +60,7 @@ init selectedFiches externalMsg =
     , selectedFiche = Nothing
     , selectedFiches = Set.fromList selectedFiches
     , externalMsg = externalMsg
+    , groupSel = Nothing
     }
 
 
@@ -64,7 +72,10 @@ update : UpdateConfig config msg -> Msg -> Model msg -> ( Model msg, Maybe (Edit
 update config msg model =
     case msg of
         FilterByName nom ->
-            ( { model | nameFilter = Just nom }
+            ( { model
+                | nameFilter = Just nom
+                , groupSel = Nothing
+              }
             , Nothing
             )
 
@@ -75,6 +86,7 @@ update config msg model =
                         Nothing
                     else
                         Just cat
+                , groupSel = Nothing
               }
             , Nothing
             )
@@ -86,6 +98,7 @@ update config msg model =
                         Nothing
                     else
                         Just activ
+                , groupSel = Nothing
               }
             , Nothing
             )
@@ -97,57 +110,38 @@ update config msg model =
                         Nothing
                     else
                         Just label
+                , groupSel = Nothing
               }
             , Nothing
             )
 
-        SelectFiche s ->
-            ( { model
-                | selectedFiche =
-                    if model.selectedFiche == Just s then
-                        Nothing
-                    else
-                        Just s
-              }
-            , Cmd.none
-            )
+        GroupSel sel ->
+            case sel of
+                All ->
+                    let
+                        fichesToAdd =
+                            (filteredFiches config model)
+                                |> List.map Tuple.first
+                                |> Set.fromList
+                    in
+                        ( { model
+                            | selectedFiches =
+                                Set.union
+                                    model.selectedFiches
+                                    fichesToAdd
+                            , groupSel = Just sel
+                          }
+                        , Nothing
+                        )
 
-        --( { model
-        --    | selectedFiche =
-        --        case
-        --            Maybe.andThen
-        --                (\key ->
-        --                    Dict.get
-        --                        key
-        --                        (fichesData config.genDirEditor)
-        --                )
-        --                model.selectedFiche
-        --        of
-        --            Just f ->
-        --                if f.nomEntite == s then
-        --                    Nothing
-        --                else
-        --                    Just s
-        --            _ ->
-        --                Just s
-        --  }
-        --, Nothing
-        --)
-        ToogleAll ->
-            let
-                fichesToAdd =
-                    (filteredFiches config model)
-                        |> List.map Tuple.first
-                        |> Set.fromList
-            in
-                ( { model
-                    | selectedFiches =
-                        Set.union
-                            model.selectedFiches
-                            fichesToAdd
-                  }
-                , Nothing
-                )
+                None ->
+                    ( { model
+                        | selectedFiches =
+                            Set.empty
+                        , groupSel = Just sel
+                      }
+                    , Nothing
+                    )
 
         ToogleFiche s ->
             ( { model
@@ -156,9 +150,24 @@ update config msg model =
                         Set.remove s model.selectedFiches
                     else
                         Set.insert s model.selectedFiches
+                , groupSel = Nothing
               }
             , Nothing
             )
+
+        Quit ->
+            ( model, Just EditorPluginQuit )
+
+        SaveAndQuit ->
+            if model.selectedFiches == Set.empty then
+                ( model, Nothing )
+            else
+                ( model
+                , Just
+                    (EditorPluginData
+                        (Set.toList model.selectedFiches)
+                    )
+                )
 
         NoOp ->
             ( model, Nothing )
@@ -193,6 +202,23 @@ view config model =
                     , labelSelector config model
                     ]
                 , ficheSelector config model
+                , row
+                    [ spacing 15 ]
+                    [ Input.button
+                        (buttonStyle True)
+                        { onPress = Just Quit
+                        , label = text "Retour"
+                        }
+                    , Input.button
+                        (buttonStyle (model.selectedFiches /= Set.empty))
+                        { onPress =
+                            if model.selectedFiches /= Set.empty then
+                                Just SaveAndQuit
+                            else
+                                Nothing
+                        , label = text "Valider"
+                        }
+                    ]
                 ]
             )
 
@@ -335,32 +361,60 @@ labelSelector { genDirEditor } model =
 
 ficheSelector : ViewConfig config msg -> Model msg -> Element Msg
 ficheSelector config model =
-    column
-        containerStyle
-        [ column
-            (formItemStyle
-                ++ [ spacing 15, width fill ]
-            )
-            [ el [ Font.bold ]
-                (text "Nom fiche entité")
-            , column
-                ([ Border.width 2
-                 , Border.color grey3
+    let
+        isChecked fId =
+            Set.member fId model.selectedFiches
+    in
+        column
+            containerStyle
+            [ column
+                (formItemStyle
+                    ++ [ spacing 15, width fill ]
+                )
+                [ el [ Font.bold ]
+                    (text "Nom fiche entité")
+                , column
+                    ([ Border.width 2
+                     , Border.color grey3
+                     , width fill
+                     , height (px 480)
+                     , scrollbars
+                     ]
+                    )
+                    ((filteredFiches config model
+                        |> List.map (\( k, v ) -> ( k, v.nomEntite ))
+                        |> List.map
+                            (\( k, n ) ->
+                                checkView (isChecked k) k n
+                             --selectView False model.selectedFiche (SelectFiche k) n
+                            )
+                     )
+                    )
+                ]
+            , row
+                ([ spacing 15
                  , width fill
-                 , height (px 480)
-                 , scrollbars
                  ]
+                    ++ formItemStyle
                 )
-                ((filteredFiches config model
-                    |> List.map (\( k, v ) -> ( k, v.nomEntite ))
-                    |> List.map
-                        (\( k, n ) ->
-                            selectView False model.selectedFiche (SelectFiche k) n
-                        )
-                 )
-                )
+                [ el
+                    [ Font.bold
+                    , Font.color grey1
+                    ]
+                    (text "Sélection groupée")
+                , Input.radioRow
+                    [ spacing 15 ]
+                    { onChange = GroupSel
+                    , options =
+                        [ Input.option All (text "Tout")
+                        , Input.option None (text "Rien")
+                        ]
+                    , selected =
+                        model.groupSel
+                    , label = Input.labelHidden ""
+                    }
+                ]
             ]
-        ]
 
 
 
@@ -450,17 +504,30 @@ selectView isFicheData selected handler entry =
         ( entry, text entry )
 
 
-
---checkView : Bool -> Maybe String -> Element Msg
---checkView isChecked selected entry =
---    Keyed.row
---        [ width fill
---        , paddingXY 5 5
---        , if Just entry == selected then
---            Background.color
---                grey4
---          else
---        ]
+checkView : Bool -> String -> String -> Element Msg
+checkView isChecked ficheId entry =
+    Keyed.row
+        [ width fill
+        , paddingXY 5 5
+        , pointer
+        , Events.onClick (ToogleFiche ficheId)
+        , mouseOver
+            [ Background.color grey4 ]
+        , spacing 10
+        ]
+        [ ( entry
+          , if isChecked then
+                el [ Font.color grey1 ]
+                    (html <| checkSquare 18)
+            else
+                el [ Font.color grey1 ]
+                    (html <| square 18)
+          )
+        , ( entry
+          , el [ Font.color grey2 ]
+                (text entry)
+          )
+        ]
 
 
 containerStyle : List (Attribute msg)

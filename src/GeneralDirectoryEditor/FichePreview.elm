@@ -25,11 +25,11 @@ import Time exposing (..)
 fichePreview : Fiche -> Element msg
 fichePreview f =
     column
-        [ padding 15
-        , spacing 15
+        [ spacing 15
         , Border.solid
         , Border.color (rgb255 127 127 127)
-        , Border.width 2
+          --, Border.width 2
+        , width (px 440)
         ]
         [ visualPreview f
         , row
