@@ -20,297 +20,85 @@ import Internals.Icons exposing (chevronsDown, chevronsUp)
 import Murmur3 exposing (hashString)
 import Set exposing (..)
 import Time exposing (..)
+import String.Extra exposing (toSentenceCase)
+import UUID exposing (canonical)
 
 
-fichePreview : Fiche -> Element msg
-fichePreview f =
-    ficheView True f
-
-
-
---column
---    [ spacing 15
---    , Border.solid
---    , Border.color (rgb255 127 127 127)
---      --, Border.width 2
---    , width (px 440)
---    ]
---    [ visualPreview f
---    , row
---        [ spacing 15 ]
---        [ el [ Font.bold ]
---            (text "Catégories:")
---        , wrappedRow
---            [ spacing 15 ]
---            (List.map text f.categories)
---        ]
---    , row
---        [ spacing 15 ]
---        [ el [ Font.bold ]
---            (text "Nature activité:")
---        , wrappedRow
---            [ spacing 15 ]
---            (List.map text f.natureActiv)
---        ]
---    , Maybe.map
---        (\( n, s ) ->
---            row [ spacing 15 ]
---                [ el
---                    [ Font.bold ]
---                    (text "Reférence Office de Tourisme:")
---                , newTabLink []
---                    { url = s, label = el [] (text <| String.fromInt n) }
---                ]
---        )
---        f.refOt
---        |> Maybe.withDefault Element.none
---    , if not (List.isEmpty f.label) then
---        row
---            [ spacing 15 ]
---            [ el [ Font.bold ]
---                (text "Labels:")
---            , paragraph
---                []
---                (List.map (\l -> text l.nom) f.label)
---            ]
---      else
---        Element.none
---    , Maybe.map
---        (\n ->
---            row
---                [ spacing 15 ]
---                [ el
---                    [ Font.bold ]
---                    (text "Etoiles:")
---                , el [] (text <| String.fromInt n)
---                ]
---        )
---        f.rank.stars
---        |> Maybe.withDefault Element.none
---    , Maybe.map
---        (\n ->
---            row
---                [ spacing 15 ]
---                [ el
---                    [ Font.bold ]
---                    (text "Epis:")
---                , el [] (text <| String.fromInt n)
---                ]
---        )
---        f.rank.epis
---        |> Maybe.withDefault Element.none
---    , if not (List.isEmpty f.responsables) then
---        row
---            [ spacing 15 ]
---            ([ el [ Font.bold ] (text "Responsables:")
---             ]
---                ++ List.map respPreview f.responsables
---            )
---      else
---        Element.none
---    , row
---        [ spacing 15 ]
---        [ el [ Font.bold ]
---            (text "Adresse:")
---        , el [] (text f.adresse)
---        ]
---    , Maybe.map
---        telPreview
---        f.telNumber
---        |> Maybe.withDefault Element.none
---    , Maybe.map
---        (\fax ->
---            row
---                [ spacing 15 ]
---                [ el [ Font.bold ]
---                    (text "Fax:")
---                , el [] (text fax)
---                ]
---        )
---        f.fax
---        |> Maybe.withDefault Element.none
---    , if not (List.isEmpty f.email) then
---        row
---            [ spacing 15 ]
---            [ el [ Font.bold ]
---                (text "Email(s):")
---            , column
---                []
---                (List.map text f.email)
---            ]
---      else
---        Element.none
---    , Maybe.map
---        (\( label, url ) ->
---            row
---                [ spacing 15 ]
---                [ el [ Font.bold ]
---                    (text "Site web:")
---                , newTabLink []
---                    { url = url
---                    , label = el [] (text label)
---                    }
---                ]
---        )
---        f.site
---        |> Maybe.withDefault Element.none
---    , Maybe.map
---        (\pj ->
---            row
---                [ spacing 15 ]
---                [ el [ Font.bold ]
---                    (text "Lien pages jaunes:")
---                , el [] (text pj)
---                ]
---        )
---        f.pjaun
---        |> Maybe.withDefault Element.none
---    , if not (List.isEmpty f.description) then
---        column
---            [ spacing 15 ]
---            ([ el [ Font.bold ]
---                (text "Description:")
---             ]
---                ++ List.map (\d -> paragraph [] [ text d ]) f.description
---            )
---      else
---        Element.none
---    , case f.ouverture of
---        Nothing ->
---            row [ spacing 15 ]
---                [ el [ Font.bold ] (text "Ouvert:")
---                , el [] (text "toute l'année")
---                ]
---        Just TteAnnee ->
---            row [ spacing 15 ]
---                [ el [ Font.bold ] (text "Ouvert:")
---                , el [] (text "toute l'année")
---                ]
---        Just Saisonniere ->
---            row [ spacing 15 ]
---                [ el [ Font.bold ] (text "Ouvert:")
---                , el [] (text "en saison")
---                ]
---      --, text <| canonical f.uuid
---    ]
-
-
-respPreview { poste, nom, tel } =
-    column
-        []
-        [ el
-            [ Font.bold ]
-            (text nom)
-        , row
-            [ spacing 15 ]
-            [ el [ Font.bold ] (text "Poste:")
-            , el [] (text poste)
-            ]
-        , telPreview tel
-        ]
-
-
-telPreview tel =
-    column
-        [ spacing 10 ]
-        (case tel of
-            TelFixe s ->
-                [ row
-                    [ spacing 5 ]
-                    [ el
-                        [ Font.bold ]
-                        (text "Tel. fixe:")
-                    , el [] (text s)
-                    ]
-                ]
-
-            TelPortable s ->
-                [ row
-                    [ spacing 5 ]
-                    [ el
-                        [ Font.bold ]
-                        (text "Tel. portable:")
-                    , el [] (text s)
-                    ]
-                ]
-
-            TelBoth ( s1, s2 ) ->
-                [ row
-                    [ spacing 5 ]
-                    [ el
-                        [ Font.bold ]
-                        (text "Tel. fixe:")
-                    , el [] (text s1)
-                    ]
-                , row
-                    [ spacing 5 ]
-                    [ el
-                        [ Font.bold ]
-                        (text "Tel. portable:")
-                    , el [] (text s2)
-                    ]
-                ]
-        )
+fichePreview : (String -> msg) -> Time.Posix -> Fiche -> Element msg
+fichePreview handler currentTime f =
+    ficheView handler currentTime 440 True f
 
 
 
 -------------------------------------------------------------------------------
 
 
-ficheView : Bool -> Fiche -> Element msg
-ficheView isOpen fiche =
+ficheView : (String -> msg) -> Posix -> Float -> Bool -> Fiche -> Element msg
+ficheView handler currentTime maxWidth isOpen fiche =
     column
-        [ width (px 440)
+        [ width (px (round maxWidth))
+        , clip
         ]
-        [ visualPreview fiche
+        [ visualPreview handler maxWidth fiche
         , if isOpen then
             column
                 (wrapperStyle
                     ++ [ spacing 10 ]
                 )
                 [ activView fiche
-                , refView fiche
+                , refView maxWidth fiche
                 , contactView fiche
+                , descriptionView fiche
+                , linkedDocsView currentTime fiche
                 ]
           else
             Element.none
         ]
 
 
-visualPreview { nomEntite, visuel } =
-    el
-        [ width (px 440)
-        , height (px 330)
-        , Background.color (blockLinkGrey)
-        , mouseOver
-            [ Background.color (blockLinkGreyAlpha 0.5) ]
-        ]
-        (el
-            [ width (px 428)
-            , height (px 318)
-            , centerX
-            , centerY
-            , Background.image visuel
-            , inFront
-                (el
-                    [ alignBottom
-                    , width fill
-                    , padding 10
-                    , Background.color (blockLinkGreyAlpha 0.8)
-                    , Font.color aliceBlue
-                    ]
-                    (el
-                        ([ Font.center
-                         , width fill
-                         ]
-                            ++ unselectable
-                        )
-                        (paragraph [] [ text nomEntite ])
-                    )
-                )
+visualPreview handler maxWidth { uuid, nomEntite, visuel } =
+    let
+        w =
+            round maxWidth
+
+        h =
+            (round (maxWidth / 1.333333333))
+    in
+        el
+            [ width (px w)
+            , height (px h)
+            , Background.color (blockLinkGrey)
+            , mouseOver
+                [ Background.color (blockLinkGreyAlpha 0.5) ]
+            , Events.onClick (handler (canonical uuid))
+            , pointer
             ]
-            Element.none
-        )
+            (el
+                [ width (px (w - 12))
+                , height (px (h - 12))
+                , centerX
+                , centerY
+                , Background.image visuel
+                , inFront
+                    (el
+                        [ alignBottom
+                        , width fill
+                        , padding 10
+                        , Background.color (blockLinkGreyAlpha 0.8)
+                        , Font.color aliceBlue
+                        ]
+                        (el
+                            ([ Font.center
+                             , width fill
+                             ]
+                                ++ unselectable
+                            )
+                            (paragraph [] [ text nomEntite ])
+                        )
+                    )
+                ]
+                Element.none
+            )
 
 
 activView { natureActiv } =
@@ -371,7 +159,7 @@ starsView n =
         ]
 
 
-refView { refOt, label, rank } =
+refView maxWidth { refOt, label, rank } =
     let
         images =
             stars
@@ -426,7 +214,7 @@ refView { refOt, label, rank } =
 
         logoView { url, width, height, link } =
             newTabLink
-                [ if totalImgWidth < 440 then
+                [ if totalImgWidth < maxWidth then
                     Element.width (px (round width))
                   else
                     Element.width <| fillPortion (floor <| 10000 * width / totalImgWidth)
@@ -494,13 +282,14 @@ refView { refOt, label, rank } =
                 ]
 
 
+contactView : Fiche -> Element msg
 contactView { adresse, telNumber, email, site, responsables } =
     column
         (subBlockStyle ++ [ spacing 10 ])
-        [ row
+        [ paragraph
             [ spacing 5 ]
-            [ el [ Font.bold ] (text "Adresse:")
-            , paragraph [] [ text adresse ]
+            [ el [ Font.bold ] (text "Adresse: ")
+            , el [] (text adresse)
             ]
         , Maybe.map
             telPreview
@@ -518,18 +307,18 @@ contactView { adresse, telNumber, email, site, responsables } =
                     ]
 
             emails ->
-                row
-                    [ spacing 5 ]
-                    [ el [ Font.bold ] (text "Emails:")
-                    , paragraph [] [ text <| String.join ", " emails ]
+                paragraph
+                    []
+                    [ el [ Font.bold ] (text "Emails: ")
+                    , el [] (text <| String.join ", " emails)
                     ]
         , Maybe.map
             (\( siteName, siteUrl ) ->
-                row
-                    [ spacing 5 ]
+                paragraph
+                    []
                     [ el
                         [ Font.bold ]
-                        (text "Site:")
+                        (text "Site: ")
                     , newTabLink [ Font.color teal4 ]
                         { url = siteUrl
                         , label = text siteName
@@ -538,11 +327,207 @@ contactView { adresse, telNumber, email, site, responsables } =
             )
             site
             |> Maybe.withDefault Element.none
+        , responsablesView responsables
         ]
+
+
+responsablesView responsables =
+    let
+        respView { nom, poste, tel } =
+            column
+                [ spacing 7
+                , padding 5
+                , Background.color grey6
+                ]
+                [ paragraph
+                    []
+                    [ el [] (text poste)
+                    , text ", "
+                    , el [] (text nom)
+                    ]
+                , telPreview tel
+                ]
+    in
+        case responsables of
+            [] ->
+                Element.none
+
+            resp :: [] ->
+                column
+                    [ spacing 10 ]
+                    [ el
+                        [ Font.bold ]
+                        (text "Responsable:")
+                    , respView resp
+                    ]
+
+            resps ->
+                column
+                    [ spacing 10 ]
+                    ([ el
+                        [ Font.bold ]
+                        (text "Responsables:")
+                     ]
+                        ++ (List.map respView resps)
+                    )
+
+
+descriptionView { description, ouverture } =
+    let
+        ( displayOuv, ouvertureView ) =
+            case ouverture of
+                Just Saisonniere ->
+                    ( True, el [ Font.bold ] (text "Ouverture saisonniere") )
+
+                _ ->
+                    ( False, Element.none )
+    in
+        case description of
+            [] ->
+                if displayOuv then
+                    column
+                        subBlockStyle
+                        [ ouvertureView ]
+                else
+                    Element.none
+
+            descr ->
+                let
+                    descrView d =
+                        paragraph
+                            [ Font.italic ]
+                            [ text (toSentenceCase d) ]
+                in
+                    column
+                        (subBlockStyle
+                            ++ [ width fill
+                               , spacing 10
+                               ]
+                        )
+                        ((List.map descrView descr)
+                            ++ [ ouvertureView ]
+                        )
+
+
+linkedDocsView currentTime { linkedDocs } =
+    case linkedDocs of
+        [] ->
+            Element.none
+
+        ldocs ->
+            let
+                ldView { url, label, descr, expiryDate } =
+                    let
+                        resView =
+                            column
+                                [ spacing 7
+                                , Border.widthEach
+                                    { top = 0
+                                    , left = 0
+                                    , bottom = 1
+                                    , right = 0
+                                    }
+                                , Border.color grey6
+                                , width fill
+                                , paddingXY 0 5
+                                ]
+                                [ newTabLink
+                                    [ Font.color teal4 ]
+                                    { url = url
+                                    , label =
+                                        row [ spacing 5 ]
+                                            [ el
+                                                [ width (px 16)
+                                                , height (px 16)
+                                                , Background.uncropped "/assets/images/pdf.svg"
+                                                ]
+                                                (Element.none)
+                                            , text label
+                                            ]
+                                    }
+                                , Maybe.map
+                                    (\d ->
+                                        paragraph
+                                            [ Font.size 14 ]
+                                            [ text d ]
+                                    )
+                                    descr
+                                    |> Maybe.withDefault Element.none
+                                ]
+                    in
+                        case expiryDate of
+                            Nothing ->
+                                resView
+
+                            Just ed ->
+                                if (posixToMillis ed < posixToMillis currentTime) then
+                                    Element.none
+                                else
+                                    resView
+            in
+                column
+                    (subBlockStyle
+                        ++ [ spacing 10 ]
+                    )
+                    ([ row
+                        [ Font.bold ]
+                        [ el []
+                            (text <| "EN SAVOIR PLUS")
+                          --, el
+                          --    [ centerY
+                          --    ]
+                          --    (text "+")
+                        ]
+                     ]
+                        ++ List.map ldView ldocs
+                    )
 
 
 
 -------------------------------------------------------------------------------
+
+
+telPreview tel =
+    column
+        [ spacing 10 ]
+        (case tel of
+            TelFixe s ->
+                [ paragraph
+                    []
+                    [ el
+                        [ Font.bold ]
+                        (text "Tel. fixe: ")
+                    , el [] (text s)
+                    ]
+                ]
+
+            TelPortable s ->
+                [ paragraph
+                    []
+                    [ el
+                        [ Font.bold ]
+                        (text "Tel. portable: ")
+                    , el [] (text s)
+                    ]
+                ]
+
+            TelBoth ( s1, s2 ) ->
+                [ paragraph
+                    []
+                    [ el
+                        [ Font.bold ]
+                        (text "Tel. fixe: ")
+                    , el [] (text s1)
+                    ]
+                , paragraph
+                    []
+                    [ el
+                        [ Font.bold ]
+                        (text "Tel. portable: ")
+                    , el [] (text s2)
+                    ]
+                ]
+        )
 
 
 wrapperStyle : List (Attribute msg)

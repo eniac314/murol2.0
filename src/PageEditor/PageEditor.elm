@@ -18,7 +18,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
 import FileExplorer.FileExplorer as FileExplorer
-import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (Model)
+import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (Model, fichesData)
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
 import Internals.CommonStyleHelpers exposing (..)
@@ -44,6 +44,7 @@ import Task exposing (perform)
 import Time exposing (Posix, Zone, here, millisToPosix, utc)
 import Yajson exposing (..)
 import Yajson.Stringify exposing (..)
+import Set exposing (empty)
 
 
 subscriptions : Model msg -> Sub msg
@@ -277,8 +278,11 @@ reset mbDoc externalMsg =
             , previewMode = PreviewScreen
             , containersBkgColors = False
             , season = Spring
+            , currentTime = Time.millisToPosix 0
             , pageIndex = Dict.empty
             , fiches = Dict.empty
+            , openedFiches = Set.empty
+            , openFicheMsg = (\_ -> externalMsg NoOp)
             }
 
         funnelState =
@@ -1212,60 +1216,70 @@ type alias ViewConfig config msg =
 
 view : ViewConfig config msg -> Model msg -> Element msg
 view config model =
-    column
-        ([ width fill
-         , height (maximum (model.config.height - 35) fill)
-         ]
-            ++ (if model.menuClicked then
-                    [ onClick (model.externalMsg MenuClickOff) ]
-                else
-                    []
-               )
-        )
-        [ mainInterface
-            { clicked = model.menuClicked
-            , currentFocus = model.menuFocused
-            , isInPlugin = model.currentPlugin /= Nothing
-            , clipboardEmpty = model.clipboard == Nothing
-            , undoCacheEmpty = model.undoCache == []
-            , selectionIsRoot = zipUp model.document == Nothing
-            , selectionIsContainer = isContainer (extractDoc model.document)
-            , previewMode = model.config.previewMode
-            , containersBkgColors = model.config.containersBkgColors
-            , logInfo = config.logInfo
-            , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
-            , season = model.config.season
+    let
+        renderConfig =
+            model.config
+
+        newConfig =
+            { renderConfig
+                | fiches =
+                    GeneralDirectoryEditor.fichesData config.genDirEditor
             }
-            |> Element.map
-                model.externalMsg
-        , row
-            [ width fill
-              --NOTE: trick to make the columns scrollable
-            , clip
-            , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
-              --NOTE: works too
-              --, height (maximum (model.config.height - model.config.mainInterfaceHeight) fill)
-            , height fill
-            ]
-            [ documentStructView
-                { zipToUidCmd = ZipToUid
-                , containersColors = model.config.containersBkgColors
-                , isActive = model.currentPlugin == Nothing
+    in
+        column
+            ([ width fill
+             , height (maximum (newConfig.height - 35) fill)
+             ]
+                ++ (if model.menuClicked then
+                        [ onClick (model.externalMsg MenuClickOff) ]
+                    else
+                        []
+                   )
+            )
+            [ mainInterface
+                { clicked = model.menuClicked
+                , currentFocus = model.menuFocused
+                , isInPlugin = model.currentPlugin /= Nothing
+                , clipboardEmpty = model.clipboard == Nothing
+                , undoCacheEmpty = model.undoCache == []
+                , selectionIsRoot = zipUp model.document == Nothing
+                , selectionIsContainer = isContainer (extractDoc model.document)
+                , previewMode = newConfig.previewMode
+                , containersBkgColors = newConfig.containersBkgColors
+                , logInfo = config.logInfo
+                , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
+                , season = newConfig.season
                 }
-                (extractDoc model.document
-                    |> getUid
-                )
-                (extractDoc <| rewind model.document)
                 |> Element.map
                     model.externalMsg
-            , case model.currentPlugin of
-                Nothing ->
-                    documentView model
+            , row
+                [ width fill
+                  --NOTE: trick to make the columns scrollable
+                , clip
+                , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+                  --NOTE: works too
+                  --, height (maximum (newConfig.height - newConfig.mainInterfaceHeight) fill)
+                , height fill
+                ]
+                [ documentStructView
+                    { zipToUidCmd = ZipToUid
+                    , containersColors = newConfig.containersBkgColors
+                    , isActive = model.currentPlugin == Nothing
+                    }
+                    (extractDoc model.document
+                        |> getUid
+                    )
+                    (extractDoc <| rewind model.document)
+                    |> Element.map
+                        model.externalMsg
+                , case model.currentPlugin of
+                    Nothing ->
+                        documentView { model | config = newConfig }
 
-                Just plugin ->
-                    pluginView config model plugin
+                    Just plugin ->
+                        pluginView config { model | config = newConfig } plugin
+                ]
             ]
-        ]
 
 
 documentView : Model msg -> Element msg
@@ -1440,7 +1454,7 @@ pluginView config model plugin =
 --openNewPlugin : Model msg -> ( Model msg, Cmd msg )
 
 
-openNewPlugin : config -> Model msg -> ( Model msg, Cmd msg )
+openNewPlugin : { config | genDirEditor : GeneralDirectoryEditor.Model msg } -> Model msg -> ( Model msg, Cmd msg )
 openNewPlugin config model =
     -- NOTE: reset corresponding plugin when the selection is an empty cell
     -- then open the plugin
@@ -1511,9 +1525,19 @@ openNewPlugin config model =
                     FichesPlugin.init
                         []
                         (model.externalMsg << FichesPluginMsg)
+
+                --renderConfig =
+                --    model.config
+                --newConfig =
+                --    { renderConfig
+                --        | fiches =
+                --            GeneralDirectoryEditor.fichesData config.genDirEditor
+                --    }
             in
                 ( { model
-                    | fichesPlugin = newFichesPlugin
+                    | fichesPlugin =
+                        newFichesPlugin
+                        --, config = newConfig
                   }
                 , Cmd.none
                 )
@@ -1522,7 +1546,7 @@ openNewPlugin config model =
             ( model, Cmd.none )
 
 
-openPlugin : config -> Model msg -> ( Model msg, Cmd msg )
+openPlugin : { config | genDirEditor : GeneralDirectoryEditor.Model msg } -> Model msg -> ( Model msg, Cmd msg )
 openPlugin config model =
     -- NOTE: open the plugin corresponding to the current selection
     -- and initializes it with selection content
@@ -1610,10 +1634,20 @@ openPlugin config model =
                             FichesPlugin.init
                                 fichesId
                                 (model.externalMsg << FichesPluginMsg)
+
+                        --renderConfig =
+                        --    model.config
+                        --newConfig =
+                        --    { renderConfig
+                        --        | fiches =
+                        --            GeneralDirectoryEditor.fichesData config.genDirEditor
+                        --    }
                     in
                         ( { model
                             | currentPlugin = Just FichesPlugin
-                            , fichesPlugin = newFichesPlugin
+                            , fichesPlugin =
+                                newFichesPlugin
+                                --, config = newConfig
                           }
                         , Cmd.none
                         )

@@ -341,6 +341,27 @@ getGeneralDirectory sessionId =
             }
 
 
+removeFiche : Fiche -> String -> Cmd Msg
+removeFiche fiche sessionId =
+    let
+        body =
+            E.object
+                [ ( "sessionId"
+                  , E.string sessionId
+                  )
+                , ( "uuid"
+                  , E.string (UUID.canonical fiche.uuid)
+                  )
+                ]
+                |> Http.jsonBody
+    in
+        Http.post
+            { url = "removeFiche.php"
+            , body = body
+            , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
+            }
+
+
 updateFiche : Fiche -> String -> Cmd Msg
 updateFiche fiche sessionId =
     let

@@ -72,17 +72,15 @@ if(getenv('REQUEST_METHOD') == 'POST') {
                           ]);
     }
 
-    $genDirData = 
-      array('fiches' => $fiches
-           
-           );
+  $genDirData = 
+    array('fiches' => $fiches);
 
-    $toJson = json_encode($genDirData);
-    echo $toJson;
+  $toJson = json_encode($genDirData);
+  echo $toJson;
 
 
-    mysqli_close($db);
-    exit();
+  mysqli_close($db);
+  exit();
 
 
   } else {

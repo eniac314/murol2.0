@@ -25,6 +25,7 @@ type alias Model msg =
     , debug : List String
     , loadingStatus : ToolLoadingStatus
     , externalMsg : Msg -> msg
+    , currentTime : Posix
     , seed :
         Maybe Random.Seed
         --- MainForm variables

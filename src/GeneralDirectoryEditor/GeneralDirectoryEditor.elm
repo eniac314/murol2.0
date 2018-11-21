@@ -61,6 +61,7 @@ init externalMsg =
       , debug = []
       , loadingStatus = ToolLoadingWaiting
       , externalMsg = externalMsg
+      , currentTime = Time.millisToPosix 0
       , seed =
             Nothing
             --- MainForm variables
@@ -236,6 +237,12 @@ internalUpdate config msg model =
                     ( { model
                         | lockedFiches =
                             List.Extra.remove fiche model.lockedFiches
+                        , categories =
+                            computeCats model.fiches
+                        , activites =
+                            computeActivs model.fiches
+                        , labels =
+                            computeLabels model.fiches
                       }
                     , Cmd.none
                     )
@@ -1101,6 +1108,8 @@ internalUpdate config msg model =
                     in
                         ( { model
                             | ficheBuffer = newFb
+                            , selectedEmail = Nothing
+                            , emailBuffer = Nothing
                           }
                         , Cmd.none
                         )
@@ -1124,6 +1133,7 @@ internalUpdate config msg model =
                             ( { model
                                 | ficheBuffer = newFb
                                 , emailBuffer = Nothing
+                                , selectedEmail = Nothing
                               }
                             , Cmd.none
                             )
@@ -1147,6 +1157,7 @@ internalUpdate config msg model =
                         ( { model
                             | ficheBuffer = newFb
                             , selectedEmail = Nothing
+                            , emailBuffer = Nothing
                           }
                         , Cmd.none
                         )
@@ -1649,9 +1660,21 @@ internalUpdate config msg model =
                     ( model, Cmd.none )
 
         RemoveFiche ->
-            ( model
-            , Cmd.none
-            )
+            if model.ficheBuffer == emptyFiche then
+                ( model, Cmd.none )
+            else
+                let
+                    f =
+                        model.ficheBuffer
+
+                    newFiches =
+                        Dict.remove (canonical f.uuid) model.fiches
+                in
+                    ( { model | fiches = newFiches }
+                    , cmdIfLogged
+                        config.logInfo
+                        (removeFiche f)
+                    )
 
         SetRightPanelDisplay d ->
             ( { model
@@ -1697,6 +1720,7 @@ internalUpdate config msg model =
                 | seed =
                     Just <|
                         Random.initialSeed (posixToMillis t)
+                , currentTime = t
               }
             , Cmd.none
             )
@@ -2012,20 +2036,29 @@ previewFicheView model =
             ]
             (text "Aperçu fiche")
         , Maybe.andThen (\id -> Dict.get id model.fiches) model.selectedFiche
-            |> Maybe.map fichePreview
+            |> Maybe.map (fichePreview (\_ -> NoOp) model.currentTime)
             |> Maybe.withDefault Element.none
-        , case model.selectedFiche of
-            Nothing ->
-                Input.button
-                    (buttonStyle True)
-                    { onPress = Just (SetRightPanelDisplay EditFiche)
-                    , label = el [] (text "Nouvelle fiche")
-                    }
+        , row
+            [ spacing 15 ]
+            [ case model.selectedFiche of
+                Nothing ->
+                    Input.button
+                        (buttonStyle True)
+                        { onPress = Just (SetRightPanelDisplay EditFiche)
+                        , label = el [] (text "Nouvelle fiche")
+                        }
 
-            Just _ ->
-                Input.button
-                    (buttonStyle True)
-                    { onPress = Just (SetRightPanelDisplay EditFiche)
-                    , label = el [] (text "Modifier fiche")
-                    }
+                Just _ ->
+                    Input.button
+                        (buttonStyle True)
+                        { onPress = Just (SetRightPanelDisplay EditFiche)
+                        , label = el [] (text "Modifier fiche")
+                        }
+            , Input.button
+                (buttonStyle (model.selectedFiche /= Nothing))
+                { onPress =
+                    Maybe.map (\_ -> RemoveFiche) model.selectedFiche
+                , label = el [] (text "Supprimer fiche")
+                }
+            ]
         ]

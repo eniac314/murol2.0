@@ -22,6 +22,9 @@ import Murmur3 exposing (hashString)
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
 import Set exposing (..)
 import List.Extra exposing (splitAt)
+import Time exposing (millisToPosix)
+import GeneralDirectoryEditor.FichePreview exposing (ficheView)
+import UUID exposing (canonical)
 
 
 renderDoc : Config msg -> Document -> List (Element msg)
@@ -210,6 +213,26 @@ renderBlocksLinksMeta config id attrs { image, label, targetBlank, url } =
 
 renderFiches config id attrs fichesId =
     let
+        containerWidth =
+            if config.editMode then
+                case config.previewMode of
+                    PreviewScreen ->
+                        980
+
+                    PreviewTablet ->
+                        800
+
+                    PreviewPhone ->
+                        350
+
+                    _ ->
+                        config.width
+            else
+                config.width
+
+        maxWidth =
+            toFloat <| min (containerWidth - 40) 440
+
         fiches =
             List.filterMap
                 (\fId -> Dict.get fId config.fiches)
@@ -217,15 +240,27 @@ renderFiches config id attrs fichesId =
 
         ( right, left ) =
             List.Extra.splitAt (List.length fiches // 2) fiches
+
+        ficheView_ f =
+            ficheView
+                config.openFicheMsg
+                config.currentTime
+                maxWidth
+                (config.editMode || (Set.member (canonical f.uuid) config.openedFiches))
+                f
     in
         [ wrappedRow
-            []
+            ([ spacing 15 ] ++ renderAttrs config attrs)
             [ column
-                [ alignTop ]
-                []
+                [ alignTop
+                , spacing 15
+                ]
+                (List.map ficheView_ left)
             , column
-                [ alignTop ]
-                []
+                [ alignTop
+                , spacing 15
+                ]
+                (List.map ficheView_ right)
             ]
         ]
 

@@ -27,7 +27,7 @@ import Json.Encode as Encode
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
 import Task exposing (perform, attempt)
-import Time exposing (here, now)
+import Time exposing (here, now, millisToPosix, Posix)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
 import GeneralDirectoryEditor.GeneralDirJson exposing (..)
@@ -94,9 +94,11 @@ type Msg
     | Search
     | ResetSearchEngine
     | ProcessSearchResult String
+    | SetTime Posix
     | SetSeason StyleSheets.Season
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
+    | ToogleFiche String
     | NoOp
     | Increment Time.Posix
 
@@ -139,8 +141,11 @@ init flags url key =
             , mainInterfaceHeight = 0
             , zipperHandlers = Nothing
             , season = StyleSheets.Spring
+            , currentTime = Time.millisToPosix 0
             , pageIndex = Dict.empty
             , fiches = Dict.empty
+            , openedFiches = Set.empty
+            , openFicheMsg = ToogleFiche
             , previewMode = PreviewScreen
             }
 
@@ -168,6 +173,7 @@ init flags url key =
               else
                 Cmd.none
             , Task.perform CurrentViewport Dom.getViewport
+            , Task.perform SetTime Time.now
             , Time.now
                 |> Task.andThen
                     (\t ->
@@ -307,7 +313,27 @@ update msg model =
                     ( model, Cmd.none )
 
         LoadFiches res ->
-            ( model, Cmd.none )
+            case res of
+                Ok fiches ->
+                    let
+                        config =
+                            model.config
+
+                        newFiches =
+                            List.foldr
+                                (\f acc ->
+                                    Dict.insert (canonical f.uuid) f acc
+                                )
+                                config.fiches
+                                fiches
+
+                        newConfig =
+                            { config | fiches = newFiches }
+                    in
+                        ( { model | config = newConfig }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         SearchPromptInput s ->
             ( { model
@@ -349,6 +375,18 @@ update msg model =
             , Cmd.none
             )
 
+        SetTime t ->
+            let
+                config =
+                    model.config
+            in
+                ( { model
+                    | config =
+                        { config | currentTime = t }
+                  }
+                , Cmd.none
+                )
+
         SetSeason season ->
             let
                 config =
@@ -389,6 +427,22 @@ update msg model =
                 , Cmd.batch
                     []
                 )
+
+        ToogleFiche fId ->
+            let
+                config =
+                    model.config
+
+                newConfig =
+                    { config
+                        | openedFiches =
+                            if Set.member fId config.openedFiches then
+                                Set.remove fId config.openedFiches
+                            else
+                                Set.insert fId config.openedFiches
+                    }
+            in
+                ( { model | config = newConfig }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -853,7 +907,7 @@ getPages =
                 |> Http.jsonBody
     in
         Http.post
-            { url = "getPageTree.php"
+            { url = "/getPageTree.php"
             , body = body
             , expect = Http.expectJson LoadPages Decode.value
             }
@@ -868,7 +922,7 @@ getContent ( path, contentId, name ) =
                 |> Http.jsonBody
     in
         Http.post
-            { url = "getContent.php"
+            { url = "/getContent.php"
             , body = body
             , expect =
                 Http.expectJson
@@ -887,7 +941,7 @@ getFiches fichesIds =
                 |> Http.jsonBody
     in
         Http.post
-            { url = "getFiches.php"
+            { url = "/getFiche.php"
             , body = body
             , expect =
                 Http.expectJson

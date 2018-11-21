@@ -10,6 +10,7 @@ import Json.Decode as Decode
 import Set exposing (..)
 import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import List.Extra exposing (unique)
+import Time exposing (Posix)
 
 
 ----------------------------
@@ -149,8 +150,11 @@ type alias Config msg =
     , previewMode : PreviewMode
     , containersBkgColors : Bool
     , season : Season
+    , currentTime : Posix
     , pageIndex : Dict String String
     , fiches : Dict String Fiche
+    , openedFiches : Set String
+    , openFicheMsg : String -> msg
     }
 
 
