@@ -230,16 +230,72 @@ renderFiches config id attrs fichesId =
             else
                 config.width
 
+        device =
+            Element.classifyDevice
+                { height = config.height
+                , width = config.width
+                }
+
+        nbrCols =
+            if config.editMode then
+                case config.previewMode of
+                    PreviewPhone ->
+                        1
+
+                    PreviewTablet ->
+                        2
+
+                    PreviewScreen ->
+                        2
+
+                    PreviewBigScreen ->
+                        2
+            else
+                case device.class of
+                    Phone ->
+                        1
+
+                    Tablet ->
+                        2
+
+                    Desktop ->
+                        2
+
+                    BigDesktop ->
+                        2
+
+        mw =
+            case nbrCols of
+                3 ->
+                    300
+
+                2 ->
+                    440
+
+                _ ->
+                    440
+
         maxWidth =
-            toFloat <| min (containerWidth - 40) 440
+            let
+                padding =
+                    40
+
+                spacing =
+                    10
+            in
+                min
+                    ((toFloat containerWidth
+                        - padding
+                        - ((nbrCols - 1) * padding)
+                     )
+                        / toFloat nbrCols
+                    )
+                    (toFloat mw)
 
         fiches =
             List.filterMap
                 (\fId -> Dict.get fId config.fiches)
                 fichesId
-
-        ( right, left ) =
-            List.Extra.splitAt (List.length fiches // 2) fiches
 
         ficheView_ f =
             ficheView
@@ -248,20 +304,23 @@ renderFiches config id attrs fichesId =
                 maxWidth
                 (config.editMode || (Set.member (canonical f.uuid) config.openedFiches))
                 f
+
+        cols =
+            chunks (ceiling <| (toFloat <| List.length fiches) / nbrCols) (List.map ficheView_ fiches)
+                |> List.map
+                    (column
+                        [ alignTop
+                        , spacing 10
+                        ]
+                    )
     in
-        [ wrappedRow
-            ([ spacing 15 ] ++ renderAttrs config attrs)
-            [ column
-                [ alignTop
-                , spacing 15
-                ]
-                (List.map ficheView_ left)
-            , column
-                [ alignTop
-                , spacing 15
-                ]
-                (List.map ficheView_ right)
-            ]
+        [ row
+            ([ centerX
+             , spacing 10
+             ]
+                ++ renderAttrs config attrs
+            )
+            cols
         ]
 
 

@@ -10,9 +10,13 @@
 
 <body>
   <script type="text/javascript">
+    var currentTime = new Date().getTime();
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
     var worker = new Worker('/js/worker.js');	
     
-    var app = Elm.Murol.init();
+    var app = Elm.Murol.init({flags: {currentTime: currentTime, width: width, height: height}});
     
     app.ports.toSearchEngine.subscribe(function(s){
        worker.postMessage(s);
