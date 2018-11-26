@@ -1048,7 +1048,7 @@ textBlockStyleView model =
                                         |> List.head
                                     )
                                 )
-                                fonts
+                                (List.sort fonts)
                             )
                     )
                 , el
@@ -2622,6 +2622,7 @@ fonts =
     , "Trebuchet MS"
     , "Arial Black"
     , "Impact"
+    , "Libre Baskerville"
     ]
 
 

@@ -263,15 +263,15 @@ update msg model =
                             |> List.foldr (\k acc -> max k acc) 0
                           )
             in
-                ( { model
-                    | blocks =
-                        Dict.insert
-                            nextId
-                            newBlock
-                            model.blocks
-                  }
-                , Nothing
-                )
+            ( { model
+                | blocks =
+                    Dict.insert
+                        nextId
+                        newBlock
+                        model.blocks
+              }
+            , Nothing
+            )
 
         RemoveBlock ->
             case model.selectedBlock of
@@ -332,12 +332,12 @@ update msg model =
                             else
                                 Just <| n + 1
                     in
-                        ( { model
-                            | blocks = newBlocks
-                            , selectedBlock = selection
-                          }
-                        , Nothing
-                        )
+                    ( { model
+                        | blocks = newBlocks
+                        , selectedBlock = selection
+                      }
+                    , Nothing
+                    )
 
                 --        case dir of
                 --            Left ->
@@ -807,7 +807,7 @@ blockLinksPreview config model =
                         noAttr
                     , padding 7
                     ]
-                    (renderBlocksLinksMeta
+                    (renderBlocksLinksMeta 1
                         config
                         { uid = 0
                         , docStyleId = Nothing

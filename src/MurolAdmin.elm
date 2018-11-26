@@ -18,7 +18,7 @@ import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.ToolHelpers exposing (..)
-import NewsEditor.NewsEditor exposing (..)
+import NewsEditor.NewsEditor as NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (..)
 import Task exposing (perform)
@@ -40,7 +40,7 @@ type alias Model =
     , pageTreeEditor : PageTreeEditor.Model Msg
     , fileExplorer : FileExplorer.Model Msg
     , generalDirectory : GeneralDirectoryEditor.Model Msg
-    , newsEditor : ()
+    , newsEditor : NewsEditor.Model Msg
     , authTool : Auth.Model Msg
     , loadingStatus : LoadingStatus
     , currentTool : Tool
@@ -76,26 +76,29 @@ init flags =
 
         ( newGeneralDirectory, generalDirectoryCmds ) =
             GeneralDirectoryEditor.init GeneralDirectoryMsg
+
+        ( newNewsEditor, newEditorCmds ) =
+            NewsEditor.init NewsEditorMsg
     in
-        ( { pageEditor = newPageEditor
-          , pageTreeEditor = newPageTreeEditor
-          , fileExplorer = newFileExplorer
-          , generalDirectory = newGeneralDirectory
-          , newsEditor = ()
-          , authTool = Auth.init AuthMsg
-          , loadingStatus = WaitingForLogin
-          , currentTool = AuthTool
-          , winWidth = 1920
-          , winHeight = 1080
-          , zone = Time.utc
-          }
-        , Cmd.batch
-            [ pageEditorCmds
-            , generalDirectoryCmds
-            , Task.perform CurrentViewport Dom.getViewport
-            , Task.perform SetZone Time.here
-            ]
-        )
+    ( { pageEditor = newPageEditor
+      , pageTreeEditor = newPageTreeEditor
+      , fileExplorer = newFileExplorer
+      , generalDirectory = newGeneralDirectory
+      , newsEditor = newNewsEditor
+      , authTool = Auth.init AuthMsg
+      , loadingStatus = WaitingForLogin
+      , currentTool = AuthTool
+      , winWidth = 1920
+      , winHeight = 1080
+      , zone = Time.utc
+      }
+    , Cmd.batch
+        [ pageEditorCmds
+        , generalDirectoryCmds
+        , Task.perform CurrentViewport Dom.getViewport
+        , Task.perform SetZone Time.here
+        ]
+    )
 
 
 type LoadingStatus
@@ -111,6 +114,7 @@ type Msg
     | PageEditorMsg PageEditor.Msg
     | PageTreeEditorMsg PageTreeEditor.Msg
     | GeneralDirectoryMsg GeneralDirectoryEditor.Msg
+    | NewsEditorMsg NewsEditor.Msg
     | SetCurrentTool Tool
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
@@ -147,9 +151,9 @@ update msg model =
                         fileExplorerMsg
                         model.fileExplorer
             in
-                ( { model | fileExplorer = newFileExplorer }
-                , Cmd.batch [ fileExplorerCmds ]
-                )
+            ( { model | fileExplorer = newFileExplorer }
+            , Cmd.batch [ fileExplorerCmds ]
+            )
 
         AuthMsg authToolMsg ->
             let
@@ -170,24 +174,25 @@ update msg model =
                         , [ GeneralDirectoryEditor.load model.generalDirectory logInfo
                           , PageTreeEditor.load model.pageTreeEditor logInfo
                           , FileExplorer.load model.fileExplorer logInfo
+                          , NewsEditor.load model.newsEditor logInfo
                           ]
                         )
                     else
                         ( model.loadingStatus, [] )
             in
-                ( { model
-                    | authTool = newAuthTool
-                    , loadingStatus = newLoadingStatus
-                    , currentTool =
-                        if mbToolResult == Just ToolQuit then
-                            PageEditorTool
-                        else
-                            model.currentTool
-                  }
-                , Cmd.batch <|
-                    [ authToolCmds ]
-                        ++ loadingCmds
-                )
+            ( { model
+                | authTool = newAuthTool
+                , loadingStatus = newLoadingStatus
+                , currentTool =
+                    if mbToolResult == Just ToolQuit then
+                        PageEditorTool
+                    else
+                        model.currentTool
+              }
+            , Cmd.batch <|
+                [ authToolCmds ]
+                    ++ loadingCmds
+            )
 
         PageEditorMsg pageEditorMsg ->
             let
@@ -202,9 +207,9 @@ update msg model =
                         pageEditorMsg
                         model.pageEditor
             in
-                ( { model | pageEditor = newPageEditor }
-                , pageEditorCmds
-                )
+            ( { model | pageEditor = newPageEditor }
+            , pageEditorCmds
+            )
 
         PageTreeEditorMsg pageTreeEditorMsg ->
             let
@@ -217,9 +222,9 @@ update msg model =
                         pageTreeEditorMsg
                         model.pageTreeEditor
             in
-                ( { model | pageTreeEditor = newPageTreeEditor }
-                , pageTreeEditorCmds
-                )
+            ( { model | pageTreeEditor = newPageTreeEditor }
+            , pageTreeEditorCmds
+            )
 
         GeneralDirectoryMsg generalDirectoryMsg ->
             let
@@ -231,11 +236,27 @@ update msg model =
                         generalDirectoryMsg
                         model.generalDirectory
             in
-                ( { model
-                    | generalDirectory = newGeneralDirectory
-                  }
-                , generalDirectoryCmds
-                )
+            ( { model
+                | generalDirectory = newGeneralDirectory
+              }
+            , generalDirectoryCmds
+            )
+
+        NewsEditorMsg newsEditorMsg ->
+            let
+                ( newNewsEditor, newsEditorCmds ) =
+                    NewsEditor.update
+                        { logInfo = Auth.getLogInfo model.authTool
+                        , zone = model.zone
+                        }
+                        newsEditorMsg
+                        model.newsEditor
+            in
+            ( { model
+                | newsEditor = newNewsEditor
+              }
+            , newsEditorCmds
+            )
 
         SetCurrentTool t ->
             ( { model | currentTool = t }
@@ -275,8 +296,9 @@ view model =
             [ width fill
             , height (maximum model.winHeight fill)
             , Font.size 16
-              --, Font.family
-              --    [ Font.typeface "Ubuntu" ]
+
+            --, Font.family
+            --      [ Font.typeface "Lora" ]
             ]
             (case model.loadingStatus of
                 WaitingForLogin ->
@@ -289,22 +311,24 @@ view model =
                                 [ FileExplorer.loadingStatus model.fileExplorer
                                 , PageTreeEditor.loadingStatus model.pageTreeEditor
                                 , GeneralDirectoryEditor.loadingStatus model.generalDirectory
+                                , NewsEditor.loadingStatus model.newsEditor
                                 ]
                     in
-                        column
-                            [ spacing 15
-                            , width fill
-                            , padding 15
-                            ]
-                            [ FileExplorer.loadingView model.fileExplorer
-                            , PageTreeEditor.loadingView model.pageTreeEditor
-                            , GeneralDirectoryEditor.loadingView model.generalDirectory
-                            , Input.button (buttonStyle loadingComplete)
-                                { onPress = Just Launch
-                                , label =
-                                    text "Commencer"
-                                }
-                            ]
+                    column
+                        [ spacing 15
+                        , width fill
+                        , padding 15
+                        ]
+                        [ FileExplorer.loadingView model.fileExplorer
+                        , PageTreeEditor.loadingView model.pageTreeEditor
+                        , GeneralDirectoryEditor.loadingView model.generalDirectory
+                        , NewsEditor.loadingView model.newsEditor
+                        , Input.button (buttonStyle loadingComplete)
+                            { onPress = Just Launch
+                            , label =
+                                text "Commencer"
+                            }
+                        ]
 
                 Ready ->
                     column
@@ -317,7 +341,8 @@ view model =
                         , width fill
                         , height (maximum model.winHeight fill)
                         , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
-                          --, clip
+
+                        --, clip
                         ]
                         [ row
                             [ Border.widthEach
@@ -401,7 +426,14 @@ view model =
                                     model.generalDirectory
 
                             NewsEditorTool ->
-                                Element.none
+                                NewsEditor.view
+                                    { maxHeight =
+                                        model.winHeight - 35
+                                    , zone = model.zone
+                                    , fileExplorer = model.fileExplorer
+                                    , logInfo = Auth.getLogInfo model.authTool
+                                    }
+                                    model.newsEditor
                         ]
             )
         ]

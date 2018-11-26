@@ -3,12 +3,11 @@ module Document.Json.DocumentDecoder exposing (..)
 import Array exposing (fromList)
 import Document.Document exposing (..)
 import Json.Decode exposing (..)
+import Json.Decode.Extra exposing (fromResult)
 import Json.Decode.Pipeline exposing (..)
 import Set exposing (fromList)
-
-
---import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
---import GeneralDirectoryEditor.GeneralDirJson exposing (decodeFiche)
+import Time exposing (millisToPosix)
+import UUID exposing (UUID, fromString)
 
 
 decodeDocument : Decoder Document
@@ -84,6 +83,8 @@ decodeCellContent =
             |> required "BlockLinks" (list decodeBlockLink)
         , succeed Fiches
             |> required "Fiches" (list string)
+        , succeed NewsBlock
+            |> required "NewsBlock" (list decodeNews)
         , succeed TextBlock
             |> required "TextBlock" (list decodeTextBlockElement)
         , string
@@ -108,6 +109,33 @@ decodeBlockLink =
         |> required "label" string
         |> required "targetBlank" bool
         |> required "url" string
+
+
+decodeNews : Decoder News
+decodeNews =
+    succeed News
+        |> required "title" string
+        |> required "date"
+            (Json.Decode.map millisToPosix int)
+        |> required "content" (list decodeTextBlockElement)
+        |> required "pic"
+            (nullable
+                (succeed Pic
+                    |> required "url" string
+                    |> required "Width" int
+                    |> required "Height" int
+                )
+            )
+        |> required "uuid" decodeUUID
+        |> required "expiry"
+            (Json.Decode.map millisToPosix int)
+
+
+decodeUUID : Decoder UUID
+decodeUUID =
+    string
+        |> andThen
+            (Json.Decode.Extra.fromResult << UUID.fromString)
 
 
 decodeTextBlockElement : Decoder TextBlockElement

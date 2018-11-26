@@ -4,10 +4,8 @@ import Array exposing (toList)
 import Document.Document exposing (..)
 import Json.Encode exposing (..)
 import Set exposing (toList)
-
-
---import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
---import GeneralDirectoryEditor.GeneralDirJson exposing (encodeFiche)
+import Time exposing (posixToMillis)
+import UUID exposing (canonical)
 
 
 encodeDocument : Document -> Value
@@ -88,6 +86,9 @@ encodeCellContent cellContent =
         Fiches fiches ->
             object [ ( "Fiches", list string fiches ) ]
 
+        NewsBlock news ->
+            object [ ( "NewsBlock", list encodeNews news ) ]
+
         TextBlock tbElems ->
             object [ ( "TextBlock", list encodeTextBlockElement tbElems ) ]
 
@@ -102,6 +103,29 @@ encodeBlockLink { image, label, targetBlank, url } =
         , ( "label", string label )
         , ( "targetBlank", bool targetBlank )
         , ( "url", string url )
+        ]
+
+
+encodeNews : News -> Value
+encodeNews { title, date, content, pic, uuid, expiry } =
+    object
+        [ ( "title", string title )
+        , ( "date", int <| posixToMillis date )
+        , ( "content", list encodeTextBlockElement content )
+        , ( "pic"
+          , Maybe.map
+                (\{ url, width, height } ->
+                    object
+                        [ ( "url", string url )
+                        , ( "width", int width )
+                        , ( "height", int height )
+                        ]
+                )
+                pic
+                |> Maybe.withDefault null
+          )
+        , ( "uuid", string (UUID.canonical uuid) )
+        , ( "expiry", int <| posixToMillis date )
         ]
 
 

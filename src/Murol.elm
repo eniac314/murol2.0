@@ -30,7 +30,7 @@ import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Task exposing (attempt, perform)
-import Time exposing (Posix, here, millisToPosix, now)
+import Time exposing (Posix, here, millisToPosix, now, utc)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
 
@@ -52,6 +52,7 @@ type alias Model =
     , pageTree : Maybe PageTreeEditor.Page
     , debug : String
     , unfoldedTopic : Maybe String
+    , initialLoadDone : Bool
     }
 
 
@@ -148,7 +149,7 @@ init flags url key =
             , width = flags.width
             , mainInterfaceHeight = 0
             , zipperHandlers = Nothing
-            , season = StyleSheets.Spring
+            , season = StyleSheets.timeToSeason utc (Time.millisToPosix flags.currentTime)
             , currentTime = Time.millisToPosix flags.currentTime
             , pageIndex = Dict.empty
             , fiches = Dict.empty
@@ -173,6 +174,7 @@ init flags url key =
       , url = url_
       , debug = ""
       , unfoldedTopic = Nothing
+      , initialLoadDone = False
       }
     , Cmd.batch
         [ getPages
@@ -306,6 +308,7 @@ update msg model =
                             ( { model
                                 | pages =
                                     Dict.insert path ( cId, name, Loaded docContent ) model.pages
+                                , initialLoadDone = True
                               }
                             , if fichesToDownload /= [] then
                                 getFiches fichesToDownload
@@ -454,6 +457,12 @@ view model =
                     )
                     False
                     model.config.previewMode
+
+            device =
+                Element.classifyDevice
+                    { height = model.config.height
+                    , width = model.config.width
+                    }
         in
         [ Element.layout
             [ width fill
@@ -475,7 +484,10 @@ view model =
                     [ pageTitleView maxWidth model
                     , subTitleView maxWidth model
                     , searchEngineView maxWidth model
-                    , topMenuView model
+                    , if device.class /= Phone then
+                        topMenuView model
+                      else
+                        Element.none
                     , clickablePath maxWidth model
                     , mainView maxWidth model
                     , footerView model
@@ -648,7 +660,7 @@ clickablePath maxWidth model =
                 ]
                 { url = strPath p
                 , label =
-                    el [] (text (Maybe.withDefault n (Url.percentDecode n)))
+                    el [] (text <| toSentenceCase (Maybe.withDefault n (Url.percentDecode n)))
                 }
     in
     column
@@ -663,7 +675,7 @@ clickablePath maxWidth model =
             , padding 4
             , Border.rounded 5
             , Font.family
-                [ Font.monospace ]
+                [ Font.typeface "Roboto" ]
             ]
             (String.split "/" (String.dropLeft 1 model.url.path)
                 |> List.reverse
@@ -691,7 +703,7 @@ pageTitleView maxWidth model =
                 Winter ->
                     [ Background.color (rgba255 0 0 51 255) ]
     in
-    el
+    link
         ([ Font.size 45
          , Font.center
          , width (maximum maxWidth fill)
@@ -710,7 +722,9 @@ pageTitleView maxWidth model =
          ]
             ++ seasonAttr
         )
-        (text "Murol")
+        { label = text "Murol"
+        , url = "/accueil"
+        }
 
 
 subTitleView maxWidth model =
@@ -755,6 +769,35 @@ subTitleView maxWidth model =
 
 
 mainView maxWidth model =
+    let
+        loadingView =
+            column
+                [ centerX
+                , width (maximum maxWidth fill)
+                , Background.color (rgba 1 1 1 0.9)
+                , clipX
+                , padding 15
+                , height (px 300)
+                ]
+                [ column
+                    [ centerY
+                    , centerX
+                    , spacing 15
+                    ]
+                    [ el
+                        [ centerX
+                        , width (px 100)
+                        , height (px 100)
+                        , Background.image "/assets/images/loading.gif"
+
+                        --, Border.width 1
+                        ]
+                        Element.none
+                    , el [ centerX ]
+                        (text "Chargement en cours...")
+                    ]
+                ]
+    in
     case Dict.get model.url.path model.pages of
         Just ( cId, name, Loaded doc ) ->
             column
@@ -768,12 +811,20 @@ mainView maxWidth model =
                 )
 
         Just ( cId, name, Loading ) ->
-            el [ centerX ]
-                (text "Chargement en cours...")
+            loadingView
 
         _ ->
-            el [ centerX ]
-                (text "Pas de contenu.")
+            if model.initialLoadDone then
+                el
+                    [ centerX
+                    , width (maximum maxWidth fill)
+                    , Background.color (rgba 1 1 1 0.9)
+                    , padding 15
+                    , height (px 300)
+                    ]
+                    (text "Pas de contenu.")
+            else
+                loadingView
 
 
 topMenuView model =
@@ -847,12 +898,9 @@ topMenuView model =
                             }
             in
             row
-                [ width fill
-                , centerX
+                [ centerX
                 , width (maximum maxWidth fill)
                 , Background.color (rgba255 255 211 37 1)
-
-                --, padding 15
                 ]
                 [ row
                     [ centerX
@@ -861,7 +909,6 @@ topMenuView model =
                     (List.map mainCatView xs_)
                 ]
 
-        --(List.map mainCatView xs_)
         Nothing ->
             Element.none
 

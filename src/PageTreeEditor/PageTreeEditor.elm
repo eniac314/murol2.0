@@ -110,8 +110,8 @@ getPathFromId model cId =
                 List.filterMap findPath xs
                     |> List.head
     in
-        Maybe.map extractPage model.pageTree
-            |> Maybe.andThen findPath
+    Maybe.map extractPage model.pageTree
+        |> Maybe.andThen findPath
 
 
 type Mode
@@ -263,7 +263,7 @@ update config msg model =
         ( newModel, cmds ) =
             internalUpdate config msg model
     in
-        ( newModel, Cmd.map model.externalMsg cmds )
+    ( newModel, Cmd.map model.externalMsg cmds )
 
 
 internalUpdate :
@@ -377,7 +377,8 @@ internalUpdate config msg model =
                     ( { model
                         | pageTreeUpdatedStatus = Success
                         , lockedPages = remove page model.lockedPages
-                        , fileIoSelected = Nothing
+
+                        --, fileIoSelected = Nothing
                         , selected = Nothing
                       }
                     , Cmd.none
@@ -443,43 +444,43 @@ internalUpdate config msg model =
                         newContents =
                             Dict.insert (canonical contentId) newContent model.contents
                     in
-                        ( { model
-                            | contentUpdatedStatus = Initial
-                            , pageTreeUpdatedStatus = Initial
-                            , pageTree = newPageTree
-                            , contents = newContents
-                            , seed = Just newSeed
-                            , fileIoSelected =
-                                Just <|
-                                    Page
-                                        { pageInfo
-                                            | mbContentId = Just contentId
-                                        }
-                                        xs
-                            , lockedPages = newPage :: model.lockedPages
-                            , lockedContents =
-                                Dict.insert (canonical contentId)
-                                    mbBackupContent
-                                    model.lockedContents
-                          }
-                        , Cmd.batch
-                            [ cmdIfLogged
-                                config.logInfo
-                                (saveContent contentId config.currentDocument)
-                            , Maybe.map extractPage newPageTree
-                                |> Maybe.map
-                                    (\pt ->
-                                        cmdIfLogged
-                                            config.logInfo
-                                            (savePageTree
-                                                mbBackup
-                                                newPage
-                                                pt
-                                            )
-                                    )
-                                |> Maybe.withDefault Cmd.none
-                            ]
-                        )
+                    ( { model
+                        | contentUpdatedStatus = Initial
+                        , pageTreeUpdatedStatus = Initial
+                        , pageTree = newPageTree
+                        , contents = newContents
+                        , seed = Just newSeed
+                        , fileIoSelected =
+                            Just <|
+                                Page
+                                    { pageInfo
+                                        | mbContentId = Just contentId
+                                    }
+                                    xs
+                        , lockedPages = newPage :: model.lockedPages
+                        , lockedContents =
+                            Dict.insert (canonical contentId)
+                                mbBackupContent
+                                model.lockedContents
+                      }
+                    , Cmd.batch
+                        [ cmdIfLogged
+                            config.logInfo
+                            (saveContent contentId config.currentDocument)
+                        , Maybe.map extractPage newPageTree
+                            |> Maybe.map
+                                (\pt ->
+                                    cmdIfLogged
+                                        config.logInfo
+                                        (savePageTree
+                                            mbBackup
+                                            newPage
+                                            pt
+                                        )
+                                )
+                            |> Maybe.withDefault Cmd.none
+                        ]
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -543,25 +544,25 @@ internalUpdate config msg model =
                                         )
                                     |> Maybe.map rewind
                         in
-                            ( { model
-                                | pageTree = newPageTree
-                                , renamePageBuffer = Nothing
-                                , lockedPages = newPage :: model.lockedPages
-                                , selected = Nothing
-                              }
-                            , Maybe.map extractPage newPageTree
-                                |> Maybe.map
-                                    (\pt ->
-                                        cmdIfLogged
-                                            config.logInfo
-                                            (savePageTree
-                                                (Just <| Page pageInfo xs)
-                                                newPage
-                                                pt
-                                            )
-                                    )
-                                |> Maybe.withDefault Cmd.none
-                            )
+                        ( { model
+                            | pageTree = newPageTree
+                            , renamePageBuffer = Nothing
+                            , lockedPages = newPage :: model.lockedPages
+                            , selected = Nothing
+                          }
+                        , Maybe.map extractPage newPageTree
+                            |> Maybe.map
+                                (\pt ->
+                                    cmdIfLogged
+                                        config.logInfo
+                                        (savePageTree
+                                            (Just <| Page pageInfo xs)
+                                            newPage
+                                            pt
+                                        )
+                                )
+                            |> Maybe.withDefault Cmd.none
+                        )
                     else
                         ( model, Cmd.none )
 
@@ -599,25 +600,25 @@ internalUpdate config msg model =
                                         )
                                     |> Maybe.map rewind
                         in
-                            ( { model
-                                | pageTree = newPageTree
-                                , newPageBuffer = ""
-                                , pageTreeUpdatedStatus = Initial
-                                , lockedPages = newPage :: model.lockedPages
-                              }
-                            , Maybe.map extractPage newPageTree
-                                |> Maybe.map
-                                    (\pt ->
-                                        cmdIfLogged
-                                            config.logInfo
-                                            (savePageTree
-                                                Nothing
-                                                newPage
-                                                pt
-                                            )
-                                    )
-                                |> Maybe.withDefault Cmd.none
-                            )
+                        ( { model
+                            | pageTree = newPageTree
+                            , newPageBuffer = ""
+                            , pageTreeUpdatedStatus = Initial
+                            , lockedPages = newPage :: model.lockedPages
+                          }
+                        , Maybe.map extractPage newPageTree
+                            |> Maybe.map
+                                (\pt ->
+                                    cmdIfLogged
+                                        config.logInfo
+                                        (savePageTree
+                                            Nothing
+                                            newPage
+                                            pt
+                                        )
+                                )
+                            |> Maybe.withDefault Cmd.none
+                        )
 
                     _ ->
                         ( model, Cmd.none )
@@ -635,44 +636,44 @@ internalUpdate config msg model =
                                 |> Maybe.andThen delete
                                 |> Maybe.map rewind
                     in
-                        case Maybe.map extractPage mbBackup of
-                            Just backup ->
-                                ( { model
-                                    | pageTree = newPageTree
-                                    , lockedPages = backup :: model.lockedPages
-                                    , lockedContents =
-                                        Maybe.map
-                                            (\cId -> Dict.insert (canonical cId) Nothing model.lockedContents)
-                                            (getMbContentId (Page pageInfo xs))
-                                            |> Maybe.withDefault model.lockedContents
-                                    , selected = Nothing
-                                  }
-                                , Cmd.batch
-                                    [ Maybe.map
-                                        (\pt ->
+                    case Maybe.map extractPage mbBackup of
+                        Just backup ->
+                            ( { model
+                                | pageTree = newPageTree
+                                , lockedPages = backup :: model.lockedPages
+                                , lockedContents =
+                                    Maybe.map
+                                        (\cId -> Dict.insert (canonical cId) Nothing model.lockedContents)
+                                        (getMbContentId (Page pageInfo xs))
+                                        |> Maybe.withDefault model.lockedContents
+                                , selected = Nothing
+                              }
+                            , Cmd.batch
+                                [ Maybe.map
+                                    (\pt ->
+                                        cmdIfLogged
+                                            config.logInfo
+                                            (savePageTree
+                                                (Just <| backup)
+                                                backup
+                                                pt
+                                            )
+                                    )
+                                    (Maybe.map extractPage newPageTree)
+                                    |> Maybe.withDefault Cmd.none
+                                , getMbContentId (Page pageInfo xs)
+                                    |> Maybe.map
+                                        (\contentId ->
                                             cmdIfLogged
                                                 config.logInfo
-                                                (savePageTree
-                                                    (Just <| backup)
-                                                    backup
-                                                    pt
-                                                )
+                                                (deleteContent contentId)
                                         )
-                                        (Maybe.map extractPage newPageTree)
-                                        |> Maybe.withDefault Cmd.none
-                                    , getMbContentId (Page pageInfo xs)
-                                        |> Maybe.map
-                                            (\contentId ->
-                                                cmdIfLogged
-                                                    config.logInfo
-                                                    (deleteContent contentId)
-                                            )
-                                        |> Maybe.withDefault Cmd.none
-                                    ]
-                                )
+                                    |> Maybe.withDefault Cmd.none
+                                ]
+                            )
 
-                            Nothing ->
-                                ( model, Cmd.none )
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -712,24 +713,24 @@ internalUpdate config msg model =
                                 |> Maybe.map fixPaths
                                 |> Maybe.map initPageTree
                     in
-                        ( { model
-                            | pastePageBuffer = Nothing
-                            , pageTree = newPageTree
-                            , selected = Nothing
-                          }
-                        , Maybe.map extractPage newPageTree
-                            |> Maybe.map
-                                (\pt ->
-                                    cmdIfLogged
-                                        config.logInfo
-                                        (savePageTree
-                                            (Just page)
-                                            page
-                                            pt
-                                        )
-                                )
-                            |> Maybe.withDefault Cmd.none
-                        )
+                    ( { model
+                        | pastePageBuffer = Nothing
+                        , pageTree = newPageTree
+                        , selected = Nothing
+                      }
+                    , Maybe.map extractPage newPageTree
+                        |> Maybe.map
+                            (\pt ->
+                                cmdIfLogged
+                                    config.logInfo
+                                    (savePageTree
+                                        (Just page)
+                                        page
+                                        pt
+                                    )
+                            )
+                        |> Maybe.withDefault Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -752,25 +753,25 @@ internalUpdate config msg model =
                                 newPage =
                                     extractPage newPageTree
                             in
-                                ( { model
-                                    | pageTree = Just <| rewind newPageTree
-                                    , lockedPages = newPage :: model.lockedPages
-                                    , selected = Nothing
-                                  }
-                                , extractPage (rewind newPageTree)
-                                    |> (\pt ->
-                                            cmdIfLogged
-                                                config.logInfo
-                                                (savePageTree
-                                                    (Maybe.andThen (zipTo pageInfo.path) model.pageTree
-                                                        |> Maybe.andThen zipUp
-                                                        |> Maybe.map extractPage
-                                                    )
-                                                    newPage
-                                                    pt
+                            ( { model
+                                | pageTree = Just <| rewind newPageTree
+                                , lockedPages = newPage :: model.lockedPages
+                                , selected = Nothing
+                              }
+                            , extractPage (rewind newPageTree)
+                                |> (\pt ->
+                                        cmdIfLogged
+                                            config.logInfo
+                                            (savePageTree
+                                                (Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                                    |> Maybe.andThen zipUp
+                                                    |> Maybe.map extractPage
                                                 )
-                                       )
-                                )
+                                                newPage
+                                                pt
+                                            )
+                                   )
+                            )
 
                         Nothing ->
                             ( model, Cmd.none )
@@ -808,18 +809,18 @@ internalUpdate config msg model =
                                 , canonical contentId
                                 )
                         in
-                            ( { model
-                                | keywords =
-                                    Set.insert newEntry model.keywords
-                                , lockedKeywords =
-                                    Set.insert newEntry model.lockedKeywords
-                                , keywordsPromptInput = Nothing
-                                , selectedKeyword = Nothing
-                              }
-                            , cmdIfLogged
-                                config.logInfo
-                                (setKeyword newEntry)
-                            )
+                        ( { model
+                            | keywords =
+                                Set.insert newEntry model.keywords
+                            , lockedKeywords =
+                                Set.insert newEntry model.lockedKeywords
+                            , keywordsPromptInput = Nothing
+                            , selectedKeyword = Nothing
+                          }
+                        , cmdIfLogged
+                            config.logInfo
+                            (setKeyword newEntry)
+                        )
                     else
                         ( model, Cmd.none )
 
@@ -839,19 +840,19 @@ internalUpdate config msg model =
                             , canonical contentId
                             )
                     in
-                        ( { model
-                            | keywords =
-                                Set.insert newEntry
-                                    model.keywords
-                            , lockedKeywords =
-                                Set.insert newEntry model.lockedKeywords
-                            , keywordsPromptInput = Nothing
-                            , selectedKeyword = Nothing
-                          }
-                        , cmdIfLogged
-                            config.logInfo
-                            (setKeyword newEntry)
-                        )
+                    ( { model
+                        | keywords =
+                            Set.insert newEntry
+                                model.keywords
+                        , lockedKeywords =
+                            Set.insert newEntry model.lockedKeywords
+                        , keywordsPromptInput = Nothing
+                        , selectedKeyword = Nothing
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (setKeyword newEntry)
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -869,18 +870,18 @@ internalUpdate config msg model =
                             , canonical contentId
                             )
                     in
-                        ( { model
-                            | keywords =
-                                Set.remove newEntry
-                                    model.keywords
-                            , lockedKeywords =
-                                Set.insert newEntry model.lockedKeywords
-                            , selectedPageKeyword = Nothing
-                          }
-                        , cmdIfLogged
-                            config.logInfo
-                            (unsetKeyword newEntry)
-                        )
+                    ( { model
+                        | keywords =
+                            Set.remove newEntry
+                                model.keywords
+                        , lockedKeywords =
+                            Set.insert newEntry model.lockedKeywords
+                        , selectedPageKeyword = Nothing
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (unsetKeyword newEntry)
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -939,14 +940,14 @@ getPageTree =
                 []
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "getPageTree.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    LoadPageTree
-                    decodePageTree
-            }
+    Http.post
+        { url = "getPageTree.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                LoadPageTree
+                decodePageTree
+        }
 
 
 getContents : String -> Cmd Msg
@@ -960,14 +961,14 @@ getContents sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "getContents.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    LoadContents
-                    Decode.value
-            }
+    Http.post
+        { url = "getContents.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                LoadContents
+                Decode.value
+        }
 
 
 getKeywords : Cmd Msg
@@ -978,14 +979,14 @@ getKeywords =
                 []
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "getKeywords.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    LoadKeywords
-                    decodeKeywords
-            }
+    Http.post
+        { url = "getKeywords.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                LoadKeywords
+                decodeKeywords
+        }
 
 
 savePageTree : Maybe Page -> Page -> Page -> String -> Cmd Msg
@@ -1002,14 +1003,14 @@ savePageTree mbPage page pageTree sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "savePageTree.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    (PageTreeUpdated mbPage page)
-                    decodeSuccess
-            }
+    Http.post
+        { url = "savePageTree.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                (PageTreeUpdated mbPage page)
+                decodeSuccess
+        }
 
 
 saveContent : UUID -> Document -> String -> Cmd Msg
@@ -1029,14 +1030,14 @@ saveContent contentId doc sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "saveContent.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    (ContentUpdated contentId)
-                    decodeSuccess
-            }
+    Http.post
+        { url = "saveContent.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                (ContentUpdated contentId)
+                decodeSuccess
+        }
 
 
 setKeyword : ( String, String ) -> String -> Cmd Msg
@@ -1056,14 +1057,14 @@ setKeyword ( keyword, contentId ) sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "setKeyword.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    (KeywordUpdated False ( keyword, contentId ))
-                    decodeSuccess
-            }
+    Http.post
+        { url = "setKeyword.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                (KeywordUpdated False ( keyword, contentId ))
+                decodeSuccess
+        }
 
 
 unsetKeyword : ( String, String ) -> String -> Cmd Msg
@@ -1083,14 +1084,14 @@ unsetKeyword ( keyword, contentId ) sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "unsetKeyword.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    (KeywordUpdated True ( keyword, contentId ))
-                    decodeSuccess
-            }
+    Http.post
+        { url = "unsetKeyword.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                (KeywordUpdated True ( keyword, contentId ))
+                decodeSuccess
+        }
 
 
 deleteContent : UUID -> String -> Cmd Msg
@@ -1107,14 +1108,14 @@ deleteContent contentId sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "deleteContent.php"
-            , body = body
-            , expect =
-                Http.expectJson
-                    (ContentUpdated contentId)
-                    decodeSuccess
-            }
+    Http.post
+        { url = "deleteContent.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                (ContentUpdated contentId)
+                decodeSuccess
+        }
 
 
 
@@ -1318,21 +1319,21 @@ zipDown pred pageTree =
                 ( l, r ) =
                     break pred xs
             in
-                case r of
-                    [] ->
-                        Nothing
+            case r of
+                [] ->
+                    Nothing
 
-                    p :: ps ->
-                        Just
-                            { pageTree
-                                | current = p
-                                , contexts =
-                                    { parent = pageInfo
-                                    , left = l
-                                    , right = ps
-                                    }
-                                        :: pageTree.contexts
-                            }
+                p :: ps ->
+                    Just
+                        { pageTree
+                            | current = p
+                            , contexts =
+                                { parent = pageInfo
+                                , left = l
+                                , right = ps
+                                }
+                                    :: pageTree.contexts
+                        }
 
 
 zipTo : Path -> PageTree -> Maybe PageTree
@@ -1356,7 +1357,7 @@ zipTo path pageTree =
                         zipDown (\page -> getName page == next) pageTree_
                             |> Maybe.andThen (helper (next :: rest))
     in
-        helper path pageTree
+    helper path pageTree
 
 
 fixPaths : Page -> Page
@@ -1366,14 +1367,14 @@ fixPaths homePage =
             Page { pageInfo | path = currPath ++ [ pageInfo.name ] }
                 (List.map (helper (currPath ++ [ pageInfo.name ])) ps)
     in
-        helper
-            (getPath homePage
-                |> List.reverse
-                |> List.tail
-                |> Maybe.map List.reverse
-                |> Maybe.withDefault []
-            )
-            homePage
+    helper
+        (getPath homePage
+            |> List.reverse
+            |> List.tail
+            |> Maybe.map List.reverse
+            |> Maybe.withDefault []
+        )
+        homePage
 
 
 isSubPage : Page -> Page -> Bool
@@ -1493,32 +1494,32 @@ insert p mbPage_ =
                                     ( l, r ) =
                                         break (\p_ -> getName p_ == next) children
                                 in
-                                    case r of
-                                        [] ->
-                                            let
-                                                newPage =
-                                                    Page
-                                                        { name = next
-                                                        , path =
-                                                            pageInfo.path
-                                                                ++ [ next ]
-                                                        , mbContentId = Nothing
-                                                        }
-                                                        []
-                                            in
-                                                helper (next :: rest) (Just newPage)
-                                                    |> Maybe.andThen
-                                                        (\nsbt -> Just <| Page pageInfo (nsbt :: children))
+                                case r of
+                                    [] ->
+                                        let
+                                            newPage =
+                                                Page
+                                                    { name = next
+                                                    , path =
+                                                        pageInfo.path
+                                                            ++ [ next ]
+                                                    , mbContentId = Nothing
+                                                    }
+                                                    []
+                                        in
+                                        helper (next :: rest) (Just newPage)
+                                            |> Maybe.andThen
+                                                (\nsbt -> Just <| Page pageInfo (nsbt :: children))
 
-                                        next_ :: rest_ ->
-                                            helper (next :: rest) (Just next_)
-                                                |> Maybe.andThen
-                                                    (\nsbt -> Just <| Page pageInfo (l ++ nsbt :: rest_))
+                                    next_ :: rest_ ->
+                                        helper (next :: rest) (Just next_)
+                                            |> Maybe.andThen
+                                                (\nsbt -> Just <| Page pageInfo (l ++ nsbt :: rest_))
     in
-        List.reverse (getPath p)
-            |> List.tail
-            |> Maybe.map List.reverse
-            |> Maybe.andThen (\path -> helper path mbPage_)
+    List.reverse (getPath p)
+        |> List.tail
+        |> Maybe.map List.reverse
+        |> Maybe.andThen (\path -> helper path mbPage_)
 
 
 
@@ -1762,130 +1763,130 @@ keywordsAdminView config model =
                         , model.selectedKeyword == Just k
                         )
             in
-                el
-                    [ width fill
-                    , handler
-                    , paddingXY 5 5
-                    , pointer
-                    , if selected then
-                        Background.color
-                            (rgba 0 0 1 0.3)
-                      else
-                        noAttr
-                    ]
-                    (text k)
+            el
+                [ width fill
+                , handler
+                , paddingXY 5 5
+                , pointer
+                , if selected then
+                    Background.color
+                        (rgba 0 0 1 0.3)
+                  else
+                    noAttr
+                ]
+                (text k)
     in
-        column
+    column
+        [ spacing 15
+        , Border.widthEach
+            { top = 2
+            , bottom = 0
+            , left = 0
+            , right = 0
+            }
+        , Border.color (rgb 0.8 0.8 0.8)
+        , paddingEach
+            { top = 15
+            , bottom = 0
+            , left = 0
+            , right = 0
+            }
+        , width fill
+        ]
+        [ el
+            [ Font.bold
+            , Font.size 18
+            ]
+            (text "Gestion mots clés")
+        , Input.text
+            (textInputStyle ++ [ width (px 300), spacing 0 ])
+            { onChange = KeywordInput
+            , text =
+                if model.keywordsPromptInput == Nothing then
+                    Maybe.withDefault "" model.selectedKeyword
+                else
+                    Maybe.withDefault "" model.keywordsPromptInput
+            , placeholder =
+                Nothing
+            , label =
+                Input.labelLeft [] Element.none
+            }
+        , row
             [ spacing 15
-            , Border.widthEach
-                { top = 2
-                , bottom = 0
-                , left = 0
-                , right = 0
-                }
-            , Border.color (rgb 0.8 0.8 0.8)
-            , paddingEach
-                { top = 15
-                , bottom = 0
-                , left = 0
-                , right = 0
-                }
             , width fill
             ]
-            [ el
-                [ Font.bold
-                , Font.size 18
+            [ column
+                [ Border.width 2
+                , Border.color (rgb 0.8 0.8 0.8)
+                , width (px 200)
+                , height (px 400)
+                , scrollbars
                 ]
-                (text "Gestion mots clés")
-            , Input.text
-                (textInputStyle ++ [ width (px 300), spacing 0 ])
-                { onChange = KeywordInput
-                , text =
-                    if model.keywordsPromptInput == Nothing then
-                        Maybe.withDefault "" model.selectedKeyword
-                    else
-                        Maybe.withDefault "" model.keywordsPromptInput
-                , placeholder =
-                    Nothing
-                , label =
-                    Input.labelLeft [] Element.none
-                }
-            , row
-                [ spacing 15
-                , width fill
+                (List.map (keywordView False) visibleKeywords)
+            , column
+                [ Border.width 2
+                , Border.color (rgb 0.8 0.8 0.8)
+                , width (px 200)
+                , height (px 400)
+                , scrollbars
                 ]
-                [ column
-                    [ Border.width 2
-                    , Border.color (rgb 0.8 0.8 0.8)
-                    , width (px 200)
-                    , height (px 400)
-                    , scrollbars
-                    ]
-                    (List.map (keywordView False) visibleKeywords)
-                , column
-                    [ Border.width 2
-                    , Border.color (rgb 0.8 0.8 0.8)
-                    , width (px 200)
-                    , height (px 400)
-                    , scrollbars
-                    ]
-                    (List.map (keywordView True) pageKeywords)
-                ]
-            , row
-                [ spacing 15 ]
-                [ Input.button
-                    (buttonStyle
-                        ((Maybe.andThen getMbContentId model.selected
-                            /= Nothing
-                         )
-                            && ((model.selectedKeyword
-                                    /= Nothing
-                                )
-                                    || validMbStr model.keywordsPromptInput
-                               )
-                        )
-                    )
-                    { onPress =
-                        if
-                            (Maybe.andThen getMbContentId model.selected /= Nothing)
-                                && (model.selectedKeyword /= Nothing)
-                        then
-                            Just SetKeyword
-                        else if
-                            (Maybe.andThen getMbContentId model.selected /= Nothing)
-                                && validMbStr model.keywordsPromptInput
-                        then
-                            Just NewKeyword
-                        else
-                            Nothing
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Associer mot clé" ]
-                    }
-                , Input.button
-                    (buttonStyle
-                        ((Maybe.andThen getMbContentId model.selected
-                            /= Nothing
-                         )
-                            && (model.selectedPageKeyword
-                                    /= Nothing
-                               )
-                        )
-                    )
-                    { onPress =
-                        if
-                            (Maybe.andThen getMbContentId model.selected /= Nothing)
-                                && (model.selectedPageKeyword /= Nothing)
-                        then
-                            Just UnsetKeyword
-                        else
-                            Nothing
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Dissocier mot clé" ]
-                    }
-                ]
+                (List.map (keywordView True) pageKeywords)
             ]
+        , row
+            [ spacing 15 ]
+            [ Input.button
+                (buttonStyle
+                    ((Maybe.andThen getMbContentId model.selected
+                        /= Nothing
+                     )
+                        && ((model.selectedKeyword
+                                /= Nothing
+                            )
+                                || validMbStr model.keywordsPromptInput
+                           )
+                    )
+                )
+                { onPress =
+                    if
+                        (Maybe.andThen getMbContentId model.selected /= Nothing)
+                            && (model.selectedKeyword /= Nothing)
+                    then
+                        Just SetKeyword
+                    else if
+                        (Maybe.andThen getMbContentId model.selected /= Nothing)
+                            && validMbStr model.keywordsPromptInput
+                    then
+                        Just NewKeyword
+                    else
+                        Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ text "Associer mot clé" ]
+                }
+            , Input.button
+                (buttonStyle
+                    ((Maybe.andThen getMbContentId model.selected
+                        /= Nothing
+                     )
+                        && (model.selectedPageKeyword
+                                /= Nothing
+                           )
+                    )
+                )
+                { onPress =
+                    if
+                        (Maybe.andThen getMbContentId model.selected /= Nothing)
+                            && (model.selectedPageKeyword /= Nothing)
+                    then
+                        Just UnsetKeyword
+                    else
+                        Nothing
+                , label =
+                    row [ spacing 10 ]
+                        [ text "Dissocier mot clé" ]
+                }
+            ]
+        ]
 
 
 saveView : { config | mode : Mode } -> Model msg -> Element.Element Msg
@@ -2015,22 +2016,23 @@ pageTreeView config model =
                 _ ->
                     model.fileIoSelected
     in
-        column
-            [ spacing 2
-            , width fill
-            , Font.size 14
-            , Font.family
-                [ Font.monospace ]
-            , scrollbars
-            , height fill
+    column
+        [ spacing 2
+        , width fill
+        , Font.size 14
+        , Font.family
+            [ Font.monospace
             ]
-            (model.pageTree
-                |> Maybe.map rewind
-                |> Maybe.map extractPage
-                |> Maybe.map
-                    (pageTreeView_ config [] selected model.contents model.lockedPages)
-                |> Maybe.withDefault []
-            )
+        , scrollbars
+        , height fill
+        ]
+        (model.pageTree
+            |> Maybe.map rewind
+            |> Maybe.map extractPage
+            |> Maybe.map
+                (pageTreeView_ config [] selected model.contents model.lockedPages)
+            |> Maybe.withDefault []
+        )
 
 
 pageTreeView_ :
@@ -2060,19 +2062,19 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                         selectable =
                             not isLocked
                     in
-                        (if selectable then
-                            [ Events.onClick (SelectPage (Page pageInfo children))
-                            , pointer
-                            , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                            ]
-                         else
-                            []
-                        )
-                            ++ [ if selected == Just (Page pageInfo children) then
-                                    Font.color (rgba 0 0 1 1)
-                                 else
-                                    noAttr
-                               ]
+                    (if selectable then
+                        [ Events.onClick (SelectPage (Page pageInfo children))
+                        , pointer
+                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                        ]
+                     else
+                        []
+                    )
+                        ++ [ if selected == Just (Page pageInfo children) then
+                                Font.color (rgba 0 0 1 1)
+                             else
+                                noAttr
+                           ]
 
                 Save ->
                     [ if selected == Just (Page pageInfo children) then
@@ -2096,15 +2098,15 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                                         Nothing ->
                                             Font.color (rgba 1 0 0 0.7)
                     in
-                        [ Events.onClick (SaveAsSelectPage (Page pageInfo children))
-                        , pointer
-                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                        ]
-                            ++ [ if selected == Just (Page pageInfo children) then
-                                    Font.color (rgba 0 0 1 1)
-                                 else
-                                    fontColor
-                               ]
+                    [ Events.onClick (SaveAsSelectPage (Page pageInfo children))
+                    , pointer
+                    , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                    ]
+                        ++ [ if selected == Just (Page pageInfo children) then
+                                Font.color (rgba 0 0 1 1)
+                             else
+                                fontColor
+                           ]
 
                 Open ->
                     let
@@ -2126,19 +2128,19 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                                         Nothing ->
                                             Font.color (rgba 1 0 0 0.7)
                     in
-                        (if selectable then
-                            [ Events.onClick (FileIOSelectPage (Page pageInfo children))
-                            , pointer
-                            , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                            ]
-                         else
-                            []
-                        )
-                            ++ [ if selected == Just (Page pageInfo children) then
-                                    Font.color (rgba 0 0 1 1)
-                                 else
-                                    fontColor
-                               ]
+                    (if selectable then
+                        [ Events.onClick (FileIOSelectPage (Page pageInfo children))
+                        , pointer
+                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                        ]
+                     else
+                        []
+                    )
+                        ++ [ if selected == Just (Page pageInfo children) then
+                                Font.color (rgba 0 0 1 1)
+                             else
+                                fontColor
+                           ]
 
                 Select ->
                     [ Events.onClick (SelectInternalPage (Page pageInfo children))
@@ -2150,43 +2152,43 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                         noAttr
                     ]
     in
-        [ row
-            [ width fill ]
-            (prefix offsets
-                ++ [ Keyed.el
-                        (attrs
-                            ++ [ if isLocked then
-                                    Font.color (rgba 0.8 0.8 0.8 1)
-                                 else
-                                    noAttr
-                               ]
-                        )
-                        ( String.join "/" pageInfo.path
-                        , text <| pageInfo.name
-                        )
-                   ]
-            )
-        ]
-            ++ List.concatMap
-                (pageTreeView_
-                    config
-                    (NotLastChild True
-                        :: offsets
+    [ row
+        [ width fill ]
+        (prefix offsets
+            ++ [ Keyed.el
+                    (attrs
+                        ++ [ if isLocked then
+                                Font.color (rgba 0.8 0.8 0.8 1)
+                             else
+                                noAttr
+                           ]
                     )
-                    selected
-                    contents
-                    locked
+                    ( String.join "/" pageInfo.path
+                    , text <| pageInfo.name
+                    )
+               ]
+        )
+    ]
+        ++ List.concatMap
+            (pageTreeView_
+                config
+                (NotLastChild True
+                    :: offsets
                 )
-                firsts
-            ++ List.concatMap
-                (pageTreeView_
-                    config
-                    (LastChild True :: offsets)
-                    selected
-                    contents
-                    locked
-                )
-                last
+                selected
+                contents
+                locked
+            )
+            firsts
+        ++ List.concatMap
+            (pageTreeView_
+                config
+                (LastChild True :: offsets)
+                selected
+                contents
+                locked
+            )
+            last
 
 
 prefix : List Child -> List (Element msg)
@@ -2238,7 +2240,7 @@ prefix offsets =
                         )
                         xs
     in
-        helper [] (List.reverse offsets)
+    helper [] (List.reverse offsets)
 
 
 
@@ -2271,7 +2273,7 @@ break p xs =
                     else
                         helper ys_ (y :: left)
     in
-        helper xs []
+    helper xs []
 
 
 validMbStr : Maybe String -> Bool

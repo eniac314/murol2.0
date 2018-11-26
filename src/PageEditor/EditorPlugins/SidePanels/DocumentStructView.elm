@@ -71,73 +71,74 @@ docTreeView config offsets ( sContainer, selection ) document =
             else
                 Font.color (rgba 0.8 0.8 0.8 1)
     in
-        case document of
-            Container { containerLabel, id, attrs } xs ->
-                let
-                    l =
-                        List.length xs
+    case document of
+        Container { containerLabel, id, attrs } xs ->
+            let
+                l =
+                    List.length xs
 
-                    ( firsts, last ) =
-                        ( List.take (l - 1) xs, List.drop (l - 1) xs )
-                in
-                    [ row [ width fill ]
-                        (prefix offsets
-                            ++ [ el
-                                    ([ if config.containersColors && sel then
-                                        Font.color <| containerLabelToColor containerLabel
-                                       else
-                                        labelFontColor
-                                     ]
-                                        ++ (if config.isActive then
-                                                [ Events.onClick (config.zipToUidCmd id.uid)
-                                                , pointer
-                                                , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                                                ]
-                                            else
-                                                []
-                                           )
-                                    )
-                                    (text <| containerLabelToString containerLabel)
-                               ]
+                ( firsts, last ) =
+                    ( List.take (l - 1) xs, List.drop (l - 1) xs )
+            in
+            [ row [ width fill ]
+                (prefix offsets
+                    ++ [ el
+                            ([ if config.containersColors && sel then
+                                Font.color <| containerLabelToColor containerLabel
+                               else
+                                labelFontColor
+                             ]
+                                ++ (if config.isActive then
+                                        [ Events.onClick (config.zipToUidCmd id.uid)
+                                        , pointer
+                                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                                        ]
+                                    else
+                                        []
+                                   )
+                            )
+                            (text <| containerLabelToString containerLabel)
+                       ]
+                )
+            ]
+                ++ List.concatMap
+                    (docTreeView
+                        config
+                        (NotLastChild sel
+                            :: offsets
                         )
-                    ]
-                        ++ List.concatMap
-                            (docTreeView
-                                config
-                                (NotLastChild sel
-                                    :: offsets
-                                )
-                                ( sContainer, sel )
-                            )
-                            firsts
-                        ++ List.concatMap
-                            (docTreeView
-                                config
-                                (LastChild sel :: offsets)
-                                ( sContainer, sel )
-                            )
-                            last
-
-            Cell { cellContent, id, attrs } ->
-                [ row []
-                    (prefix offsets
-                        ++ [ el
-                                ([ labelFontColor
-                                 ]
-                                    ++ (if config.isActive then
-                                            [ Events.onClick (config.zipToUidCmd id.uid)
-                                            , pointer
-                                            , mouseOver [ Font.color (rgba 0 0 1 1) ]
-                                            ]
-                                        else
-                                            []
-                                       )
-                                )
-                                (text <| cellContentToString cellContent)
-                             --(text <| String.fromInt id.uid ++ " " ++ cellContentToString cellContent)
-                           ]
+                        ( sContainer, sel )
                     )
-                ]
+                    firsts
+                ++ List.concatMap
+                    (docTreeView
+                        config
+                        (LastChild sel :: offsets)
+                        ( sContainer, sel )
+                    )
+                    last
+
+        Cell { cellContent, id, attrs } ->
+            [ row []
+                (prefix offsets
+                    ++ [ el
+                            ([ labelFontColor
+                             ]
+                                ++ (if config.isActive then
+                                        [ Events.onClick (config.zipToUidCmd id.uid)
+                                        , pointer
+                                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                                        ]
+                                    else
+                                        []
+                                   )
+                            )
+                            (text <| cellContentToString cellContent)
+
+                       --(text <| String.fromInt id.uid ++ " " ++ cellContentToString cellContent)
+                       ]
+                )
+            ]
 
 
 prefix : List Child -> List (Element msg)
@@ -189,7 +190,7 @@ prefix offsets =
                         )
                         xs
     in
-        helper [] (List.reverse offsets)
+    helper [] (List.reverse offsets)
 
 
 containerLabelToString cl =
@@ -241,6 +242,9 @@ cellContentToString lc =
 
         Fiches _ ->
             "Fiches"
+
+        NewsBlock _ ->
+            "Zone actualités"
 
         TextBlock xs ->
             "Zone de texte"

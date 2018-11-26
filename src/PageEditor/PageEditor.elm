@@ -27,24 +27,24 @@ import Json.Decode as Decode
 import Json.Encode exposing (Value, null)
 import PageEditor.EditorPlugins.BlockLinksPlugin as BlockLinksPlugin
 import PageEditor.EditorPlugins.ContainerEditPlugin as ContainerEditPlugin
+import PageEditor.EditorPlugins.FichesPlugin as FichesPlugin exposing (..)
 import PageEditor.EditorPlugins.ImagePlugin as ImagePlugin
 import PageEditor.EditorPlugins.NewDocPlugin as NewDocPlugin
 import PageEditor.EditorPlugins.SidePanels.DocumentStructView exposing (..)
 import PageEditor.EditorPlugins.TablePlugin as TablePlugin
 import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
 import PageEditor.EditorPlugins.VideoPlugin as VideoPlugin
-import PageEditor.EditorPlugins.FichesPlugin as FichesPlugin exposing (..)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageEditor.Internals.DocumentZipper exposing (..)
 import PageEditor.Internals.PersistencePlugin as PersistencePlugin
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import PortFunnel exposing (FunnelSpec, GenericMessage, ModuleDesc, StateAccessors)
 import PortFunnel.LocalStorage as LocalStorage
+import Set exposing (empty)
 import Task exposing (perform)
 import Time exposing (Posix, Zone, here, millisToPosix, utc)
 import Yajson exposing (..)
 import Yajson.Stringify exposing (..)
-import Set exposing (empty)
 
 
 subscriptions : Model msg -> Sub msg
@@ -123,21 +123,21 @@ storageHandler response state mdl =
         model =
             { mdl | funnelState = state }
     in
-        case response of
-            -- A `Response` is used to return values for `Get` and `ListKeys`.
-            LocalStorage.GetResponse { key, value } ->
-                ( { model
-                    | localStorageKey = key
-                    , localStorageValue = value
-                  }
-                , Cmd.none
-                )
+    case response of
+        -- A `Response` is used to return values for `Get` and `ListKeys`.
+        LocalStorage.GetResponse { key, value } ->
+            ( { model
+                | localStorageKey = key
+                , localStorageValue = value
+              }
+            , Cmd.none
+            )
 
-            LocalStorage.ListKeysResponse { keys } ->
-                ( { model | localStorageKeys = keys }, Cmd.none )
+        LocalStorage.ListKeysResponse { keys } ->
+            ( { model | localStorageKeys = keys }, Cmd.none )
 
-            _ ->
-                ( model, Cmd.none )
+        _ ->
+            ( model, Cmd.none )
 
 
 type alias Model msg =
@@ -282,59 +282,59 @@ reset mbDoc externalMsg =
             , pageIndex = Dict.empty
             , fiches = Dict.empty
             , openedFiches = Set.empty
-            , openFicheMsg = (\_ -> externalMsg NoOp)
+            , openFicheMsg = \_ -> externalMsg NoOp
             }
 
         funnelState =
             { storage = LocalStorage.initialState "Editor" }
     in
-        ( { config = config
-          , document = initZip doc_
-          , clipboard = Nothing
-          , undoCache = []
-          , nextUid = maxUid doc_ + 1
-          , controlDown = False
-          , menuClicked = False
-          , menuFocused = ""
-          , funnelState = funnelState
-          , localStorageKey = ""
-          , localStorageValue = Nothing
-          , localStorageKeys = []
-          , jsonBuffer = ""
-          , currentPlugin = Nothing
-          , tablePlugin = TablePlugin.init Nothing (externalMsg << TablePluginMsg)
-          , textBlockPlugin = newTextBlockPlugin
-          , imagePlugin = newImagePlugin
-          , videoPlugin = VideoPlugin.init Nothing (externalMsg << VideoPluginMsg)
-          , blockLinksPlugin = BlockLinksPlugin.init Nothing (externalMsg << BlockLinksPluginMsg)
-          , fichesPlugin = FichesPlugin.init [] (externalMsg << FichesPluginMsg)
-          , externalMsg = externalMsg
-          }
-        , Cmd.batch
-            [ Cmd.map externalMsg <|
-                Task.perform CurrentViewport Dom.getViewport
-            , Cmd.map externalMsg <|
-                Task.attempt MainInterfaceViewport
-                    (Dom.getViewportOf "mainInterface")
-            , textBlockPluginCmds
-            , imagePluginCmds
-            , LocalStorage.send
-                cmdPort
-                (LocalStorage.listKeys "")
-                funnelState.storage
-            , Time.now
-                |> Task.andThen
-                    (\t ->
-                        Time.here
-                            |> Task.andThen
-                                (\h ->
-                                    Task.succeed (timeToSeason h t)
-                                )
-                    )
-                |> Task.perform SetSeason
-                |> Cmd.map externalMsg
-            ]
-        )
+    ( { config = config
+      , document = initZip doc_
+      , clipboard = Nothing
+      , undoCache = []
+      , nextUid = maxUid doc_ + 1
+      , controlDown = False
+      , menuClicked = False
+      , menuFocused = ""
+      , funnelState = funnelState
+      , localStorageKey = ""
+      , localStorageValue = Nothing
+      , localStorageKeys = []
+      , jsonBuffer = ""
+      , currentPlugin = Nothing
+      , tablePlugin = TablePlugin.init Nothing (externalMsg << TablePluginMsg)
+      , textBlockPlugin = newTextBlockPlugin
+      , imagePlugin = newImagePlugin
+      , videoPlugin = VideoPlugin.init Nothing (externalMsg << VideoPluginMsg)
+      , blockLinksPlugin = BlockLinksPlugin.init Nothing (externalMsg << BlockLinksPluginMsg)
+      , fichesPlugin = FichesPlugin.init [] (externalMsg << FichesPluginMsg)
+      , externalMsg = externalMsg
+      }
+    , Cmd.batch
+        [ Cmd.map externalMsg <|
+            Task.perform CurrentViewport Dom.getViewport
+        , Cmd.map externalMsg <|
+            Task.attempt MainInterfaceViewport
+                (Dom.getViewportOf "mainInterface")
+        , textBlockPluginCmds
+        , imagePluginCmds
+        , LocalStorage.send
+            cmdPort
+            (LocalStorage.listKeys "")
+            funnelState.storage
+        , Time.now
+            |> Task.andThen
+                (\t ->
+                    Time.here
+                        |> Task.andThen
+                            (\h ->
+                                Task.succeed (timeToSeason h t)
+                            )
+                )
+            |> Task.perform SetSeason
+            |> Cmd.map externalMsg
+        ]
+    )
 
 
 update :
@@ -350,7 +350,7 @@ update config msg model =
         ( newModel, cmds ) =
             internalUpdate config msg model
     in
-        ( newModel, cmds, Nothing )
+    ( newModel, cmds, Nothing )
 
 
 internalUpdate :
@@ -371,20 +371,20 @@ internalUpdate config msg model =
                 ws =
                     model.config
             in
-                ( { model
-                    | config =
-                        { ws
-                            | width = round vp.viewport.width
-                            , height = round vp.viewport.height
-                            , previewMode =
-                                if vp.viewport.width < 1300 then
-                                    PreviewTablet
-                                else
-                                    PreviewScreen
-                        }
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | config =
+                    { ws
+                        | width = round vp.viewport.width
+                        , height = round vp.viewport.height
+                        , previewMode =
+                            if vp.viewport.width < 1300 then
+                                PreviewTablet
+                            else
+                                PreviewScreen
+                    }
+              }
+            , Cmd.none
+            )
 
         MainInterfaceViewport res ->
             case res of
@@ -393,15 +393,15 @@ internalUpdate config msg model =
                         currentConfig =
                             model.config
                     in
-                        ( { model
-                            | config =
-                                { currentConfig
-                                    | mainInterfaceHeight =
-                                        round viewport.height
-                                }
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | config =
+                            { currentConfig
+                                | mainInterfaceHeight =
+                                    round viewport.height
+                            }
+                      }
+                    , Cmd.none
+                    )
 
                 Err (Dom.NotFound s) ->
                     ( model, Cmd.none )
@@ -414,12 +414,12 @@ internalUpdate config msg model =
                 newConfig =
                     { cfg | width = width, height = height }
             in
-                ( { model | config = newConfig }
-                , Cmd.batch
-                    [ Task.attempt (model.externalMsg << MainInterfaceViewport)
-                        (Dom.getViewportOf "mainInterface")
-                    ]
-                )
+            ( { model | config = newConfig }
+            , Cmd.batch
+                [ Task.attempt (model.externalMsg << MainInterfaceViewport)
+                    (Dom.getViewportOf "mainInterface")
+                ]
+            )
 
         JumpTo id ->
             ( model, Cmd.map model.externalMsg <| scrollTo id )
@@ -516,13 +516,13 @@ internalUpdate config msg model =
                         newDoc =
                             Container { cv | containerLabel = containerLabel } children
                     in
-                        ( { model
-                            | document =
-                                updateCurrent newDoc model.document
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | document =
+                            updateCurrent newDoc model.document
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -589,28 +589,28 @@ internalUpdate config msg model =
                     { model | currentPlugin = Just plugin }
                         |> openNewPlugin config
             in
-                ( { newModel | nextUid = model.nextUid + 1 }
-                , Cmd.batch
-                    [ cmd ]
-                )
+            ( { newModel | nextUid = model.nextUid + 1 }
+            , Cmd.batch
+                [ cmd ]
+            )
 
         DeleteSelected ->
             let
                 newDoc =
                     safeDeleteCurrent model.nextUid model.document
             in
-                ( { model
-                    | document =
-                        Maybe.withDefault model.document
-                            newDoc
-                    , undoCache =
-                        model.document
-                            :: model.undoCache
-                            |> List.take undoCacheDepth
-                    , nextUid = model.nextUid + 1
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | document =
+                    Maybe.withDefault model.document
+                        newDoc
+                , undoCache =
+                    model.document
+                        :: model.undoCache
+                        |> List.take undoCacheDepth
+                , nextUid = model.nextUid + 1
+              }
+            , Cmd.none
+            )
 
         Copy ->
             ( { model
@@ -628,19 +628,19 @@ internalUpdate config msg model =
                 newDoc =
                     safeDeleteCurrent model.nextUid model.document
             in
-                ( { model
-                    | document =
-                        Maybe.withDefault model.document
-                            newDoc
-                    , undoCache =
-                        model.document
-                            :: model.undoCache
-                            |> List.take undoCacheDepth
-                    , nextUid = model.nextUid + 1
-                    , clipboard = Just currentDoc
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | document =
+                    Maybe.withDefault model.document
+                        newDoc
+                , undoCache =
+                    model.document
+                        :: model.undoCache
+                        |> List.take undoCacheDepth
+                , nextUid = model.nextUid + 1
+                , clipboard = Just currentDoc
+              }
+            , Cmd.none
+            )
 
         Paste ->
             case ( extractDoc model.document, model.clipboard ) of
@@ -649,12 +649,12 @@ internalUpdate config msg model =
                         newDoc =
                             Container cv (xs ++ [ doc ])
                     in
-                        ( { model
-                            | document = updateCurrent newDoc model.document
-                            , clipboard = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | document = updateCurrent newDoc model.document
+                        , clipboard = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -700,18 +700,18 @@ internalUpdate config msg model =
                         | previewMode = pm
                     }
             in
-                ( { model | config = newConfig }
-                , Cmd.none
-                )
+            ( { model | config = newConfig }
+            , Cmd.none
+            )
 
         SetSeason season ->
             let
                 config_ =
                     model.config
             in
-                ( { model | config = { config_ | season = season } }
-                , Cmd.none
-                )
+            ( { model | config = { config_ | season = season } }
+            , Cmd.none
+            )
 
         ToogleCountainersColors ->
             let
@@ -724,7 +724,7 @@ internalUpdate config msg model =
                             not config_.containersBkgColors
                     }
             in
-                ( { model | config = newConfig }, Cmd.none )
+            ( { model | config = newConfig }, Cmd.none )
 
         SetEditorPlugin mbPlugin ->
             ( { model | currentPlugin = mbPlugin }, Cmd.none )
@@ -737,42 +737,42 @@ internalUpdate config msg model =
                 ( newTablePlugin, mbEditorPluginResult ) =
                     TablePlugin.update tableMsg model.tablePlugin
             in
-                case mbEditorPluginResult of
-                    Nothing ->
-                        ( { model | tablePlugin = newTablePlugin }
-                        , Cmd.none
-                        )
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | tablePlugin = newTablePlugin }
+                    , Cmd.none
+                    )
 
-                    Just EditorPluginQuit ->
-                        ( { model
-                            | tablePlugin = newTablePlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.batch
-                            [ scrollTo <| getHtmlId (extractDoc model.document) ]
-                            |> Cmd.map model.externalMsg
-                        )
+                Just EditorPluginQuit ->
+                    ( { model
+                        | tablePlugin = newTablePlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                        |> Cmd.map model.externalMsg
+                    )
 
-                    Just (EditorPluginData tm) ->
-                        let
-                            newDoc =
-                                updateCurrent
-                                    (Cell
-                                        { id = getId (extractDoc model.document)
-                                        , attrs = getAttrs (extractDoc model.document)
-                                        , cellContent = Table tm
-                                        }
-                                    )
-                                    model.document
-                        in
-                            ( { model
-                                | document = newDoc
-                                , currentPlugin = Nothing
-                              }
-                            , Cmd.batch
-                                [ scrollTo <| getHtmlId (extractDoc model.document) ]
-                                |> Cmd.map model.externalMsg
-                            )
+                Just (EditorPluginData tm) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , attrs = getAttrs (extractDoc model.document)
+                                    , cellContent = Table tm
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ scrollTo <| getHtmlId (extractDoc model.document) ]
+                        |> Cmd.map model.externalMsg
+                    )
 
         TextBlockPluginMsg textBlockMsg ->
             let
@@ -782,226 +782,226 @@ internalUpdate config msg model =
                         textBlockMsg
                         model.textBlockPlugin
             in
-                case mbEditorPluginResult of
-                    Nothing ->
-                        ( { model | textBlockPlugin = newTextBlockPlugin }
-                        , Cmd.batch
-                            [ textBlockPluginCmds
-                            ]
-                        )
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | textBlockPlugin = newTextBlockPlugin }
+                    , Cmd.batch
+                        [ textBlockPluginCmds
+                        ]
+                    )
 
-                    Just EditorPluginQuit ->
-                        ( { model
-                            | textBlockPlugin = newTextBlockPlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.batch
-                            [ Cmd.map model.externalMsg <|
-                                scrollTo <|
-                                    getHtmlId (extractDoc model.document)
-                            , textBlockPluginCmds
-                            ]
-                        )
+                Just EditorPluginQuit ->
+                    ( { model
+                        | textBlockPlugin = newTextBlockPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        , textBlockPluginCmds
+                        ]
+                    )
 
-                    Just (EditorPluginData ( tbElems, attrs )) ->
-                        let
-                            newDoc =
-                                updateCurrent
-                                    (Cell
-                                        { id = getId (extractDoc model.document)
-                                        , cellContent = TextBlock tbElems
-                                        , attrs = attrs
-                                        }
-                                    )
-                                    model.document
-                        in
-                            ( { model
-                                | document = newDoc
-                                , currentPlugin = Nothing
-                              }
-                            , Cmd.batch
-                                [ Cmd.map model.externalMsg <|
-                                    scrollTo <|
-                                        getHtmlId (extractDoc model.document)
-                                , textBlockPluginCmds
-                                ]
-                            )
+                Just (EditorPluginData ( tbElems, attrs )) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = TextBlock tbElems
+                                    , attrs = attrs
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        , textBlockPluginCmds
+                        ]
+                    )
 
         ImagePluginMsg imgPlugMsg ->
             let
                 ( newImagePlugin, imagePluginCmds, mbEditorPluginResult ) =
                     ImagePlugin.update config imgPlugMsg model.imagePlugin
             in
-                case mbEditorPluginResult of
-                    Nothing ->
-                        ( { model | imagePlugin = newImagePlugin }
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | imagePlugin = newImagePlugin }
+                    , imagePluginCmds
+                    )
+
+                Just EditorPluginQuit ->
+                    ( { model
+                        | imagePlugin = newImagePlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
                         , imagePluginCmds
-                        )
+                        ]
+                    )
 
-                    Just EditorPluginQuit ->
-                        ( { model
-                            | imagePlugin = newImagePlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.batch
-                            [ Cmd.map model.externalMsg <|
-                                scrollTo <|
-                                    getHtmlId (extractDoc model.document)
-                            , imagePluginCmds
-                            ]
-                        )
-
-                    Just (EditorPluginData ( imgMeta, attrs )) ->
-                        let
-                            newDoc =
-                                updateCurrent
-                                    (Cell
-                                        { id = getId (extractDoc model.document)
-                                        , cellContent = Image imgMeta
-                                        , attrs = attrs
-                                        }
-                                    )
-                                    model.document
-                        in
-                            ( { model
-                                | document = newDoc
-                                , currentPlugin = Nothing
-                              }
-                            , Cmd.batch
-                                [ Cmd.map model.externalMsg <|
-                                    scrollTo <|
-                                        getHtmlId (extractDoc model.document)
-                                , imagePluginCmds
-                                ]
-                            )
+                Just (EditorPluginData ( imgMeta, attrs )) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = Image imgMeta
+                                    , attrs = attrs
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        , imagePluginCmds
+                        ]
+                    )
 
         VideoPluginMsg vidPlugMsg ->
             let
                 ( newVideoPlugin, mbEditorPluginResult ) =
                     VideoPlugin.update vidPlugMsg model.videoPlugin
             in
-                case mbEditorPluginResult of
-                    Nothing ->
-                        ( { model | videoPlugin = newVideoPlugin }, Cmd.none )
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | videoPlugin = newVideoPlugin }, Cmd.none )
 
-                    Just EditorPluginQuit ->
-                        ( { model
-                            | videoPlugin = newVideoPlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.map model.externalMsg <|
+                Just EditorPluginQuit ->
+                    ( { model
+                        | videoPlugin = newVideoPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.map model.externalMsg <|
+                        scrollTo <|
+                            getHtmlId (extractDoc model.document)
+                    )
+
+                Just (EditorPluginData ( videoMeta, attrs )) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = Video videoMeta
+                                    , attrs = attrs
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
                             scrollTo <|
                                 getHtmlId (extractDoc model.document)
-                        )
-
-                    Just (EditorPluginData ( videoMeta, attrs )) ->
-                        let
-                            newDoc =
-                                updateCurrent
-                                    (Cell
-                                        { id = getId (extractDoc model.document)
-                                        , cellContent = Video videoMeta
-                                        , attrs = attrs
-                                        }
-                                    )
-                                    model.document
-                        in
-                            ( { model
-                                | document = newDoc
-                                , currentPlugin = Nothing
-                              }
-                            , Cmd.batch
-                                [ Cmd.map model.externalMsg <|
-                                    scrollTo <|
-                                        getHtmlId (extractDoc model.document)
-                                ]
-                            )
+                        ]
+                    )
 
         BlockLinksPluginMsg blockLinksPluginMsg ->
             let
                 ( newBlockLinksPlugin, mbEditorPluginResult ) =
                     BlockLinksPlugin.update blockLinksPluginMsg model.blockLinksPlugin
             in
-                case mbEditorPluginResult of
-                    Nothing ->
-                        ( { model | blockLinksPlugin = newBlockLinksPlugin }, Cmd.none )
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | blockLinksPlugin = newBlockLinksPlugin }, Cmd.none )
 
-                    Just EditorPluginQuit ->
-                        ( { model
-                            | blockLinksPlugin = newBlockLinksPlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.map model.externalMsg <|
+                Just EditorPluginQuit ->
+                    ( { model
+                        | blockLinksPlugin = newBlockLinksPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.map model.externalMsg <|
+                        scrollTo <|
+                            getHtmlId (extractDoc model.document)
+                    )
+
+                Just (EditorPluginData newBlockLinks) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = newBlockLinks
+                                    , attrs = []
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
                             scrollTo <|
                                 getHtmlId (extractDoc model.document)
-                        )
-
-                    Just (EditorPluginData newBlockLinks) ->
-                        let
-                            newDoc =
-                                updateCurrent
-                                    (Cell
-                                        { id = getId (extractDoc model.document)
-                                        , cellContent = newBlockLinks
-                                        , attrs = []
-                                        }
-                                    )
-                                    model.document
-                        in
-                            ( { model
-                                | document = newDoc
-                                , currentPlugin = Nothing
-                              }
-                            , Cmd.batch
-                                [ Cmd.map model.externalMsg <|
-                                    scrollTo <|
-                                        getHtmlId (extractDoc model.document)
-                                ]
-                            )
+                        ]
+                    )
 
         FichesPluginMsg fichesPluginMsg ->
             let
                 ( newFichesPlugin, mbEditorPluginResult ) =
                     FichesPlugin.update config fichesPluginMsg model.fichesPlugin
             in
-                case mbEditorPluginResult of
-                    Nothing ->
-                        ( { model | fichesPlugin = newFichesPlugin }
-                        , Cmd.none
-                        )
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | fichesPlugin = newFichesPlugin }
+                    , Cmd.none
+                    )
 
-                    Just EditorPluginQuit ->
-                        ( { model
-                            | fichesPlugin = newFichesPlugin
-                            , currentPlugin = Nothing
-                          }
-                        , Cmd.map model.externalMsg <|
+                Just EditorPluginQuit ->
+                    ( { model
+                        | fichesPlugin = newFichesPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.map model.externalMsg <|
+                        scrollTo <|
+                            getHtmlId (extractDoc model.document)
+                    )
+
+                Just (EditorPluginData newFichesIds) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = Fiches newFichesIds
+                                    , attrs = []
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
                             scrollTo <|
                                 getHtmlId (extractDoc model.document)
-                        )
-
-                    Just (EditorPluginData newFichesIds) ->
-                        let
-                            newDoc =
-                                updateCurrent
-                                    (Cell
-                                        { id = getId (extractDoc model.document)
-                                        , cellContent = Fiches newFichesIds
-                                        , attrs = []
-                                        }
-                                    )
-                                    model.document
-                        in
-                            ( { model
-                                | document = newDoc
-                                , currentPlugin = Nothing
-                              }
-                            , Cmd.batch
-                                [ Cmd.map model.externalMsg <|
-                                    scrollTo <|
-                                        getHtmlId (extractDoc model.document)
-                                ]
-                            )
+                        ]
+                    )
 
         LoadLocalStorageDocument ->
             case Maybe.map (Decode.decodeValue decodeDocument) model.localStorageValue of
@@ -1010,9 +1010,9 @@ internalUpdate config msg model =
                         ( newModel, cmd ) =
                             reset (Just newDoc) model.externalMsg
                     in
-                        ( { newModel | currentPlugin = Just PersistencePlugin }
-                        , cmd
-                        )
+                    ( { newModel | currentPlugin = Just PersistencePlugin }
+                    , cmd
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1058,13 +1058,13 @@ internalUpdate config msg model =
                                         "error"
                            )
             in
-                ( { model
-                    | jsonBuffer = newBuffer
-                    , localStorageValue =
-                        newLocalStorageValue
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | jsonBuffer = newBuffer
+                , localStorageValue =
+                    newLocalStorageValue
+              }
+            , Cmd.none
+            )
 
         GetFromLocalStorage ->
             ( model
@@ -1138,43 +1138,43 @@ internalUpdate config msg model =
                         moduleName =
                             genericMessage.moduleName
                     in
-                        case Dict.get moduleName funnels of
-                            Just funnel ->
-                                case funnel of
-                                    StorageFunnel storFunnel ->
-                                        case
-                                            PortFunnel.appProcess cmdPort
-                                                genericMessage
-                                                storFunnel
-                                                model.funnelState
-                                                model
-                                        of
-                                            Err _ ->
-                                                ( model, Cmd.none )
+                    case Dict.get moduleName funnels of
+                        Just funnel ->
+                            case funnel of
+                                StorageFunnel storFunnel ->
+                                    case
+                                        PortFunnel.appProcess cmdPort
+                                            genericMessage
+                                            storFunnel
+                                            model.funnelState
+                                            model
+                                    of
+                                        Err _ ->
+                                            ( model, Cmd.none )
 
-                                            Ok ( mdl, cmd ) ->
-                                                let
-                                                    newBuffer =
-                                                        Yajson.fromValue (Maybe.withDefault null mdl.localStorageValue)
-                                                            |> (\res ->
-                                                                    case res of
-                                                                        Ok json ->
-                                                                            pretty json
+                                        Ok ( mdl, cmd ) ->
+                                            let
+                                                newBuffer =
+                                                    Yajson.fromValue (Maybe.withDefault null mdl.localStorageValue)
+                                                        |> (\res ->
+                                                                case res of
+                                                                    Ok json ->
+                                                                        pretty json
 
-                                                                        Err error ->
-                                                                            "error"
-                                                               )
-                                                in
-                                                    ( { mdl
-                                                        | jsonBuffer = newBuffer
-                                                      }
-                                                    , Cmd.batch
-                                                        [ cmd
-                                                        ]
-                                                    )
+                                                                    Err error ->
+                                                                        "error"
+                                                           )
+                                            in
+                                            ( { mdl
+                                                | jsonBuffer = newBuffer
+                                              }
+                                            , Cmd.batch
+                                                [ cmd
+                                                ]
+                                            )
 
-                            _ ->
-                                ( model, Cmd.none )
+                        _ ->
+                            ( model, Cmd.none )
 
         ---------
         -- Misc--
@@ -1186,9 +1186,9 @@ internalUpdate config msg model =
                         ( newModel, cmd ) =
                             reset (Just docContent) model.externalMsg
                     in
-                        ( { newModel | currentPlugin = Nothing }
-                        , cmd
-                        )
+                    ( { newModel | currentPlugin = Nothing }
+                    , cmd
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1226,60 +1226,62 @@ view config model =
                     GeneralDirectoryEditor.fichesData config.genDirEditor
             }
     in
-        column
-            ([ width fill
-             , height (maximum (newConfig.height - 35) fill)
-             ]
-                ++ (if model.menuClicked then
-                        [ onClick (model.externalMsg MenuClickOff) ]
-                    else
-                        []
-                   )
-            )
-            [ mainInterface
-                { clicked = model.menuClicked
-                , currentFocus = model.menuFocused
-                , isInPlugin = model.currentPlugin /= Nothing
-                , clipboardEmpty = model.clipboard == Nothing
-                , undoCacheEmpty = model.undoCache == []
-                , selectionIsRoot = zipUp model.document == Nothing
-                , selectionIsContainer = isContainer (extractDoc model.document)
-                , previewMode = newConfig.previewMode
-                , containersBkgColors = newConfig.containersBkgColors
-                , logInfo = config.logInfo
-                , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
-                , season = newConfig.season
+    column
+        ([ width fill
+         , height (maximum (newConfig.height - 35) fill)
+         ]
+            ++ (if model.menuClicked then
+                    [ onClick (model.externalMsg MenuClickOff) ]
+                else
+                    []
+               )
+        )
+        [ mainInterface
+            { clicked = model.menuClicked
+            , currentFocus = model.menuFocused
+            , isInPlugin = model.currentPlugin /= Nothing
+            , clipboardEmpty = model.clipboard == Nothing
+            , undoCacheEmpty = model.undoCache == []
+            , selectionIsRoot = zipUp model.document == Nothing
+            , selectionIsContainer = isContainer (extractDoc model.document)
+            , previewMode = newConfig.previewMode
+            , containersBkgColors = newConfig.containersBkgColors
+            , logInfo = config.logInfo
+            , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
+            , season = newConfig.season
+            }
+            |> Element.map
+                model.externalMsg
+        , row
+            [ width fill
+
+            --NOTE: trick to make the columns scrollable
+            , clip
+            , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+
+            --NOTE: works too
+            --, height (maximum (newConfig.height - newConfig.mainInterfaceHeight) fill)
+            , height fill
+            ]
+            [ documentStructView
+                { zipToUidCmd = ZipToUid
+                , containersColors = newConfig.containersBkgColors
+                , isActive = model.currentPlugin == Nothing
                 }
+                (extractDoc model.document
+                    |> getUid
+                )
+                (extractDoc <| rewind model.document)
                 |> Element.map
                     model.externalMsg
-            , row
-                [ width fill
-                  --NOTE: trick to make the columns scrollable
-                , clip
-                , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
-                  --NOTE: works too
-                  --, height (maximum (newConfig.height - newConfig.mainInterfaceHeight) fill)
-                , height fill
-                ]
-                [ documentStructView
-                    { zipToUidCmd = ZipToUid
-                    , containersColors = newConfig.containersBkgColors
-                    , isActive = model.currentPlugin == Nothing
-                    }
-                    (extractDoc model.document
-                        |> getUid
-                    )
-                    (extractDoc <| rewind model.document)
-                    |> Element.map
-                        model.externalMsg
-                , case model.currentPlugin of
-                    Nothing ->
-                        documentView { model | config = newConfig }
+            , case model.currentPlugin of
+                Nothing ->
+                    documentView { model | config = newConfig }
 
-                    Just plugin ->
-                        pluginView config { model | config = newConfig } plugin
-                ]
+                Just plugin ->
+                    pluginView config { model | config = newConfig } plugin
             ]
+        ]
 
 
 documentView : Model msg -> Element msg
@@ -1287,7 +1289,8 @@ documentView model =
     column
         [ scrollbarY
         , height fill
-          -- needed to be able to scroll
+
+        -- needed to be able to scroll
         , width fill
         , htmlAttribute <| HtmlAttr.id "documentContainer"
         , case model.config.previewMode of
@@ -1303,7 +1306,8 @@ documentView model =
             PreviewPhone ->
                 width (px 350)
         , centerX
-          --, clipX
+
+        --, clipX
         ]
         (model.document
             |> addZipperHandlers
@@ -1475,12 +1479,12 @@ openNewPlugin config model =
                         Nothing
                         (model.externalMsg << TextBlockPluginMsg)
             in
-                ( { model
-                    | textBlockPlugin = newTextBlockPlugin
-                  }
-                , Cmd.batch
-                    [ textBlockPluginCmds ]
-                )
+            ( { model
+                | textBlockPlugin = newTextBlockPlugin
+              }
+            , Cmd.batch
+                [ textBlockPluginCmds ]
+            )
 
         Just ImagePlugin ->
             let
@@ -1489,11 +1493,11 @@ openNewPlugin config model =
                         Nothing
                         (model.externalMsg << ImagePluginMsg)
             in
-                ( { model
-                    | imagePlugin = newImagePlugin
-                  }
-                , imagePluginCmds
-                )
+            ( { model
+                | imagePlugin = newImagePlugin
+              }
+            , imagePluginCmds
+            )
 
         Just VideoPlugin ->
             let
@@ -1501,11 +1505,11 @@ openNewPlugin config model =
                     VideoPlugin.init Nothing
                         (model.externalMsg << VideoPluginMsg)
             in
-                ( { model
-                    | videoPlugin = newVideoPlugin
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | videoPlugin = newVideoPlugin
+              }
+            , Cmd.none
+            )
 
         Just BlockLinksPlugin ->
             let
@@ -1513,11 +1517,11 @@ openNewPlugin config model =
                     BlockLinksPlugin.init Nothing
                         (model.externalMsg << BlockLinksPluginMsg)
             in
-                ( { model
-                    | blockLinksPlugin = newBlockLinksPlugin
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | blockLinksPlugin = newBlockLinksPlugin
+              }
+            , Cmd.none
+            )
 
         Just FichesPlugin ->
             let
@@ -1534,13 +1538,14 @@ openNewPlugin config model =
                 --            GeneralDirectoryEditor.fichesData config.genDirEditor
                 --    }
             in
-                ( { model
-                    | fichesPlugin =
-                        newFichesPlugin
-                        --, config = newConfig
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | fichesPlugin =
+                    newFichesPlugin
+
+                --, config = newConfig
+              }
+            , Cmd.none
+            )
 
         _ ->
             ( model, Cmd.none )
@@ -1571,13 +1576,13 @@ openPlugin config model =
                                 (Just tbElems)
                                 (model.externalMsg << TextBlockPluginMsg)
                     in
-                        ( { model
-                            | currentPlugin = Just TextBlockPlugin
-                            , textBlockPlugin = newTextBlockPlugin
-                          }
-                        , Cmd.batch
-                            [ textBlockPluginCmds ]
-                        )
+                    ( { model
+                        | currentPlugin = Just TextBlockPlugin
+                        , textBlockPlugin = newTextBlockPlugin
+                      }
+                    , Cmd.batch
+                        [ textBlockPluginCmds ]
+                    )
 
                 EmptyCell ->
                     ( { model
@@ -1593,12 +1598,12 @@ openPlugin config model =
                                 (Just ( imgMeta, attrs ))
                                 (model.externalMsg << ImagePluginMsg)
                     in
-                        ( { model
-                            | currentPlugin = Just ImagePlugin
-                            , imagePlugin = newImagePlugin
-                          }
-                        , imagePluginCmds
-                        )
+                    ( { model
+                        | currentPlugin = Just ImagePlugin
+                        , imagePlugin = newImagePlugin
+                      }
+                    , imagePluginCmds
+                    )
 
                 Video videoMeta ->
                     let
@@ -1607,12 +1612,12 @@ openPlugin config model =
                                 (Just ( videoMeta, attrs ))
                                 (model.externalMsg << VideoPluginMsg)
                     in
-                        ( { model
-                            | currentPlugin = Just VideoPlugin
-                            , videoPlugin = newVideoPlugin
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | currentPlugin = Just VideoPlugin
+                        , videoPlugin = newVideoPlugin
+                      }
+                    , Cmd.none
+                    )
 
                 BlockLinks blocks ->
                     let
@@ -1621,12 +1626,12 @@ openPlugin config model =
                                 (Just blocks)
                                 (model.externalMsg << BlockLinksPluginMsg)
                     in
-                        ( { model
-                            | currentPlugin = Just BlockLinksPlugin
-                            , blockLinksPlugin = newBlockLinksPlugin
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | currentPlugin = Just BlockLinksPlugin
+                        , blockLinksPlugin = newBlockLinksPlugin
+                      }
+                    , Cmd.none
+                    )
 
                 Fiches fichesId ->
                     let
@@ -1643,14 +1648,15 @@ openPlugin config model =
                         --            GeneralDirectoryEditor.fichesData config.genDirEditor
                         --    }
                     in
-                        ( { model
-                            | currentPlugin = Just FichesPlugin
-                            , fichesPlugin =
-                                newFichesPlugin
-                                --, config = newConfig
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | currentPlugin = Just FichesPlugin
+                        , fichesPlugin =
+                            newFichesPlugin
+
+                        --, config = newConfig
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1732,94 +1738,88 @@ mainInterface config =
                         ]
                    )
     in
-        column
+    column
+        [ width fill
+        , Font.size 15
+        , htmlAttribute <| HtmlAttr.id "mainInterface"
+        ]
+        [ mainMenu config
+        , row
             [ width fill
-            , Font.size 15
-            , htmlAttribute <| HtmlAttr.id "mainInterface"
+            , spacing 15
+            , paddingXY 15 10
+            , Background.color (rgb 0.9 0.9 0.9)
             ]
-            [ mainMenu config
-            , row
-                [ width fill
-                , spacing 15
-                , paddingXY 15 10
-                , Background.color (rgb 0.9 0.9 0.9)
+            (List.map interfaceButton <|
+                [ { defButtonConfig
+                    | icons = [ plusSquare iconSize ]
+                    , labelText = "Ajouter"
+                    , msg = Just AddNewInside
+                    , isActive =
+                        not config.isInPlugin
+                            && config.selectionIsContainer
+                  }
+                , { defButtonConfig
+                    | icons =
+                        [ plusSquare iconSize
+                        , chevronsUp iconSize
+                        ]
+                    , labelText = "Ajouter au dessus"
+                    , msg = Just AddNewLeft
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons =
+                        [ plusSquare iconSize
+                        , chevronsDown iconSize
+                        ]
+                    , labelText = "Ajouter en dessous"
+                    , msg = Just AddNewRight
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ edit iconSize ]
+                    , labelText = "Modifier"
+                    , msg =
+                        if config.selectionIsContainer then
+                            Just EditContainer
+                        else
+                            Just EditCell
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ xSquare iconSize ]
+                    , labelText = "Supprimer"
+                    , msg = Just DeleteSelected
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ chevronsUp iconSize ]
+                    , labelText = "Monter"
+                    , msg = Just SwapLeft
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
+                , { defButtonConfig
+                    | icons = [ chevronsDown iconSize ]
+                    , labelText = "Descendre"
+                    , msg = Just SwapRight
+                    , isActive =
+                        not config.isInPlugin
+                            && not config.selectionIsRoot
+                  }
                 ]
-                (List.map interfaceButton <|
-                    [ { defButtonConfig
-                        | icons = [ plusSquare iconSize ]
-                        , labelText = "Ajouter"
-                        , msg = Just AddNewInside
-                        , isActive =
-                            not config.isInPlugin
-                                && config.selectionIsContainer
-                      }
-                    , { defButtonConfig
-                        | icons =
-                            [ plusSquare iconSize
-                            , chevronsUp iconSize
-                            ]
-                        , labelText = "Ajouter au dessus"
-                        , msg = Just AddNewLeft
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons =
-                            [ plusSquare iconSize
-                            , chevronsDown iconSize
-                            ]
-                        , labelText = "Ajouter en dessous"
-                        , msg = Just AddNewRight
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ edit iconSize ]
-                        , labelText = "Modifier"
-                        , msg =
-                            if config.selectionIsContainer then
-                                Just EditContainer
-                            else
-                                Just EditCell
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ xSquare iconSize ]
-                        , labelText = "Supprimer"
-                        , msg = Just DeleteSelected
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ chevronsUp iconSize ]
-                        , labelText = "Monter"
-                        , msg = Just SwapLeft
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ chevronsDown iconSize ]
-                        , labelText = "Descendre"
-                        , msg = Just SwapRight
-                        , isActive =
-                            not config.isInPlugin
-                                && not config.selectionIsRoot
-                      }
-                    , { defButtonConfig
-                        | icons = [ settings iconSize ]
-                        , labelText = "Préférences"
-                        , msg = Nothing
-                        , isActive = False
-                      }
-                    ]
-                )
-            ]
+            )
+        ]
 
 
 mainMenu : MenuConfig -> Element Msg
@@ -2057,9 +2057,9 @@ mainMenu config =
               )
             ]
     in
-        row
-            [ width fill ]
-            (List.map topEntry menuData)
+    row
+        [ width fill ]
+        (List.map topEntry menuData)
 
 
 

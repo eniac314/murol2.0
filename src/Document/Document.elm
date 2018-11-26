@@ -4,13 +4,14 @@ import Array exposing (Array)
 import Dict exposing (Dict)
 import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
+import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import Html.Attributes as Attr
 import Html.Events exposing (on)
 import Json.Decode as Decode
-import Set exposing (..)
-import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import List.Extra exposing (unique)
-import Time exposing (Posix)
+import Set exposing (..)
+import Time exposing (Posix, millisToPosix)
+import UUID exposing (UUID, nil)
 
 
 ----------------------------
@@ -51,6 +52,7 @@ type CellContent
     | CustomElement String
     | BlockLinks (List BlockLinkMeta)
     | Fiches (List String)
+    | NewsBlock (List News)
     | TextBlock (List TextBlockElement)
     | EmptyCell
 
@@ -104,8 +106,31 @@ type alias BlockLinkMeta =
     }
 
 
+type alias News =
+    { title : String
+    , date : Posix
+    , content : List TextBlockElement
+    , pic : Maybe Pic
+    , uuid : UUID
+    , expiry : Posix
+    }
 
---type alias FicheMeta =
+
+type alias Pic =
+    { url : String
+    , width : Int
+    , height : Int
+    }
+
+
+emptyNews =
+    { title = ""
+    , date = millisToPosix 0
+    , content = []
+    , pic = Nothing
+    , uuid = UUID.nil
+    , expiry = millisToPosix 0
+    }
 
 
 type TextBlockElement
@@ -393,12 +418,12 @@ addClass class document =
                     Set.insert class id.classes
             }
     in
-        case document of
-            Container nv children ->
-                Container { nv | id = newId nv.id } children
+    case document of
+        Container nv children ->
+            Container { nv | id = newId nv.id } children
 
-            Cell lv ->
-                Cell { lv | id = newId lv.id }
+        Cell lv ->
+            Cell { lv | id = newId lv.id }
 
 
 toogleClass : String -> Document -> Document
@@ -413,12 +438,12 @@ toogleClass class document =
                         Set.insert class id.classes
             }
     in
-        case document of
-            Container nv children ->
-                Container { nv | id = newId nv.id } children
+    case document of
+        Container nv children ->
+            Container { nv | id = newId nv.id } children
 
-            Cell lv ->
-                Cell { lv | id = newId lv.id }
+        Cell lv ->
+            Cell { lv | id = newId lv.id }
 
 
 getAttrs doc =
@@ -465,5 +490,5 @@ gatherFichesIds document =
                 Container _ children ->
                     List.concatMap helper children
     in
-        helper document
-            |> List.Extra.unique
+    helper document
+        |> List.Extra.unique
