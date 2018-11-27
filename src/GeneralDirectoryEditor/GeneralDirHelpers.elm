@@ -1,15 +1,13 @@
 module GeneralDirectoryEditor.GeneralDirHelpers exposing (..)
 
-import Derberos.Date.Core exposing (addTimezoneMilliseconds, civilToPosix, newDateRecord, posixToCivil)
-import Derberos.Date.Utils exposing (numberOfDaysInMonth, numberToMonth)
-import GeneralDirectoryEditor.GeneralDirCommonTypes as Types exposing (..)
-import Time exposing (..)
-import Dict exposing (..)
-import List.Extra exposing (uniqueBy, setIf)
-import Task exposing (..)
 import Auth.AuthPlugin exposing (LogInfo(..))
+import Dict exposing (..)
+import GeneralDirectoryEditor.GeneralDirCommonTypes as Types exposing (..)
 import GeneralDirectoryEditor.GeneralDirJson exposing (updateFicheTask)
-import Set exposing (insert, empty)
+import List.Extra exposing (setIf, uniqueBy)
+import Set exposing (empty, insert)
+import Task exposing (..)
+import Time exposing (..)
 
 
 computeCats fiches =
@@ -75,50 +73,6 @@ getTPortable tel =
             Just n2
 
 
-parseDate : String -> Maybe ( Int, Int, Int )
-parseDate s =
-    case
-        String.split "/" s
-            |> List.filterMap String.toInt
-    of
-        day :: month :: year :: [] ->
-            if (year > 2000) && (year <= 2200) then
-                case numberToMonth (month - 1) of
-                    Just validMonth ->
-                        if
-                            (day >= 1)
-                                && (day <= numberOfDaysInMonth year validMonth)
-                        then
-                            Just ( day, month, year )
-                        else
-                            Nothing
-
-                    _ ->
-                        Nothing
-            else
-                Nothing
-
-        _ ->
-            Nothing
-
-
-dateToStr : Time.Zone -> Time.Posix -> String
-dateToStr zone d =
-    let
-        dateRec =
-            posixToCivil (addTimezoneMilliseconds zone d)
-    in
-        (String.fromInt dateRec.day
-            |> String.padLeft 2 '0'
-        )
-            ++ "/"
-            ++ (String.fromInt dateRec.month
-                    |> String.padLeft 2 '0'
-               )
-            ++ "/"
-            ++ String.fromInt dateRec.year
-
-
 validLinkedDoc { url, label } =
     url /= "" && label /= ""
 
@@ -171,9 +125,9 @@ batchFichesUpdate logInfo fichesToUpdate =
                                             datedFb =
                                                 { f | lastEdit = t }
                                         in
-                                            updateFicheTask
-                                                datedFb
-                                                sessionId
+                                        updateFicheTask
+                                            datedFb
+                                            sessionId
                                     )
                             )
                     )
@@ -194,9 +148,9 @@ filterAndUpdate model getter setter original new =
                     newFiche =
                         setter f newVal
                 in
-                    ( Dict.insert k newFiche newDict
-                    , newFiche :: toUpdate
-                    )
+                ( Dict.insert k newFiche newDict
+                , newFiche :: toUpdate
+                )
             else
                 ( Dict.insert k f newDict, toUpdate )
         )

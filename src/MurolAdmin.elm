@@ -56,6 +56,8 @@ subscriptions model =
         [ FileExplorer.subscriptions model.fileExplorer
         , PageEditor.subscriptions model.pageEditor
         , onResize WinResize
+
+        --, Time.every 120000 (always CheckSessionStatus)
         ]
 
 
@@ -110,6 +112,7 @@ type LoadingStatus
 type Msg
     = AuthMsg Auth.Msg
     | Launch
+      --| CheckSessionStatus
     | FileExplorerMsg FileExplorer.Msg
     | PageEditorMsg PageEditor.Msg
     | PageTreeEditorMsg PageTreeEditor.Msg
@@ -142,6 +145,14 @@ update msg model =
             , Cmd.none
             )
 
+        --CheckSessionStatus ->
+        --    case Auth.getLogInfo model.authTool of
+        --        LoggedIn sessionId ->
+        --            ( model
+        --            , checkSessionStatus sessionId
+        --            )
+        --        _ ->
+        --            ( model, Cmd.none )
         FileExplorerMsg fileExplorerMsg ->
             let
                 ( newFileExplorer, fileExplorerCmds, mbEditorPluginResult ) =
@@ -248,6 +259,7 @@ update msg model =
                     NewsEditor.update
                         { logInfo = Auth.getLogInfo model.authTool
                         , zone = model.zone
+                        , pageTreeEditor = model.pageTreeEditor
                         }
                         newsEditorMsg
                         model.newsEditor
@@ -431,6 +443,7 @@ view model =
                                         model.winHeight - 35
                                     , zone = model.zone
                                     , fileExplorer = model.fileExplorer
+                                    , pageTreeEditor = model.pageTreeEditor
                                     , logInfo = Auth.getLogInfo model.authTool
                                     }
                                     model.newsEditor

@@ -1,5 +1,7 @@
 module Internals.CommonHelpers exposing (..)
 
+import Derberos.Date.Core exposing (addTimezoneMilliseconds, civilToPosix, newDateRecord, posixToCivil)
+import Derberos.Date.Utils exposing (monthToNumber1, numberOfDaysInMonth, numberToMonth)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -8,12 +10,11 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy as Lazy
 import Element.Region as Region
-import Http exposing (Error(..))
-import Internals.CommonStyleHelpers exposing (..)
-import Task exposing (perform)
-import Time exposing (Posix, now)
 import Http exposing (..)
+import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as D
+import Task exposing (perform)
+import Time exposing (Posix, Zone, now)
 
 
 type Status
@@ -31,6 +32,11 @@ type alias Log =
     }
 
 
+type PickerResult
+    = PickedImage { url : String, width : Int, height : Int }
+    | PickedDoc String
+
+
 chunks : Int -> List a -> List (List a)
 chunks n xs =
     let
@@ -42,7 +48,7 @@ chunks n xs =
                 _ ->
                     helper (List.take n ys :: acc) (List.drop n ys)
     in
-        helper [] xs
+    helper [] xs
 
 
 break : (a -> Bool) -> List a -> ( List a, List a )
@@ -59,7 +65,7 @@ break p xs =
                     else
                         helper ys_ (y :: left)
     in
-        helper xs []
+    helper xs []
 
 
 newLog : (Log -> msg) -> String -> Maybe String -> Bool -> Cmd msg
@@ -121,8 +127,8 @@ logsView logs zone =
                             [ text details ]
                 ]
     in
-        column [ spacing 15 ]
-            (List.map logView logs)
+    column [ spacing 15 ]
+        (List.map logView logs)
 
 
 httpErrorToString : Http.Error -> String
@@ -168,3 +174,62 @@ jsonResolver decoder =
 
                         Err err ->
                             Err (Http.BadBody (D.errorToString err))
+
+
+parseDate : Posix -> Zone -> String -> Maybe ( Int, Int, Int )
+parseDate currentTime zone s =
+    let
+        currentDay =
+            Time.toDay zone currentTime
+
+        currentMonth =
+            Time.toMonth zone currentTime
+
+        currentYear =
+            Time.toYear zone currentTime
+    in
+    case
+        String.split "/" s
+            |> List.filterMap String.toInt
+    of
+        day :: month :: year :: [] ->
+            if (year >= currentYear) && (year <= 2200) then
+                case numberToMonth (month - 1) of
+                    Just validMonth ->
+                        if
+                            (month >= monthToNumber1 currentMonth)
+                                && (if month == monthToNumber1 currentMonth then
+                                        day >= currentDay
+                                    else
+                                        True
+                                   )
+                                && (day <= numberOfDaysInMonth year validMonth)
+                        then
+                            Just ( day, month, year )
+                        else
+                            Nothing
+
+                    _ ->
+                        Nothing
+            else
+                Nothing
+
+        _ ->
+            Nothing
+
+
+dateToStr : Time.Zone -> Time.Posix -> String
+dateToStr zone d =
+    let
+        dateRec =
+            posixToCivil (addTimezoneMilliseconds zone d)
+    in
+    (String.fromInt dateRec.day
+        |> String.padLeft 2 '0'
+    )
+        ++ "/"
+        ++ (String.fromInt dateRec.month
+                |> String.padLeft 2 '0'
+           )
+        ++ "/"
+        ++ String.fromInt dateRec.year

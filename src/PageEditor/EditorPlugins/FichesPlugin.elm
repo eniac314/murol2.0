@@ -8,18 +8,18 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
-import Element.Keyed as Keyed
+import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche, Label)
+import GeneralDirectoryEditor.GeneralDirHelpers exposing (..)
+import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (Model, fichesData)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons as Icons exposing (checkSquare, square)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import Set exposing (..)
-import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche, Label)
-import GeneralDirectoryEditor.GeneralDirHelpers exposing (..)
-import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (fichesData, Model)
 
 
 type alias Model msg =
@@ -120,19 +120,19 @@ update config msg model =
                 All ->
                     let
                         fichesToAdd =
-                            (filteredFiches config model)
+                            filteredFiches config model
                                 |> List.map Tuple.first
                                 |> Set.fromList
                     in
-                        ( { model
-                            | selectedFiches =
-                                Set.union
-                                    model.selectedFiches
-                                    fichesToAdd
-                            , groupSel = Just sel
-                          }
-                        , Nothing
-                        )
+                    ( { model
+                        | selectedFiches =
+                            Set.union
+                                model.selectedFiches
+                                fichesToAdd
+                        , groupSel = Just sel
+                      }
+                    , Nothing
+                    )
 
                 None ->
                     ( { model
@@ -255,35 +255,35 @@ catSelector { genDirEditor } model =
         categories =
             computeCats (fichesData genDirEditor)
     in
-        column
-            ([ spacing 15
-             , alignTop
-             ]
-                ++ formItemStyle
-            )
-            [ el
-                [ Font.bold
-                , Font.color grey1
-                ]
-                (text "Catégories disponibles")
-            , column
-                [ Border.width 2
-                , Border.color grey3
-                , width (px 150)
-                , height (px 200)
-                , scrollbars
-                ]
-                (Set.toList categories
-                    |> List.map
-                        (\e ->
-                            selectView
-                                False
-                                model.catFilter
-                                (FilterByCat e)
-                                e
-                        )
-                )
+    column
+        ([ spacing 15
+         , alignTop
+         ]
+            ++ formItemStyle
+        )
+        [ el
+            [ Font.bold
+            , Font.color grey1
             ]
+            (text "Catégories disponibles")
+        , column
+            [ Border.width 2
+            , Border.color grey3
+            , width (px 150)
+            , height (px 200)
+            , scrollbars
+            ]
+            (Set.toList categories
+                |> List.map
+                    (\e ->
+                        selectView
+                            False
+                            model.catFilter
+                            (FilterByCat e)
+                            e
+                    )
+            )
+        ]
 
 
 activSelector : ViewConfig config msg -> Model msg -> Element Msg
@@ -292,34 +292,34 @@ activSelector { genDirEditor } model =
         activites =
             computeActivs (fichesData genDirEditor)
     in
-        column
-            ([ spacing 15
-             , alignTop
-             ]
-                ++ formItemStyle
-            )
-            [ el
-                [ Font.bold
-                , Font.color grey1
-                ]
-                (text "Activités disponibles")
-            , column
-                [ Border.width 2
-                , Border.color grey3
-                , width (px 350)
-                , height (px 200)
-                , scrollbars
-                ]
-                (Set.toList activites
-                    |> List.map
-                        (\e ->
-                            selectView False
-                                model.activFilter
-                                (FilterByActiv e)
-                                e
-                        )
-                )
+    column
+        ([ spacing 15
+         , alignTop
+         ]
+            ++ formItemStyle
+        )
+        [ el
+            [ Font.bold
+            , Font.color grey1
             ]
+            (text "Activités disponibles")
+        , column
+            [ Border.width 2
+            , Border.color grey3
+            , width (px 350)
+            , height (px 200)
+            , scrollbars
+            ]
+            (Set.toList activites
+                |> List.map
+                    (\e ->
+                        selectView False
+                            model.activFilter
+                            (FilterByActiv e)
+                            e
+                    )
+            )
+        ]
 
 
 labelSelector : ViewConfig config msg -> Model msg -> Element Msg
@@ -328,35 +328,35 @@ labelSelector { genDirEditor } model =
         labels =
             computeLabels (fichesData genDirEditor)
     in
-        column
-            ([ spacing 15
-             , alignTop
-             ]
-                ++ formItemStyle
-            )
-            [ el
-                [ Font.bold
-                , Font.color grey1
-                ]
-                (text "Labels disponibles")
-            , column
-                [ Border.width 2
-                , Border.color grey3
-                , width (px 150)
-                , height (px 200)
-                , scrollbars
-                ]
-                (List.map .nom labels
-                    |> List.map
-                        (\e ->
-                            selectView
-                                False
-                                model.labelFilter
-                                (FilterByLabel e)
-                                e
-                        )
-                )
+    column
+        ([ spacing 15
+         , alignTop
+         ]
+            ++ formItemStyle
+        )
+        [ el
+            [ Font.bold
+            , Font.color grey1
             ]
+            (text "Labels disponibles")
+        , column
+            [ Border.width 2
+            , Border.color grey3
+            , width (px 150)
+            , height (px 200)
+            , scrollbars
+            ]
+            (List.map .nom labels
+                |> List.map
+                    (\e ->
+                        selectView
+                            False
+                            model.labelFilter
+                            (FilterByLabel e)
+                            e
+                    )
+            )
+        ]
 
 
 ficheSelector : ViewConfig config msg -> Model msg -> Element Msg
@@ -365,56 +365,53 @@ ficheSelector config model =
         isChecked fId =
             Set.member fId model.selectedFiches
     in
-        column
-            containerStyle
-            [ column
-                (formItemStyle
-                    ++ [ spacing 15, width fill ]
-                )
-                [ el [ Font.bold ]
-                    (text "Nom fiche entité")
-                , column
-                    ([ Border.width 2
-                     , Border.color grey3
-                     , width fill
-                     , height (px 480)
-                     , scrollbars
-                     ]
-                    )
-                    ((filteredFiches config model
-                        |> List.map (\( k, v ) -> ( k, v.nomEntite ))
-                        |> List.map
-                            (\( k, n ) ->
-                                checkView (isChecked k) k n
-                             --selectView False model.selectedFiche (SelectFiche k) n
-                            )
-                     )
-                    )
+    column
+        containerStyle
+        [ column
+            (formItemStyle
+                ++ [ spacing 15, width fill ]
+            )
+            [ el [ Font.bold ]
+                (text "Nom fiche entité")
+            , column
+                [ Border.width 2
+                , Border.color grey3
+                , width fill
+                , height (px 480)
+                , scrollbars
                 ]
-            , row
-                ([ spacing 15
-                 , width fill
-                 ]
-                    ++ formItemStyle
+                (filteredFiches config model
+                    |> List.map (\( k, v ) -> ( k, v.nomEntite ))
+                    |> List.map
+                        (\( k, n ) ->
+                            checkView (isChecked k) k n
+                        )
                 )
-                [ el
-                    [ Font.bold
-                    , Font.color grey1
-                    ]
-                    (text "Sélection groupée")
-                , Input.radioRow
-                    [ spacing 15 ]
-                    { onChange = GroupSel
-                    , options =
-                        [ Input.option All (text "Tout")
-                        , Input.option None (text "Rien")
-                        ]
-                    , selected =
-                        model.groupSel
-                    , label = Input.labelHidden ""
-                    }
-                ]
             ]
+        , row
+            ([ spacing 15
+             , width fill
+             ]
+                ++ formItemStyle
+            )
+            [ el
+                [ Font.bold
+                , Font.color grey1
+                ]
+                (text "Sélection groupée")
+            , Input.radioRow
+                [ spacing 15 ]
+                { onChange = GroupSel
+                , options =
+                    [ Input.option All (text "Tout")
+                    , Input.option None (text "Rien")
+                    ]
+                , selected =
+                    model.groupSel
+                , label = Input.labelHidden ""
+                }
+            ]
+        ]
 
 
 
@@ -469,12 +466,12 @@ filteredFiches { genDirEditor } model =
                 Nothing ->
                     always True
     in
-        Dict.toList (fichesData genDirEditor)
-            |> List.filter nameFilterFun
-            |> List.filter catFilterFun
-            |> List.filter activFilterFun
-            |> List.filter labelFilterFun
-            |> List.sortBy (\( k, f ) -> String.toLower f.nomEntite)
+    Dict.toList (fichesData genDirEditor)
+        |> List.filter nameFilterFun
+        |> List.filter catFilterFun
+        |> List.filter activFilterFun
+        |> List.filter labelFilterFun
+        |> List.sortBy (\( k, f ) -> String.toLower f.nomEntite)
 
 
 

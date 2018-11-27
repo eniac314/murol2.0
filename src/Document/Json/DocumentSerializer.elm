@@ -125,7 +125,7 @@ encodeNews { title, date, content, pic, uuid, expiry } =
                 |> Maybe.withDefault null
           )
         , ( "uuid", string (UUID.canonical uuid) )
-        , ( "expiry", int <| posixToMillis date )
+        , ( "expiry", int <| posixToMillis expiry )
         ]
 
 

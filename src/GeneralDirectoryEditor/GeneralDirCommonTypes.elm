@@ -2,6 +2,7 @@ module GeneralDirectoryEditor.GeneralDirCommonTypes exposing (..)
 
 import Dict exposing (..)
 import Http exposing (..)
+import Internals.CommonHelpers exposing (PickerResult)
 import Internals.ToolHelpers exposing (..)
 import Random exposing (..)
 import Set exposing (..)
@@ -28,7 +29,8 @@ type alias Model msg =
     , currentTime : Posix
     , seed :
         Maybe Random.Seed
-        --- MainForm variables
+
+    --- MainForm variables
     , visualPickerOpen : Bool
     , docPickerOpen : Bool
     , labelVisualPickerOpen : Bool
@@ -214,9 +216,10 @@ emptyFiche =
     }
 
 
-type PickerResult
-    = PickedImage { url : String, width : Int, height : Int }
-    | PickedDoc String
+
+--type PickerResult
+--    = PickedImage { url : String, width : Int, height : Int }
+--    | PickedDoc String
 
 
 type alias Label =

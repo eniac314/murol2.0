@@ -64,7 +64,8 @@ init externalMsg =
       , currentTime = Time.millisToPosix 0
       , seed =
             Nothing
-            --- MainForm variables
+
+      --- MainForm variables
       , visualPickerOpen = False
       , docPickerOpen = False
       , labelVisualPickerOpen = False
@@ -132,7 +133,7 @@ update config msg model =
         ( newModel, cmds ) =
             internalUpdate config msg model
     in
-        ( newModel, Cmd.map model.externalMsg cmds )
+    ( newModel, Cmd.map model.externalMsg cmds )
 
 
 internalUpdate :
@@ -213,15 +214,15 @@ internalUpdate config msg model =
                         labels =
                             computeLabels fiches
                     in
-                        ( { model
-                            | fiches = fiches
-                            , categories = categories
-                            , activites = activites
-                            , labels = labels
-                            , loadingStatus = ToolLoadingSuccess
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | fiches = fiches
+                        , categories = categories
+                        , activites = activites
+                        , labels = labels
+                        , loadingStatus = ToolLoadingSuccess
+                      }
+                    , Cmd.none
+                    )
 
                 Err e ->
                     ( { model
@@ -313,17 +314,17 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | categories = setIf (\c -> c == avCat) newCat fb.categories }
                         in
-                            ( { model
-                                | fiches = newFiches
-                                , ficheBuffer = newFb
-                                , categories = computeCats newFiches
-                                , lockedFiches = model.lockedFiches ++ fichesToUpdate
-                                , selectedCatInFiche = Nothing
-                                , catBuffer = Nothing
-                                , selectedAvailableCat = Nothing
-                              }
-                            , batchFichesUpdate config.logInfo fichesToUpdate
-                            )
+                        ( { model
+                            | fiches = newFiches
+                            , ficheBuffer = newFb
+                            , categories = computeCats newFiches
+                            , lockedFiches = model.lockedFiches ++ fichesToUpdate
+                            , selectedCatInFiche = Nothing
+                            , catBuffer = Nothing
+                            , selectedAvailableCat = Nothing
+                          }
+                        , batchFichesUpdate config.logInfo fichesToUpdate
+                        )
 
                 _ ->
                     ( model, Cmd.none )
@@ -342,13 +343,13 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | categories = newCatsFiche }
                         in
-                            ( { model
-                                | ficheBuffer = newFb
-                                , selectedAvailableCat = Nothing
-                                , catBuffer = Nothing
-                              }
-                            , Cmd.none
-                            )
+                        ( { model
+                            | ficheBuffer = newFb
+                            , selectedAvailableCat = Nothing
+                            , catBuffer = Nothing
+                          }
+                        , Cmd.none
+                        )
                     else
                         ( model, Cmd.none )
 
@@ -366,13 +367,13 @@ internalUpdate config msg model =
                         newFb =
                             { fb | categories = newCatsFiche }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , catBuffer = Nothing
-                            , categories = newCats
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , catBuffer = Nothing
+                        , categories = newCats
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -391,14 +392,14 @@ internalUpdate config msg model =
                 newFb =
                     { fb | categories = newCats }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedCatInFiche = Nothing
-                    , catBuffer = Nothing
-                    , selectedAvailableCat = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedCatInFiche = Nothing
+                , catBuffer = Nothing
+                , selectedAvailableCat = Nothing
+              }
+            , Cmd.none
+            )
 
         --
         SelectActivInFiche s ->
@@ -450,17 +451,17 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | natureActiv = setIf (\c -> c == avActiv) newActiv fb.natureActiv }
                         in
-                            ( { model
-                                | fiches = newFiches
-                                , ficheBuffer = newFb
-                                , activites = computeActivs newFiches
-                                , lockedFiches = model.lockedFiches ++ fichesToUpdate
-                                , selectedActivInFiche = Nothing
-                                , activBuffer = Nothing
-                                , selectedAvailableActiv = Nothing
-                              }
-                            , batchFichesUpdate config.logInfo fichesToUpdate
-                            )
+                        ( { model
+                            | fiches = newFiches
+                            , ficheBuffer = newFb
+                            , activites = computeActivs newFiches
+                            , lockedFiches = model.lockedFiches ++ fichesToUpdate
+                            , selectedActivInFiche = Nothing
+                            , activBuffer = Nothing
+                            , selectedAvailableActiv = Nothing
+                          }
+                        , batchFichesUpdate config.logInfo fichesToUpdate
+                        )
 
                 _ ->
                     ( model, Cmd.none )
@@ -479,13 +480,13 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | natureActiv = newActivFiche }
                         in
-                            ( { model
-                                | ficheBuffer = newFb
-                                , selectedAvailableActiv = Nothing
-                                , activBuffer = Nothing
-                              }
-                            , Cmd.none
-                            )
+                        ( { model
+                            | ficheBuffer = newFb
+                            , selectedAvailableActiv = Nothing
+                            , activBuffer = Nothing
+                          }
+                        , Cmd.none
+                        )
                     else
                         ( model, Cmd.none )
 
@@ -503,13 +504,13 @@ internalUpdate config msg model =
                         newFb =
                             { fb | natureActiv = newActivFiche }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , activBuffer = Nothing
-                            , activites = newActivs
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , activBuffer = Nothing
+                        , activites = newActivs
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -528,14 +529,14 @@ internalUpdate config msg model =
                 newFb =
                     { fb | natureActiv = newActivs }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedActivInFiche = Nothing
-                    , activBuffer = Nothing
-                    , selectedAvailableActiv = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedActivInFiche = Nothing
+                , activBuffer = Nothing
+                , selectedAvailableActiv = Nothing
+              }
+            , Cmd.none
+            )
 
         --
         SelectLabelInFiche s ->
@@ -578,9 +579,9 @@ internalUpdate config msg model =
                 newLabel =
                     { baseLabel | nom = s }
             in
-                ( { model | labelBuffer = Just newLabel }
-                , Cmd.none
-                )
+            ( { model | labelBuffer = Just newLabel }
+            , Cmd.none
+            )
 
         SetLabelLink s ->
             let
@@ -591,9 +592,9 @@ internalUpdate config msg model =
                 newLabel =
                     { baseLabel | lien = s }
             in
-                ( { model | labelBuffer = Just newLabel }
-                , Cmd.none
-                )
+            ( { model | labelBuffer = Just newLabel }
+            , Cmd.none
+            )
 
         SetLabelVisual pr ->
             case pr of
@@ -612,12 +613,12 @@ internalUpdate config msg model =
                                     }
                             }
                     in
-                        ( { model
-                            | labelBuffer = Just newLabel
-                            , labelVisualPickerOpen = False
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | labelBuffer = Just newLabel
+                        , labelVisualPickerOpen = False
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -647,13 +648,13 @@ internalUpdate config msg model =
                                 | label = newFicheLabels
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , labelBuffer = Nothing
-                            , labels = newLabels
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , labelBuffer = Nothing
+                        , labels = newLabels
+                      }
+                    , Cmd.none
+                    )
 
                 ( Nothing, Just _ ) ->
                     case ( model.labelBuffer, Maybe.map validLabel model.labelBuffer ) of
@@ -665,13 +666,13 @@ internalUpdate config msg model =
                                 newFb =
                                     { fb | label = fb.label ++ [ newLabel ] }
                             in
-                                ( { model
-                                    | labels = model.labels ++ [ newLabel ]
-                                    , labelBuffer = Nothing
-                                    , ficheBuffer = newFb
-                                  }
-                                , Cmd.none
-                                )
+                            ( { model
+                                | labels = model.labels ++ [ newLabel ]
+                                , labelBuffer = Nothing
+                                , ficheBuffer = newFb
+                              }
+                            , Cmd.none
+                            )
 
                         _ ->
                             ( model, Cmd.none )
@@ -696,14 +697,14 @@ internalUpdate config msg model =
                 newFb =
                     { fb | label = newLabels }
             in
-                ( { model
-                    | ficheBuffer = newFb
-                    , selectedLabelInFiche = Nothing
-                    , labelBuffer = Nothing
-                    , selectedAvailableLabel = Nothing
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | ficheBuffer = newFb
+                , selectedLabelInFiche = Nothing
+                , labelBuffer = Nothing
+                , selectedAvailableLabel = Nothing
+              }
+            , Cmd.none
+            )
 
         ModifyLabel ->
             --( model, Cmd.none )
@@ -726,17 +727,17 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | label = setIf (\l -> l == avLabel) newLabel fb.label }
                         in
-                            ( { model
-                                | fiches = newFiches
-                                , ficheBuffer = newFb
-                                , labels = computeLabels newFiches
-                                , lockedFiches = model.lockedFiches ++ fichesToUpdate
-                                , selectedLabelInFiche = Nothing
-                                , labelBuffer = Nothing
-                                , selectedAvailableLabel = Nothing
-                              }
-                            , batchFichesUpdate config.logInfo fichesToUpdate
-                            )
+                        ( { model
+                            | fiches = newFiches
+                            , ficheBuffer = newFb
+                            , labels = computeLabels newFiches
+                            , lockedFiches = model.lockedFiches ++ fichesToUpdate
+                            , selectedLabelInFiche = Nothing
+                            , labelBuffer = Nothing
+                            , selectedAvailableLabel = Nothing
+                          }
+                        , batchFichesUpdate config.logInfo fichesToUpdate
+                        )
 
                 _ ->
                     ( model, Cmd.none )
@@ -761,9 +762,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | refOt = newRefOt }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetRefOtLink s ->
             let
@@ -781,9 +782,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | refOt = newRefOt }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SetStars s ->
@@ -800,9 +801,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | rank = newRank }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetEpis s ->
             let
@@ -818,9 +819,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | rank = newRank }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SetNomEntite s ->
@@ -831,9 +832,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | nomEntite = s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SelectRespInFiche r ->
@@ -861,9 +862,9 @@ internalUpdate config msg model =
                 newResp =
                     { baseResp | poste = s }
             in
-                ( { model | respBuffer = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
         SetRespNom s ->
             let
@@ -874,9 +875,9 @@ internalUpdate config msg model =
                 newResp =
                     { baseResp | nom = s }
             in
-                ( { model | respBuffer = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
         SetRespTelFixe s ->
             let
@@ -898,9 +899,9 @@ internalUpdate config msg model =
                 newResp =
                     { baseResp | tel = newTel }
             in
-                ( { model | respBuffer = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
         SetRespTelPortable s ->
             let
@@ -922,9 +923,9 @@ internalUpdate config msg model =
                 newResp =
                     { baseResp | tel = newTel }
             in
-                ( { model | respBuffer = Just newResp }
-                , Cmd.none
-                )
+            ( { model | respBuffer = Just newResp }
+            , Cmd.none
+            )
 
         ModifyResp ->
             case ( model.selectedResp, model.respBuffer ) of
@@ -939,11 +940,11 @@ internalUpdate config msg model =
                                     setIf (\r -> r == r1) r2 fb.responsables
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -967,12 +968,12 @@ internalUpdate config msg model =
                                         fb.responsables ++ [ r ]
                                 }
                         in
-                            ( { model
-                                | ficheBuffer = newFb
-                                , respBuffer = Nothing
-                              }
-                            , Cmd.none
-                            )
+                        ( { model
+                            | ficheBuffer = newFb
+                            , respBuffer = Nothing
+                          }
+                        , Cmd.none
+                        )
 
         RemoveResp ->
             case model.selectedResp of
@@ -990,12 +991,12 @@ internalUpdate config msg model =
                                     List.Extra.remove r fb.responsables
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedResp = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedResp = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         --
         SetAddress s ->
@@ -1006,9 +1007,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | adresse = s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetTelFixe s ->
             let
@@ -1032,9 +1033,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | telNumber = newTel }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetTelPortable s ->
             let
@@ -1058,9 +1059,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | telNumber = newTel }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetFax s ->
             let
@@ -1070,9 +1071,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | fax = Just s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         --
         SelectEmailInFiche s ->
@@ -1106,13 +1107,13 @@ internalUpdate config msg model =
                         newFb =
                             { fb | email = setIf (\m -> m == mail1) mail2 fb.email }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedEmail = Nothing
-                            , emailBuffer = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedEmail = Nothing
+                        , emailBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1130,13 +1131,13 @@ internalUpdate config msg model =
                             newFb =
                                 { fb | email = fb.email ++ [ mail ] }
                         in
-                            ( { model
-                                | ficheBuffer = newFb
-                                , emailBuffer = Nothing
-                                , selectedEmail = Nothing
-                              }
-                            , Cmd.none
-                            )
+                        ( { model
+                            | ficheBuffer = newFb
+                            , emailBuffer = Nothing
+                            , selectedEmail = Nothing
+                          }
+                        , Cmd.none
+                        )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -1154,13 +1155,13 @@ internalUpdate config msg model =
                         newFb =
                             { fb | email = List.Extra.remove mail fb.email }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedEmail = Nothing
-                            , emailBuffer = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedEmail = Nothing
+                        , emailBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         --
         SetPjaun s ->
@@ -1171,9 +1172,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | pjaun = Just s }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetSiteUrl s ->
             let
@@ -1189,9 +1190,9 @@ internalUpdate config msg model =
                             Just (Tuple.mapSecond (always s) baseSite)
                     }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SetSiteLabel s ->
             let
@@ -1207,9 +1208,9 @@ internalUpdate config msg model =
                             Just (Tuple.mapFirst (always s) baseSite)
                     }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         OpenVisualPicker ->
             ( { model | visualPickerOpen = True }
@@ -1251,12 +1252,12 @@ internalUpdate config msg model =
                         newFb =
                             { fb | visuel = url }
                     in
-                        ( { model
-                            | visualPickerOpen = False
-                            , ficheBuffer = newFb
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | visualPickerOpen = False
+                        , ficheBuffer = newFb
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1298,13 +1299,13 @@ internalUpdate config msg model =
                                         fb.description
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedDescr = Nothing
-                            , descrBuffer = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedDescr = Nothing
+                        , descrBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1328,12 +1329,12 @@ internalUpdate config msg model =
                                         fb.description ++ [ d ]
                                 }
                         in
-                            ( { model
-                                | ficheBuffer = newFb
-                                , descrBuffer = Nothing
-                              }
-                            , Cmd.none
-                            )
+                        ( { model
+                            | ficheBuffer = newFb
+                            , descrBuffer = Nothing
+                          }
+                        , Cmd.none
+                        )
 
         RemoveDescription ->
             case model.selectedDescr of
@@ -1351,13 +1352,13 @@ internalUpdate config msg model =
                                     List.Extra.remove d fb.description
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , descrBuffer = Nothing
-                            , selectedDescr = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , descrBuffer = Nothing
+                        , selectedDescr = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         MoveDescrUp ->
             case
@@ -1381,9 +1382,9 @@ internalUpdate config msg model =
                                     swapAt (n - 1) n fb.description
                             }
                     in
-                        ( { model | ficheBuffer = newFb }
-                        , Cmd.none
-                        )
+                    ( { model | ficheBuffer = newFb }
+                    , Cmd.none
+                    )
 
         MoveDescrDown ->
             case
@@ -1407,9 +1408,9 @@ internalUpdate config msg model =
                                     swapAt (n + 1) n fb.description
                             }
                     in
-                        ( { model | ficheBuffer = newFb }
-                        , Cmd.none
-                        )
+                    ( { model | ficheBuffer = newFb }
+                    , Cmd.none
+                    )
 
         --
         SelectLinkedDoc ld ->
@@ -1444,14 +1445,14 @@ internalUpdate config msg model =
                                         fb.linkedDocs
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedLinkedDoc = Nothing
-                            , linkedDocBuffer = Nothing
-                            , expiryDateBuffer = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedLinkedDoc = Nothing
+                        , linkedDocBuffer = Nothing
+                        , expiryDateBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1475,13 +1476,13 @@ internalUpdate config msg model =
                                         fb.linkedDocs ++ [ ld ]
                                 }
                         in
-                            ( { model
-                                | ficheBuffer = newFb
-                                , linkedDocBuffer = Nothing
-                                , expiryDateBuffer = Nothing
-                              }
-                            , Cmd.none
-                            )
+                        ( { model
+                            | ficheBuffer = newFb
+                            , linkedDocBuffer = Nothing
+                            , expiryDateBuffer = Nothing
+                          }
+                        , Cmd.none
+                        )
 
         RemoveLinkedDoc ->
             case model.selectedLinkedDoc of
@@ -1499,14 +1500,14 @@ internalUpdate config msg model =
                                     List.Extra.remove ld fb.linkedDocs
                             }
                     in
-                        ( { model
-                            | ficheBuffer = newFb
-                            , selectedLinkedDoc = Nothing
-                            , linkedDocBuffer = Nothing
-                            , expiryDateBuffer = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | ficheBuffer = newFb
+                        , selectedLinkedDoc = Nothing
+                        , linkedDocBuffer = Nothing
+                        , expiryDateBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         SetLinkedDocUrl pr ->
             case pr of
@@ -1519,12 +1520,12 @@ internalUpdate config msg model =
                         newLd =
                             { baseLD | url = s }
                     in
-                        ( { model
-                            | linkedDocBuffer = Just newLd
-                            , docPickerOpen = False
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | linkedDocBuffer = Just newLd
+                        , docPickerOpen = False
+                      }
+                    , Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1538,9 +1539,9 @@ internalUpdate config msg model =
                 newLd =
                     { baseLD | label = s }
             in
-                ( { model | linkedDocBuffer = Just newLd }
-                , Cmd.none
-                )
+            ( { model | linkedDocBuffer = Just newLd }
+            , Cmd.none
+            )
 
         SetLinkedDocDescr s ->
             let
@@ -1551,12 +1552,12 @@ internalUpdate config msg model =
                 newLd =
                     { baseLD | descr = Just s }
             in
-                ( { model | linkedDocBuffer = Just newLd }
-                , Cmd.none
-                )
+            ( { model | linkedDocBuffer = Just newLd }
+            , Cmd.none
+            )
 
         SetLinkedDocExpiry s ->
-            case parseDate s of
+            case parseDate model.currentTime config.zone s of
                 Nothing ->
                     let
                         baseLD =
@@ -1566,12 +1567,12 @@ internalUpdate config msg model =
                         newLd =
                             { baseLD | expiryDate = Nothing }
                     in
-                        ( { model
-                            | expiryDateBuffer = Just s
-                            , linkedDocBuffer = Just newLd
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | expiryDateBuffer = Just s
+                        , linkedDocBuffer = Just newLd
+                      }
+                    , Cmd.none
+                    )
 
                 Just ( day, month, year ) ->
                     let
@@ -1586,12 +1587,12 @@ internalUpdate config msg model =
                         newLd =
                             { baseLD | expiryDate = Just newTime }
                     in
-                        ( { model
-                            | linkedDocBuffer = Just newLd
-                            , expiryDateBuffer = Nothing
-                          }
-                        , Cmd.none
-                        )
+                    ( { model
+                        | linkedDocBuffer = Just newLd
+                        , expiryDateBuffer = Nothing
+                      }
+                    , Cmd.none
+                    )
 
         --
         SetOuverture o ->
@@ -1602,9 +1603,9 @@ internalUpdate config msg model =
                 newFb =
                     { fb | ouverture = Just o }
             in
-                ( { model | ficheBuffer = newFb }
-                , Cmd.none
-                )
+            ( { model | ficheBuffer = newFb }
+            , Cmd.none
+            )
 
         SaveFiche ->
             case model.seed of
@@ -1628,33 +1629,33 @@ internalUpdate config msg model =
                                 newFb
                                 model.fiches
                     in
-                        ( { model
-                            | fiches = newFiches
-                            , rightPanelDisplay = PreviewFiche
-                            , lockedFiches = newFb :: model.lockedFiches
-                            , selectedFiche = Just <| canonical newFb.uuid
-                            , ficheBuffer = newFb
-                            , seed = Just newSeed
-                          }
-                        , case config.logInfo of
-                            LoggedIn { sessionId } ->
-                                Task.attempt (FicheUpdated newFb) <|
-                                    (Time.now
-                                        |> Task.andThen
-                                            (\t ->
-                                                let
-                                                    datedFb =
-                                                        { newFb | lastEdit = t }
-                                                in
-                                                    updateFicheTask
-                                                        datedFb
-                                                        sessionId
-                                            )
-                                    )
+                    ( { model
+                        | fiches = newFiches
+                        , rightPanelDisplay = PreviewFiche
+                        , lockedFiches = newFb :: model.lockedFiches
+                        , selectedFiche = Just <| canonical newFb.uuid
+                        , ficheBuffer = newFb
+                        , seed = Just newSeed
+                      }
+                    , case config.logInfo of
+                        LoggedIn { sessionId } ->
+                            Task.attempt (FicheUpdated newFb) <|
+                                (Time.now
+                                    |> Task.andThen
+                                        (\t ->
+                                            let
+                                                datedFb =
+                                                    { newFb | lastEdit = t }
+                                            in
+                                            updateFicheTask
+                                                datedFb
+                                                sessionId
+                                        )
+                                )
 
-                            _ ->
-                                Cmd.none
-                        )
+                        _ ->
+                            Cmd.none
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -1670,11 +1671,11 @@ internalUpdate config msg model =
                     newFiches =
                         Dict.remove (canonical f.uuid) model.fiches
                 in
-                    ( { model | fiches = newFiches }
-                    , cmdIfLogged
-                        config.logInfo
-                        (removeFiche f)
-                    )
+                ( { model | fiches = newFiches }
+                , cmdIfLogged
+                    config.logInfo
+                    (removeFiche f)
+                )
 
         SetRightPanelDisplay d ->
             ( { model
@@ -1836,175 +1837,173 @@ ficheSelectorView model =
                 |> List.filter labelFilterFun
                 |> List.sortBy (\( k, f ) -> String.toLower f.nomEntite)
     in
-        column
-            [ spacing 15
-            , alignTop
-            , Border.widthEach
-                { top = 0
-                , bottom = 0
-                , left = 0
-                , right = 2
-                }
-            , Border.color (rgb 0.8 0.8 0.8)
-            , paddingEach
-                { top = 0
-                , bottom = 0
-                , left = 0
-                , right = 15
-                }
-            , width (px 780)
-            , height fill
-            , scrollbarY
+    column
+        [ spacing 15
+        , alignTop
+        , Border.widthEach
+            { top = 0
+            , bottom = 0
+            , left = 0
+            , right = 2
+            }
+        , Border.color (rgb 0.8 0.8 0.8)
+        , paddingEach
+            { top = 0
+            , bottom = 0
+            , left = 0
+            , right = 15
+            }
+        , width (px 780)
+        , height fill
+        , scrollbarY
+        ]
+        [ el
+            [ Font.bold
+            , Font.size 18
             ]
-            [ el
-                [ Font.bold
-                , Font.size 18
+            (text "Selection fiche")
+        , el containerStyle
+            (row
+                formItemStyle
+                [ Input.text
+                    (textInputStyle
+                        ++ [ spacingXY 0 15
+                           , width (px 400)
+                           ]
+                    )
+                    { onChange =
+                        FilterByName
+                    , text =
+                        model.nameFilter
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <|
+                            Input.placeholder
+                                []
+                                (text "Filtrer par nom entité")
+                    , label =
+                        Input.labelLeft [] Element.none
+                    }
                 ]
-                (text "Selection fiche")
-            , el containerStyle
-                (row
-                    formItemStyle
-                    [ Input.text
-                        (textInputStyle
-                            ++ [ spacingXY 0 15
-                               , width (px 400)
-                               ]
-                        )
-                        { onChange =
-                            FilterByName
-                        , text =
-                            model.nameFilter
-                                |> Maybe.withDefault ""
-                        , placeholder =
-                            Just <|
-                                Input.placeholder
-                                    []
-                                    (text "Filtrer par nom entité")
-                        , label =
-                            Input.labelLeft [] Element.none
-                        }
-                    ]
+            )
+        , row
+            ([ spacing 15 ]
+                ++ containerStyle
+            )
+            [ column
+                ([ spacing 15
+                 , alignTop
+                 ]
+                    ++ formItemStyle
                 )
-            , row
-                ([ spacing 15 ]
-                    ++ containerStyle
-                )
-                [ column
-                    ([ spacing 15
-                     , alignTop
-                     ]
-                        ++ formItemStyle
-                    )
-                    [ el
-                        [ Font.bold
-                        , Font.color grey1
-                        ]
-                        (text "Catégories ")
-                    , column
-                        [ Border.width 2
-                        , Border.color grey3
-                        , width (px 150)
-                        , height (px 200)
-                        , scrollbars
-                        ]
-                        (Set.toList model.categories
-                            |> List.map
-                                (\e ->
-                                    selectView
-                                        False
-                                        model.catFilter
-                                        (FilterByCat e)
-                                        e
-                                )
-                        )
+                [ el
+                    [ Font.bold
+                    , Font.color grey1
                     ]
+                    (text "Catégories ")
                 , column
-                    ([ spacing 15
-                     , alignTop
-                     ]
-                        ++ formItemStyle
-                    )
-                    [ el
-                        [ Font.bold
-                        , Font.color grey1
-                        ]
-                        (text "Nature activité")
-                    , column
-                        [ Border.width 2
-                        , Border.color grey3
-                        , width (px 300)
-                        , height (px 200)
-                        , scrollbars
-                        ]
-                        (Set.toList model.activites
-                            |> List.map
-                                (\e ->
-                                    selectView False
-                                        model.activFilter
-                                        (FilterByActiv e)
-                                        e
-                                )
-                        )
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 150)
+                    , height (px 200)
+                    , scrollbars
                     ]
-                , column
-                    ([ spacing 15
-                     , alignTop
-                     ]
-                        ++ formItemStyle
+                    (Set.toList model.categories
+                        |> List.map
+                            (\e ->
+                                selectView
+                                    False
+                                    model.catFilter
+                                    (FilterByCat e)
+                                    e
+                            )
                     )
-                    [ el
-                        [ Font.bold
-                        , Font.color grey1
-                        ]
-                        (text "Labels")
-                    , column
-                        [ Border.width 2
-                        , Border.color grey3
-                        , width (px 150)
-                        , height (px 200)
-                        , scrollbars
-                        ]
-                        (List.map .nom model.labels
-                            |> List.map
-                                (\e ->
-                                    selectView
-                                        False
-                                        model.labelFilter
-                                        (FilterByLabel e)
-                                        e
-                                )
-                        )
-                    ]
                 ]
-            , el [ Font.bold ]
-                (text "Nom fiche entité")
             , column
-                containerStyle
-                [ column
-                    (formItemStyle
-                        ++ [ spacing 15, width fill ]
-                    )
-                    [ el [ Font.bold ]
-                        (text "Nom fiche entité")
-                    , column
-                        ([ Border.width 2
-                         , Border.color grey3
-                         , width fill
-                         , height (px 480)
-                         , scrollbars
-                         ]
-                        )
-                        ((filteredFiches
-                            |> List.map (\( k, v ) -> ( k, v.nomEntite ))
-                            |> List.map
-                                (\( k, n ) ->
-                                    filterView model.selectedFiche (SelectFiche k) n
-                                )
-                         )
-                        )
+                ([ spacing 15
+                 , alignTop
+                 ]
+                    ++ formItemStyle
+                )
+                [ el
+                    [ Font.bold
+                    , Font.color grey1
                     ]
+                    (text "Nature activité")
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 300)
+                    , height (px 200)
+                    , scrollbars
+                    ]
+                    (Set.toList model.activites
+                        |> List.map
+                            (\e ->
+                                selectView False
+                                    model.activFilter
+                                    (FilterByActiv e)
+                                    e
+                            )
+                    )
+                ]
+            , column
+                ([ spacing 15
+                 , alignTop
+                 ]
+                    ++ formItemStyle
+                )
+                [ el
+                    [ Font.bold
+                    , Font.color grey1
+                    ]
+                    (text "Labels")
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width (px 150)
+                    , height (px 200)
+                    , scrollbars
+                    ]
+                    (List.map .nom model.labels
+                        |> List.map
+                            (\e ->
+                                selectView
+                                    False
+                                    model.labelFilter
+                                    (FilterByLabel e)
+                                    e
+                            )
+                    )
                 ]
             ]
+        , el [ Font.bold ]
+            (text "Nom fiche entité")
+        , column
+            containerStyle
+            [ column
+                (formItemStyle
+                    ++ [ spacing 15, width fill ]
+                )
+                [ el [ Font.bold ]
+                    (text "Nom fiche entité")
+                , column
+                    [ Border.width 2
+                    , Border.color grey3
+                    , width fill
+                    , height (px 480)
+                    , scrollbars
+                    ]
+                    (filteredFiches
+                        |> List.map (\( k, v ) -> ( k, v.nomEntite ))
+                        |> List.map
+                            (\( k, n ) ->
+                                filterView model.selectedFiche (SelectFiche k) n
+                            )
+                    )
+                ]
+            ]
+        ]
 
 
 formsView config model =

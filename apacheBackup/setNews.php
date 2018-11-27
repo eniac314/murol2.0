@@ -35,17 +35,24 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  $uuid = $php_data->uuid;
-  $date = $php_data->date;
-  $title = $php_data->title;
-  $content = serialize($php_data->content);
-  $pic = is_null($php_data->pic) ? null : serialize($php_data->pic);
-  $expiry = $php_data->expiry;
+  $uuid = $php_data->news->uuid;
+  $date = $php_data->news->date;
+  $title = $php_data->news->title;
+  $content = serialize($php_data->news->content);
+  $pic = is_null($php_data->news->pic) ? null : serialize($php_data->pic);
+  $expiry = $php_data->news->expiry;
 
   $query = 
-    "INSERT INTO news(uuid, date, title, content, pic, expiry) VALUES (?,?,?,?,?,?,?)";
-    mysqli_stmt_prepare($stmt, $query);
-  mysqli_stmt_bind_param($stmt,'sdsssd', $uuid, $date, $content, $pic, $expiry);
+    "INSERT INTO news(uuid, date, title, content, pic, expiry) VALUES (?,?,?,?,?,?)
+      ON DUPLICATE KEY UPDATE
+        date = VALUES(date),
+        title = VALUES(title),
+        content = VALUES(content),
+        pic = VALUES(pic),
+        expiry = VALUES(expiry)";
+  
+  mysqli_stmt_prepare($stmt, $query);
+  mysqli_stmt_bind_param($stmt,'sisssi', $uuid, $date, $title, $content, $pic, $expiry);
   mysqli_stmt_execute($stmt);
 
   if (mysqli_stmt_affected_rows($stmt) == 0){

@@ -2752,3 +2752,74 @@ customJoin acc n s xs =
 
         xs1 :: rest ->
             customJoin (xs1 :: acc) n s rest
+
+
+pickerView :
+    moduleMsg
+    -> (PickerResult -> moduleMsg)
+    -> Root
+    ->
+        { config
+            | maxHeight : Int
+            , zone : Time.Zone
+            , fileExplorer : Model msg
+            , logInfo : LogInfo
+        }
+    -> (moduleMsg -> msg)
+    -> Element msg
+pickerView backMsg confirmMsg root config externalMsg =
+    let
+        selector m =
+            case root of
+                ImagesRoot ->
+                    getSelectedImage m
+                        |> Maybe.map
+                            (\{ src, width, height } ->
+                                PickedImage
+                                    { url = src
+                                    , width = width
+                                    , height = height
+                                    }
+                            )
+
+                DocsRoot ->
+                    getSelectedDoc m
+                        |> Maybe.map PickedDoc
+    in
+    column
+        [ height fill
+        , paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
+            }
+        ]
+        [ view
+            { maxHeight =
+                if config.maxHeight < 800 then
+                    400
+                else
+                    500
+            , zone = config.zone
+            , logInfo = config.logInfo
+            , mode = ReadWrite root
+            }
+            config.fileExplorer
+        , row
+            [ spacing 15
+            , paddingXY 15 0
+            ]
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just (externalMsg <| backMsg)
+                , label = text "Retour"
+                }
+            , Input.button (buttonStyle (selector config.fileExplorer /= Nothing))
+                { onPress =
+                    selector config.fileExplorer
+                        |> Maybe.map (externalMsg << confirmMsg)
+                , label = text "Valider"
+                }
+            ]
+        ]

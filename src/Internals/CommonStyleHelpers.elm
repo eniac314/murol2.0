@@ -12,6 +12,14 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 
 
+redStar =
+    el
+        [ Font.color red4
+        , Font.size 18
+        ]
+        (text "*")
+
+
 buttonStyle isActive =
     [ Border.rounded 5
     , Font.center
