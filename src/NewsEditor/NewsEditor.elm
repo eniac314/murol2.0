@@ -243,12 +243,15 @@ internalUpdate config msg model =
         EditContent ->
             let
                 baseContent =
-                    Maybe.map .content model.buffer
-                        |> Maybe.withDefault []
+                    Maybe.andThen .content model.buffer
+                        |> Maybe.withDefault
+                            { tbElems = []
+                            , attrs = []
+                            }
 
                 ( newTextBlockPlugin, textBlockPluginCmds ) =
-                    TextBlockPlugin.init []
-                        (Just baseContent)
+                    TextBlockPlugin.init baseContent.attrs
+                        (Just baseContent.tbElems)
                         (model.externalMsg << TextBlockPluginMsg)
             in
             ( { model
@@ -376,7 +379,7 @@ internalUpdate config msg model =
                 newBuffer =
                     { baseNews
                         | content =
-                            TextBlockPlugin.parserOutput model.textBlockPlugin
+                            Just <| TextBlockPlugin.parserOutput newTextBlockPlugin
                     }
             in
             ( { model
@@ -714,7 +717,7 @@ newsEditorView config model =
 
                             _ ->
                                 Nothing
-                    , label = text "Créer actualité"
+                    , label = text "Sauvegarder"
                     }
                 , Input.button
                     (buttonStyle True)
@@ -916,7 +919,7 @@ renderConfig externalMsg =
 validNews { title, content, expiry } =
     title
         /= ""
-        && content
-        /= []
-        && expiry
-        /= millisToPosix 0
+        && (content /= Nothing)
+        && (Maybe.map .tbElems content /= Nothing)
+        && (Maybe.map .tbElems content /= Just [])
+        && (expiry /= millisToPosix 0)

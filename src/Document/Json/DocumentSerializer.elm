@@ -111,7 +111,12 @@ encodeNews { title, date, content, pic, uuid, expiry } =
     object
         [ ( "title", string title )
         , ( "date", int <| posixToMillis date )
-        , ( "content", list encodeTextBlockElement content )
+        , ( "content"
+          , Maybe.map
+                encodeNewsContent
+                content
+                |> Maybe.withDefault null
+          )
         , ( "pic"
           , Maybe.map
                 (\{ url, width, height } ->
@@ -126,6 +131,14 @@ encodeNews { title, date, content, pic, uuid, expiry } =
           )
         , ( "uuid", string (UUID.canonical uuid) )
         , ( "expiry", int <| posixToMillis expiry )
+        ]
+
+
+encodeNewsContent : NewsContent -> Value
+encodeNewsContent { tbElems, attrs } =
+    object
+        [ ( "tbElems", list encodeTextBlockElement tbElems )
+        , ( "attrs", encodeDocAttributes attrs )
         ]
 
 

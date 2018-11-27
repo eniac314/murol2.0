@@ -109,10 +109,16 @@ type alias BlockLinkMeta =
 type alias News =
     { title : String
     , date : Posix
-    , content : List TextBlockElement
+    , content : Maybe NewsContent
     , pic : Maybe Pic
     , uuid : UUID
     , expiry : Posix
+    }
+
+
+type alias NewsContent =
+    { tbElems : List TextBlockElement
+    , attrs : List DocAttribute
     }
 
 
@@ -126,7 +132,7 @@ type alias Pic =
 emptyNews =
     { title = ""
     , date = millisToPosix 0
-    , content = []
+    , content = Nothing
     , pic = Nothing
     , uuid = UUID.nil
     , expiry = millisToPosix 0

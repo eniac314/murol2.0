@@ -197,7 +197,11 @@ parseDate currentTime zone s =
                 case numberToMonth (month - 1) of
                     Just validMonth ->
                         if
-                            (month >= monthToNumber1 currentMonth)
+                            (if year == currentYear then
+                                month >= monthToNumber1 currentMonth
+                             else
+                                True
+                            )
                                 && (if month == monthToNumber1 currentMonth then
                                         day >= currentDay
                                     else

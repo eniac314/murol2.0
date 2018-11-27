@@ -53,6 +53,8 @@
 
 find . -name '*.elm' | xargs wc -l
 
+sudo chown -R www-data:www-data baseDocumentaire/
+
 - disable directory listing: 
 
     https://stackoverflow.com/questions/2530372/how-do-i-disable-directory-browsing

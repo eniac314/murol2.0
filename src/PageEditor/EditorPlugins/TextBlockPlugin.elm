@@ -52,9 +52,11 @@ type alias Model msg =
     }
 
 
-parserOutput : Model msg -> List TextBlockElement
+parserOutput : Model msg -> { tbElems : List TextBlockElement, attrs : List DocAttribute }
 parserOutput model =
-    model.output
+    { tbElems = model.output
+    , attrs = model.wholeTextBlocAttr
+    }
 
 
 type Msg

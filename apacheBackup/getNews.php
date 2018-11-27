@@ -39,7 +39,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     array_push($news, ['uuid' => $uuid
                       ,'date' => $date
                       ,'title' => $title
-                      ,'content' => unserialize($content)
+                      ,'content' => is_null($content) ? $content : unserialize($content)
                       ,'pic' => is_null($pic) ? $pic : unserialize($pic)
                       ,'expiry' => $expiry
                       ]);

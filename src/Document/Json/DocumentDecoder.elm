@@ -117,7 +117,7 @@ decodeNews =
         |> required "title" string
         |> required "date"
             (Json.Decode.map millisToPosix int)
-        |> required "content" (list decodeTextBlockElement)
+        |> required "content" (nullable decodeNewsContent)
         |> required "pic"
             (nullable
                 (succeed Pic
@@ -129,6 +129,13 @@ decodeNews =
         |> required "uuid" decodeUUID
         |> required "expiry"
             (Json.Decode.map millisToPosix int)
+
+
+decodeNewsContent : Decoder NewsContent
+decodeNewsContent =
+    succeed NewsContent
+        |> required "tbElems" (list decodeTextBlockElement)
+        |> required "attrs" decodeDocAttributes
 
 
 decodeUUID : Decoder UUID
