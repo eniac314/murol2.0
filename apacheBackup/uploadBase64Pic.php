@@ -44,7 +44,9 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  $files = getDirContents('images');
+  $dummyArray = array();
+
+  $files = getDirContents('images', $dummyArray, array($php_data->filename));
   echo (json_encode($files));
   exit();
 

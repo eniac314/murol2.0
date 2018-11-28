@@ -14,7 +14,7 @@ import Http exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as D
 import Task exposing (perform)
-import Time exposing (Posix, Zone, now)
+import Time exposing (Posix, Zone, now, posixToMillis)
 
 
 type Status
@@ -178,45 +178,20 @@ jsonResolver decoder =
 
 parseDate : Posix -> Zone -> String -> Maybe ( Int, Int, Int )
 parseDate currentTime zone s =
-    let
-        currentDay =
-            Time.toDay zone currentTime
-
-        currentMonth =
-            Time.toMonth zone currentTime
-
-        currentYear =
-            Time.toYear zone currentTime
-    in
     case
         String.split "/" s
             |> List.filterMap String.toInt
     of
         day :: month :: year :: [] ->
-            if (year >= currentYear) && (year <= 2200) then
-                case numberToMonth (month - 1) of
-                    Just validMonth ->
-                        if
-                            (if year == currentYear then
-                                month >= monthToNumber1 currentMonth
-                             else
-                                True
-                            )
-                                && (if month == monthToNumber1 currentMonth then
-                                        day >= currentDay
-                                    else
-                                        True
-                                   )
-                                && (day <= numberOfDaysInMonth year validMonth)
-                        then
-                            Just ( day, month, year )
-                        else
-                            Nothing
-
-                    _ ->
-                        Nothing
-            else
+            let
+                choosenTime =
+                    newDateRecord year month day 0 0 0 0 Time.utc
+                        |> civilToPosix
+            in
+            if posixToMillis currentTime > posixToMillis choosenTime then
                 Nothing
+            else
+                Just ( day, month, year )
 
         _ ->
             Nothing

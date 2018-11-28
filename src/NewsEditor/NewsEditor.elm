@@ -112,6 +112,7 @@ type Msg
     | ToNewsSelector
     | ToogleContentPreview
     | RemoveNews
+    | NewsRemoved (List String) (Result Http.Error Bool)
     | OpenPicPicker
     | ClosePicPicker
     | ConfirmPic PickerResult
@@ -268,6 +269,7 @@ internalUpdate config msg model =
                 , expiryBuffer = ""
                 , contentPreview = False
                 , checkedNews = Set.empty
+                , picPickerOpen = False
               }
             , Cmd.none
             )
@@ -278,7 +280,36 @@ internalUpdate config msg model =
             )
 
         RemoveNews ->
-            ( model, Cmd.none )
+            ( model
+            , cmdIfLogged
+                config.logInfo
+                (removeNews
+                    (Set.toList model.checkedNews)
+                )
+                |> Cmd.map model.externalMsg
+            )
+
+        NewsRemoved ids res ->
+            case res of
+                Ok True ->
+                    ( { model
+                        | news =
+                            List.foldr
+                                (\id acc -> Dict.remove id acc)
+                                model.news
+                                ids
+                        , checkedNews = Set.empty
+                        , buffer = Nothing
+                        , newsEditorMode = NewsSelector
+                        , expiryBuffer = ""
+                        , contentPreview = False
+                        , picPickerOpen = False
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         OpenPicPicker ->
             ( { model | picPickerOpen = True }
@@ -324,11 +355,12 @@ internalUpdate config msg model =
                             else
                                 ( news.uuid, seed )
 
-                        toSave =
+                        newBuffer =
                             { news | uuid = uuid }
                     in
                     ( { model
                         | newsEditorMode = NewsSelector
+                        , buffer = Just newBuffer
                         , seed = Just newSeed
                       }
                     , (Time.now
@@ -336,7 +368,7 @@ internalUpdate config msg model =
                             (\t ->
                                 setNews
                                     t
-                                    toSave
+                                    newBuffer
                                     sessionId
                             )
                       )
@@ -354,6 +386,10 @@ internalUpdate config msg model =
                         | news =
                             Dict.insert (canonical n.uuid) { n | date = model.currentTime } model.news
                         , buffer = Nothing
+                        , expiryBuffer = ""
+                        , contentPreview = False
+                        , picPickerOpen = False
+                        , checkedNews = Set.empty
                       }
                     , Cmd.none
                     )
@@ -526,6 +562,9 @@ newsSelectorView config model =
                         (\( id, n ) ->
                             checkView
                                 (Set.member id model.checkedNews)
+                                (Maybe.map (\b -> canonical b.uuid == id) model.buffer
+                                    == Just True
+                                )
                                 id
                                 n.title
                                 config.zone
@@ -537,15 +576,23 @@ newsSelectorView config model =
         ]
 
 
-checkView : Bool -> String -> String -> Zone -> Posix -> Posix -> Element Msg
-checkView isChecked newsId title zone date expiry =
+checkView : Bool -> Bool -> String -> String -> Zone -> Posix -> Posix -> Element Msg
+checkView isChecked isBuffer newsId title zone date expiry =
     Keyed.row
         [ width fill
         , paddingXY 5 5
         , pointer
         , Events.onClick (ToogleNews newsId)
         , mouseOver
-            [ Background.color grey4 ]
+            [ if isBuffer then
+                Background.color grey4
+              else
+                Background.color grey5
+            ]
+        , if isBuffer then
+            Background.color grey4
+          else
+            noAttr
         , spacing 10
         ]
         [ ( title
@@ -871,6 +918,27 @@ setNews currentTime news sessionId =
         , body = body
         , resolver = jsonResolver decodeSuccess
         , timeout = Nothing
+        }
+
+
+removeNews : List String -> String -> Cmd Msg
+removeNews idsToRemove sessionId =
+    let
+        body =
+            E.object
+                [ ( "idsToRemove"
+                  , E.list E.string idsToRemove
+                  )
+                , ( "sessionId"
+                  , E.string sessionId
+                  )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "removeNews.php"
+        , body = body
+        , expect = Http.expectJson (NewsRemoved idsToRemove) decodeSuccess
         }
 
 

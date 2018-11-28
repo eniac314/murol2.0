@@ -171,8 +171,8 @@ load model logInfo =
         LoggedIn { sessionId } ->
             Cmd.map model.externalMsg <|
                 Cmd.batch
-                    [ getFileList ImagesRoot sessionId
-                    , getFileList DocsRoot sessionId
+                    [ getFileList ImagesRoot [] sessionId
+                    , getFileList DocsRoot [] sessionId
                     ]
 
         LoggedOut ->
@@ -659,7 +659,10 @@ internalUpdate config msg model =
             , if uploadDone then
                 cmdIfLogged
                     config.logInfo
-                    (getFileList (modeRoot mode model.root))
+                    (getFileList
+                        (modeRoot mode model.root)
+                        (List.map .filename files)
+                    )
               else
                 Cmd.none
             , Nothing
@@ -1984,14 +1987,15 @@ editView config model =
 -- Get Files --
 
 
-getFileList : Root -> String -> Cmd Msg
-getFileList root sessionId =
+getFileList : Root -> List String -> String -> Cmd Msg
+getFileList root toRefresh sessionId =
     let
         body =
             Encode.object
                 [ ( "sessionId"
                   , Encode.string sessionId
                   )
+                , ( "toRefresh", Encode.list Encode.string toRefresh )
                 , encodeRoot root
                 ]
                 |> Http.jsonBody

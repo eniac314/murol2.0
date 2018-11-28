@@ -11,7 +11,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   	exit();
    }
 
-  if(!isset($php_data->sessionId)){
+  if(!isset($php_data->sessionId) || !isset($php_data->idsToRemove)){
     logError("wrong input");
  	  exit();
   }
@@ -25,7 +25,6 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);
@@ -35,34 +34,27 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  $query = 
-    "SELECT uuid, date, title, content, pic, expiry FROM news";
+  $query = "DELETE FROM news WHERE uuid = ?";
 
   mysqli_stmt_prepare($stmt, $query);
-  mysqli_stmt_execute($stmt);
 
-  mysqli_stmt_bind_result($stmt, $uuid, $date, $title, $content, $pic, $expiry);
+  foreach ($php_data->idsToRemove as $uuid) {
+    mysqli_stmt_bind_param($stmt,'s', $uuid);
+    mysqli_stmt_execute($stmt);
 
-  $news = [];
-
-  while(mysqli_stmt_fetch($stmt)){
-    array_push($news, ['uuid' => $uuid
-                      ,'date' => $date
-                      ,'title' => $title
-                      ,'content' => is_null($content) ? $content : unserialize($content)
-                      ,'pic' => is_null($pic) ? $pic : unserialize($pic)
-                      ,'expiry' => $expiry
-                      ]);
+    if (mysqli_stmt_affected_rows($stmt) == 0){
+      logError("impossible d'effacer l'actualité");
+      mysqli_close($db);
+    exit();
+    }
+  
   }
 
-  $toJson = json_encode($news);
-  echo $toJson;
-  
+  logger("success!");
   mysqli_close($db);
   exit();
-
-
-  } else {
+  
+ } else {
   logError("invalid request");
   exit();
 }

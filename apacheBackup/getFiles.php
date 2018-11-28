@@ -11,7 +11,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   	exit();
     }
 
-    if(!isset($php_data->sessionId) || !isset($php_data->root)){
+    if(!isset($php_data->sessionId) || !isset($php_data->root) || !isset($php_data->toRefresh)){
        logError("wrong input");
    	exit();
     }
@@ -24,18 +24,21 @@ if(getenv('REQUEST_METHOD') == 'POST') {
       logError("wrong credentials");
       exit();
     }
-   
+    
+    $dummyArray = array();
+    $toRefresh = $php_data->toRefresh;
+
     if($php_data->root == 'images'){
 
       $images = 
-  		  getDirContents('images');
+  		  getDirContents('images', $dummyArray, $toRefresh);
       
       echo (json_encode($images));
       exit();
     
     } else if ($php_data->root == 'baseDocumentaire'){
     	$docs = 
-    	  getDirContents('baseDocumentaire');
+    	  getDirContents('baseDocumentaire', $dummyArray, $toRefresh);
      	
      	echo (json_encode($docs));
      	exit();
