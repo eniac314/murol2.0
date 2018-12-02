@@ -3,6 +3,7 @@ module Document.DocumentViews.DocumentResponsive exposing (..)
 import Array exposing (..)
 import Dict exposing (..)
 import Document.Document exposing (..)
+import Document.DocumentViews.StyleSheets exposing (..)
 import Element
     exposing
         ( Attribute
@@ -44,7 +45,9 @@ responsivePreFormat : Config msg -> Document -> Document
 responsivePreFormat config document =
     let
         device =
-            classifyDevice config
+            getDevice config
+
+        --classifyDevice config
     in
     case document of
         Container ({ containerLabel, id, attrs } as nv) children ->
@@ -112,7 +115,7 @@ responsivePreFormat config document =
                 Fiches f ->
                     l
 
-                NewsBlock _ ->
+                NewsBlock ->
                     l
 
                 TextBlock xs ->
@@ -137,6 +140,9 @@ responsivePreFormat config document =
                     l
 
                 EmptyCell ->
+                    l
+
+                _ ->
                     l
 
 

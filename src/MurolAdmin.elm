@@ -400,6 +400,7 @@ view model =
                                     , fileExplorer = model.fileExplorer
                                     , pageTreeEditor = model.pageTreeEditor
                                     , genDirEditor = model.generalDirectory
+                                    , newsEditor = model.newsEditor
                                     , zone = model.zone
                                     }
                                     model.pageEditor

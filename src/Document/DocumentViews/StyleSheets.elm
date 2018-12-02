@@ -40,6 +40,72 @@ docMaxWidth ( winWidth, winHeight ) editMode previewMode =
         950
 
 
+getContainerWidth config =
+    if config.editMode then
+        case config.previewMode of
+            PreviewScreen ->
+                980
+
+            PreviewTablet ->
+                800
+
+            PreviewPhone ->
+                350
+
+            _ ->
+                config.width
+    else
+        config.width
+
+
+chunkBy config n1 n2 n3 n4 =
+    let
+        device =
+            getDevice config
+    in
+    case device.class of
+        Phone ->
+            n1
+
+        Tablet ->
+            n2
+
+        Desktop ->
+            n3
+
+        BigDesktop ->
+            n4
+
+
+getDevice config =
+    if config.editMode then
+        case config.previewMode of
+            PreviewBigScreen ->
+                { class = BigDesktop
+                , orientation = Landscape
+                }
+
+            PreviewScreen ->
+                { class = Desktop
+                , orientation = Landscape
+                }
+
+            PreviewTablet ->
+                { class = Tablet
+                , orientation = Portrait
+                }
+
+            PreviewPhone ->
+                { class = Phone
+                , orientation = Portrait
+                }
+    else
+        Element.classifyDevice
+            { height = config.height
+            , width = config.width
+            }
+
+
 type alias StyleSheet msg =
     { paragraphStyle : List (Attribute msg)
     , columnStyle : List (Attribute msg)
@@ -63,19 +129,6 @@ type PreviewMode
     | PreviewScreen
     | PreviewTablet
     | PreviewPhone
-
-
-
---defaultStyleSheet : Season -> ( Int, Int ) -> Bool -> StyleSheet msg
---defaultStyleSheet :
---    { config
---        | season : Season
---        , winWidth : Int
---        , winHeight : Int
---        , editMode : Bool
---        , previewMode : PreviewMode
---    }
---    -> StyleSheet msg
 
 
 defaultStyleSheet config =
@@ -162,7 +215,7 @@ headingStyles season ( winWidth, winHeight ) editMode =
         commonAttr =
             Dict.fromList
                 [ ( 1
-                  , [ Font.size 24
+                  , [ Font.size 18
                     , Font.center
                     , Font.bold
                     , paddingXY 0 10
@@ -170,7 +223,7 @@ headingStyles season ( winWidth, winHeight ) editMode =
                     ]
                   )
                 , ( 2
-                  , [ Font.size 18
+                  , [ Font.size 16
                     , Font.center
                     , Font.bold
                     , paddingXY 0 2
@@ -211,13 +264,13 @@ headingStyles season ( winWidth, winHeight ) editMode =
                 Autumn ->
                     Dict.fromList
                         [ ( 1
-                          , [ Background.color (rgba255 160 82 45 1)
-                            , Font.color (rgba255 240 248 255 1)
+                          , [ Background.color (rgba255 205 133 63 1)
+                            , Font.color (rgba255 67 46 42 1)
                             ]
                           )
                         , ( 2
-                          , [ Background.color (rgba255 160 82 45 1)
-                            , Font.color (rgba255 240 248 255 1)
+                          , [ Background.color (rgba255 205 133 63 1)
+                            , Font.color (rgba255 67 46 42 1)
                             ]
                           )
                         , ( 3

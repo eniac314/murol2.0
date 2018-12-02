@@ -39,7 +39,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $date = $php_data->news->date;
   $title = $php_data->news->title;
   $content = is_null($php_data->news->content) ? null : serialize($php_data->news->content);
-  $pic = is_null($php_data->news->pic) ? null : serialize($php_data->pic);
+  $pic = is_null($php_data->news->pic) ? null : serialize($php_data->news->pic);
   $expiry = $php_data->news->expiry;
 
   $query = 

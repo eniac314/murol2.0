@@ -16,8 +16,9 @@ import GeneralDirectoryEditor.FichePreview exposing (ficheView)
 import Html as Html
 import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
-import Internals.CommonHelpers exposing (chunks)
+import Internals.CommonHelpers exposing (chunks, dateToFrench, dateToStr)
 import Internals.CommonStyleHelpers exposing (..)
+import Internals.Icons exposing (chevronsDown, chevronsUp)
 import Json.Decode as Decode
 import List.Extra exposing (splitAt)
 import Murmur3 exposing (hashString)
@@ -30,10 +31,6 @@ import UUID exposing (canonical)
 
 renderDoc : Config msg -> Document -> List (Element msg)
 renderDoc config document =
-    let
-        device =
-            classifyDevice config
-    in
     case document of
         Container { containerLabel, id, attrs } children ->
             case containerLabel of
@@ -63,8 +60,8 @@ renderDoc config document =
                 Fiches fichesId ->
                     renderFiches config id attrs fichesId
 
-                NewsBlock news ->
-                    renderNews config id attrs news
+                NewsBlock ->
+                    renderNews config id attrs
 
                 TextBlock xs ->
                     renderTextBlock config id attrs xs
@@ -74,6 +71,18 @@ renderDoc config document =
 
                 CustomElement s ->
                     renderCustomElement config id attrs s
+
+                CalendarWidget ->
+                    renderCalendarWidget config id attrs
+
+                Calendar ->
+                    renderCalendar config id attrs
+
+                WeatherWidget ->
+                    renderWeatherWidget config id attrs
+
+                DronePanorama ->
+                    renderDronePanorama config id attrs
 
                 EmptyCell ->
                     renderEmptyCell config id attrs
@@ -88,42 +97,11 @@ renderBlockLinks config id attrs meta =
                 config.editMode
                 config.previewMode
 
-        device =
-            Element.classifyDevice
-                { height = config.height
-                , width = config.width
-                }
-
         styleSheet =
             defaultStyleSheet config
 
         nbrChunks =
-            if config.editMode then
-                case config.previewMode of
-                    PreviewPhone ->
-                        1
-
-                    PreviewTablet ->
-                        2
-
-                    PreviewScreen ->
-                        3
-
-                    PreviewBigScreen ->
-                        3
-            else
-                case device.class of
-                    Phone ->
-                        1
-
-                    Tablet ->
-                        2
-
-                    Desktop ->
-                        3
-
-                    BigDesktop ->
-                        3
+            chunkBy config 1 2 3 3
 
         rows =
             chunks nbrChunks
@@ -164,21 +142,7 @@ renderBlocksLinksMeta nbrChunks config id attrs { image, label, targetBlank, url
                     |> Maybe.withDefault ""
 
         containerWidth =
-            if config.editMode then
-                case config.previewMode of
-                    PreviewScreen ->
-                        980
-
-                    PreviewTablet ->
-                        800
-
-                    PreviewPhone ->
-                        350
-
-                    _ ->
-                        config.width
-            else
-                config.width
+            getContainerWidth config
 
         maxWidth =
             let
@@ -267,55 +231,10 @@ renderFiches config id attrs fichesId =
             defaultStyleSheet config
 
         containerWidth =
-            if config.editMode then
-                case config.previewMode of
-                    PreviewScreen ->
-                        980
-
-                    PreviewTablet ->
-                        800
-
-                    PreviewPhone ->
-                        350
-
-                    _ ->
-                        config.width
-            else
-                config.width
-
-        device =
-            Element.classifyDevice
-                { height = config.height
-                , width = config.width
-                }
+            getContainerWidth config
 
         nbrCols =
-            if config.editMode then
-                case config.previewMode of
-                    PreviewPhone ->
-                        1
-
-                    PreviewTablet ->
-                        2
-
-                    PreviewScreen ->
-                        2
-
-                    PreviewBigScreen ->
-                        2
-            else
-                case device.class of
-                    Phone ->
-                        1
-
-                    Tablet ->
-                        2
-
-                    Desktop ->
-                        2
-
-                    BigDesktop ->
-                        2
+            chunkBy config 1 2 2 2
 
         mw =
             case nbrCols of
@@ -378,8 +297,244 @@ renderFiches config id attrs fichesId =
     ]
 
 
-renderNews config id attrs news =
-    [ Element.none ]
+renderNews config id attrs =
+    let
+        styleSheet =
+            defaultStyleSheet config
+
+        device =
+            getDevice config
+
+        renderNewsHeader uuid title date =
+            let
+                headerAttr =
+                    [ spacing 15
+                    , width fill
+                    , Events.onClick (config.openNewsMsg (canonical uuid))
+                    , pointer
+                    , paddingEach
+                        { bottom = 5
+                        , top = 5
+                        , left = 5
+                        , right = 0
+                        }
+                    , Border.roundEach
+                        { topLeft = 2
+                        , topRight = 2
+                        , bottomLeft = 0
+                        , bottomRight = 0
+                        }
+                    , Border.widthEach
+                        { bottom = 1
+                        , top = 0
+                        , left = 0
+                        , right = 0
+                        }
+                    , Border.color grey5
+                    , Background.color grey4
+                    , mouseOver
+                        [ Background.color grey6 ]
+                    , Font.family
+                        [ Font.typeface "Times New Roman" ]
+                    ]
+
+                titleView =
+                    paragraph
+                        [ width fill
+                        , Font.bold
+                        , Font.color grey1
+                        , paddingEach
+                            { top = 0
+                            , right = 0
+                            , bottom = 0
+                            , left = 0
+                            }
+                        ]
+                        [ text (toSentenceCase title) ]
+
+                chevronsView =
+                    el
+                        [ alignRight
+                        , Font.color grey3
+                        ]
+                        (html <|
+                            if Set.member (canonical uuid) config.openedNews then
+                                chevronsUp 18
+                            else
+                                chevronsDown 18
+                        )
+
+                dateAttr =
+                    [ Border.color grey6
+                    , Border.widthEach
+                        { bottom = 0
+                        , top = 0
+                        , left = 1
+                        , right = 0
+                        }
+                    , paddingEach
+                        { top = 5
+                        , right = 5
+                        , bottom = 5
+                        , left = 9
+                        }
+                    ]
+            in
+            case device.class of
+                Phone ->
+                    column
+                        headerAttr
+                        [ titleView
+                        , row
+                            [ width fill ]
+                            [ el
+                                dateAttr
+                                (text <| dateToStr config.zone date)
+                            , chevronsView
+                            ]
+                        ]
+
+                _ ->
+                    row
+                        headerAttr
+                        [ titleView
+                        , row
+                            [ spacing 7 ]
+                            [ chevronsView
+                            , el
+                                (dateAttr ++ [ alignRight ])
+                                (text <| dateToStr config.zone date)
+                            ]
+                        ]
+
+        renderNewsBody uuid pic content =
+            let
+                picView url =
+                    el
+                        [ width (px 266)
+                        , height (px 200)
+                        , Background.image url
+                        ]
+                        Element.none
+
+                bodyAttr =
+                    [ width fill
+                    , Background.color (rgb255 255 255 255)
+                    , spacing 15
+                    , padding 10
+                    , Border.roundEach
+                        { topLeft = 0
+                        , topRight = 0
+                        , bottomLeft = 5
+                        , bottomRight = 5
+                        }
+                    , Border.color grey4
+                    , Border.widthEach
+                        { bottom = 1
+                        , left = 1
+                        , right = 1
+                        , top = 0
+                        }
+                    ]
+            in
+            if Set.member (canonical uuid) config.openedNews then
+                case ( pic, device.class ) of
+                    ( Just { url }, Phone ) ->
+                        [ column
+                            bodyAttr
+                            ([ el [ centerX ]
+                                (picView url)
+                             ]
+                                ++ renderTextBlock config
+                                    id
+                                    content.attrs
+                                    content.tbElems
+                            )
+                        ]
+
+                    ( Just { url }, _ ) ->
+                        [ textColumn
+                            bodyAttr
+                            ([ el
+                                [ paddingEach
+                                    { bottom = 0
+                                    , top = 0
+                                    , left = 0
+                                    , right = 10
+                                    }
+                                , alignLeft
+                                ]
+                                (picView url)
+                             ]
+                                ++ renderTextBlock config
+                                    id
+                                    content.attrs
+                                    content.tbElems
+                            )
+                        ]
+
+                    ( Nothing, _ ) ->
+                        [ column
+                            bodyAttr
+                            (renderTextBlock config
+                                id
+                                content.attrs
+                                content.tbElems
+                            )
+                        ]
+            else
+                []
+
+        renderNewsItem { uuid, title, content, date, pic } =
+            column
+                [ width fill ]
+                ([ renderNewsHeader uuid title date ]
+                    ++ (case content of
+                            Just c ->
+                                renderNewsBody uuid pic c
+
+                            _ ->
+                                []
+                       )
+                )
+
+        lastUpdate =
+            Dict.values config.news
+                |> List.map (Time.posixToMillis << .date)
+                |> List.sort
+                |> List.reverse
+                |> List.head
+                |> Maybe.map Time.millisToPosix
+
+        sortedNews =
+            Dict.values config.news
+                |> List.sortBy (Time.posixToMillis << .date)
+                |> List.reverse
+    in
+    [ column
+        ([ centerX
+         , spacing 15
+         , width fill
+         , alignTop
+         ]
+            ++ idStyle styleSheet id
+            ++ renderAttrs config attrs
+        )
+        ([ customHeading config 1 [] "ACTUALITES DE LA COMMUNE"
+         , Maybe.map
+            (\lastUp ->
+                paragraph []
+                    [ text <|
+                        "Dernière mise à jour le "
+                            ++ dateToFrench config.zone lastUp
+                    ]
+            )
+            lastUpdate
+            |> Maybe.withDefault Element.none
+         ]
+            ++ List.map renderNewsItem sortedNews
+        )
+    ]
 
 
 renderTextBlock config id attrs xs =
@@ -429,6 +584,19 @@ renderTextBlockElement config id tbAttrs tbe =
             el
                 (idStyle styleSheet id)
                 (renderTextBlockPrimitive config tbAttrs p)
+
+
+customHeading config level attrs title =
+    renderTextBlockElement
+        config
+        { uid = 0
+        , docStyleId = Nothing
+        , classes = Set.empty
+        , htmlId =
+            Just ("defaultHtmlId" ++ String.fromInt 0)
+        }
+        []
+        (Heading attrs ( level, title ))
 
 
 renderTextBlockPrimitive config tbAttrs p =
@@ -505,7 +673,9 @@ renderColumn config id attrs children =
                     []
                )
             ++ idStyle styleSheet id
-            ++ [ width (maximum config.width fill) ]
+            ++ [ width (maximum config.width fill)
+               , alignTop
+               ]
             ++ renderAttrs config attrs
         )
         (List.concatMap (renderDoc config) children)
@@ -685,6 +855,179 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
     ]
 
 
+renderCalendarWidget config id attrs =
+    let
+        containerWidth =
+            getContainerWidth config
+
+        maxWidth =
+            containerWidth - 40
+
+        device =
+            getDevice config
+
+        widgetWidth =
+            case device.class of
+                Phone ->
+                    width fill
+
+                Tablet ->
+                    width fill
+
+                _ ->
+                    width (px 300)
+    in
+    [ column
+        ([ widgetWidth
+         , alignTop
+         , centerX
+         , spacing 10
+         ]
+            ++ idStyle (defaultStyleSheet config) id
+            ++ renderAttrs config attrs
+        )
+        [ customHeading config 1 [] "AGENDA"
+        , el
+            [ centerX ]
+            (html <|
+                Html.iframe
+                    [ Attr.src "https://calendar.google.com/calendar/embed?showTitle=0&showTabs=0&showNav=0&showPrint=0&showCalendars=0&showTz=0&mode=AGENDA&height=150&wkst=2&hl=fr&bgcolor=%23FFFFFF&src=1claq68scg7llpg29j2fasprtk%40group.calendar.google.com&;color=%23fe3b00&;src=n1jce3hgvarkt6n3o69c6nl66g%40group.calendar.google.com&;color=%23007451&;src=r46rbonnui234n2b2glau5btoo%40group.calendar.google.com&;color=%2305f2ff&ctz=Europe%2FParis"
+                    , Attr.style "border-width" "0"
+                    ]
+                    []
+            )
+        ]
+    ]
+
+
+renderCalendar config id attrs =
+    []
+
+
+renderWeatherWidget config id attrs =
+    let
+        containerWidth =
+            getContainerWidth config
+
+        maxWidth =
+            containerWidth - 40
+
+        device =
+            getDevice config
+
+        widgetWidth =
+            case device.class of
+                Phone ->
+                    width fill
+
+                Tablet ->
+                    width fill
+
+                _ ->
+                    width (px 300)
+    in
+    [ column
+        ([ widgetWidth
+         , alignTop
+         , centerX
+         , spacing 10
+         ]
+            ++ idStyle (defaultStyleSheet config) id
+            ++ renderAttrs config attrs
+        )
+        [ customHeading config 1 [] "METEO"
+        , el
+            [ centerX ]
+            (html <|
+                Html.iframe
+                    [ Attr.style "border-width" "0"
+                    , Attr.style "width" "300"
+
+                    --, Attr.style "heigth" "200"
+                    , Attr.src "/meteo.html"
+                    ]
+                    []
+            )
+        ]
+    ]
+
+
+renderDronePanorama config id attrs =
+    let
+        containerWidth =
+            getContainerWidth config
+
+        maxWidth =
+            containerWidth - 40
+
+        device =
+            getDevice config
+
+        widgetWidth =
+            case device.class of
+                Phone ->
+                    width fill
+
+                Tablet ->
+                    width fill
+
+                _ ->
+                    width (px 300)
+    in
+    [ column
+        ([ widgetWidth
+         , alignTop
+         , centerX
+         , spacing 10
+         ]
+            ++ idStyle (defaultStyleSheet config) id
+            ++ renderAttrs config attrs
+        )
+        [ customHeading config 1 [] "VISITE VIRTUELLE AERIENNE"
+        , column
+            [ Background.color (rgb255 169 169 169)
+            , width fill
+            , padding 15
+            , spacing 15
+            ]
+            [ newTabLink
+                [ width fill
+                , centerX
+                ]
+                { url = "visite/visite-virtuelle-aerienne-murol.html"
+                , label =
+                    el
+                        [ width (px 200)
+                        , height (px 160)
+                        , Background.image "/images/visiteVirt.jpg"
+                        , Border.width 5
+                        , Border.color (rgb 1 1 1)
+
+                        --, Border.shadow
+                        --    { offset = ( 5, 5 )
+                        --    , size = 5
+                        --    , blur = 5
+                        --    , color = rgb 0 0 0
+                        --    }
+                        ]
+                        Element.none
+                }
+            , row
+                [ centerX
+                ]
+                [ el
+                    []
+                    (text "Réalisée par la société ")
+                , newTabLink [ Font.color teal3 ]
+                    { url = "http://www.w3ds.fr/"
+                    , label = text "W3D's"
+                    }
+                ]
+            ]
+        ]
+    ]
+
+
 renderCustomElement config id attrs s =
     [ Dict.get s config.customElems
         |> Maybe.withDefault Element.none
@@ -749,7 +1092,7 @@ renderAttrs : Config msg -> List DocAttribute -> List (Attribute msg)
 renderAttrs config attrs =
     let
         device =
-            classifyDevice config
+            getDevice config
 
         renderAttr attr =
             case attr of
@@ -814,6 +1157,20 @@ renderAttrs config attrs =
 
                 Height n ->
                     [ height (px n) ]
+
+                WidthShrink ->
+                    case device.class of
+                        Phone ->
+                            []
+
+                        Tablet ->
+                            []
+
+                        _ ->
+                            [ width shrink ]
+
+                WidthFill ->
+                    [ width fill ]
 
                 FillPortion n ->
                     [ width (fillPortion n) ]

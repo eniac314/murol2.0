@@ -243,11 +243,23 @@ cellContentToString lc =
         Fiches _ ->
             "Fiches"
 
-        NewsBlock _ ->
+        NewsBlock ->
             "Zone actualités"
 
         TextBlock xs ->
             "Zone de texte"
+
+        CalendarWidget ->
+            "Mini calendrier"
+
+        Calendar ->
+            "Calendrier"
+
+        WeatherWidget ->
+            "Météo"
+
+        DronePanorama ->
+            "Panoramique aérien"
 
         EmptyCell ->
             "Cellule vide"

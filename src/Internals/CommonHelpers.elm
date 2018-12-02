@@ -14,7 +14,7 @@ import Http exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as D
 import Task exposing (perform)
-import Time exposing (Posix, Zone, now, posixToMillis)
+import Time exposing (Month(..), Posix, Weekday(..), Zone, now, posixToMillis)
 
 
 type Status
@@ -212,3 +212,78 @@ dateToStr zone d =
            )
         ++ "/"
         ++ String.fromInt dateRec.year
+
+
+dateToFrench : Time.Zone -> Time.Posix -> String
+dateToFrench zone t =
+    let
+        currentYear =
+            Time.toYear zone t
+                |> String.fromInt
+
+        currentMonth =
+            case Time.toMonth zone t of
+                Jan ->
+                    "janvier"
+
+                Feb ->
+                    "férier"
+
+                Mar ->
+                    "mars"
+
+                Apr ->
+                    "avril"
+
+                May ->
+                    "mai"
+
+                Jun ->
+                    "juin"
+
+                Jul ->
+                    "juillet"
+
+                Aug ->
+                    "août"
+
+                Sep ->
+                    "septembre"
+
+                Oct ->
+                    "octobre"
+
+                Nov ->
+                    "novembre"
+
+                Dec ->
+                    "décembre"
+
+        currentDay =
+            Time.toDay zone t
+                |> String.fromInt
+
+        currentWeekday =
+            case Time.toWeekday zone t of
+                Mon ->
+                    "lundi"
+
+                Tue ->
+                    "mardi"
+
+                Wed ->
+                    "mercredi"
+
+                Thu ->
+                    "jeudi"
+
+                Fri ->
+                    "vendredi"
+
+                Sat ->
+                    "samedi"
+
+                Sun ->
+                    "dimanche"
+    in
+    currentWeekday ++ " " ++ currentDay ++ " " ++ currentMonth ++ " " ++ currentYear

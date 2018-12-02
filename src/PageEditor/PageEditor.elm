@@ -25,6 +25,8 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode exposing (Value, null)
+import List.Extra exposing (remove)
+import NewsEditor.NewsEditor as NewsEditor
 import PageEditor.EditorPlugins.BlockLinksPlugin as BlockLinksPlugin
 import PageEditor.EditorPlugins.ContainerEditPlugin as ContainerEditPlugin
 import PageEditor.EditorPlugins.FichesPlugin as FichesPlugin exposing (..)
@@ -192,11 +194,13 @@ type Msg
     | EditCell
     | EditContainer
     | SwapContainerType ContainerLabel
+    | UpdateContainerAttr ( Maybe DocAttribute, Maybe DocAttribute )
     | AddNewInside
     | AddNewLeft
     | AddNewRight
     | CreateNewContainer ContainerLabel
     | CreateNewCell EditorPlugin
+    | InsertNewCell String
     | DeleteSelected
     | Copy
     | Cut
@@ -279,10 +283,14 @@ reset mbDoc externalMsg =
             , containersBkgColors = False
             , season = Spring
             , currentTime = Time.millisToPosix 0
+            , zone = Time.utc
             , pageIndex = Dict.empty
             , fiches = Dict.empty
             , openedFiches = Set.empty
-            , openFicheMsg = \_ -> externalMsg NoOp
+            , openFicheMsg = always (externalMsg NoOp)
+            , news = Dict.empty
+            , openedNews = Set.empty
+            , openNewsMsg = always (externalMsg NoOp)
             }
 
         funnelState =
@@ -527,6 +535,48 @@ internalUpdate config msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        UpdateContainerAttr ( mbToRemove, mbToAdd ) ->
+            case extractDoc model.document of
+                Container cv children ->
+                    let
+                        removeFun =
+                            Maybe.map List.Extra.remove mbToRemove
+                                |> Maybe.withDefault identity
+
+                        addFun =
+                            Maybe.map
+                                (\toAdd attrs ->
+                                    if List.member toAdd attrs then
+                                        attrs
+                                    else
+                                        attrs ++ [ toAdd ]
+                                )
+                                mbToAdd
+                                |> Maybe.withDefault identity
+
+                        newAttrs =
+                            cv.attrs
+                                |> removeFun
+                                |> addFun
+
+                        newDoc =
+                            Container
+                                { cv
+                                    | attrs = newAttrs
+                                }
+                                children
+                    in
+                    ( { model
+                        | document =
+                            updateCurrent newDoc model.document
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         AddNewInside ->
             case addNewInside model.nextUid model.document of
                 Nothing ->
@@ -593,6 +643,22 @@ internalUpdate config msg model =
             , Cmd.batch
                 [ cmd ]
             )
+
+        InsertNewCell cellContent ->
+            case NewDocPlugin.cellContStrToCellContent cellContent of
+                Just cellContent_ ->
+                    ( { model
+                        | document =
+                            updateCurrent (newCell model.nextUid cellContent_) model.document
+                        , nextUid = model.nextUid + 2
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        []
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         DeleteSelected ->
             let
@@ -1210,6 +1276,7 @@ type alias ViewConfig config msg =
         , fileExplorer : FileExplorer.Model msg
         , pageTreeEditor : PageTreeEditor.Model msg
         , genDirEditor : GeneralDirectoryEditor.Model msg
+        , newsEditor : NewsEditor.Model msg
         , zone : Time.Zone
     }
 
@@ -1224,6 +1291,7 @@ view config model =
             { renderConfig
                 | fiches =
                     GeneralDirectoryEditor.fichesData config.genDirEditor
+                , news = NewsEditor.getNewsDict config.newsEditor
             }
     in
     column
@@ -1357,6 +1425,7 @@ pluginView config model plugin =
         NewDocPlugin ->
             NewDocPlugin.view
                 { createNewCell = model.externalMsg << CreateNewCell
+                , insertNewCell = model.externalMsg << InsertNewCell
                 , createNewContainer = model.externalMsg << CreateNewContainer
                 , goBack = model.externalMsg <| SetEditorPlugin Nothing
                 , nextUid = model.nextUid
@@ -1366,8 +1435,9 @@ pluginView config model plugin =
             case extractDoc model.document of
                 Container cv _ ->
                     ContainerEditPlugin.view
-                        { currentContainer = cv.containerLabel
+                        { currentContainer = cv
                         , swapContainerType = model.externalMsg << SwapContainerType
+                        , updateContainerAttr = model.externalMsg << UpdateContainerAttr
                         , goBack = model.externalMsg <| SetEditorPlugin Nothing
                         }
 
@@ -1529,20 +1599,10 @@ openNewPlugin config model =
                     FichesPlugin.init
                         []
                         (model.externalMsg << FichesPluginMsg)
-
-                --renderConfig =
-                --    model.config
-                --newConfig =
-                --    { renderConfig
-                --        | fiches =
-                --            GeneralDirectoryEditor.fichesData config.genDirEditor
-                --    }
             in
             ( { model
                 | fichesPlugin =
                     newFichesPlugin
-
-                --, config = newConfig
               }
             , Cmd.none
             )

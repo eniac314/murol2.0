@@ -86,11 +86,23 @@ encodeCellContent cellContent =
         Fiches fiches ->
             object [ ( "Fiches", list string fiches ) ]
 
-        NewsBlock news ->
-            object [ ( "NewsBlock", list encodeNews news ) ]
-
         TextBlock tbElems ->
             object [ ( "TextBlock", list encodeTextBlockElement tbElems ) ]
+
+        NewsBlock ->
+            string "NewsBlock"
+
+        CalendarWidget ->
+            string "CalendarWidget"
+
+        Calendar ->
+            string "Calendar"
+
+        WeatherWidget ->
+            string "WeatherWidget"
+
+        DronePanorama ->
+            string "DronePanorama"
 
         EmptyCell ->
             string "EmptyCell"
@@ -406,6 +418,14 @@ encodeDocAttribute docAttr =
             Just <|
                 object
                     [ ( "Height", int h ) ]
+
+        WidthShrink ->
+            Just <|
+                string "WidthShrink"
+
+        WidthFill ->
+            Just <|
+                string "WidthFill"
 
         FillPortion n ->
             Just <|

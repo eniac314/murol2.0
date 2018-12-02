@@ -59,15 +59,6 @@ view config =
                             [ text "Créer colonne de texte"
                             ]
                     }
-                  --, Input.button (buttonStyle True)
-                  --    { onPress =
-                  --        Just <|
-                  --            config.createNewContainer ResponsiveBloc
-                  --    , label =
-                  --        row [ spacing 10 ]
-                  --            [ text "Créer bloc réactif"
-                  --            ]
-                  --    }
                 ]
             ]
         , column
@@ -134,6 +125,56 @@ view config =
                             [ text "Tableau"
                             ]
                     }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "NewsBlock"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Zone actualités"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "CalendarWidget"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Mini calendrier"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "Calendar"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Calendrier"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "WeatherWidget"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Météo"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "DronePanorama"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Panoramique aérien"
+                            ]
+                    }
                 ]
             ]
         , Input.button (buttonStyle True)
@@ -146,6 +187,28 @@ view config =
                     ]
             }
         ]
+
+
+cellContStrToCellContent : String -> Maybe CellContent
+cellContStrToCellContent s =
+    case s of
+        "NewsBlock" ->
+            Just NewsBlock
+
+        "CalendarWidget" ->
+            Just CalendarWidget
+
+        "Calendar" ->
+            Just Calendar
+
+        "WeatherWidget" ->
+            Just WeatherWidget
+
+        "DronePanorama" ->
+            Just DronePanorama
+
+        _ ->
+            Nothing
 
 
 

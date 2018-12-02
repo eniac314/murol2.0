@@ -124,6 +124,10 @@ type Msg
     | NoOp
 
 
+getNewsDict model =
+    model.news
+
+
 
 -------------------------------------------------------------------------------
 ------------
@@ -791,7 +795,7 @@ setVisual config model =
                 (text "Image ")
             , el
                 []
-                (text "(optionel)")
+                (text "(optionnel)")
             ]
         , el
             [ width (px 190)
@@ -977,10 +981,14 @@ renderConfig externalMsg =
     , containersBkgColors = False
     , season = Spring
     , currentTime = Time.millisToPosix 0
+    , zone = Time.utc
     , pageIndex = Dict.empty
     , fiches = Dict.empty
     , openedFiches = Set.empty
-    , openFicheMsg = \_ -> externalMsg NoOp
+    , openFicheMsg = always (externalMsg NoOp)
+    , news = Dict.empty
+    , openedNews = Set.empty
+    , openNewsMsg = always (externalMsg NoOp)
     }
 
 

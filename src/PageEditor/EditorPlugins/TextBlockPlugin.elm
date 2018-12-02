@@ -148,13 +148,7 @@ init attrs mbInput externalMsg =
               , trackedData = newTrackedData
               , currentTrackedData = Nothing
               , nextUid = nextUid
-              , wholeTextBlocAttr =
-                    case List.filter isFontSizeAttr attrs of
-                        [] ->
-                            FontSize 16 :: attrs
-
-                        _ ->
-                            attrs
+              , wholeTextBlocAttr = attrs
               , headingLevel = Nothing
               , internalUrlSelectorOpen = False
               , colorPickerOpen = Nothing
@@ -938,22 +932,6 @@ newsEditorView config model =
                         model.setSelection
                         300
                         model.rawInput
-
-                    --, row
-                    --    [ spacing 15
-                    --    , Font.size 16
-                    --    , paddingEach
-                    --        { top = 0
-                    --        , bottom = 15
-                    --        , right = 0
-                    --        , left = 0
-                    --        }
-                    --    ]
-                    --    [ Input.button (buttonStyle True)
-                    --        { onPress = Just SaveAndQuit
-                    --        , label = text "Valider contenu"
-                    --        }
-                    --    ]
                     ]
                 ]
         ]
@@ -1955,7 +1933,8 @@ selectionInTrackedData mbSelection trackedData =
         Just { start, finish } ->
             let
                 selectionContainsTd { meta } =
-                    meta.start <= start && meta.stop >= finish
+                    (start > meta.start && start < meta.stop)
+                        || (finish > meta.start && finish < meta.stop)
             in
             Dict.foldr
                 (\k v acc ->
@@ -2109,7 +2088,7 @@ findNextAvailableUid trackedData =
 -----------------------
 -- makeTag functions --
 -----------------------
---NOTE: These function insert tracked tag into the input string
+--NOTE: These functions insert tracked tag into the input string
 
 
 insertTrackingTag : String -> Maybe Selection -> Int -> TrackedDataKind -> Maybe String
@@ -2352,7 +2331,7 @@ fromTextBlocElement nextUid_ tbe =
                                 newProcessedInput.resultString ++ " " ++ resultString
                             , trackedData =
                                 newProcessedInput.trackedData ++ trackedData
-                            , nextUid = nextUid + 1
+                            , nextUid = nextUid + List.length newProcessedInput.trackedData
                             }
                         )
                         { resultString = ""

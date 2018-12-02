@@ -83,8 +83,6 @@ decodeCellContent =
             |> required "BlockLinks" (list decodeBlockLink)
         , succeed Fiches
             |> required "Fiches" (list string)
-        , succeed NewsBlock
-            |> required "NewsBlock" (list decodeNews)
         , succeed TextBlock
             |> required "TextBlock" (list decodeTextBlockElement)
         , string
@@ -93,6 +91,21 @@ decodeCellContent =
                     case str of
                         "EmptyCell" ->
                             succeed EmptyCell
+
+                        "NewsBlock" ->
+                            succeed NewsBlock
+
+                        "Calendar" ->
+                            succeed Calendar
+
+                        "CalendarWidget" ->
+                            succeed CalendarWidget
+
+                        "DronePanorama" ->
+                            succeed DronePanorama
+
+                        "WeatherWidget" ->
+                            succeed WeatherWidget
 
                         somethingElse ->
                             fail <|
@@ -122,8 +135,8 @@ decodeNews =
             (nullable
                 (succeed Pic
                     |> required "url" string
-                    |> required "Width" int
-                    |> required "Height" int
+                    |> required "width" int
+                    |> required "height" int
                 )
             )
         |> required "uuid" decodeUUID
@@ -334,6 +347,12 @@ decodeDocAttribute =
             |> andThen
                 (\str ->
                     case str of
+                        "WidthShrink" ->
+                            succeed WidthShrink
+
+                        "WidthFill" ->
+                            succeed WidthFill
+
                         "AlignRight" ->
                             succeed AlignRight
 

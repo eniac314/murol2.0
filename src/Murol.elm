@@ -7,8 +7,9 @@ import Browser.Navigation as Nav
 import Dict exposing (..)
 import Document.Document as Document
 import Document.DocumentViews.DocumentResponsive exposing (responsivePreFormat)
-import Document.DocumentViews.DocumentView exposing (renderDoc)
+import Document.DocumentViews.DocumentView exposing (customHeading, renderDoc)
 import Document.DocumentViews.StyleSheets as StyleSheets exposing (..)
+import Document.Json.DocumentDecoder exposing (decodeNews)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -30,7 +31,7 @@ import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Task exposing (attempt, perform)
-import Time exposing (Posix, here, millisToPosix, now, utc)
+import Time exposing (Posix, here, millisToPosix, now, posixToMillis, utc)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
 
@@ -92,6 +93,7 @@ type Msg
     | LoadContent ( PathStr, ContentIdStr, PageName ) (Result Http.Error Decode.Value)
     | LoadPages (Result Http.Error Decode.Value)
     | LoadFiches (Result Http.Error (List Fiche))
+    | LoadNews (Result Http.Error (List Document.News))
     | SearchPromptInput String
     | Search
     | ResetSearchEngine
@@ -100,8 +102,10 @@ type Msg
     | SetSeason StyleSheets.Season
     | WinResize Int Int
     | ToogleFiche String
+    | ToogleNews String
     | FoldTopic
     | UnfoldTopic String
+    | SetZone Time.Zone
     | NoOp
 
 
@@ -151,10 +155,14 @@ init flags url key =
             , zipperHandlers = Nothing
             , season = StyleSheets.timeToSeason utc (Time.millisToPosix flags.currentTime)
             , currentTime = Time.millisToPosix flags.currentTime
+            , zone = Time.utc
             , pageIndex = Dict.empty
             , fiches = Dict.empty
             , openedFiches = Set.empty
             , openFicheMsg = ToogleFiche
+            , news = Dict.empty
+            , openedNews = Set.empty
+            , openNewsMsg = ToogleNews
             , previewMode = PreviewScreen
             }
 
@@ -183,6 +191,7 @@ init flags url key =
           else
             Cmd.none
         , Task.perform SetTime Time.now
+        , Task.perform SetZone Time.here
         , Time.now
             |> Task.andThen
                 (\t ->
@@ -345,6 +354,29 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        LoadNews res ->
+            case res of
+                Ok news ->
+                    let
+                        config =
+                            model.config
+
+                        newsDict =
+                            List.foldr
+                                (\n acc ->
+                                    Dict.insert (canonical n.uuid) n acc
+                                )
+                                Dict.empty
+                                news
+
+                        newConfig =
+                            { config | news = newsDict }
+                    in
+                    ( { model | config = newConfig }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         SearchPromptInput s ->
             ( { model
                 | searchStr = s
@@ -394,7 +426,7 @@ update msg model =
                 | config =
                     { config | currentTime = t }
               }
-            , Cmd.none
+            , getNews t
             )
 
         SetSeason season ->
@@ -435,11 +467,37 @@ update msg model =
             in
             ( { model | config = newConfig }, Cmd.none )
 
+        ToogleNews nId ->
+            let
+                config =
+                    model.config
+
+                newConfig =
+                    { config
+                        | openedNews =
+                            if Set.member nId config.openedNews then
+                                Set.remove nId config.openedNews
+                            else
+                                Set.insert nId config.openedNews
+                    }
+            in
+            ( { model | config = newConfig }, Cmd.none )
+
         FoldTopic ->
             ( { model | unfoldedTopic = Nothing }, Cmd.none )
 
         UnfoldTopic s ->
             ( { model | unfoldedTopic = Just s }, Cmd.none )
+
+        SetZone z ->
+            let
+                cfg =
+                    model.config
+
+                newConfig =
+                    { cfg | zone = z }
+            in
+            ( { model | config = newConfig }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -483,12 +541,12 @@ view model =
                     ]
                     [ pageTitleView maxWidth model
                     , subTitleView maxWidth model
-                    , searchEngineView maxWidth model
+                    , clickablePath maxWidth model
                     , if device.class /= Phone then
                         topMenuView model
                       else
                         Element.none
-                    , clickablePath maxWidth model
+                    , searchEngineView maxWidth model
                     , mainView maxWidth model
                     , footerView model
                     ]
@@ -512,10 +570,11 @@ searchEngineView maxWidth model =
         [ spacing 15
         , centerX
         , width (maximum maxWidth fill)
-        , paddingXY 0 15
+        , paddingXY 20 15
         , Background.color (rgba 1 1 1 0.9)
         ]
-        [ row
+        [ customHeading model.config 1 [] "RECHERCHER SUR LE SITE"
+        , row
             [ spacing 15
             , width (maximum maxWidth fill)
             ]
@@ -789,8 +848,6 @@ mainView maxWidth model =
                         , width (px 100)
                         , height (px 100)
                         , Background.image "/assets/images/loading.gif"
-
-                        --, Border.width 1
                         ]
                         Element.none
                     , el [ centerX ]
@@ -1025,6 +1082,27 @@ getFiches fichesIds =
             Http.expectJson
                 LoadFiches
                 (Decode.list decodeFiche)
+        }
+
+
+getNews : Posix -> Cmd Msg
+getNews currentTime =
+    let
+        body =
+            Encode.object
+                [ ( "currentTime"
+                  , Encode.int (posixToMillis currentTime)
+                  )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "/getNews.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                LoadNews
+                (Decode.list decodeNews)
         }
 
 

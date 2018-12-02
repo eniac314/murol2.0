@@ -10,7 +10,7 @@ import Html.Events exposing (on)
 import Json.Decode as Decode
 import List.Extra exposing (unique)
 import Set exposing (..)
-import Time exposing (Posix, millisToPosix)
+import Time exposing (Posix, Zone, millisToPosix)
 import UUID exposing (UUID, nil)
 
 
@@ -52,8 +52,12 @@ type CellContent
     | CustomElement String
     | BlockLinks (List BlockLinkMeta)
     | Fiches (List String)
-    | NewsBlock (List News)
     | TextBlock (List TextBlockElement)
+    | NewsBlock
+    | CalendarWidget
+    | Calendar
+    | WeatherWidget
+    | DronePanorama
     | EmptyCell
 
 
@@ -182,10 +186,14 @@ type alias Config msg =
     , containersBkgColors : Bool
     , season : Season
     , currentTime : Posix
+    , zone : Zone
     , pageIndex : Dict String String
     , fiches : Dict String Fiche
     , openedFiches : Set String
     , openFicheMsg : String -> msg
+    , news : Dict String News
+    , openedNews : Set String
+    , openNewsMsg : String -> msg
     }
 
 
@@ -217,6 +225,8 @@ type DocAttribute
     | AlignLeft
     | Pointer
     | BackgroundColor DocColor
+    | WidthFill
+    | WidthShrink
     | Width Int
     | Height Int
     | FillPortion Int

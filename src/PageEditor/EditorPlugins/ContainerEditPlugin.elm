@@ -15,23 +15,50 @@ import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 
 
 view config =
-    column
+    el
         [ padding 15
-        , spacing 15
-        , Font.size 16
         , alignTop
         ]
-        [ text "Modification du type de containeur: "
+        (column
+            (containerStyle
+                ++ [ Font.size 16
+                   ]
+            )
+            [ changeContainerTypeView config
+            , changeContainerWidthView config
+            , Input.button (buttonStyle True)
+                { onPress =
+                    Just <|
+                        config.goBack
+                , label =
+                    row [ spacing 10 ]
+                        [ text "Retour"
+                        ]
+                }
+            ]
+        )
+
+
+changeContainerTypeView config =
+    let
+        containerLabel =
+            config.currentContainer.containerLabel
+    in
+    column
+        itemStyle
+        [ el
+            [ Font.bold ]
+            (text "Modification du type de containeur: ")
         , text <|
             "Transformer "
-                ++ containerLabelToString config.currentContainer
+                ++ containerLabelToString containerLabel
                 ++ " en: "
         , row
             [ spacing 15 ]
             [ Input.button
-                (buttonStyle (config.currentContainer /= DocColumn))
+                (buttonStyle (containerLabel /= DocColumn))
                 { onPress =
-                    if config.currentContainer /= DocColumn then
+                    if containerLabel /= DocColumn then
                         Just <|
                             config.swapContainerType DocColumn
                     else
@@ -42,9 +69,9 @@ view config =
                         ]
                 }
             , Input.button
-                (buttonStyle <| config.currentContainer /= DocRow)
+                (buttonStyle <| containerLabel /= DocRow)
                 { onPress =
-                    if config.currentContainer /= DocRow then
+                    if containerLabel /= DocRow then
                         Just <|
                             config.swapContainerType DocRow
                     else
@@ -55,9 +82,9 @@ view config =
                         ]
                 }
             , Input.button
-                (buttonStyle <| config.currentContainer /= TextColumn)
+                (buttonStyle <| containerLabel /= TextColumn)
                 { onPress =
-                    if config.currentContainer /= TextColumn then
+                    if containerLabel /= TextColumn then
                         Just <|
                             config.swapContainerType TextColumn
                     else
@@ -68,28 +95,95 @@ view config =
                         ]
                 }
             ]
-        , Input.button (buttonStyle True)
-            { onPress =
-                Just <|
-                    config.goBack
-            , label =
-                row [ spacing 10 ]
-                    [ text "Retour"
-                    ]
+        ]
+
+
+changeContainerWidthView config =
+    let
+        attrs =
+            config.currentContainer.attrs
+    in
+    column
+        (itemStyle ++ [])
+        [ el
+            [ Font.bold ]
+            (text "Adapter la largeur du containeur au: ")
+        , Input.radioRow
+            [ spacing 15 ]
+            { onChange = config.updateContainerAttr
+            , options =
+                [ Input.option ( Just WidthShrink, Just WidthFill ) (text "contenant")
+                , Input.option ( Just WidthFill, Just WidthShrink ) (text "contenu")
+                ]
+            , selected =
+                if List.member WidthShrink attrs then
+                    Just ( Just WidthFill, Just WidthShrink )
+                else
+                    Just ( Just WidthShrink, Just WidthFill )
+            , label = Input.labelHidden ""
             }
         ]
+
+
+
+--changeContainerWidthView model config =
+--    column
+--        (itemStyle ++ [])
+--        [ Input.slider
+--            [ Element.height (Element.px 30)
+--            , Element.width (px 250)
+--            -- Here is where we're creating/styling the "track"
+--            , Element.behindContent
+--                (Element.el
+--                    [ Element.width fill
+--                    , Element.height (Element.px 2)
+--                    , Element.centerY
+--                    , Background.color (rgb 0.9 0.9 0.9)
+--                    , Border.rounded 2
+--                    ]
+--                    Element.none
+--                )
+--            ]
+--            { onChange = SetContainerWidth
+--            , label = Input.labelLeft [ centerY ] Element.none
+--            , min = 0
+--            , max = 100
+--            , step = Just 1
+--            , value = model.sliderValue
+--            , thumb =
+--                Input.defaultThumb
+--            }
+--        ]
 
 
 containerLabelToString cl =
     case cl of
         DocColumn ->
-            "Colonne"
+            "colonne"
 
         DocRow ->
-            "Ligne"
+            "ligne"
 
         TextColumn ->
-            "Colonne de texte"
+            "colonne de texte"
 
         ResponsiveBloc ->
-            "Bloc réactif"
+            "bloc réactif"
+
+
+containerStyle : List (Attribute msg)
+containerStyle =
+    [ padding 15
+    , spacing 15
+    , Background.color grey6
+    , Border.rounded 5
+    ]
+
+
+itemStyle : List (Attribute msg)
+itemStyle =
+    [ padding 15
+    , spacing 15
+    , Background.color grey7
+    , Border.rounded 5
+    ]
