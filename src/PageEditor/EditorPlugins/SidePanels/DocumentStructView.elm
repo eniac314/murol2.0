@@ -7,6 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Internals.Icons exposing (..)
 
 
@@ -37,7 +38,12 @@ documentStructView config selectedContainer document =
 
 menuView config =
     row [ spacing 15 ]
-        []
+        [--Keyed.el
+         --  []
+         --  ( String.fromInt config.nextUid
+         --  , text <| String.fromInt config.nextUid
+         --  )
+        ]
 
 
 mainPanel config selectedContainer document =
@@ -98,6 +104,8 @@ docTreeView config offsets ( sContainer, selection ) document =
                                    )
                             )
                             (text <| containerLabelToString containerLabel)
+
+                       --(text <| String.fromInt id.uid ++ " " ++ containerLabelToString containerLabel)
                        ]
                 )
             ]

@@ -85,7 +85,7 @@ findAlignment attrs =
                 y :: ys ->
                     helper ys
     in
-        helper attrs
+    helper attrs
 
 
 setAligment : Alignment -> List DocAttribute -> List DocAttribute
@@ -116,7 +116,7 @@ setAligment a attrs =
                 ALeft ->
                     [ AlignLeft ]
     in
-        newAlignment ++ removeOldAlignment [] attrs
+    newAlignment ++ removeOldAlignment [] attrs
 
 
 
@@ -185,18 +185,19 @@ maxUid doc =
                 Container { containerLabel, id, attrs } _ ->
                     id.uid
 
+        listMax =
+            List.foldr (\x acc -> max x acc) 0
+
         helper acc doc_ =
             case doc of
                 Cell { id } ->
                     max id.uid acc
 
                 Container { id } xs ->
-                    List.foldr
-                        (\d acc_ -> max (getUid d) acc_)
-                        (max id.uid acc)
-                        xs
+                    List.map maxUid xs
+                        |> listMax
     in
-        helper 0 doc
+    helper 0 doc
 
 
 
@@ -280,12 +281,12 @@ buildYoutubeUrl src videoMeta =
                             "?" ++ s
                    )
     in
-        "https://www.youtube"
-            ++ (if videoMeta.privacy then
-                    "-nocookie"
-                else
-                    ""
-               )
-            ++ ".com/embed/"
-            ++ src
-            ++ params
+    "https://www.youtube"
+        ++ (if videoMeta.privacy then
+                "-nocookie"
+            else
+                ""
+           )
+        ++ ".com/embed/"
+        ++ src
+        ++ params

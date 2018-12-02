@@ -258,6 +258,7 @@ reset mbDoc externalMsg =
     let
         doc_ =
             Maybe.withDefault emptyDoc mbDoc
+                |> fixUids 0
 
         ( newTextBlockPlugin, textBlockPluginCmds ) =
             TextBlockPlugin.init [] Nothing (externalMsg << TextBlockPluginMsg)
@@ -650,7 +651,7 @@ internalUpdate config msg model =
                     ( { model
                         | document =
                             updateCurrent (newCell model.nextUid cellContent_) model.document
-                        , nextUid = model.nextUid + 2
+                        , nextUid = model.nextUid + 1
                         , currentPlugin = Nothing
                       }
                     , Cmd.batch
@@ -673,7 +674,6 @@ internalUpdate config msg model =
                     model.document
                         :: model.undoCache
                         |> List.take undoCacheDepth
-                , nextUid = model.nextUid + 1
               }
             , Cmd.none
             )
@@ -1335,6 +1335,7 @@ view config model =
                 { zipToUidCmd = ZipToUid
                 , containersColors = newConfig.containersBkgColors
                 , isActive = model.currentPlugin == Nothing
+                , nextUid = model.nextUid
                 }
                 (extractDoc model.document
                     |> getUid
