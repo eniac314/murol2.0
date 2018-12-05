@@ -89,6 +89,13 @@ encodeCellContent cellContent =
         TextBlock tbElems ->
             object [ ( "TextBlock", list encodeTextBlockElement tbElems ) ]
 
+        PictureLinks picLinks ->
+            object
+                [ ( "PictureLinks"
+                  , list encodePictureLink picLinks
+                  )
+                ]
+
         NewsBlock ->
             string "NewsBlock"
 
@@ -106,6 +113,14 @@ encodeCellContent cellContent =
 
         EmptyCell ->
             string "EmptyCell"
+
+
+encodePictureLink : PictureLink -> Value
+encodePictureLink { url, img } =
+    object
+        [ ( "url", string url )
+        , ( "img", encodeImageMeta img )
+        ]
 
 
 encodeBlockLink : BlockLinkMeta -> Value

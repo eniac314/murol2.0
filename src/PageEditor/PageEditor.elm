@@ -32,6 +32,7 @@ import PageEditor.EditorPlugins.ContainerEditPlugin as ContainerEditPlugin
 import PageEditor.EditorPlugins.FichesPlugin as FichesPlugin exposing (..)
 import PageEditor.EditorPlugins.ImagePlugin as ImagePlugin
 import PageEditor.EditorPlugins.NewDocPlugin as NewDocPlugin
+import PageEditor.EditorPlugins.PictureLinksPlugin as PictureLinksPlugin
 import PageEditor.EditorPlugins.SidePanels.DocumentStructView exposing (..)
 import PageEditor.EditorPlugins.TablePlugin as TablePlugin
 import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
@@ -163,6 +164,7 @@ type alias Model msg =
     , videoPlugin : VideoPlugin.Model msg
     , blockLinksPlugin : BlockLinksPlugin.Model msg
     , fichesPlugin : FichesPlugin.Model msg
+    , pictureLinksPlugin : PictureLinksPlugin.Model msg
     , externalMsg : Msg -> msg
     }
 
@@ -225,6 +227,7 @@ type Msg
     | VideoPluginMsg VideoPlugin.Msg
     | BlockLinksPluginMsg BlockLinksPlugin.Msg
     | FichesPluginMsg FichesPlugin.Msg
+    | PictureLinksPluginMsg PictureLinksPlugin.Msg
       -------------------
       -- Persistence   --
       -------------------
@@ -317,6 +320,7 @@ reset mbDoc externalMsg =
       , videoPlugin = VideoPlugin.init Nothing (externalMsg << VideoPluginMsg)
       , blockLinksPlugin = BlockLinksPlugin.init Nothing (externalMsg << BlockLinksPluginMsg)
       , fichesPlugin = FichesPlugin.init [] (externalMsg << FichesPluginMsg)
+      , pictureLinksPlugin = PictureLinksPlugin.init [] (externalMsg << PictureLinksPluginMsg)
       , externalMsg = externalMsg
       }
     , Cmd.batch
@@ -1069,6 +1073,50 @@ internalUpdate config msg model =
                         ]
                     )
 
+        PictureLinksPluginMsg pictureLinksPluginMsg ->
+            let
+                ( newPictureLinksPlugin, mbEditorPluginResult ) =
+                    PictureLinksPlugin.update pictureLinksPluginMsg model.pictureLinksPlugin
+            in
+            case mbEditorPluginResult of
+                Nothing ->
+                    ( { model | pictureLinksPlugin = newPictureLinksPlugin }
+                    , Cmd.none
+                    )
+
+                Just EditorPluginQuit ->
+                    ( { model
+                        | pictureLinksPlugin = newPictureLinksPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.map model.externalMsg <|
+                        scrollTo <|
+                            getHtmlId (extractDoc model.document)
+                    )
+
+                Just (EditorPluginData newPictureLinks) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = PictureLinks newPictureLinks
+                                    , attrs = []
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        ]
+                    )
+
         LoadLocalStorageDocument ->
             case Maybe.map (Decode.decodeValue decodeDocument) model.localStorageValue of
                 Just (Ok newDoc) ->
@@ -1466,6 +1514,14 @@ pluginView config model plugin =
                 }
                 model.fichesPlugin
 
+        PictureLinksPlugin ->
+            PictureLinksPlugin.view
+                { fileExplorer = config.fileExplorer
+                , logInfo = config.logInfo
+                , zone = config.zone
+                }
+                model.pictureLinksPlugin
+
         PersistencePlugin ->
             Element.map model.externalMsg <|
                 PersistencePlugin.view
@@ -1608,6 +1664,20 @@ openNewPlugin config model =
             , Cmd.none
             )
 
+        Just PictureLinksPlugin ->
+            let
+                pictureLinksPlugin =
+                    PictureLinksPlugin.init
+                        []
+                        (model.externalMsg << PictureLinksPluginMsg)
+            in
+            ( { model
+                | pictureLinksPlugin =
+                    pictureLinksPlugin
+              }
+            , Cmd.none
+            )
+
         _ ->
             ( model, Cmd.none )
 
@@ -1700,21 +1770,26 @@ openPlugin config model =
                             FichesPlugin.init
                                 fichesId
                                 (model.externalMsg << FichesPluginMsg)
-
-                        --renderConfig =
-                        --    model.config
-                        --newConfig =
-                        --    { renderConfig
-                        --        | fiches =
-                        --            GeneralDirectoryEditor.fichesData config.genDirEditor
-                        --    }
                     in
                     ( { model
                         | currentPlugin = Just FichesPlugin
                         , fichesPlugin =
                             newFichesPlugin
+                      }
+                    , Cmd.none
+                    )
 
-                        --, config = newConfig
+                PictureLinks picLinks ->
+                    let
+                        newPicLinks =
+                            PictureLinksPlugin.init
+                                picLinks
+                                (model.externalMsg << PictureLinksPluginMsg)
+                    in
+                    ( { model
+                        | currentPlugin = Just PictureLinksPlugin
+                        , pictureLinksPlugin =
+                            newPicLinks
                       }
                     , Cmd.none
                     )

@@ -58,7 +58,14 @@ type CellContent
     | Calendar
     | WeatherWidget
     | DronePanorama
+    | PictureLinks (List PictureLink)
     | EmptyCell
+
+
+type alias PictureLink =
+    { url : String
+    , img : ImageMeta
+    }
 
 
 type alias ImageMeta =

@@ -66,6 +66,7 @@ type EditorPlugin
     | PersistencePlugin
     | PageTreeEditorPlugin PageTreeEditor.Mode
     | FichesPlugin
+    | PictureLinksPlugin
 
 
 findAlignment : List DocAttribute -> Alignment

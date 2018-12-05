@@ -85,6 +85,14 @@ decodeCellContent =
             |> required "Fiches" (list string)
         , succeed TextBlock
             |> required "TextBlock" (list decodeTextBlockElement)
+        , succeed PictureLinks
+            |> required "PictureLinks"
+                (list
+                    (succeed PictureLink
+                        |> required "url" string
+                        |> required "img" decodeImageMeta
+                    )
+                )
         , string
             |> andThen
                 (\str ->

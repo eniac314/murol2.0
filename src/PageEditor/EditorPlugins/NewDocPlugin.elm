@@ -30,7 +30,7 @@ view config =
             , padding 15
             ]
             [ el [ Font.size 18 ] (text "Nouveau conteneur")
-            , row
+            , wrappedRow
                 [ spacing 15 ]
                 [ Input.button (buttonStyle True)
                     { onPress =
@@ -69,7 +69,7 @@ view config =
             , Border.color (rgba 0.9 0.9 0.9 1)
             ]
             [ el [ Font.size 18 ] (text "Nouvelle cellule")
-            , row
+            , wrappedRow
                 [ spacing 15 ]
                 [ Input.button (buttonStyle True)
                     { onPress =
@@ -123,6 +123,15 @@ view config =
                     , label =
                         row [ spacing 10 ]
                             [ text "Tableau"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.createNewCell PictureLinksPlugin
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Bandeau liens images"
                             ]
                     }
                 , Input.button (buttonStyle True)

@@ -72,6 +72,9 @@ renderDoc config document =
                 CustomElement s ->
                     renderCustomElement config id attrs s
 
+                PictureLinks picLinks ->
+                    renderPictureLinks config id attrs picLinks
+
                 CalendarWidget ->
                     renderCalendarWidget config id attrs
 
@@ -568,7 +571,7 @@ renderTextBlockElement config id tbAttrs tbe =
         Heading attrs ( level, s ) ->
             let
                 headingStyle =
-                    Dict.get level styleSheet.headingStyles
+                    Dict.get level styleSheet.headingStyle
                         |> Maybe.withDefault []
             in
             paragraph
@@ -1032,6 +1035,109 @@ renderCustomElement config id attrs s =
     [ Dict.get s config.customElems
         |> Maybe.withDefault Element.none
     ]
+
+
+renderPictureLinks config id attrs picLinks =
+    let
+        styleSheet =
+            defaultStyleSheet config
+
+        minHeight =
+            picLinks
+                |> List.map (.imgHeight << .size << .img)
+                |> List.sort
+                |> List.head
+                |> Maybe.map (min 50)
+                |> Maybe.withDefault 0
+
+        imgsScaledToMinHeight =
+            let
+                scale ({ img } as picLink) =
+                    { picLink
+                        | img =
+                            { img
+                                | size =
+                                    { imgHeight = minHeight + 5
+                                    , imgWidth =
+                                        round <|
+                                            toFloat minHeight
+                                                * toFloat img.size.imgWidth
+                                                / toFloat img.size.imgHeight
+                                    }
+                            }
+                    }
+            in
+            List.map scale picLinks
+
+        totalImgWidth =
+            List.foldr (\pl n -> pl.img.size.imgWidth + n) 0 imgsScaledToMinHeight
+                |> toFloat
+
+        logoView { url, img } =
+            if config.editMode then
+                el
+                    [ Element.width <|
+                        fillPortion
+                            (floor <| 10000 * toFloat img.size.imgWidth / totalImgWidth)
+                    ]
+                    (html <|
+                        Html.img
+                            [ Attr.style "width" "100%"
+                            , Attr.style "height" "auto"
+                            , case img.src of
+                                UrlSrc urlSrc ->
+                                    Attr.src urlSrc
+
+                                _ ->
+                                    Attr.style "" ""
+                            ]
+                            []
+                    )
+            else
+                newTabLink
+                    [ Element.width <|
+                        fillPortion
+                            (floor <| 10000 * toFloat img.size.imgWidth / totalImgWidth)
+                    , pointer
+                    , Border.width 2
+                    , Border.color (rgb255 255 200 50)
+                    , Border.rounded 2
+                    , mouseOver
+                        [ Border.color (rgb255 89 58 46)
+                        ]
+                    ]
+                    { url = url
+                    , label =
+                        html <|
+                            Html.img
+                                [ Attr.style "width" "100%"
+                                , Attr.style "height" "auto"
+                                , case img.src of
+                                    UrlSrc urlSrc ->
+                                        Attr.src urlSrc
+
+                                    _ ->
+                                        Attr.style "" ""
+                                ]
+                                []
+                    }
+    in
+    case picLinks of
+        [] ->
+            []
+
+        _ ->
+            [ row
+                ([ spacing 10
+                 , padding 10
+                 , clip
+                 ]
+                    ++ styleSheet.pictureLinksStyle
+                    ++ idStyle styleSheet id
+                    ++ renderAttrs config attrs
+                )
+                (List.map logoView imgsScaledToMinHeight)
+            ]
 
 
 renderEmptyCell config id attrs =

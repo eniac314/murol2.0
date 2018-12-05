@@ -37,7 +37,7 @@ docMaxWidth ( winWidth, winHeight ) editMode previewMode =
     else if device.class == BigDesktop then
         1000
     else
-        950
+        1000
 
 
 getContainerWidth config =
@@ -155,11 +155,24 @@ defaultStyleSheet config =
     , blocLinkStyle = []
     , linkStyle =
         [ Font.color (rgb 0 0.5 0.5) ]
-    , headingStyles =
+    , headingStyle =
         headingStyles
             config.season
             ( config.width, config.height )
             config.editMode
+    , pictureLinksStyle =
+        case config.season of
+            Spring ->
+                []
+
+            Summer ->
+                []
+
+            Autumn ->
+                [ Background.color (rgb255 255 211 37) ]
+
+            Winter ->
+                []
     , customStyles =
         { idNbrs =
             Dict.fromList
@@ -198,11 +211,6 @@ defaultStyleSheet config =
                         , blur = 10
                         , color = rgba 0 0 0 0.45
                         }
-                    ]
-                  )
-                , ( "sameHeightImgsRow"
-                  , [ spaceEvenly
-                    , clip
                     ]
                   )
                 ]

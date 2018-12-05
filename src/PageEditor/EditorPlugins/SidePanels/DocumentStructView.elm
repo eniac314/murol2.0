@@ -269,5 +269,8 @@ cellContentToString lc =
         DronePanorama ->
             "Panoramique aérien"
 
+        PictureLinks _ ->
+            "Bandeau images liens"
+
         EmptyCell ->
             "Cellule vide"

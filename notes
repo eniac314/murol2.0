@@ -90,3 +90,8 @@ sudo chown -R www-data:www-data baseDocumentaire/
 CallStack (from HasCallStack):
   error, called at ./Data/Vector/Internal/Check.hs:87:5 in vector-0.12.0.1-IfIQAgrX0q07Xkx6bkYLRX:Data.Vector.Internal.Check
 elm: thread blocked indefinitely in an MVar operation
+
+- changer couleurs titre news 
+- enlever menu déroulant tablette
+- changer image se loger 
+- changer style lien

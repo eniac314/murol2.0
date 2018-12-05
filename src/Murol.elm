@@ -570,13 +570,24 @@ searchEngineView maxWidth model =
         [ spacing 15
         , centerX
         , width (maximum maxWidth fill)
-        , paddingXY 20 15
+        , paddingEach
+            { top = 15
+            , left = 20
+            , right = 20
+            , bottom = 0
+            }
         , Background.color (rgba 1 1 1 0.9)
         ]
         [ customHeading model.config 1 [] "RECHERCHER SUR LE SITE"
         , row
             [ spacing 15
             , width (maximum maxWidth fill)
+            , paddingEach
+                { top = 5
+                , left = 0
+                , right = 0
+                , bottom = 0
+                }
             ]
             [ Input.text
                 [ paddingXY 5 5
