@@ -451,6 +451,21 @@ type Season
     | Winter
 
 
+seasonToStr season =
+    case season of
+        Spring ->
+            "spring"
+
+        Summer ->
+            "summer"
+
+        Autumn ->
+            "autumn"
+
+        Winter ->
+            "winter"
+
+
 timeToSeason : Zone -> Posix -> Season
 timeToSeason zone time =
     let

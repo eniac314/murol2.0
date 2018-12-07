@@ -1,5 +1,8 @@
 port module Murol exposing (..)
 
+--import Gallery.Gallery as Gallery
+--import Gallery.Image as GImage
+
 import Browser exposing (..)
 import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
@@ -17,6 +20,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Gallery.HeaderGallery as HeaderGallery
 import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import GeneralDirectoryEditor.GeneralDirJson exposing (..)
 import Html as Html
@@ -54,6 +58,7 @@ type alias Model =
     , debug : String
     , unfoldedTopic : Maybe String
     , initialLoadDone : Bool
+    , headerGallery : HeaderGallery.Model Msg
     }
 
 
@@ -106,6 +111,7 @@ type Msg
     | FoldTopic
     | UnfoldTopic String
     | SetZone Time.Zone
+    | HGmsg HeaderGallery.Msg
     | NoOp
 
 
@@ -139,12 +145,16 @@ subscriptions model =
     Sub.batch
         [ onResize WinResize
         , searchResult ProcessSearchResult
+        , Sub.map HGmsg (HeaderGallery.subscriptions model.headerGallery)
         ]
 
 
 init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
+        season =
+            StyleSheets.timeToSeason utc (Time.millisToPosix flags.currentTime)
+
         config =
             { containersBkgColors = False
             , customElems = Dict.empty
@@ -153,7 +163,7 @@ init flags url key =
             , width = flags.width
             , mainInterfaceHeight = 0
             , zipperHandlers = Nothing
-            , season = StyleSheets.timeToSeason utc (Time.millisToPosix flags.currentTime)
+            , season = season
             , currentTime = Time.millisToPosix flags.currentTime
             , zone = Time.utc
             , pageIndex = Dict.empty
@@ -183,6 +193,21 @@ init flags url key =
       , debug = ""
       , unfoldedTopic = Nothing
       , initialLoadDone = False
+      , headerGallery =
+            HeaderGallery.init
+                (List.map
+                    (\n -> String.padLeft 3 '0' (String.fromInt n))
+                    (List.range 1 5)
+                    |> List.map
+                        (\s ->
+                            "/assets/images/headerGallery/"
+                                ++ seasonToStr season
+                                ++ "/"
+                                ++ s
+                                ++ "-min.jpg"
+                        )
+                )
+                HGmsg
       }
     , Cmd.batch
         [ getPages
@@ -499,6 +524,14 @@ update msg model =
             in
             ( { model | config = newConfig }, Cmd.none )
 
+        HGmsg hgMsg ->
+            ( { model
+                | headerGallery =
+                    HeaderGallery.update hgMsg model.headerGallery
+              }
+            , Cmd.none
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -541,6 +574,7 @@ view model =
                     ]
                     [ pageTitleView maxWidth model
                     , subTitleView maxWidth model
+                    , HeaderGallery.view { maxWidth = 1000 } model.headerGallery
                     , clickablePath maxWidth model
                     , if device.class /= Phone then
                         topMenuView model

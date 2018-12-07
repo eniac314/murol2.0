@@ -1,4 +1,4 @@
-module Internals.Streams
+module GiteGallery.Streams
     exposing
         ( BiStream
         , Stream
@@ -9,7 +9,7 @@ module Internals.Streams
         , goTo
         , left
         , next
-        , previous
+        , prev
         , right
         , takeNth
         , toList
@@ -68,7 +68,7 @@ cycle xs def =
             Dict.fromList (tag xs)
 
         safeGet i =
-            Maybe.withDefault def (Dict.get (modBy l i) dict)
+            Maybe.withDefault def (Dict.get (i % l) dict)
 
         f n =
             Stream (\() -> ( safeGet n, f (n + 1) ))
@@ -120,7 +120,7 @@ biStream xs def =
                     Dict.fromList (tag xs)
 
                 safeGet i =
-                    Maybe.withDefault def (Dict.get (modBy l i) dict)
+                    Maybe.withDefault def (Dict.get (i % l) dict)
 
                 leftStr n =
                     Stream (\() -> ( safeGet (l - n), leftStr (n + 1) ))
@@ -136,8 +136,8 @@ current bs =
     .value bs
 
 
-previous : BiStream a -> Maybe a
-previous bs =
+prev : BiStream a -> Maybe a
+prev bs =
     .prev bs
 
 
@@ -160,7 +160,7 @@ left { value, leftStr, rightStr, prev, size, index } =
         newRight =
             Stream (\() -> ( value, rightStr ))
     in
-    BiStream newCurrent newLeft newRight (Just value) size (modBy size (index - 1))
+    BiStream newCurrent newLeft newRight (Just value) size ((index - 1) % size)
 
 
 right : BiStream a -> BiStream a
@@ -172,17 +172,17 @@ right { value, leftStr, rightStr, prev, size, index } =
         newLeft =
             Stream (\() -> ( value, leftStr ))
     in
-    BiStream newCurrent newLeft newRight (Just value) size (modBy size (index + 1))
+    BiStream newCurrent newLeft newRight (Just value) size ((index + 1) % size)
 
 
 goTo : BiStream a -> (a -> Bool) -> BiStream a
 goTo ({ value, leftStr, rightStr, prev, size } as bs) p =
     let
-        helper bs_ =
-            if p (current bs_) then
-                updatePrev prev bs_
+        helper bs =
+            if p (current bs) then
+                updatePrev prev bs
             else
-                helper (right bs_)
+                helper (right bs)
     in
     helper bs
 
@@ -203,13 +203,13 @@ test2 =
 tag : List a -> List ( Int, a )
 tag xs =
     let
-        go n xs_ =
-            case xs_ of
+        go n xs =
+            case xs of
                 [] ->
                     []
 
-                x :: ys ->
-                    ( n, x ) :: go (n + 1) ys
+                x :: xs_ ->
+                    ( n, x ) :: go (n + 1) xs_
     in
     go 0 xs
 
@@ -232,16 +232,16 @@ chunk n xs def =
 chunkBiStream : Int -> BiStream a -> BiStream (List a)
 chunkBiStream n ({ value, leftStr, rightStr, prev, size } as bs) =
     let
-        takeN n_ bs_ acc =
-            if n_ == 0 then
+        takeN n bs acc =
+            if n == 0 then
                 List.reverse acc
             else
-                takeN (n_ - 1) (right bs_) (current bs_ :: acc)
+                takeN (n - 1) (right bs) (current bs :: acc)
 
-        takeMChunk m bs_ acc =
+        takeMChunk m bs acc =
             if m == 0 then
                 List.reverse acc
             else
-                takeMChunk (m - 1) (right bs_) (takeN n bs_ [] :: acc)
+                takeMChunk (m - 1) (right bs) (takeN n bs [] :: acc)
     in
     biStream (takeMChunk size bs []) []
