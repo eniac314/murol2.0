@@ -527,7 +527,10 @@ update msg model =
         HGmsg hgMsg ->
             ( { model
                 | headerGallery =
-                    HeaderGallery.update hgMsg model.headerGallery
+                    HeaderGallery.update
+                        { maxWidth = min 1000 model.config.width }
+                        hgMsg
+                        model.headerGallery
               }
             , Cmd.none
             )
@@ -561,8 +564,6 @@ view model =
             ]
             (el
                 [ width fill
-
-                --(px model.config.width)
                 , height (px model.config.height)
                 , clip
                 , Background.image (StyleSheets.backgroundImage model.config.season)
@@ -574,7 +575,10 @@ view model =
                     ]
                     [ pageTitleView maxWidth model
                     , subTitleView maxWidth model
-                    , HeaderGallery.view { maxWidth = 1000 } model.headerGallery
+                    , if model.config.width > 500 then
+                        HeaderGallery.view { maxWidth = min 1000 model.config.width } model.headerGallery
+                      else
+                        Element.none
                     , clickablePath maxWidth model
                     , if device.class /= Phone then
                         topMenuView model

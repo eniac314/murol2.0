@@ -14,7 +14,7 @@ import Animation
         , speed
         , to
         )
-import Browser.Events exposing (onAnimationFrame)
+import Browser.Events exposing (Visibility(..), onAnimationFrame, onKeyDown, onVisibilityChange)
 import Delay exposing (after)
 import Ease exposing (..)
 import Element exposing (..)
@@ -42,7 +42,7 @@ type alias Model msg =
     , mbDrag : Maybe Drag
     , mbAnim : Maybe ( Animation, Direction )
     , clock : Float
-    , frameBuffer : Int
+    , visibility : Visibility
     , externalMsg : Msg -> msg
     }
 
@@ -71,24 +71,28 @@ type alias Image =
 type Msg
     = Next
     | Previous
-    | Animate Direction
+    | Animate Direction Posix
     | DragStart Position
     | DragAt Position
     | DragEnd
     | Tick Posix
     | ImgLoaded String
+    | VisibilityChange Visibility
     | NoOp
 
 
 subscriptions model =
     Sub.batch
-        [ onAnimationFrame Tick
-        , Time.every 15000 (always <| Animate AnimateLeft)
+        [ if model.mbAnim == Nothing then
+            Sub.none
+          else
+            onAnimationFrame Tick
+        , if model.visibility == Hidden then
+            Sub.none
+          else
+            Time.every 15000 (Animate AnimateLeft)
+        , onVisibilityChange VisibilityChange
         ]
-
-
-
---onAnimationFrame Tick
 
 
 init : List String -> (Msg -> msg) -> Model msg
@@ -106,13 +110,13 @@ init imgs externalMsg =
     , mbDrag = Nothing
     , mbAnim = Nothing
     , clock = 0
-    , frameBuffer = 0
+    , visibility = Visible
     , externalMsg = externalMsg
     }
 
 
-update : Msg -> Model msg -> Model msg
-update msg model =
+update : { maxWidth : Int } -> Msg -> Model msg -> Model msg
+update config msg model =
     case msg of
         Next ->
             { model
@@ -126,15 +130,18 @@ update msg model =
                 , mbDrag = Nothing
             }
 
-        Animate dir ->
+        Animate dir t ->
             let
+                newClock =
+                    toFloat <| posixToMillis t
+
                 newAnim =
-                    case ( model.mbAnim, dir, model.mbDrag ) of
-                        ( Nothing, AnimateLeft, Nothing ) ->
+                    case ( model.mbAnim, dir ) of
+                        ( Nothing, AnimateLeft ) ->
                             Just
-                                ( animation model.clock
+                                ( animation newClock
                                     |> from 0
-                                    |> to 1000
+                                    |> to (toFloat config.maxWidth)
                                     |> speed 1
                                     |> ease Ease.inOutExpo
                                 , AnimateLeft
@@ -183,7 +190,6 @@ update msg model =
             { model | loaded = Set.insert src model.loaded }
 
         Tick t ->
-            --if model.frameBuffer == 2 then
             let
                 newClock =
                     toFloat <| posixToMillis t
@@ -209,11 +215,11 @@ update msg model =
                 | clock = newClock
                 , mbAnim = newAnim
                 , images = newImages
-                , frameBuffer = 0
             }
 
-        --else
-        --    { model | frameBuffer = model.frameBuffer + 1 }
+        VisibilityChange visibility ->
+            { model | visibility = visibility }
+
         NoOp ->
             model
 
@@ -230,8 +236,6 @@ galleryView model config =
         , clipX
         , width (px config.maxWidth)
         , height (px (round (toFloat config.maxWidth / 5)))
-
-        --, Background.color (rgba 1 0 1 0.3)
         ]
         (chunkView model config (current model.images))
 
@@ -246,11 +250,11 @@ chunkView model config chunk =
                             ++ [ mc ]
                         )
                         [ picView model config l []
-                        , picView model config c [] --(events model.mbDrag)
+                        , picView model config c []
                         , picView model config r []
                         ]
                 )
-                (moveChunk model)
+                (moveChunk config model)
 
         _ ->
             Element.none
@@ -278,7 +282,7 @@ picView model config { src } attrs =
         )
 
 
-moveChunk model =
+moveChunk config model =
     let
         animOffset =
             case model.mbAnim of
@@ -290,13 +294,13 @@ moveChunk model =
     in
     case model.mbDrag of
         Nothing ->
-            moveLeft (1000 + animOffset)
+            moveLeft (toFloat config.maxWidth + animOffset)
 
         Just (Drag start stop) ->
             if start.x - stop.x <= 0 then
-                moveRight (toFloat <| -1000 + abs (start.x - stop.x))
+                moveRight (toFloat <| (-1 * config.maxWidth) + abs (start.x - stop.x))
             else
-                moveLeft (toFloat <| 1000 + start.x - stop.x)
+                moveLeft (toFloat <| config.maxWidth + start.x - stop.x)
 
 
 
@@ -309,7 +313,6 @@ events drag =
         moveEvent drag
             ++ [ HtmlEvents.on "mousedown" (Decode.map DragStart decodePosition)
                , HtmlEvents.on "touchstart" (Decode.map DragStart decodePosition)
-               , HtmlEvents.on "keydown" (Decode.andThen keycodeToMsg decodeKeyboard)
                ]
 
 
@@ -331,11 +334,6 @@ moveEvent drag =
             []
 
 
-decodeKeyboard : Decode.Decoder Int
-decodeKeyboard =
-    Decode.field "keyCode" Decode.int
-
-
 decodePosition : Decode.Decoder Position
 decodePosition =
     let
@@ -345,16 +343,3 @@ decodePosition =
                 (Decode.field "pageY" (Decode.map floor Decode.float))
     in
     Decode.oneOf [ decoder, Decode.at [ "touches", "0" ] decoder ]
-
-
-keycodeToMsg : Int -> Decode.Decoder Msg
-keycodeToMsg keyCode =
-    case keyCode of
-        37 ->
-            Decode.succeed Previous
-
-        39 ->
-            Decode.succeed Next
-
-        _ ->
-            Decode.fail "Unknown key"
