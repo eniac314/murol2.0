@@ -83,7 +83,7 @@ type Msg
 
 subscriptions model =
     Sub.batch
-        [ if model.mbAnim == Nothing then
+        [ if model.mbAnim == Nothing && model.mbDrag == Nothing then
             Sub.none
           else
             onAnimationFrame Tick
@@ -170,14 +170,46 @@ update config msg model =
         DragEnd ->
             case model.mbDrag of
                 Just (Drag start current_) ->
-                    if start.x - current_.x > 100 then
+                    let
+                        newAnimFun x =
+                            animation model.clock
+                                |> from (toFloat x)
+                                |> to (toFloat config.maxWidth)
+                                |> speed 1
+                                |> ease Ease.inOutExpo
+                    in
+                    if start.x - current_.x > 10 then
+                        let
+                            newAnim =
+                                case model.mbAnim of
+                                    Nothing ->
+                                        Just
+                                            ( newAnimFun current_.x
+                                            , AnimateLeft
+                                            )
+
+                                    _ ->
+                                        Nothing
+                        in
                         { model
-                            | images = right (.images model)
+                            | mbAnim = newAnim
                             , mbDrag = Nothing
                         }
-                    else if start.x - current_.x < -100 then
+                    else if start.x - current_.x < -10 then
+                        let
+                            newAnim =
+                                case model.mbAnim of
+                                    Nothing ->
+                                        Just
+                                            ( newAnimFun current_.x
+                                            , AnimateRight
+                                            )
+
+                                    _ ->
+                                        Nothing
+                        in
                         { model
-                            | images = left (.images model)
+                            | mbAnim = newAnim
                             , mbDrag = Nothing
                         }
                     else
@@ -284,17 +316,21 @@ picView model config { src } attrs =
 
 moveChunk config model =
     let
-        animOffset =
+        animFun =
             case model.mbAnim of
                 Nothing ->
-                    0
+                    -- necessary in order to center the row
+                    moveLeft (toFloat config.maxWidth)
 
-                Just ( anim, _ ) ->
-                    animate model.clock anim
+                Just ( anim, AnimateLeft ) ->
+                    moveLeft (toFloat config.maxWidth + animate model.clock anim)
+
+                Just ( anim, AnimateRight ) ->
+                    moveRight ((toFloat <| -1 * config.maxWidth) + animate model.clock anim)
     in
     case model.mbDrag of
         Nothing ->
-            moveLeft (toFloat config.maxWidth + animOffset)
+            animFun
 
         Just (Drag start stop) ->
             if start.x - stop.x <= 0 then

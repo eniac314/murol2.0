@@ -12,6 +12,12 @@ import Html.Attributes as Attr
 import Time exposing (Month(..), Posix, Zone, toDay, toMonth)
 
 
+-------------------------------------------------------------------------------
+-----------------------
+-- Window size infos --
+-----------------------
+
+
 docMaxWidth : ( Int, Int ) -> Bool -> PreviewMode -> Int
 docMaxWidth ( winWidth, winHeight ) editMode previewMode =
     let
@@ -104,6 +110,13 @@ getDevice config =
             { height = config.height
             , width = config.width
             }
+
+
+
+-------------------------------------------------------------------------------
+---------------------
+-- Main stylesheet --
+---------------------
 
 
 type alias StyleSheet msg =
@@ -322,6 +335,33 @@ headingStyles season ( winWidth, winHeight ) editMode =
 
 
 
+--seasonColors : Season -> { mainColor : Color, secondaryColor : Color }
+--seasonColors season =
+--    case season of
+--        Spring ->
+--            { color1 = rgba255 255 255 255 1
+--            , color2 = rgba255 255 255 255 1
+--            , color3 = rgba255 255 255 255 1
+--            , color4 = rgba255 255 255 255 1
+--            }
+--        Summer ->
+--            { color1 = rgba255 255 255 255 1
+--            , color2 = rgba255 255 255 255 1
+--            , color3 = rgba255 255 255 255 1
+--            , color4 = rgba255 255 255 255 1
+--            }
+--        Autumn ->
+--            { color1 = rgba255 255 211 3 1
+--            , color2 = rgba255 69 22 6 1
+--            , color3 = rgba255 255 255 255 1
+--            , color4 = rgba255 255 255 255 1
+--            }
+--        Winter ->
+--            { color1 = rgba255 255 255 255 1
+--            , color2 = rgba255 255 255 255 1
+--            , color3 = rgba255 255 255 255 1
+--            , color4 = rgba255 255 255 255 1
+--            }
 -------------------------------------------------------------------------------
 -----------------
 -- Table styles -

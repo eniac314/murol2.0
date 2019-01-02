@@ -27,7 +27,7 @@ import Html as Html
 import Html.Attributes as Attr
 import Html.Events as HtmlEvents
 import Http exposing (..)
-import Internals.CommonStyleHelpers exposing (buttonStyle)
+import Internals.CommonStyleHelpers exposing (blockLinkGrey, buttonStyle)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
@@ -580,10 +580,7 @@ view model =
                       else
                         Element.none
                     , clickablePath maxWidth model
-                    , if device.class /= Phone then
-                        topMenuView model
-                      else
-                        Element.none
+                    , topMenuView model
                     , searchEngineView maxWidth model
                     , mainView maxWidth model
                     , footerView model
@@ -616,8 +613,7 @@ searchEngineView maxWidth model =
             }
         , Background.color (rgba 1 1 1 0.9)
         ]
-        [ customHeading model.config 1 [] "RECHERCHER SUR LE SITE"
-        , row
+        [ row
             [ spacing 15
             , width (maximum maxWidth fill)
             , paddingEach
@@ -864,15 +860,23 @@ subTitleView maxWidth model =
             , Font.serif
             ]
          , Font.center
+         , Font.italic
          , width (maximum maxWidth fill)
          , centerX
-         , paddingXY 0 3
+         , paddingEach
+            { top = 3
+            , left = 0
+            , right = 0
+            , bottom = 8
+            }
          ]
             ++ seasonAttr
         )
         (paragraph
             []
-            [ text "La municipalité de Murol vous souhaite la bienvenue" ]
+            [ text "La municipalité de Murol vous souhaite la bienvenue"
+            , seasonSelectorView model
+            ]
         )
 
 
@@ -953,8 +957,14 @@ topMenuView model =
                 mainCatView (PageTreeEditor.Page pageInfo xs) =
                     column
                         [ alignTop
-                        , Events.onMouseEnter (UnfoldTopic pageInfo.name)
-                        , Events.onMouseLeave FoldTopic
+                        , if model.config.width >= 1000 then
+                            Events.onMouseEnter (UnfoldTopic pageInfo.name)
+                          else
+                            noAttr
+                        , if model.config.width >= 1000 then
+                            Events.onMouseLeave FoldTopic
+                          else
+                            noAttr
                         , if model.unfoldedTopic == Just pageInfo.name then
                             below
                                 (column
@@ -983,6 +993,26 @@ topMenuView model =
                                 }
                         ]
 
+                mobileMainCatView (PageTreeEditor.Page pageInfo xs) =
+                    el
+                        [ mouseOver
+                            [ Background.color (rgb255 255 237 167) ]
+                        , Background.color (rgba255 255 211 37 1)
+                        , width fill
+                        ]
+                    <|
+                        link
+                            [ width fill
+                            , padding 15
+                            ]
+                            { url =
+                                strPath pageInfo.path
+                            , label =
+                                el
+                                    [ Font.bold ]
+                                    (text <| toSentenceCase pageInfo.name)
+                            }
+
                 subCatView (PageTreeEditor.Page pageInfo _) =
                     el
                         [ Background.color (rgba255 229 189 33 1)
@@ -1003,17 +1033,26 @@ topMenuView model =
                                     (text <| toSentenceCase pageInfo.name)
                             }
             in
-            row
-                [ centerX
-                , width (maximum maxWidth fill)
-                , Background.color (rgba255 255 211 37 1)
-                ]
-                [ row
-                    [ centerX
-                    , spacing 40
+            if model.config.width <= 600 then
+                column
+                    [ width (maximum maxWidth fill)
+                    , spacing 5
+                    , paddingXY 15 0
+                    , Background.color (rgba 1 1 1 0.9)
                     ]
-                    (List.map mainCatView xs_)
-                ]
+                    (List.map mobileMainCatView xs_)
+            else
+                row
+                    [ centerX
+                    , width (maximum maxWidth fill)
+                    , Background.color (rgba255 255 211 37 1)
+                    ]
+                    [ row
+                        [ centerX
+                        , spacing 40
+                        ]
+                        (List.map mainCatView xs_)
+                    ]
 
         Nothing ->
             Element.none
@@ -1031,28 +1070,59 @@ footerView model =
                 mainCatView (PageTreeEditor.Page pageInfo xs) =
                     column
                         [ alignTop
-                        , padding 15
+                        , height fill
+                        , paddingXY 0 5
                         ]
-                        ([ link []
+                        [ link
+                            [ paddingEach
+                                { top = 10
+                                , left = 0
+                                , right = 0
+                                , bottom = 10
+                                }
+                            , mouseOver
+                                [ Background.color (rgb255 255 237 167) ]
+                            , width fill
+                            ]
                             { url =
                                 strPath pageInfo.path
                             , label =
-                                el
-                                    [ Font.bold ]
-                                    (text pageInfo.name)
+                                row
+                                    [ spacing 6 ]
+                                    [ el
+                                        [ Font.size 24 ]
+                                        (text "›")
+                                    , el
+                                        [ Font.bold
+                                        , Font.underline
+                                        ]
+                                        (text <| toSentenceCase pageInfo.name)
+                                    ]
                             }
-                         ]
-                            ++ List.map subCatView xs
-                        )
+                        , column
+                            [ height fill
+                            ]
+                            (List.map subCatView xs)
+                        ]
 
                 subCatView (PageTreeEditor.Page pageInfo _) =
-                    link []
+                    link
+                        [ mouseOver
+                            [ Background.color (rgb255 255 237 167) ]
+                        , width fill
+                        ]
                         { url =
                             strPath pageInfo.path
                         , label =
-                            el
+                            row
                                 []
-                                (text pageInfo.name)
+                                [ el
+                                    [ Font.size 24 ]
+                                    (text "›")
+                                , el
+                                    [ padding 6 ]
+                                    (text <| toSentenceCase pageInfo.name)
+                                ]
                         }
 
                 maxWidth =
@@ -1063,16 +1133,95 @@ footerView model =
                         False
                         model.config.previewMode
             in
-            wrappedRow
-                [ width (maximum maxWidth fill)
-                , centerX
-                , spaceEvenly
-                , Background.color (rgba 1 1 1 0.9)
+            column
+                [ width fill ]
+                [ row
+                    [ Background.color blockLinkGrey
+                    , width (maximum maxWidth fill)
+                    , centerX
+                    , paddingXY 15 5
+                    ]
+                    [ el
+                        [ Font.color (rgb 1 1 1)
+                        , Font.size 18
+                        ]
+                        (text "Raccourcis pages principales: ")
+                    ]
+                , wrappedRow
+                    [ width (maximum maxWidth fill)
+                    , centerX
+                    , spaceEvenly
+                    , Background.color (rgba255 255 211 37 1)
+                    , paddingXY 15 0
+                    ]
+                    (List.map mainCatView xs_)
+                , wrappedRow
+                    [ Background.color blockLinkGrey
+                    , width (maximum maxWidth fill)
+                    , centerX
+                    , spaceEvenly
+                    , paddingXY 15 5
+                    ]
+                    [ link [ paddingXY 0 5 ]
+                        { url = ""
+                        , label =
+                            el
+                                [ Font.color (rgb 1 1 1)
+                                , Font.underline
+                                ]
+                                (text "Plan de site")
+                        }
+                    , link [ paddingXY 0 5 ]
+                        { url = ""
+                        , label =
+                            el
+                                [ Font.color (rgb 1 1 1)
+                                , Font.underline
+                                ]
+                                (text "Contacter le webmaster")
+                        }
+                    , link [ paddingXY 0 5 ]
+                        { url = ""
+                        , label =
+                            el
+                                [ Font.color (rgb 1 1 1)
+                                , Font.underline
+                                ]
+                                (text "Mentions légales")
+                        }
+                    ]
                 ]
-                (List.map mainCatView xs_)
 
         Nothing ->
             Element.none
+
+
+seasonSelectorView model =
+    row
+        [ alignTop
+        , alignRight
+        ]
+        [ Input.button
+            []
+            { onPress = Just (SetSeason Spring)
+            , label = text "P"
+            }
+        , Input.button
+            []
+            { onPress = Just (SetSeason Summer)
+            , label = text "E"
+            }
+        , Input.button
+            []
+            { onPress = Just (SetSeason Autumn)
+            , label = text "A"
+            }
+        , Input.button
+            []
+            { onPress = Just (SetSeason Winter)
+            , label = text "H"
+            }
+        ]
 
 
 

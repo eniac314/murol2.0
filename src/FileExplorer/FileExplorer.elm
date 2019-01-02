@@ -1142,6 +1142,16 @@ sidePanelView config model =
                     )
                     meta.fileSize
                     |> Maybe.withDefault Element.none
+                , Element.download
+                    []
+                    { url = String.join "/" meta.path
+                    , label =
+                        el
+                            [ Font.color (rgb 0 0 1)
+                            , Font.underline
+                            ]
+                            (text "Télécharger")
+                    }
                 ]
 
         folderInfoPanel fsItem =
@@ -2045,8 +2055,26 @@ decodeFile =
                     , fileSize = mbFs
                     }
         )
-        |> Pipeline.required "path" Decode.string
-        |> Pipeline.required "name" Decode.string
+        |> Pipeline.required "path"
+            (Decode.string
+                |> Decode.map
+                    (\s ->
+                        if String.contains "?" s then
+                            leftOf "?" s
+                        else
+                            s
+                    )
+            )
+        |> Pipeline.required "name"
+            (Decode.string
+                |> Decode.map
+                    (\s ->
+                        if String.contains "?" s then
+                            leftOf "?" s
+                        else
+                            s
+                    )
+            )
         |> Pipeline.required "imgSize"
             (Decode.nullable <|
                 Decode.map2

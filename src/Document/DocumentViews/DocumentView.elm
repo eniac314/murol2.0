@@ -333,18 +333,15 @@ renderNews config id attrs =
                         , left = 0
                         , right = 0
                         }
-                    , Border.color grey5
-                    , Background.color grey4
+                    , Border.color grey6
+                    , Background.color grey5
                     , mouseOver
                         [ Background.color grey6 ]
-                    , Font.family
-                        [ Font.typeface "Times New Roman" ]
                     ]
 
                 titleView =
                     paragraph
                         [ width fill
-                        , Font.bold
                         , Font.color grey1
                         , paddingEach
                             { top = 0
@@ -1002,7 +999,7 @@ renderDronePanorama config id attrs =
                     el
                         [ width (px 200)
                         , height (px 160)
-                        , Background.image "/images/visiteVirt.jpg"
+                        , Background.image "assets/images/misc/visiteVirt.jpg"
                         , Border.width 5
                         , Border.color (rgb 1 1 1)
 
