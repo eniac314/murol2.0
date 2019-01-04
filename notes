@@ -55,6 +55,10 @@ find . -name '*.elm' | xargs wc -l
 
 sudo chown -R www-data:www-data baseDocumentaire/
 
+python2 /usr/bin/diffuse autumn2018.css spring2018.css summer2018.css winter2018.css
+
+
+
 - disable directory listing: 
 
     https://stackoverflow.com/questions/2530372/how-do-i-disable-directory-browsing

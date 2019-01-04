@@ -176,16 +176,16 @@ defaultStyleSheet config =
     , pictureLinksStyle =
         case config.season of
             Spring ->
-                []
+                [ Background.color (rgb255 41 80 0) ]
 
             Summer ->
-                []
+                [ Background.color (rgba255 255 193 58 1) ]
 
             Autumn ->
                 [ Background.color (rgb255 255 211 37) ]
 
             Winter ->
-                []
+                [ Background.color (rgb255 0 128 128) ]
     , customStyles =
         { idNbrs =
             Dict.fromList
@@ -280,7 +280,20 @@ headingStyles season ( winWidth, winHeight ) editMode =
 
                 Summer ->
                     Dict.fromList
-                        []
+                        [ ( 1
+                          , [ Background.color (rgba255 186 172 145 1) --(rgba255 255 193 58 1)
+                            , Font.color (rgba255 0 0 0 1)
+                            ]
+                          )
+                        , ( 2
+                          , [ Background.color (rgba255 255 193 58 1)
+                            , Font.color (rgba255 0 0 0 1)
+                            ]
+                          )
+                        , ( 3
+                          , []
+                          )
+                        ]
 
                 Autumn ->
                     Dict.fromList
@@ -335,33 +348,6 @@ headingStyles season ( winWidth, winHeight ) editMode =
 
 
 
---seasonColors : Season -> { mainColor : Color, secondaryColor : Color }
---seasonColors season =
---    case season of
---        Spring ->
---            { color1 = rgba255 255 255 255 1
---            , color2 = rgba255 255 255 255 1
---            , color3 = rgba255 255 255 255 1
---            , color4 = rgba255 255 255 255 1
---            }
---        Summer ->
---            { color1 = rgba255 255 255 255 1
---            , color2 = rgba255 255 255 255 1
---            , color3 = rgba255 255 255 255 1
---            , color4 = rgba255 255 255 255 1
---            }
---        Autumn ->
---            { color1 = rgba255 255 211 3 1
---            , color2 = rgba255 69 22 6 1
---            , color3 = rgba255 255 255 255 1
---            , color4 = rgba255 255 255 255 1
---            }
---        Winter ->
---            { color1 = rgba255 255 255 255 1
---            , color2 = rgba255 255 255 255 1
---            , color3 = rgba255 255 255 255 1
---            , color4 = rgba255 255 255 255 1
---            }
 -------------------------------------------------------------------------------
 -----------------
 -- Table styles -
@@ -572,7 +558,7 @@ backgroundImage season =
             "/assets/images/backgrounds/springbg2017.jpg"
 
         Summer ->
-            "/assets/images/backgrounds/"
+            "/assets/images/backgrounds/summer.jpg"
 
         Winter ->
             "/assets/images/backgrounds/winter_bg.jpg"

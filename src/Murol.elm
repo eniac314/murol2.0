@@ -35,7 +35,7 @@ import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Task exposing (attempt, perform)
-import Time exposing (Posix, here, millisToPosix, now, posixToMillis, utc)
+import Time exposing (Month(..), Posix, here, millisToPosix, now, posixToMillis, utc)
 import UUID exposing (UUID, canonical)
 import Url exposing (..)
 
@@ -799,13 +799,17 @@ pageTitleView maxWidth model =
                     [ Background.color (rgba255 76 115 56 255) ]
 
                 Summer ->
-                    []
+                    [ Background.color (rgba255 19 46 117 255)
+                    , Font.color (rgba255 240 248 255 1)
+                    ]
 
                 Autumn ->
                     [ Background.color (rgba255 255 211 37 255) ]
 
                 Winter ->
-                    [ Background.color (rgba255 0 0 51 255) ]
+                    [ Background.color (rgba255 0 0 51 255)
+                    , Font.color (rgba255 240 248 255 1)
+                    ]
     in
     link
         ([ Font.size 45
@@ -836,20 +840,22 @@ subTitleView maxWidth model =
         seasonAttr =
             case model.config.season of
                 Spring ->
-                    [ Background.color (rgba255 41 80 0 255)
+                    [ Background.color (rgba255 41 80 0 1)
                     , Font.color (rgba255 240 248 255 255)
                     ]
 
                 Summer ->
-                    []
+                    [ Background.color (rgba255 38 110 182 1)
+                    , Font.color (rgba255 240 248 255 1)
+                    ]
 
                 Autumn ->
-                    [ Background.color (rgba255 69 22 6 255)
+                    [ Background.color (rgba255 69 22 6 1)
                     , Font.color (rgba255 240 248 255 255)
                     ]
 
                 Winter ->
-                    [ Background.color (rgba255 240 248 255 255)
+                    [ Background.color (rgba255 240 248 255 1)
                     , Font.color (rgba255 0 0 51 255)
                     ]
     in
@@ -874,8 +880,12 @@ subTitleView maxWidth model =
         )
         (paragraph
             []
-            [ text "La municipalité de Murol vous souhaite la bienvenue"
-            , seasonSelectorView model
+            [ if Time.toMonth model.config.zone model.config.currentTime == Jan then
+                text <|
+                    "La municipalité de Murol vous souhaite une bonne année "
+                        ++ String.fromInt (Time.toYear model.config.zone model.config.currentTime)
+              else
+                text "La municipalité de Murol vous souhaite la bienvenue"
             ]
         )
 
@@ -937,6 +947,13 @@ mainView maxWidth model =
                 loadingView
 
 
+
+-------------------------------------------------------------------------------
+------------------------
+-- Top menu functions --
+------------------------
+
+
 topMenuView model =
     case model.pageTree of
         Just (PageTreeEditor.Page _ xs_) ->
@@ -976,7 +993,10 @@ topMenuView model =
                         ]
                         [ el
                             [ mouseOver
-                                [ Background.color (rgb255 255 237 167) ]
+                                [ topMenuStyle model.config.season
+                                    |> .hover
+                                    |> Background.color
+                                ]
                             , width fill
                             ]
                           <|
@@ -996,8 +1016,16 @@ topMenuView model =
                 mobileMainCatView (PageTreeEditor.Page pageInfo xs) =
                     el
                         [ mouseOver
-                            [ Background.color (rgb255 255 237 167) ]
-                        , Background.color (rgba255 255 211 37 1)
+                            [ topMenuStyle model.config.season
+                                |> .hover
+                                |> Background.color
+                            ]
+                        , topMenuStyle model.config.season
+                            |> .background
+                            |> Background.color
+                        , topMenuStyle model.config.season
+                            |> .fontColor
+                            |> Font.color
                         , width fill
                         ]
                     <|
@@ -1015,15 +1043,23 @@ topMenuView model =
 
                 subCatView (PageTreeEditor.Page pageInfo _) =
                     el
-                        [ Background.color (rgba255 229 189 33 1)
+                        [ topMenuStyle model.config.season
+                            |> .subCatBackground
+                            |> Background.color
                         , mouseOver
-                            [ Background.color (rgb255 255 237 167) ]
+                            [ topMenuStyle model.config.season
+                                |> .hover
+                                |> Background.color
+                            ]
                         , width fill
                         ]
                     <|
                         link
                             [ width fill
                             , padding 10
+                            , topMenuStyle model.config.season
+                                |> .fontColor
+                                |> Font.color
                             ]
                             { url =
                                 strPath pageInfo.path
@@ -1045,7 +1081,9 @@ topMenuView model =
                 row
                     [ centerX
                     , width (maximum maxWidth fill)
-                    , Background.color (rgba255 255 211 37 1)
+                    , topMenuStyle model.config.season
+                        |> .background
+                        |> Background.color
                     ]
                     [ row
                         [ centerX
@@ -1056,6 +1094,53 @@ topMenuView model =
 
         Nothing ->
             Element.none
+
+
+type alias TopMenuStyle =
+    { background : Color
+    , subCatBackground : Color
+    , hover : Color
+    , fontColor : Color
+    }
+
+
+topMenuStyle : Season -> TopMenuStyle
+topMenuStyle season =
+    case season of
+        Spring ->
+            { background = rgba255 76 115 56 1
+            , subCatBackground = rgba255 206 222 191 1
+            , hover = rgba255 226 242 211 1
+            , fontColor = rgba255 0 0 0 1
+            }
+
+        Summer ->
+            { background = rgba255 186 172 145 1
+            , subCatBackground = rgba255 196 182 155 1
+            , hover = rgba255 206 192 165 1
+            , fontColor = rgba255 0 0 0 1
+            }
+
+        Autumn ->
+            { background = rgba255 255 211 37 1
+            , subCatBackground = rgba255 229 189 33 1
+            , hover = rgba255 255 237 167 1
+            , fontColor = rgba255 0 0 0 1
+            }
+
+        Winter ->
+            { background = rgba255 128 128 170 1
+            , subCatBackground = rgba255 197 200 248 1
+            , hover = rgba255 227 233 255 1
+            , fontColor = rgba255 0 0 0 1
+            }
+
+
+
+-------------------------------------------------------------------------------
+----------------------
+-- Footer functions --
+----------------------
 
 
 footerView model =
@@ -1081,7 +1166,10 @@ footerView model =
                                 , bottom = 10
                                 }
                             , mouseOver
-                                [ Background.color (rgb255 255 237 167) ]
+                                [ footerStyle model.config.season
+                                    |> .hover
+                                    |> Background.color
+                                ]
                             , width fill
                             ]
                             { url =
@@ -1108,7 +1196,10 @@ footerView model =
                 subCatView (PageTreeEditor.Page pageInfo _) =
                     link
                         [ mouseOver
-                            [ Background.color (rgb255 255 237 167) ]
+                            [ footerStyle model.config.season
+                                |> .hover
+                                |> Background.color
+                            ]
                         , width fill
                         ]
                         { url =
@@ -1136,13 +1227,17 @@ footerView model =
             column
                 [ width fill ]
                 [ row
-                    [ Background.color blockLinkGrey
+                    [ footerStyle model.config.season
+                        |> .frameBackground
+                        |> Background.color
                     , width (maximum maxWidth fill)
                     , centerX
                     , paddingXY 15 5
                     ]
                     [ el
-                        [ Font.color (rgb 1 1 1)
+                        [ footerStyle model.config.season
+                            |> .frameFontColor
+                            |> Font.color
                         , Font.size 18
                         ]
                         (text "Raccourcis pages principales: ")
@@ -1151,12 +1246,16 @@ footerView model =
                     [ width (maximum maxWidth fill)
                     , centerX
                     , spaceEvenly
-                    , Background.color (rgba255 255 211 37 1)
+                    , footerStyle model.config.season
+                        |> .background
+                        |> Background.color
                     , paddingXY 15 0
                     ]
                     (List.map mainCatView xs_)
                 , wrappedRow
-                    [ Background.color blockLinkGrey
+                    [ footerStyle model.config.season
+                        |> .frameBackground
+                        |> Background.color
                     , width (maximum maxWidth fill)
                     , centerX
                     , spaceEvenly
@@ -1166,7 +1265,9 @@ footerView model =
                         { url = ""
                         , label =
                             el
-                                [ Font.color (rgb 1 1 1)
+                                [ footerStyle model.config.season
+                                    |> .frameFontColor
+                                    |> Font.color
                                 , Font.underline
                                 ]
                                 (text "Plan de site")
@@ -1194,6 +1295,45 @@ footerView model =
 
         Nothing ->
             Element.none
+
+
+footerStyle season =
+    case season of
+        Spring ->
+            { background = rgba255 76 115 56 1
+            , hover = rgba255 226 242 211 0.6
+            , fontColor = rgba255 0 0 0 1
+            , frameBackground = rgba255 41 80 0 1
+            , frameFontColor = rgba 255 248 255 1
+            }
+
+        Summer ->
+            { background = rgba255 186 172 145 1
+            , hover = rgba255 226 242 211 1
+            , fontColor = rgba255 0 0 0 1
+            , frameBackground = rgba255 38 110 182 1
+            , frameFontColor = rgba 255 248 255 1
+            }
+
+        Autumn ->
+            { background = rgba255 255 211 37 1
+            , hover = rgba255 255 237 167 1
+            , fontColor = rgba255 0 0 0 1
+            , frameBackground = rgba255 69 22 6 255
+            , frameFontColor = rgba255 240 248 255 1
+            }
+
+        Winter ->
+            { background = rgba255 128 128 170 1
+            , hover = rgba255 227 233 255 1
+            , fontColor = rgba255 0 0 0 1
+            , frameBackground = rgba255 51 51 102 1
+            , frameFontColor = rgba255 240 248 255 1
+            }
+
+
+
+-------------------------------------------------------------------------------
 
 
 seasonSelectorView model =

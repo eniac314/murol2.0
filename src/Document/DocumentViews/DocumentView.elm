@@ -1097,10 +1097,10 @@ renderPictureLinks config id attrs picLinks =
                             (floor <| 10000 * toFloat img.size.imgWidth / totalImgWidth)
                     , pointer
                     , Border.width 2
-                    , Border.color (rgb255 255 200 50)
+                    , Border.color (rgba255 255 255 255 0)
                     , Border.rounded 2
                     , mouseOver
-                        [ Border.color (rgb255 89 58 46)
+                        [ Border.color (rgb255 255 255 255)
                         ]
                     ]
                     { url = url
