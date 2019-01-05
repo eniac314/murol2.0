@@ -96,6 +96,16 @@ encodeCellContent cellContent =
                   )
                 ]
 
+        Gallery gallery ->
+            object
+                [ ( "Gallery"
+                  , object
+                        [ ( "title", string gallery.title )
+                        , ( "images", list encodeImageMeta gallery.images )
+                        ]
+                  )
+                ]
+
         NewsBlock ->
             string "NewsBlock"
 

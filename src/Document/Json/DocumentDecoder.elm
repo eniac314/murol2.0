@@ -93,6 +93,8 @@ decodeCellContent =
                         |> required "img" decodeImageMeta
                     )
                 )
+        , succeed Gallery
+            |> required "Gallery" decodeGalleryMeta
         , string
             |> andThen
                 (\str ->
@@ -121,6 +123,17 @@ decodeCellContent =
                                     ++ somethingElse
                 )
         ]
+
+
+decodeGalleryMeta : Decoder GalleryMeta
+decodeGalleryMeta =
+    succeed GalleryMeta
+        |> required
+            "title"
+            string
+        |> required
+            "images"
+            (list decodeImageMeta)
 
 
 decodeBlockLink : Decoder BlockLinkMeta

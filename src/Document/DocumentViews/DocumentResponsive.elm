@@ -3,6 +3,7 @@ module Document.DocumentViews.DocumentResponsive exposing (..)
 import Array exposing (..)
 import Dict exposing (..)
 import Document.Document exposing (..)
+import Document.DocumentViews.DocumentView exposing (Config)
 import Document.DocumentViews.StyleSheets exposing (..)
 import Element
     exposing

@@ -15,7 +15,6 @@ import Animation
         , to
         )
 import Browser.Events exposing (Visibility(..), onAnimationFrame, onKeyDown, onVisibilityChange)
-import Delay exposing (after)
 import Ease exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -69,9 +68,7 @@ type alias Image =
 
 
 type Msg
-    = Next
-    | Previous
-    | Animate Direction Posix
+    = Animate Direction Posix
     | DragStart Position
     | DragAt Position
     | DragEnd
@@ -118,18 +115,6 @@ init imgs externalMsg =
 update : { maxWidth : Int } -> Msg -> Model msg -> Model msg
 update config msg model =
     case msg of
-        Next ->
-            { model
-                | images = right (.images model)
-                , mbDrag = Nothing
-            }
-
-        Previous ->
-            { model
-                | images = left (.images model)
-                , mbDrag = Nothing
-            }
-
         Animate dir t ->
             let
                 newClock =

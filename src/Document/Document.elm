@@ -4,7 +4,6 @@ import Array exposing (Array)
 import Dict exposing (Dict)
 import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
-import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import Html.Attributes as Attr
 import Html.Events exposing (on)
 import Json.Decode as Decode
@@ -59,7 +58,14 @@ type CellContent
     | WeatherWidget
     | DronePanorama
     | PictureLinks (List PictureLink)
+    | Gallery GalleryMeta
     | EmptyCell
+
+
+type alias GalleryMeta =
+    { title : String
+    , images : List ImageMeta
+    }
 
 
 type alias PictureLink =
@@ -83,6 +89,13 @@ type ImageSrc
 type alias ImgSize =
     { imgWidth : Int
     , imgHeight : Int
+    }
+
+
+dummyPic =
+    { src = Inline "" ""
+    , caption = Nothing
+    , size = ImgSize 0 0
     }
 
 
@@ -178,29 +191,6 @@ type alias TableMeta =
     , nbrRows : Int
     , nbrCols : Int
     , data : List (Array String)
-    }
-
-
-type alias Config msg =
-    { width : Int
-    , height : Int
-    , mainInterfaceHeight : Int
-    , customElems :
-        Dict String (Element msg)
-    , zipperHandlers : Maybe (ZipperHandlers msg)
-    , editMode : Bool
-    , previewMode : PreviewMode
-    , containersBkgColors : Bool
-    , season : Season
-    , currentTime : Posix
-    , zone : Zone
-    , pageIndex : Dict String String
-    , fiches : Dict String Fiche
-    , openedFiches : Set String
-    , openFicheMsg : String -> msg
-    , news : Dict String News
-    , openedNews : Set String
-    , openNewsMsg : String -> msg
     }
 
 

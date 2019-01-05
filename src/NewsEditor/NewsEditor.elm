@@ -4,6 +4,7 @@ import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Derberos.Date.Core exposing (civilToPosix, newDateRecord)
 import Dict exposing (..)
 import Document.Document exposing (..)
+import Document.DocumentViews.DocumentView exposing (Config)
 import Document.DocumentViews.StyleSheets exposing (PreviewMode(..), Season(..))
 import Document.Json.DocumentDecoder exposing (decodeNews)
 import Document.Json.DocumentSerializer exposing (encodeNews)
@@ -969,7 +970,7 @@ decodeSuccess =
 ------------------
 
 
-renderConfig : (Msg -> msg) -> Document.Document.Config msg
+renderConfig : (Msg -> msg) -> Config msg
 renderConfig externalMsg =
     { width = 1920
     , height = 1080
@@ -989,6 +990,7 @@ renderConfig externalMsg =
     , news = Dict.empty
     , openedNews = Set.empty
     , openNewsMsg = always (externalMsg NoOp)
+    , galleries = Dict.empty
     }
 
 

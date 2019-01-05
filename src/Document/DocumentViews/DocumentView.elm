@@ -12,7 +12,9 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Region as Region
+import Gallery.Gallery as Gallery
 import GeneralDirectoryEditor.FichePreview exposing (ficheView)
+import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import Html as Html
 import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
@@ -25,8 +27,32 @@ import Murmur3 exposing (hashString)
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
-import Time exposing (millisToPosix)
+import Time exposing (Posix, Zone, millisToPosix)
 import UUID exposing (canonical)
+
+
+type alias Config msg =
+    { width : Int
+    , height : Int
+    , mainInterfaceHeight : Int
+    , customElems :
+        Dict String (Element msg)
+    , zipperHandlers : Maybe (ZipperHandlers msg)
+    , editMode : Bool
+    , previewMode : PreviewMode
+    , containersBkgColors : Bool
+    , season : Season
+    , currentTime : Posix
+    , zone : Zone
+    , pageIndex : Dict String String
+    , fiches : Dict String Fiche
+    , openedFiches : Set String
+    , openFicheMsg : String -> msg
+    , news : Dict String News
+    , openedNews : Set String
+    , openNewsMsg : String -> msg
+    , galleries : Dict String (Gallery.Model msg)
+    }
 
 
 renderDoc : Config msg -> Document -> List (Element msg)
@@ -74,6 +100,9 @@ renderDoc config document =
 
                 PictureLinks picLinks ->
                     renderPictureLinks config id attrs picLinks
+
+                Gallery galleryMeta ->
+                    renderGallery config id attrs galleryMeta
 
                 CalendarWidget ->
                     renderCalendarWidget config id attrs
@@ -1135,6 +1164,10 @@ renderPictureLinks config id attrs picLinks =
                 )
                 (List.map logoView imgsScaledToMinHeight)
             ]
+
+
+renderGallery config id attrs galleryMeta =
+    []
 
 
 renderEmptyCell config id attrs =

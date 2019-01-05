@@ -272,5 +272,8 @@ cellContentToString lc =
         PictureLinks _ ->
             "Bandeau images liens"
 
+        Gallery _ ->
+            "Gallerie photothèque"
+
         EmptyCell ->
             "Cellule vide"

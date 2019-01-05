@@ -1,6 +1,5 @@
 port module Murol exposing (..)
 
---import Gallery.Gallery as Gallery
 --import Gallery.Image as GImage
 
 import Browser exposing (..)
@@ -10,7 +9,7 @@ import Browser.Navigation as Nav
 import Dict exposing (..)
 import Document.Document as Document
 import Document.DocumentViews.DocumentResponsive exposing (responsivePreFormat)
-import Document.DocumentViews.DocumentView exposing (customHeading, renderDoc)
+import Document.DocumentViews.DocumentView exposing (Config, customHeading, renderDoc)
 import Document.DocumentViews.StyleSheets as StyleSheets exposing (..)
 import Document.Json.DocumentDecoder exposing (decodeNews)
 import Element exposing (..)
@@ -20,6 +19,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Gallery.Gallery as Gallery
 import Gallery.HeaderGallery as HeaderGallery
 import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import GeneralDirectoryEditor.GeneralDirJson exposing (..)
@@ -47,7 +47,7 @@ port searchResult : (String -> msg) -> Sub msg
 
 
 type alias Model =
-    { config : Document.Config Msg
+    { config : Config Msg
     , key : Nav.Key
     , url : Url.Url
     , pages : Pages
@@ -174,6 +174,7 @@ init flags url key =
             , openedNews = Set.empty
             , openNewsMsg = ToogleNews
             , previewMode = PreviewScreen
+            , galleries = Dict.empty
             }
 
         url_ =

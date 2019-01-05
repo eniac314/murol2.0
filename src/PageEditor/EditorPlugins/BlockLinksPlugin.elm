@@ -3,7 +3,7 @@ module PageEditor.EditorPlugins.BlockLinksPlugin exposing (..)
 import Auth.AuthPlugin exposing (LogInfo)
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
-import Document.DocumentViews.DocumentView exposing (renderBlocksLinksMeta)
+import Document.DocumentViews.DocumentView exposing (Config, renderBlocksLinksMeta)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -362,7 +362,7 @@ view :
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
     }
-    -> Document.Config msg
+    -> Config msg
     -> Model msg
     -> Element.Element msg
 view config renderConfig model =
@@ -386,7 +386,7 @@ topInterfaceView :
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
     }
-    -> Document.Config msg
+    -> Config msg
     -> Model msg
     -> Element.Element msg
 topInterfaceView config renderConfig model =
@@ -586,7 +586,7 @@ dropDownView config renderConfig model =
 
 chooseDocView :
     Model msg
-    -> Document.Config msg
+    -> Config msg
     -> FileExplorer.Model msg
     -> Time.Zone
     -> LogInfo
@@ -664,7 +664,7 @@ chooseDocView model renderConfig fileExplorer zone logInfo =
 
 chooseInternalPageView :
     Model msg
-    -> Document.Config msg
+    -> Config msg
     -> PageTreeEditor.Model msg
     -> Time.Zone
     -> LogInfo
@@ -742,7 +742,7 @@ imagePickerView :
         , logInfo : LogInfo
         , zone : Zone
     }
-    -> Document.Config msg
+    -> Config msg
     -> Model msg
     -> Element msg
 imagePickerView config renderConfig model =
@@ -785,7 +785,7 @@ imagePickerView config renderConfig model =
         ]
 
 
-blockLinksPreview : Document.Config msg -> Model msg -> Element msg
+blockLinksPreview : Config msg -> Model msg -> Element msg
 blockLinksPreview config model =
     wrappedRow
         [ width fill

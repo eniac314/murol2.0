@@ -5,7 +5,7 @@ import Browser exposing (element)
 import Delay exposing (..)
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
-import Document.DocumentViews.DocumentView exposing (renderTextBlock)
+import Document.DocumentViews.DocumentView exposing (Config, renderTextBlock)
 import Document.DocumentViews.StyleSheets exposing (StyleSheet, defaultStyleSheet)
 import Element exposing (..)
 import Element.Background as Background
@@ -834,7 +834,7 @@ view :
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
     }
-    -> Document.Config msg
+    -> Config msg
     -> Model msg
     -> Element.Element msg
 view config renderConfig model =
@@ -1527,7 +1527,7 @@ customTextArea attrs setSelection height rawInput =
         )
 
 
-textBlockPreview : Model msg -> Document.Config msg -> Element.Element msg
+textBlockPreview : Model msg -> Config msg -> Element.Element msg
 textBlockPreview model config =
     column
         [ width (minimum 500 (maximum 700 fill))
