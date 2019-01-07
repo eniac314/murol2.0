@@ -1,4 +1,4 @@
-port module FileExplorer.FileExplorer exposing (..)
+module FileExplorer.FileExplorer exposing (..)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Dict exposing (..)

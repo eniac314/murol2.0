@@ -100,7 +100,8 @@ encodeCellContent cellContent =
             object
                 [ ( "Gallery"
                   , object
-                        [ ( "title", string gallery.title )
+                        [ ( "uuid", string (UUID.canonical gallery.uuid) )
+                        , ( "title", string gallery.title )
                         , ( "images", list encodeImageMeta gallery.images )
                         ]
                   )

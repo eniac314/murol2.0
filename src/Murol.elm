@@ -32,6 +32,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
+import Random exposing (..)
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Task exposing (attempt, perform)
@@ -56,6 +57,7 @@ type alias Model =
     , searchEngineStatus : SearchEngineStatus
     , pageTree : Maybe PageTreeEditor.Page
     , debug : String
+    , seed : Seed
     , unfoldedTopic : Maybe String
     , initialLoadDone : Bool
     , headerGallery : HeaderGallery.Model Msg
@@ -112,6 +114,7 @@ type Msg
     | UnfoldTopic String
     | SetZone Time.Zone
     | HGmsg HeaderGallery.Msg
+    | GalleryMsg String Gallery.Msg
     | NoOp
 
 
@@ -143,10 +146,19 @@ main =
 
 subscriptions model =
     Sub.batch
-        [ onResize WinResize
-        , searchResult ProcessSearchResult
-        , Sub.map HGmsg (HeaderGallery.subscriptions model.headerGallery)
-        ]
+        ([ onResize WinResize
+         , searchResult ProcessSearchResult
+         , Sub.map HGmsg (HeaderGallery.subscriptions model.headerGallery)
+         ]
+            ++ (model.config.galleries
+                    |> Dict.map
+                        (\uuid gallery ->
+                            Sub.map (GalleryMsg uuid)
+                                (Gallery.subscriptions gallery)
+                        )
+                    |> Dict.values
+               )
+        )
 
 
 init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -154,6 +166,13 @@ init flags url key =
     let
         season =
             StyleSheets.timeToSeason utc (Time.millisToPosix flags.currentTime)
+
+        headerGallerySize =
+            10
+
+        ( randomOrder, seed ) =
+            Random.step (Random.list headerGallerySize (float 0 1))
+                (initialSeed flags.currentTime)
 
         config =
             { containersBkgColors = False
@@ -191,6 +210,7 @@ init flags url key =
       , results = Nothing
       , searchEngineStatus = Standby
       , url = url_
+      , seed = seed
       , debug = ""
       , unfoldedTopic = Nothing
       , initialLoadDone = False
@@ -198,15 +218,18 @@ init flags url key =
             HeaderGallery.init
                 (List.map
                     (\n -> String.padLeft 3 '0' (String.fromInt n))
-                    (List.range 1 5)
+                    (List.range 1 headerGallerySize)
                     |> List.map
                         (\s ->
                             "/assets/images/headerGallery/"
                                 ++ seasonToStr season
                                 ++ "/"
                                 ++ s
-                                ++ "-min.jpg"
+                                ++ ".jpg"
                         )
+                    |> List.map2 Tuple.pair randomOrder
+                    |> List.sortBy Tuple.first
+                    |> List.map Tuple.second
                 )
                 HGmsg
       }
@@ -339,11 +362,36 @@ update msg model =
                                         )
                                         []
                                         fichesIds
+
+                                galleryMetas =
+                                    Document.gatherGalleryMeta docContent
+
+                                newGalleries =
+                                    List.foldr
+                                        (\gm acc ->
+                                            Dict.insert
+                                                (UUID.canonical gm.uuid)
+                                                (Gallery.init
+                                                    gm.title
+                                                    gm.images
+                                                    (GalleryMsg (UUID.canonical gm.uuid))
+                                                )
+                                                acc
+                                        )
+                                        model.config.galleries
+                                        galleryMetas
+
+                                config =
+                                    model.config
+
+                                newConfig =
+                                    { config | galleries = newGalleries }
                             in
                             ( { model
                                 | pages =
                                     Dict.insert path ( cId, name, Loaded docContent ) model.pages
                                 , initialLoadDone = True
+                                , config = newConfig
                               }
                             , if fichesToDownload /= [] then
                                 getFiches fichesToDownload
@@ -535,6 +583,30 @@ update msg model =
               }
             , Cmd.none
             )
+
+        GalleryMsg uuid galMsg ->
+            case Dict.get uuid model.config.galleries of
+                Just gallery ->
+                    let
+                        newGallery =
+                            Gallery.update
+                                { maxWidth = model.config.width }
+                                galMsg
+                                gallery
+
+                        config =
+                            model.config
+
+                        newConfig =
+                            { config
+                                | galleries =
+                                    Dict.insert uuid newGallery config.galleries
+                            }
+                    in
+                    ( { model | config = newConfig }, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -887,6 +959,7 @@ subTitleView maxWidth model =
                         ++ String.fromInt (Time.toYear model.config.zone model.config.currentTime)
               else
                 text "La municipalité de Murol vous souhaite la bienvenue"
+            , seasonSelectorView model
             ]
         )
 

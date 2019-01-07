@@ -137,6 +137,15 @@ view config =
                 , Input.button (buttonStyle True)
                     { onPress =
                         Just <|
+                            config.createNewCell GalleryPlugin
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Galerie photothèque"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
                             config.insertNewCell
                                 "NewsBlock"
                     , label =

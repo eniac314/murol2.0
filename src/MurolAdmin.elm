@@ -25,7 +25,7 @@ import Task exposing (perform)
 import Time exposing (Posix, Zone, here, millisToPosix, utc)
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.document
         { init = init
@@ -33,6 +33,11 @@ main =
         , update = update
         , subscriptions = subscriptions
         }
+
+
+type alias Flags =
+    { availableThreads : Int
+    }
 
 
 type alias Model =
@@ -61,7 +66,7 @@ subscriptions model =
         ]
 
 
-init : flags -> ( Model, Cmd Msg )
+init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         newFileExplorer =
@@ -74,7 +79,7 @@ init flags =
                 PageTreeEditorMsg
 
         ( newPageEditor, pageEditorCmds ) =
-            PageEditor.init Nothing PageEditorMsg
+            PageEditor.init Nothing flags.availableThreads PageEditorMsg
 
         ( newGeneralDirectory, generalDirectoryCmds ) =
             GeneralDirectoryEditor.init GeneralDirectoryMsg

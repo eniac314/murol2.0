@@ -73,6 +73,15 @@ type Msg
     | NoOp
 
 
+subscriptions model =
+    Sub.batch
+        [ if model.mbAnim == Nothing && model.mbDrag == Nothing then
+            Sub.none
+          else
+            onAnimationFrame Tick
+        ]
+
+
 init : String -> List ImageMeta -> (Msg -> msg) -> Model msg
 init title images externalMsg =
     let
@@ -112,6 +121,57 @@ update config msg model =
                 | mbDrag =
                     Maybe.map (updateDrag position) model.mbDrag
             }
+
+        DragEnd ->
+            case model.mbDrag of
+                Just (Drag start current_) ->
+                    let
+                        newAnimFun x =
+                            animation model.clock
+                                |> from (toFloat x)
+                                |> to (toFloat config.maxWidth)
+                                |> speed 1
+                                |> ease Ease.inOutExpo
+                    in
+                    if start.x - current_.x > 10 then
+                        let
+                            newAnim =
+                                case model.mbAnim of
+                                    Nothing ->
+                                        Just
+                                            ( newAnimFun current_.x
+                                            , AnimateLeft
+                                            )
+
+                                    _ ->
+                                        Nothing
+                        in
+                        { model
+                            | mbAnim = newAnim
+                            , mbDrag = Nothing
+                        }
+                    else if start.x - current_.x < -10 then
+                        let
+                            newAnim =
+                                case model.mbAnim of
+                                    Nothing ->
+                                        Just
+                                            ( newAnimFun current_.x
+                                            , AnimateRight
+                                            )
+
+                                    _ ->
+                                        Nothing
+                        in
+                        { model
+                            | mbAnim = newAnim
+                            , mbDrag = Nothing
+                        }
+                    else
+                        { model | mbDrag = Nothing }
+
+                Nothing ->
+                    model
 
         _ ->
             model

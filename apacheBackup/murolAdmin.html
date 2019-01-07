@@ -19,7 +19,25 @@
 <body>
 
   <script type="text/javascript">
-    var app = Elm.MurolAdmin.init();
+    var app = Elm.MurolAdmin.init({flags: {availableThreads: window.navigator.hardwareConcurrency || 1 }});
+
+    var workerList = [];
+
+    for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
+      var worker = new Worker('js/imageProcessorWorker.js');
+
+      worker.addEventListener('message', function(data) {
+        app.ports.processedImages.send(data);
+      }, false);
+      
+      workerList.push(worker);
+    }
+    
+    app.ports.toImageProcessor.subscribe(function(d){
+      workerList[d.nextWorker].postMessage(d);
+    });
+
+
 
     // PortFunnel.subscribe will load js/PortFunnel/<module>.js,
     // for each module in this list.
@@ -273,7 +291,13 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(image, 0, 0, image.width, image.height);
-      var data = canvas.toDataURL("image/jpeg");  
+      
+      // var blob = canvas.toBlob(function(b) {return b;},"image/jpeg",1);
+      
+      // console.log(blob);
+
+      var data = canvas.toDataURL("image/jpeg");
+      // var data = blobToDataURL(blob);  
 
       var fileData = {
               contents: data,
@@ -320,8 +344,7 @@
         ctx.rotate(rAngle*Math.PI/180);
         ctx.drawImage(image,-image.width/2,-image.height/2);
 
-
-        var data = canvas.toDataURL("image/jpeg");  
+        var data = canvas.toDataURL("image/jpeg",0.90);  
 
         var fileData = {
                 contents: data,
@@ -345,6 +368,22 @@
      
     }
     
+    //**dataURL to blob**
+   function dataURLtoBlob(dataurl) {
+      var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+          bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+      while(n--){
+          u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], {type:mime});
+    }
+
+    //**blob to dataURL**
+    function blobToDataURL(blob) {
+        var a = new FileReader();
+        a.onload = function(e) {return (e.target.result);}
+        a.readAsDataURL(blob);
+    }
   </script>
   
   

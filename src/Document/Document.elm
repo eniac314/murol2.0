@@ -63,7 +63,8 @@ type CellContent
 
 
 type alias GalleryMeta =
-    { title : String
+    { uuid : UUID
+    , title : String
     , images : List ImageMeta
     }
 
@@ -505,3 +506,27 @@ gatherFichesIds document =
     in
     helper document
         |> List.Extra.unique
+
+
+gatherGalleryMeta : Document -> List GalleryMeta
+gatherGalleryMeta document =
+    let
+        helper doc =
+            case doc of
+                Cell { cellContent } ->
+                    case cellContent of
+                        Gallery galleryMeta ->
+                            [ galleryMeta ]
+
+                        _ ->
+                            []
+
+                Container _ children ->
+                    List.concatMap helper children
+    in
+    helper document
+        |> List.Extra.uniqueBy (UUID.canonical << .uuid)
+
+
+
+--|> List.Extra.unique

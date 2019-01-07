@@ -30,6 +30,7 @@ import NewsEditor.NewsEditor as NewsEditor
 import PageEditor.EditorPlugins.BlockLinksPlugin as BlockLinksPlugin
 import PageEditor.EditorPlugins.ContainerEditPlugin as ContainerEditPlugin
 import PageEditor.EditorPlugins.FichesPlugin as FichesPlugin exposing (..)
+import PageEditor.EditorPlugins.GalleryPlugin as GalleryPlugin
 import PageEditor.EditorPlugins.ImagePlugin as ImagePlugin
 import PageEditor.EditorPlugins.NewDocPlugin as NewDocPlugin
 import PageEditor.EditorPlugins.PictureLinksPlugin as PictureLinksPlugin
@@ -56,6 +57,8 @@ subscriptions model =
         Sub.batch
             [ subPort Process
             , onResize WinResize
+            , Sub.map GalleryPluginMsg <|
+                GalleryPlugin.subscription model.galleryPlugin
             ]
 
 
@@ -145,6 +148,7 @@ storageHandler response state mdl =
 
 type alias Model msg =
     { config : Config msg
+    , availableThreads : Int
     , document : DocZipper
     , undoCache : List DocZipper
     , clipboard : Maybe Document
@@ -165,6 +169,7 @@ type alias Model msg =
     , blockLinksPlugin : BlockLinksPlugin.Model msg
     , fichesPlugin : FichesPlugin.Model msg
     , pictureLinksPlugin : PictureLinksPlugin.Model msg
+    , galleryPlugin : GalleryPlugin.Model msg
     , externalMsg : Msg -> msg
     }
 
@@ -228,6 +233,7 @@ type Msg
     | BlockLinksPluginMsg BlockLinksPlugin.Msg
     | FichesPluginMsg FichesPlugin.Msg
     | PictureLinksPluginMsg PictureLinksPlugin.Msg
+    | GalleryPluginMsg GalleryPlugin.Msg
       -------------------
       -- Persistence   --
       -------------------
@@ -256,8 +262,8 @@ init =
     reset
 
 
-reset : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd msg )
-reset mbDoc externalMsg =
+reset : Maybe Document -> Int -> (Msg -> msg) -> ( Model msg, Cmd msg )
+reset mbDoc availableThreads externalMsg =
     let
         doc_ =
             Maybe.withDefault emptyDoc mbDoc
@@ -302,6 +308,7 @@ reset mbDoc externalMsg =
             { storage = LocalStorage.initialState "Editor" }
     in
     ( { config = config
+      , availableThreads = availableThreads
       , document = initZip doc_
       , clipboard = Nothing
       , undoCache = []
@@ -322,6 +329,7 @@ reset mbDoc externalMsg =
       , blockLinksPlugin = BlockLinksPlugin.init Nothing (externalMsg << BlockLinksPluginMsg)
       , fichesPlugin = FichesPlugin.init [] (externalMsg << FichesPluginMsg)
       , pictureLinksPlugin = PictureLinksPlugin.init [] (externalMsg << PictureLinksPluginMsg)
+      , galleryPlugin = GalleryPlugin.init Nothing availableThreads (externalMsg << GalleryPluginMsg)
       , externalMsg = externalMsg
       }
     , Cmd.batch
@@ -1118,12 +1126,60 @@ internalUpdate config msg model =
                         ]
                     )
 
+        GalleryPluginMsg galleryPluginMsg ->
+            let
+                ( newGalleryPlugin, galleryCmd, mbGalleryPluginResult ) =
+                    GalleryPlugin.update galleryPluginMsg model.galleryPlugin
+            in
+            case mbGalleryPluginResult of
+                Nothing ->
+                    ( { model | galleryPlugin = newGalleryPlugin }
+                    , galleryCmd
+                    )
+
+                Just EditorPluginQuit ->
+                    ( { model
+                        | galleryPlugin = newGalleryPlugin
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        , galleryCmd
+                        ]
+                    )
+
+                Just (EditorPluginData newGalleryMeta) ->
+                    let
+                        newDoc =
+                            updateCurrent
+                                (Cell
+                                    { id = getId (extractDoc model.document)
+                                    , cellContent = Gallery newGalleryMeta
+                                    , attrs = []
+                                    }
+                                )
+                                model.document
+                    in
+                    ( { model
+                        | document = newDoc
+                        , currentPlugin = Nothing
+                      }
+                    , Cmd.batch
+                        [ Cmd.map model.externalMsg <|
+                            scrollTo <|
+                                getHtmlId (extractDoc model.document)
+                        , galleryCmd
+                        ]
+                    )
+
         LoadLocalStorageDocument ->
             case Maybe.map (Decode.decodeValue decodeDocument) model.localStorageValue of
                 Just (Ok newDoc) ->
                     let
                         ( newModel, cmd ) =
-                            reset (Just newDoc) model.externalMsg
+                            reset (Just newDoc) model.availableThreads model.externalMsg
                     in
                     ( { newModel | currentPlugin = Just PersistencePlugin }
                     , cmd
@@ -1299,7 +1355,7 @@ internalUpdate config msg model =
                 Just { docContent } ->
                     let
                         ( newModel, cmd ) =
-                            reset (Just docContent) model.externalMsg
+                            reset (Just docContent) model.availableThreads model.externalMsg
                     in
                     ( { newModel | currentPlugin = Nothing }
                     , cmd
@@ -1523,6 +1579,14 @@ pluginView config model plugin =
                 }
                 model.pictureLinksPlugin
 
+        GalleryPlugin ->
+            GalleryPlugin.view
+                { fileExplorer = config.fileExplorer
+                , logInfo = config.logInfo
+                , zone = config.zone
+                }
+                model.galleryPlugin
+
         PersistencePlugin ->
             Element.map model.externalMsg <|
                 PersistencePlugin.view
@@ -1679,6 +1743,21 @@ openNewPlugin config model =
             , Cmd.none
             )
 
+        Just GalleryPlugin ->
+            let
+                galleryPlugin =
+                    GalleryPlugin.init
+                        Nothing
+                        model.availableThreads
+                        (model.externalMsg << GalleryPluginMsg)
+            in
+            ( { model
+                | galleryPlugin =
+                    galleryPlugin
+              }
+            , Cmd.none
+            )
+
         _ ->
             ( model, Cmd.none )
 
@@ -1791,6 +1870,22 @@ openPlugin config model =
                         | currentPlugin = Just PictureLinksPlugin
                         , pictureLinksPlugin =
                             newPicLinks
+                      }
+                    , Cmd.none
+                    )
+
+                Gallery galleryMeta ->
+                    let
+                        newGallery =
+                            GalleryPlugin.init
+                                (Just galleryMeta)
+                                model.availableThreads
+                                (model.externalMsg << GalleryPluginMsg)
+                    in
+                    ( { model
+                        | currentPlugin = Just GalleryPlugin
+                        , galleryPlugin =
+                            newGallery
                       }
                     , Cmd.none
                     )

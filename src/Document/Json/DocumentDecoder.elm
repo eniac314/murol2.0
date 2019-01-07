@@ -129,6 +129,9 @@ decodeGalleryMeta : Decoder GalleryMeta
 decodeGalleryMeta =
     succeed GalleryMeta
         |> required
+            "uuid"
+            decodeUUID
+        |> required
             "title"
             string
         |> required

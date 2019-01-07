@@ -273,7 +273,7 @@ cellContentToString lc =
             "Bandeau images liens"
 
         Gallery _ ->
-            "Gallerie photothèque"
+            "Galerie photothèque"
 
         EmptyCell ->
             "Cellule vide"
