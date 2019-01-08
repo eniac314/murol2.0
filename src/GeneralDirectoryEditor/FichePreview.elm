@@ -19,8 +19,8 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (chevronsDown, chevronsUp)
 import Murmur3 exposing (hashString)
 import Set exposing (..)
-import Time exposing (..)
 import String.Extra exposing (toSentenceCase)
+import Time exposing (..)
 import UUID exposing (canonical)
 
 
@@ -62,43 +62,43 @@ visualPreview handler maxWidth { uuid, nomEntite, visuel } =
             round maxWidth
 
         h =
-            (round (maxWidth / 1.333333333))
+            round (maxWidth / 1.333333333)
     in
-        el
-            [ width (px w)
-            , height (px h)
-            , Background.color (blockLinkGrey)
-            , mouseOver
-                [ Background.color (blockLinkGreyAlpha 0.5) ]
-            , Events.onClick (handler (canonical uuid))
-            , pointer
-            ]
-            (el
-                [ width (px (w - 12))
-                , height (px (h - 12))
-                , centerX
-                , centerY
-                , Background.image visuel
-                , inFront
+    el
+        [ width (px w)
+        , height (px h)
+        , Background.color blockLinkGrey
+        , mouseOver
+            [ Background.color (blockLinkGreyAlpha 0.5) ]
+        , Events.onClick (handler (canonical uuid))
+        , pointer
+        ]
+        (el
+            [ width (px (w - 12))
+            , height (px (h - 12))
+            , centerX
+            , centerY
+            , Background.image visuel
+            , inFront
+                (el
+                    [ alignBottom
+                    , width fill
+                    , padding 10
+                    , Background.color (blockLinkGreyAlpha 0.8)
+                    , Font.color aliceBlue
+                    ]
                     (el
-                        [ alignBottom
-                        , width fill
-                        , padding 10
-                        , Background.color (blockLinkGreyAlpha 0.8)
-                        , Font.color aliceBlue
-                        ]
-                        (el
-                            ([ Font.center
-                             , width fill
-                             ]
-                                ++ unselectable
-                            )
-                            (paragraph [] [ text nomEntite ])
+                        ([ Font.center
+                         , width fill
+                         ]
+                            ++ unselectable
                         )
+                        (paragraph [] [ text nomEntite ])
                     )
-                ]
-                Element.none
-            )
+                )
+            ]
+            Element.none
+        )
 
 
 activView { natureActiv } =
@@ -118,9 +118,9 @@ starsView n =
         , Background.gradient
             { angle = 0
             , steps =
-                [ (rgb255 85 112 83)
-                , (rgb255 143 188 139)
-                , (rgb255 85 112 83)
+                [ rgb255 85 112 83
+                , rgb255 143 188 139
+                , rgb255 85 112 83
                 ]
             }
         ]
@@ -151,7 +151,7 @@ starsView n =
                 , Font.shadow
                     { offset = ( 1, 0 )
                     , blur = 1
-                    , color = (rgb255 25 21 0)
+                    , color = rgb255 25 21 0
                     }
                 ]
                 (text <| String.repeat n "🟊")
@@ -163,7 +163,7 @@ refView maxWidth { refOt, label, rank } =
     let
         images =
             stars
-                ++ (List.map toImage label)
+                ++ List.map toImage label
 
         ( stars, nbrStars ) =
             case rank.stars of
@@ -207,7 +207,7 @@ refView maxWidth { refOt, label, rank } =
                     , link = link
                     }
             in
-                List.map scale images
+            List.map scale images
 
         totalImgWidth =
             List.foldr (\i n -> i.width + n) 0 imgsScaledToMinHeight
@@ -221,18 +221,16 @@ refView maxWidth { refOt, label, rank } =
                 ]
                 { url = link
                 , label =
-                    (if url == "stars" then
+                    if url == "stars" then
                         starsView nbrStars
-                     else
-                        (html <|
+                    else
+                        html <|
                             Html.img
                                 [ HtmlAttr.style "width" "100%"
                                 , HtmlAttr.style "height" "auto"
                                 , HtmlAttr.src url
                                 ]
                                 []
-                        )
-                    )
                 }
 
         logosView =
@@ -265,21 +263,21 @@ refView maxWidth { refOt, label, rank } =
                 Nothing ->
                     Element.none
     in
-        if
-            (refOt == Nothing)
-                && (images == [])
-        then
-            Element.none
-        else
-            column
-                (subBlockStyle
-                    ++ [ width fill
-                       , spacing 10
-                       ]
-                )
-                [ refOtView
-                , logosView
-                ]
+    if
+        (refOt == Nothing)
+            && (images == [])
+    then
+        Element.none
+    else
+        column
+            (subBlockStyle
+                ++ [ width fill
+                   , spacing 10
+                   ]
+            )
+            [ refOtView
+            , logosView
+            ]
 
 
 contactView : Fiche -> Element msg
@@ -303,7 +301,7 @@ contactView { adresse, telNumber, email, site, responsables } =
                 row
                     [ spacing 5 ]
                     [ el [ Font.bold ] (text "Email:")
-                    , (text mail)
+                    , text mail
                     ]
 
             emails ->
@@ -342,34 +340,37 @@ responsablesView responsables =
                 [ paragraph
                     []
                     [ el [] (text poste)
-                    , text ", "
+                    , if poste == "" then
+                        Element.none
+                      else
+                        text ", "
                     , el [] (text nom)
                     ]
                 , telPreview tel
                 ]
     in
-        case responsables of
-            [] ->
-                Element.none
+    case responsables of
+        [] ->
+            Element.none
 
-            resp :: [] ->
-                column
-                    [ spacing 10 ]
-                    [ el
-                        [ Font.bold ]
-                        (text "Responsable:")
-                    , respView resp
-                    ]
+        resp :: [] ->
+            column
+                [ spacing 10 ]
+                [ el
+                    [ Font.bold ]
+                    (text "Responsable:")
+                , respView resp
+                ]
 
-            resps ->
-                column
-                    [ spacing 10 ]
-                    ([ el
-                        [ Font.bold ]
-                        (text "Responsables:")
-                     ]
-                        ++ (List.map respView resps)
-                    )
+        resps ->
+            column
+                [ spacing 10 ]
+                ([ el
+                    [ Font.bold ]
+                    (text "Responsables:")
+                 ]
+                    ++ List.map respView resps
+                )
 
 
 descriptionView { description, ouverture } =
@@ -382,31 +383,31 @@ descriptionView { description, ouverture } =
                 _ ->
                     ( False, Element.none )
     in
-        case description of
-            [] ->
-                if displayOuv then
-                    column
-                        subBlockStyle
-                        [ ouvertureView ]
-                else
-                    Element.none
+    case description of
+        [] ->
+            if displayOuv then
+                column
+                    subBlockStyle
+                    [ ouvertureView ]
+            else
+                Element.none
 
-            descr ->
-                let
-                    descrView d =
-                        paragraph
-                            [ Font.italic ]
-                            [ text (toSentenceCase d) ]
-                in
-                    column
-                        (subBlockStyle
-                            ++ [ width fill
-                               , spacing 10
-                               ]
-                        )
-                        ((List.map descrView descr)
-                            ++ [ ouvertureView ]
-                        )
+        descr ->
+            let
+                descrView d =
+                    paragraph
+                        [ Font.italic ]
+                        [ text (toSentenceCase d) ]
+            in
+            column
+                (subBlockStyle
+                    ++ [ width fill
+                       , spacing 10
+                       ]
+                )
+                (List.map descrView descr
+                    ++ [ ouvertureView ]
+                )
 
 
 linkedDocsView currentTime { linkedDocs } =
@@ -441,7 +442,7 @@ linkedDocsView currentTime { linkedDocs } =
                                                 , height (px 16)
                                                 , Background.uncropped "/assets/images/pdf.svg"
                                                 ]
-                                                (Element.none)
+                                                Element.none
                                             , text label
                                             ]
                                     }
@@ -455,32 +456,33 @@ linkedDocsView currentTime { linkedDocs } =
                                     |> Maybe.withDefault Element.none
                                 ]
                     in
-                        case expiryDate of
-                            Nothing ->
-                                resView
+                    case expiryDate of
+                        Nothing ->
+                            resView
 
-                            Just ed ->
-                                if (posixToMillis ed < posixToMillis currentTime) then
-                                    Element.none
-                                else
-                                    resView
+                        Just ed ->
+                            if posixToMillis ed < posixToMillis currentTime then
+                                Element.none
+                            else
+                                resView
             in
-                column
-                    (subBlockStyle
-                        ++ [ spacing 10 ]
-                    )
-                    ([ row
-                        [ Font.bold ]
-                        [ el []
-                            (text <| "EN SAVOIR PLUS")
-                          --, el
-                          --    [ centerY
-                          --    ]
-                          --    (text "+")
-                        ]
-                     ]
-                        ++ List.map ldView ldocs
-                    )
+            column
+                (subBlockStyle
+                    ++ [ spacing 10 ]
+                )
+                ([ row
+                    [ Font.bold ]
+                    [ el []
+                        (text <| "EN SAVOIR PLUS")
+
+                    --, el
+                    --    [ centerY
+                    --    ]
+                    --    (text "+")
+                    ]
+                 ]
+                    ++ List.map ldView ldocs
+                )
 
 
 

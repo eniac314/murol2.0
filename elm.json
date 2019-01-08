@@ -12,7 +12,7 @@
             "TSFoster/elm-uuid": "2.2.0",
             "ThinkAlexandria/elm-pretty-print-json": "1.0.1",
             "andrewMacmurray/elm-delay": "3.0.0",
-            "basti1302/elm-human-readable-filesize": "1.1.1",
+            "basti1302/elm-human-readable-filesize": "1.2.0",
             "billstclair/elm-localstorage": "6.0.1",
             "billstclair/elm-port-funnel": "1.0.3",
             "elm/browser": "1.0.1",

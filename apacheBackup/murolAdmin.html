@@ -21,20 +21,8 @@
   <script type="text/javascript">
     var app = Elm.MurolAdmin.init({flags: {availableThreads: window.navigator.hardwareConcurrency || 1 }});
 
-    var workerList = [];
-
-    for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
-      var worker = new Worker('js/imageProcessorWorker.js');
-
-      worker.addEventListener('message', function(data) {
-        app.ports.processedImages.send(data);
-      }, false);
-      
-      workerList.push(worker);
-    }
-    
     app.ports.toImageProcessor.subscribe(function(d){
-      workerList[d.nextWorker].postMessage(d);
+      processImage(d);
     });
 
 
@@ -265,7 +253,7 @@
 
     var sizeInBytes = 4 * Math.ceil((stringLength / 3))*0.5624896334383812;
     var sizeInKb=sizeInBytes/1024;
-    return Math.round(sizeInKb);
+    return Math.round(sizeInBytes);
   }
 
   function resize(src, max_height, filename, caller){
@@ -368,24 +356,96 @@
      
     }
     
-    //**dataURL to blob**
-   function dataURLtoBlob(dataurl) {
-      var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-          bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-      while(n--){
-          u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new Blob([u8arr], {type:mime});
-    }
+   ////////////////////////////////////////////////////////////////////////////
+   
+   function processImage(data){
 
-    //**blob to dataURL**
-    function blobToDataURL(blob) {
-        var a = new FileReader();
-        a.onload = function(e) {return (e.target.result);}
-        a.readAsDataURL(blob);
-    }
+      var image = new Image();
+      
+      image.onload = function(){
+        
+        var canvas = document.createElement('canvas');
+        // if(image.height > 600) {
+        //   image.width *= 600 / image.height;
+        //   image.height = 600;
+        // }
+
+        if(image.height > 600) {
+          var width = image.width * 600 / image.height;
+          var height = 600;
+        } else {
+          var width = image.width;
+          var height = image.height;
+        }
+
+        var ctx = canvas.getContext("2d");
+        
+        // canvas.width = image.width;
+        // canvas.height = image.height;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // ctx.drawImage(image, 0, 0, image.width, image.height);
+        ctx.drawImage(image, 0, 0, width, height);
+        var smallPic = canvas.toDataURL("image/jpeg",0.90);  
+        
+        
+        var thumbSize = Math.min(image.width, image.height);
+        
+        if (image.width > image.height){
+          var sx = (Math.floor((image.width - image.height)/2));
+          var sy = 0; 
+        } else {
+          var sx = 0;
+          var sy = (Math.floor((image.height - image.width)/4));
+        }
+
+        var thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = 200;
+        thumbCanvas.height = 200;
+        
+        var tCtx = thumbCanvas.getContext("2d");
+        tCtx.clearRect(0,0,200,200);
+        
+
+        tCtx.drawImage(image, sx, sy, thumbSize, thumbSize, 0, 0, 200, 200);
+        var thumb = thumbCanvas.toDataURL("image/jpeg",0.9);
+
+        var result = {          
+                filename: data.filename,
+                content: smallPic,
+                thumb: thumb,
+                size: fileSize(smallPic),
+                width: image.width,
+                height: image.height
+              };
+        
+        app.ports.processedImages.send(result);
+      };
+      
+      image.src = data.imageData;
+  }
+
+  //**dataURL to blob**
+  function dataURLtoBlob(dataurl) {
+     var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+         bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+     while(n--){
+         u8arr[n] = bstr.charCodeAt(n);
+     }
+     return new Blob([u8arr], {type:mime});
+   }
+  
+  //**blob to dataURL**
+  function blobToDataURL(blob) {
+      var a = new FileReader();
+      a.onload = function(e) {return (e.target.result);}
+      a.readAsDataURL(blob);
+  }
+  
   </script>
   
+
   
 </body>
 </html>

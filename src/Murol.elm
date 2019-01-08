@@ -168,7 +168,7 @@ init flags url key =
             StyleSheets.timeToSeason utc (Time.millisToPosix flags.currentTime)
 
         headerGallerySize =
-            10
+            11
 
         ( randomOrder, seed ) =
             Random.step (Random.list headerGallerySize (float 0 1))

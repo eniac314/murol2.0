@@ -1932,9 +1932,8 @@ editView config model =
                         , el []
                             (text
                                 (model.mbOriFileSize
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.map (\s -> s ++ " kb")
-                                    |> Maybe.withDefault "0 kb"
+                                    |> Maybe.map Filesize.format
+                                    |> Maybe.withDefault "Erreur"
                                 )
                             )
                         ]
@@ -1945,9 +1944,8 @@ editView config model =
                             (text
                                 (model.mbImageFromFile
                                     |> Maybe.map .filesize
-                                    |> Maybe.map String.fromInt
-                                    |> Maybe.map (\s -> s ++ " kb")
-                                    |> Maybe.withDefault "0 kb"
+                                    |> Maybe.map Filesize.format
+                                    |> Maybe.withDefault "Erreur"
                                 )
                             )
                         ]
