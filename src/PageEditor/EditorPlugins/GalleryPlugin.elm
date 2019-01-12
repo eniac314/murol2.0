@@ -19,6 +19,7 @@ import Filesize exposing (..)
 import Html exposing (Html)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
+import Internals.Icons exposing (checkSquare, square)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra exposing (remove)
@@ -40,12 +41,16 @@ subscription model =
 
 
 type alias Model msg =
-    { externalMsg : Msg -> msg
+    { pluginState : PluginState
     , fileSizes : Dict String Int
     , base64Pics : Dict String String
     , processedPics : Dict String ProcessedImage
     , processing : Bool
     , processingQueue : List ( String, String )
+    , galleryTitleInput : Maybe String
+    , keepHQAssets : Bool
+    , output : Maybe GalleryMeta
+    , externalMsg : Msg -> msg
     }
 
 
@@ -54,18 +59,35 @@ type Msg
     | ImagesSelected File (List File)
     | Base64Img String String
     | ImageProcessed Decode.Value
+    | GalleryTitlePrompt String
+    | ToogleKeepHqAssets Bool
     | Quit
     | NoOp
 
 
+type PluginState
+    = Home
+    | ImageProcessing
+    | UploadConfirmation
+    | GalleryEditor
+
+
 init : Maybe GalleryMeta -> Int -> (Msg -> msg) -> Model msg
 init mbGalleryMeta availableThreads externalMsg =
-    { externalMsg = externalMsg
+    { pluginState =
+        if mbGalleryMeta == Nothing then
+            Home
+        else
+            GalleryEditor
     , fileSizes = Dict.empty
     , base64Pics = Dict.empty
     , processedPics = Dict.empty
     , processing = False
     , processingQueue = []
+    , galleryTitleInput = Nothing
+    , keepHQAssets = False
+    , output = mbGalleryMeta
+    , externalMsg = externalMsg
     }
 
 
@@ -122,6 +144,7 @@ update msg model =
                 | base64Pics = Dict.insert filename data model.base64Pics
                 , processingQueue = processingQueue
                 , processing = True
+                , pluginState = ImageProcessing
               }
             , cmd
             , Nothing
@@ -163,6 +186,18 @@ update msg model =
             ( model
             , Cmd.none
             , Just EditorPluginQuit
+            )
+
+        GalleryTitlePrompt s ->
+            ( { model | galleryTitleInput = Just s }
+            , Cmd.none
+            , Nothing
+            )
+
+        ToogleKeepHqAssets b ->
+            ( { model | keepHQAssets = b }
+            , Cmd.none
+            , Nothing
             )
 
         NoOp ->
@@ -217,11 +252,38 @@ view config model =
                  ]
                     ++ containerStyle
                 )
-                [ debug config model ]
+                (case model.pluginState of
+                    Home ->
+                        homeView config model
+
+                    UploadConfirmation ->
+                        uploadConfirmationView config model
+
+                    ImageProcessing ->
+                        imageProcessingView config model
+
+                    GalleryEditor ->
+                        galleryEditorView config model
+                )
             )
 
 
 debug config model =
+    let
+        phototheque =
+            FileExplorer.indexPhototheque config.fileExplorer
+                |> Dict.toList
+
+        galleryPreview ( name, pics ) =
+            column
+                [ spacing 15
+                , alignTop
+                ]
+                (el [ Font.bold ]
+                    (text name)
+                    :: List.map (text << Tuple.first) pics
+                )
+    in
     column
         (itemStyle
             ++ [ spacing 15
@@ -237,6 +299,9 @@ debug config model =
                    )
         , text <| "processed: " ++ String.fromInt (Dict.size model.processedPics)
         , text <| "remaining: " ++ String.fromInt (List.length model.processingQueue)
+        , wrappedRow
+            [ spacing 15 ]
+            (List.map galleryPreview phototheque)
         , Input.button
             (buttonStyle True)
             { onPress = Just ImagesRequested
@@ -281,7 +346,84 @@ debug config model =
         ]
 
 
-pickExistingFolder :
+
+-------------------------------------------------------------------------------
+
+
+homeView :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+        , zone : Time.Zone
+    }
+    -> Model msg
+    -> List (Element Msg)
+homeView config model =
+    [ column
+        (itemStyle
+            ++ [ spacing 15
+               , width fill
+               ]
+        )
+        [ el
+            [ Font.bold
+            , Font.size 18
+            ]
+            (text "Créer une nouvelle gallerie")
+        , row
+            [ width fill
+            , spacing 15
+            ]
+            [ Input.text
+                textInputStyle
+                { onChange = GalleryTitlePrompt
+                , text =
+                    model.galleryTitleInput
+                        |> Maybe.withDefault ""
+                , placeholder =
+                    Just <| Input.placeholder [] (text "Nom de la galerie")
+                , label =
+                    Input.labelHidden ""
+                }
+            , Input.checkbox
+                [ spacing 5 ]
+                { onChange = ToogleKeepHqAssets
+                , icon =
+                    \b ->
+                        if b then
+                            el [ Font.color grey1 ]
+                                (html <| checkSquare 18)
+                        else
+                            el [ Font.color grey1 ]
+                                (html <| square 18)
+                , checked = model.keepHQAssets
+                , label =
+                    Input.labelLeft [] (text "images HD")
+                }
+            , Input.button
+                (buttonStyle (model.galleryTitleInput /= Nothing))
+                { onPress = Just ImagesRequested
+                , label = text "Nouvelle galerie"
+                }
+            ]
+        ]
+    , galleryPickerView config model
+    , row
+        (itemStyle
+            ++ [ spacing 15
+               , width fill
+               ]
+        )
+        [ Input.button
+            (buttonStyle True)
+            { onPress = Just Quit
+            , label = text "Retour"
+            }
+        ]
+    ]
+
+
+galleryPickerView :
     { a
         | fileExplorer : FileExplorer.Model msg
         , logInfo : LogInfo
@@ -289,26 +431,77 @@ pickExistingFolder :
     }
     -> Model msg
     -> Element Msg
-pickExistingFolder config model =
+galleryPickerView config model =
     column
         (itemStyle
             ++ [ spacing 15
                , width fill
                ]
         )
-        [ row
-            (itemStyle
-                ++ [ spacing 15
-                   , width fill
-                   ]
-            )
-            [ Input.button
-                (buttonStyle True)
-                { onPress = Just Quit
-                , label = text "Retour"
-                }
-            ]
-        ]
+        []
+
+
+
+-------------------------------------------------------------------------------
+
+
+imageProcessingView :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+        , zone : Time.Zone
+    }
+    -> Model msg
+    -> List (Element Msg)
+imageProcessingView config model =
+    let
+        phototheque =
+            FileExplorer.indexPhototheque config.fileExplorer
+                |> Dict.toList
+
+        galleryPreview ( name, pics ) =
+            column
+                [ spacing 15
+                , alignTop
+                ]
+                (el [ Font.bold ]
+                    (text name)
+                    :: List.map (text << Tuple.first) pics
+                )
+    in
+    []
+
+
+
+-------------------------------------------------------------------------------
+
+
+uploadConfirmationView :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+        , zone : Time.Zone
+    }
+    -> Model msg
+    -> List (Element Msg)
+uploadConfirmationView config model =
+    []
+
+
+
+-------------------------------------------------------------------------------
+
+
+galleryEditorView :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : LogInfo
+        , zone : Time.Zone
+    }
+    -> Model msg
+    -> List (Element Msg)
+galleryEditorView config model =
+    []
 
 
 

@@ -2651,6 +2651,49 @@ getCurrentFilesys mode model =
                     model.mbDFilesys
 
 
+indexPhototheque : Model msg -> Dict String (List ( String, String ))
+indexPhototheque model =
+    let
+        getPaths files =
+            case files of
+                [] ->
+                    []
+
+                (Folder _ _) :: xs ->
+                    getPaths xs
+
+                (File meta) :: xs ->
+                    ( meta.name
+                    , String.join "/" meta.path
+                    )
+                        :: getPaths xs
+    in
+    case
+        getCurrentFilesys (ReadOnly ImagesRoot) model
+            |> Maybe.map rewindFilesys
+            |> Maybe.andThen (zipToFsItem [ "images", "phototheque" ])
+            |> Maybe.map extractFsItem
+    of
+        Just (Folder _ galleries) ->
+            List.foldr
+                (\g acc ->
+                    case g of
+                        File meta ->
+                            acc
+
+                        Folder meta pictures ->
+                            Dict.insert
+                                meta.name
+                                (getPaths pictures)
+                                acc
+                )
+                Dict.empty
+                galleries
+
+        _ ->
+            Dict.empty
+
+
 break : (a -> Bool) -> List a -> ( List a, List a )
 break p xs =
     let
