@@ -50,11 +50,15 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $dest = realpath(pathinfo($newFolder)['dirname']); 
   
   if(strpos($dest, $baseDir) !== 0 || strpos($dest, $baseDir) === false) { 
-    logError($dest);
     logError("invalid dest path");
     exit();
   }
 
+  
+  if(file_exists($newFolder)){
+     logError("file already exists");
+     exit;
+  }
 
   if(file_exists($path)) { 
       

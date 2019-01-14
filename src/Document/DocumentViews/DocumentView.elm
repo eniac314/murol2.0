@@ -783,6 +783,12 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
                 UrlSrc s ->
                     s
     in
+    --[ image
+    --    attrs_
+    --    { src = src_
+    --    , description = ""
+    --    }
+    --]
     [ el attrs_
         (html <|
             Html.img
@@ -804,7 +810,7 @@ renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
         styleSheet =
             defaultStyleSheet config
     in
-    [ el attrs_
+    [ el ([ centerX ] ++ attrs_)
         (html <|
             Html.iframe
                 [ Attr.src <|

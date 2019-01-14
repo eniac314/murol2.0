@@ -1,6 +1,6 @@
 port module PageEditor.EditorPlugins.GalleryPlugin exposing (..)
 
-import Auth.AuthPlugin exposing (LogInfo)
+import Auth.AuthPlugin exposing (LogInfo(..))
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
 import Document.Json.DocumentDecoder as DocumentDecoder
@@ -17,6 +17,7 @@ import File.Select as Select exposing (..)
 import FileExplorer.FileExplorer as FileExplorer
 import Filesize exposing (..)
 import Html exposing (Html)
+import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (checkSquare, square)
@@ -24,8 +25,10 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra exposing (remove)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
+import Random exposing (..)
+import String.Extra exposing (toSentenceCase)
 import Task exposing (..)
-import Time exposing (Zone)
+import Time exposing (Posix, Zone, now, posixToMillis)
 import UUID exposing (canonical)
 
 
@@ -37,7 +40,14 @@ port processedImages : (Decode.Value -> msg) -> Sub msg
 
 subscription : Model msg -> Sub Msg
 subscription model =
-    processedImages ImageProcessed
+    Sub.batch
+        ([ processedImages ImageProcessed
+         ]
+            ++ Dict.foldr
+                (\fn _ acc -> Http.track fn (GotProgress fn) :: acc)
+                []
+                model.uploadProgress
+        )
 
 
 type alias Model msg =
@@ -50,6 +60,8 @@ type alias Model msg =
     , galleryTitleInput : Maybe String
     , keepHQAssets : Bool
     , output : Maybe GalleryMeta
+    , seed : Maybe Random.Seed
+    , uploadProgress : Dict String Int
     , externalMsg : Msg -> msg
     }
 
@@ -60,7 +72,16 @@ type Msg
     | Base64Img String String
     | ImageProcessed Decode.Value
     | GalleryTitlePrompt String
+    | CaptionPrompt String String
     | ToogleKeepHqAssets Bool
+    | PickGallery String (List ( String, String ))
+    | SetInitialSeed Posix
+    | GotProgress String Http.Progress
+    | Uploaded (Result Http.Error UploadStatus)
+    | Reset
+    | GoToUpload
+    | GoToEdit
+    | SaveAndQuit
     | Quit
     | NoOp
 
@@ -68,31 +89,38 @@ type Msg
 type PluginState
     = Home
     | ImageProcessing
-    | UploadConfirmation
+    | Upload
     | GalleryEditor
 
 
-init : Maybe GalleryMeta -> Int -> (Msg -> msg) -> Model msg
+init : Maybe GalleryMeta -> Int -> (Msg -> msg) -> ( Model msg, Cmd msg )
 init mbGalleryMeta availableThreads externalMsg =
-    { pluginState =
-        if mbGalleryMeta == Nothing then
-            Home
-        else
-            GalleryEditor
-    , fileSizes = Dict.empty
-    , base64Pics = Dict.empty
-    , processedPics = Dict.empty
-    , processing = False
-    , processingQueue = []
-    , galleryTitleInput = Nothing
-    , keepHQAssets = False
-    , output = mbGalleryMeta
-    , externalMsg = externalMsg
-    }
+    ( { pluginState =
+            if mbGalleryMeta == Nothing then
+                Home
+            else
+                GalleryEditor
+      , fileSizes = Dict.empty
+      , base64Pics = Dict.empty
+      , processedPics = Dict.empty
+      , processing = False
+      , processingQueue = []
+      , galleryTitleInput = Nothing
+      , keepHQAssets = False
+      , output = mbGalleryMeta
+      , seed = Nothing
+      , uploadProgress = Dict.empty
+      , externalMsg = externalMsg
+      }
+    , Cmd.map externalMsg <|
+        Cmd.batch
+            [ Task.perform SetInitialSeed Time.now
+            ]
+    )
 
 
-update : Msg -> Model msg -> ( Model msg, Cmd msg, Maybe (EditorPluginResult GalleryMeta) )
-update msg model =
+update : { a | logInfo : LogInfo } -> Msg -> Model msg -> ( Model msg, Cmd msg, Maybe (EditorPluginResult GalleryMeta) )
+update config msg model =
     case msg of
         ImagesRequested ->
             ( model
@@ -102,27 +130,37 @@ update msg model =
 
         ImagesSelected first remaining ->
             let
+                indexName n =
+                    String.fromInt n
+                        |> String.padLeft 3 '0'
+                        |> strCons ".jpg"
+
                 files =
                     first :: remaining
 
                 fileSizes =
                     List.foldr
-                        (\f acc ->
+                        (\( n, f ) acc ->
                             Dict.insert
-                                (File.name f)
+                                (indexName n)
                                 (File.size f)
                                 acc
                         )
                         model.fileSizes
-                        files
-
-                --first :: remaining
+                        (List.indexedMap (\n f -> ( n, f )) files)
             in
             ( { model
                 | fileSizes = fileSizes
               }
             , List.map (\f -> ( File.name f, File.toUrl f )) files
-                |> List.map (\( fn, t ) -> Task.perform (Base64Img fn) t)
+                |> List.indexedMap
+                    (\n ( fn, t ) ->
+                        Task.perform
+                            (Base64Img
+                                (indexName n)
+                            )
+                            t
+                    )
                 |> Cmd.batch
                 |> Cmd.map model.externalMsg
             , Nothing
@@ -170,7 +208,11 @@ update msg model =
                         , processing = processing
                         , processedPics =
                             Dict.insert filename pi model.processedPics
-                        , base64Pics = Dict.remove filename model.base64Pics
+                        , base64Pics =
+                            if not model.keepHQAssets then
+                                Dict.remove filename model.base64Pics
+                            else
+                                model.base64Pics
                       }
                     , cmd
                     , Nothing
@@ -182,8 +224,169 @@ update msg model =
                     , Nothing
                     )
 
-        Quit ->
+        PickGallery title pics ->
+            case model.seed of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Just seed ->
+                    let
+                        ( newSeed, galleryMeta ) =
+                            makeGalleryMeta title pics seed
+                    in
+                    ( { model
+                        | seed = Just newSeed
+                        , output = Just galleryMeta
+                        , pluginState = GalleryEditor
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        SetInitialSeed t ->
+            ( { model | seed = Just <| Random.initialSeed (posixToMillis t) }
+            , Cmd.none
+            , Nothing
+            )
+
+        GotProgress filename progress ->
+            case progress of
+                Sending { sent, size } ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.insert
+                                filename
+                                (round <| 100 * toFloat sent / toFloat size)
+                                model.uploadProgress
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Receiving { received, size } ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        Uploaded res ->
             ( model
+            , Cmd.none
+            , Nothing
+            )
+
+        Reset ->
+            ( { model
+                | base64Pics = Dict.empty
+                , processedPics = Dict.empty
+                , fileSizes = Dict.empty
+                , processing = False
+                , processingQueue = []
+                , pluginState = Home
+                , output = Nothing
+                , uploadProgress = Dict.empty
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        GoToUpload ->
+            ( { model
+                | pluginState = Upload
+                , uploadProgress =
+                    Dict.map
+                        (\_ _ -> 0)
+                        model.processedPics
+              }
+            , case ( config.logInfo, model.galleryTitleInput ) of
+                ( LoggedIn info, Just title ) ->
+                    Cmd.map model.externalMsg <|
+                        Cmd.batch
+                            (Dict.foldr
+                                (\k v acc ->
+                                    uploadImage
+                                        title
+                                        v.filename
+                                        v.content
+                                        v.thumb
+                                        info.sessionId
+                                        :: acc
+                                )
+                                []
+                                model.processedPics
+                            )
+
+                _ ->
+                    Cmd.none
+            , Nothing
+            )
+
+        GoToEdit ->
+            case ( model.seed, model.galleryTitleInput ) of
+                ( Just seed, Just title ) ->
+                    let
+                        pics =
+                            List.map
+                                (\fn ->
+                                    ( fn
+                                    , "images/phototheque/"
+                                        ++ title
+                                        ++ "/"
+                                        ++ fn
+                                    )
+                                )
+                                (Dict.keys model.processedPics)
+
+                        ( newSeed, galleryMeta ) =
+                            makeGalleryMeta title pics seed
+                    in
+                    ( { model
+                        | base64Pics = Dict.empty
+                        , processedPics = Dict.empty
+                        , fileSizes = Dict.empty
+                        , processing = False
+                        , processingQueue = []
+                        , pluginState = GalleryEditor
+                        , seed = Just newSeed
+                        , output = Just galleryMeta
+                        , uploadProgress = Dict.empty
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        SaveAndQuit ->
+            case model.output of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Just galleryMeta ->
+                    ( model
+                    , Cmd.none
+                    , Just (EditorPluginData galleryMeta)
+                    )
+
+        Quit ->
+            ( { model
+                | base64Pics = Dict.empty
+                , processedPics = Dict.empty
+                , processing = False
+                , processingQueue = []
+                , output = Nothing
+                , uploadProgress = Dict.empty
+              }
             , Cmd.none
             , Just EditorPluginQuit
             )
@@ -194,6 +397,30 @@ update msg model =
             , Nothing
             )
 
+        CaptionPrompt src caption ->
+            case model.output of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Just output ->
+                    let
+                        newOutput =
+                            { output
+                                | images =
+                                    List.Extra.updateIf
+                                        (\i -> i.src == UrlSrc src)
+                                        (\i -> { i | caption = Just caption })
+                                        output.images
+                            }
+                    in
+                    ( { model | output = Just newOutput }
+                    , Cmd.none
+                    , Nothing
+                    )
+
         ToogleKeepHqAssets b ->
             ( { model | keepHQAssets = b }
             , Cmd.none
@@ -201,12 +428,7 @@ update msg model =
             )
 
         NoOp ->
-            ( { model
-                | base64Pics = Dict.empty
-                , processedPics = Dict.empty
-                , processing = False
-                , processingQueue = []
-              }
+            ( model
             , Cmd.none
             , Nothing
             )
@@ -256,8 +478,8 @@ view config model =
                     Home ->
                         homeView config model
 
-                    UploadConfirmation ->
-                        uploadConfirmationView config model
+                    Upload ->
+                        uploadView config model
 
                     ImageProcessing ->
                         imageProcessingView config model
@@ -266,84 +488,6 @@ view config model =
                         galleryEditorView config model
                 )
             )
-
-
-debug config model =
-    let
-        phototheque =
-            FileExplorer.indexPhototheque config.fileExplorer
-                |> Dict.toList
-
-        galleryPreview ( name, pics ) =
-            column
-                [ spacing 15
-                , alignTop
-                ]
-                (el [ Font.bold ]
-                    (text name)
-                    :: List.map (text << Tuple.first) pics
-                )
-    in
-    column
-        (itemStyle
-            ++ [ spacing 15
-               , width fill
-               ]
-        )
-        [ text <|
-            "Processing: "
-                ++ (if model.processing then
-                        "on"
-                    else
-                        "off"
-                   )
-        , text <| "processed: " ++ String.fromInt (Dict.size model.processedPics)
-        , text <| "remaining: " ++ String.fromInt (List.length model.processingQueue)
-        , wrappedRow
-            [ spacing 15 ]
-            (List.map galleryPreview phototheque)
-        , Input.button
-            (buttonStyle True)
-            { onPress = Just ImagesRequested
-            , label = text "Charger images"
-            }
-        , column
-            [ spacing 15 ]
-            (List.map
-                (\p ->
-                    row
-                        [ spacing 15 ]
-                        [ el
-                            [ width (px 233)
-                            , height (px 175)
-                            , Background.uncropped p.content
-                            ]
-                            Element.none
-                        , column
-                            [ alignTop
-                            , spacing 15
-                            ]
-                            [ text p.filename
-                            , text <|
-                                "Taille originale: "
-                                    ++ (Dict.get p.filename model.fileSizes
-                                            |> Maybe.map Filesize.format
-                                            |> Maybe.withDefault "Erreur"
-                                       )
-                            , text <|
-                                "Taille: "
-                                    ++ Filesize.format p.size
-                            ]
-                        ]
-                )
-                (Dict.values model.processedPics)
-            )
-        , Input.button
-            (buttonStyle True)
-            { onPress = Just Quit
-            , label = text "Retour"
-            }
-        ]
 
 
 
@@ -417,7 +561,7 @@ homeView config model =
         [ Input.button
             (buttonStyle True)
             { onPress = Just Quit
-            , label = text "Retour"
+            , label = text "Annuler"
             }
         ]
     ]
@@ -432,13 +576,66 @@ galleryPickerView :
     -> Model msg
     -> Element Msg
 galleryPickerView config model =
+    let
+        phototheque =
+            FileExplorer.indexPhototheque config.fileExplorer
+                |> Dict.toList
+
+        galleryPreview ( name, pics ) =
+            column
+                [ spacing 10
+                , padding 10
+                , width (px 150)
+                , alignTop
+                , Background.color grey5
+                , mouseOver
+                    [ Background.color grey6 ]
+                , Border.rounded 5
+                , pointer
+                , Events.onClick
+                    (PickGallery name pics)
+                ]
+                [ el
+                    [ Font.bold
+                    , width fill
+                    , Font.center
+                    , clip
+                    ]
+                    (text <| toSentenceCase name)
+                , el
+                    [ width (px 140)
+                    , height (px 105)
+                    , centerX
+                    , List.head pics
+                        |> Maybe.map Tuple.second
+                        |> Maybe.withDefault ""
+                        |> Background.uncropped
+                    ]
+                    Element.none
+                , el
+                    [ width fill
+                    , Font.center
+                    ]
+                    (text <| "Nbr images: " ++ String.fromInt (List.length pics))
+                ]
+    in
     column
         (itemStyle
-            ++ [ spacing 15
-               , width fill
+            ++ [ width fill
+               , spacing 15
                ]
         )
-        []
+        [ el
+            [ Font.bold
+            , Font.size 18
+            ]
+            (text "Utiliser une galerie existante")
+        , wrappedRow
+            [ spacing 15
+            , width fill
+            ]
+            (List.map galleryPreview phototheque)
+        ]
 
 
 
@@ -455,28 +652,62 @@ imageProcessingView :
     -> List (Element Msg)
 imageProcessingView config model =
     let
-        phototheque =
-            FileExplorer.indexPhototheque config.fileExplorer
-                |> Dict.toList
-
-        galleryPreview ( name, pics ) =
-            column
-                [ spacing 15
-                , alignTop
-                ]
-                (el [ Font.bold ]
-                    (text name)
-                    :: List.map (text << Tuple.first) pics
-                )
+        canUpload =
+            Dict.size model.fileSizes
+                == Dict.size model.processedPics
     in
-    []
+    [ column
+        (itemStyle
+            ++ [ width fill
+               , spacing 15
+               ]
+        )
+        [ el
+            []
+            (text "Chargement et mise à  l'échelle des images...")
+        , el []
+            ((Dict.size model.processedPics
+                |> String.fromInt
+                |> String.padLeft 2 '0'
+             )
+                |> strCons " \\ "
+                |> (Dict.size model.fileSizes
+                        |> String.fromInt
+                        |> String.padLeft 2 '0'
+                        |> strCons
+                   )
+                |> text
+            )
+        ]
+    , row
+        (itemStyle
+            ++ [ spacing 15
+               , width fill
+               ]
+        )
+        [ Input.button
+            (buttonStyle True)
+            { onPress = Just Reset
+            , label = text "Annuler"
+            }
+        , Input.button
+            (buttonStyle canUpload)
+            { onPress =
+                if canUpload then
+                    Just GoToUpload
+                else
+                    Nothing
+            , label = text "Continuer"
+            }
+        ]
+    ]
 
 
 
 -------------------------------------------------------------------------------
 
 
-uploadConfirmationView :
+uploadView :
     { a
         | fileExplorer : FileExplorer.Model msg
         , logInfo : LogInfo
@@ -484,8 +715,88 @@ uploadConfirmationView :
     }
     -> Model msg
     -> List (Element Msg)
-uploadConfirmationView config model =
-    []
+uploadView config model =
+    let
+        canEdit =
+            True
+    in
+    [ column
+        (itemStyle
+            ++ [ width fill
+               , spacing 15
+               ]
+        )
+        ([ el
+            []
+            (text "Mise en ligne")
+         ]
+            ++ List.map
+                (\p ->
+                    row
+                        [ spacing 15 ]
+                        [ el
+                            [ padding 5
+                            , Background.color grey6
+                            , Border.rounded 5
+                            ]
+                            (el
+                                [ width (px 140)
+                                , height (px 105)
+                                , centerX
+                                , Background.uncropped p.content
+                                , alignLeft
+                                ]
+                                Element.none
+                            )
+                        , column
+                            [ alignTop
+                            , spacing 10
+                            ]
+                            [ el [ Font.color teal1 ] (text p.filename)
+                            , text <|
+                                "Taille originale: "
+                                    ++ (Dict.get p.filename model.fileSizes
+                                            |> Maybe.map Filesize.format
+                                            |> Maybe.withDefault "Erreur"
+                                       )
+                            , text <|
+                                "Nouvelle taille: "
+                                    ++ Filesize.format p.size
+                            , text <|
+                                "Transfert: "
+                                    ++ (Dict.get p.filename model.uploadProgress
+                                            |> Maybe.withDefault 0
+                                            |> String.fromInt
+                                            |> String.padLeft 2 '0'
+                                            |> strCons "%"
+                                       )
+                            ]
+                        ]
+                )
+                (Dict.values model.processedPics)
+        )
+    , row
+        (itemStyle
+            ++ [ spacing 15
+               , width fill
+               ]
+        )
+        [ Input.button
+            (buttonStyle True)
+            { onPress = Just Reset
+            , label = text "Annuler"
+            }
+        , Input.button
+            (buttonStyle canEdit)
+            { onPress =
+                if canEdit then
+                    Just GoToEdit
+                else
+                    Nothing
+            , label = text "Continuer"
+            }
+        ]
+    ]
 
 
 
@@ -501,7 +812,90 @@ galleryEditorView :
     -> Model msg
     -> List (Element Msg)
 galleryEditorView config model =
-    []
+    case model.output of
+        Nothing ->
+            []
+
+        Just output ->
+            [ column
+                (itemStyle
+                    ++ [ spacing 15
+                       , width fill
+                       ]
+                )
+                ([ el
+                    [ Font.bold
+                    , Font.size 18
+                    ]
+                    (text "Ajout / modification légendes")
+                 ]
+                    ++ List.map captionEditorView output.images
+                )
+            , row
+                (itemStyle
+                    ++ [ spacing 15
+                       , width fill
+                       ]
+                )
+                [ Input.button
+                    (buttonStyle True)
+                    { onPress = Just Reset
+                    , label = text "Retour"
+                    }
+                , Input.button
+                    (buttonStyle True)
+                    { onPress = Just Quit
+                    , label = text "Annuler"
+                    }
+                , Input.button
+                    (buttonStyle True)
+                    { onPress = Just SaveAndQuit
+                    , label = text "Valider et quitter"
+                    }
+                ]
+            ]
+
+
+captionEditorView : ImageMeta -> Element Msg
+captionEditorView { src, caption } =
+    case src of
+        UrlSrc src_ ->
+            row
+                [ width fill
+                , Background.color grey5
+                , Border.rounded 5
+                , padding 5
+                , spacing 15
+                ]
+                [ el
+                    [ padding 5
+                    , Background.color grey6
+                    , Border.rounded 5
+                    ]
+                    (el
+                        [ width (px 140)
+                        , height (px 105)
+                        , centerX
+                        , Background.uncropped src_
+                        , alignLeft
+                        ]
+                        Element.none
+                    )
+                , Input.text
+                    (textInputStyle ++ [ alignLeft ])
+                    { onChange = CaptionPrompt src_
+                    , text =
+                        caption
+                            |> Maybe.withDefault ""
+                    , placeholder =
+                        Just <| Input.placeholder [] (text "Legende optionnelle")
+                    , label =
+                        Input.labelHidden ""
+                    }
+                ]
+
+        _ ->
+            Element.none
 
 
 
@@ -521,6 +915,35 @@ selectImages =
 --------------------
 -- Http functions --
 --------------------
+
+
+uploadImage : String -> String -> String -> String -> String -> Cmd Msg
+uploadImage title filename contents thumb sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , ( "title", Encode.string title )
+                , ( "filename", Encode.string filename )
+                , ( "contents", Encode.string contents )
+                , ( "thumb", Encode.string thumb )
+                ]
+                |> Http.jsonBody
+    in
+    Http.request
+        { method = "POST"
+        , headers = []
+        , url = "photothequeUpload.php"
+        , body = body
+        , expect = Http.expectJson Uploaded decodeUploadStatus
+        , timeout = Nothing
+        , tracker = Just filename
+        }
+
+
+
 -------------------------------------------------------------------------------
 -------------------
 -- Json Handling --
@@ -556,11 +979,40 @@ decodeGalleryMeta =
         (Decode.field "images" (Decode.list DocumentDecoder.decodeImageMeta))
 
 
+type alias UploadStatus =
+    String
+
+
+decodeUploadStatus : Decode.Decoder UploadStatus
+decodeUploadStatus =
+    Decode.string
+
+
 
 -------------------------------------------------------------------------------
 ------------------
 -- Misc Helpers --
 ------------------
+
+
+makeGalleryMeta : String -> List ( String, String ) -> (Random.Seed -> ( Random.Seed, GalleryMeta ))
+makeGalleryMeta title pics =
+    \seed ->
+        let
+            ( uuid, newSeed ) =
+                Random.step UUID.generator seed
+        in
+        ( newSeed
+        , { uuid = uuid
+          , title = title
+          , images =
+                List.map
+                    (\( n, p ) ->
+                        { dummyPic | src = UrlSrc p }
+                    )
+                    pics
+          }
+        )
 
 
 containerStyle : List (Attribute msg)

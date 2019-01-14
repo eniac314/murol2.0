@@ -1,6 +1,6 @@
 port module PageEditor.PageEditor exposing (..)
 
-import Auth.AuthPlugin exposing (LogInfo(..), getLogInfo)
+import Auth.AuthPlugin as Auth exposing (LogInfo(..), getLogInfo)
 import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Delay exposing (..)
@@ -275,6 +275,9 @@ reset mbDoc availableThreads externalMsg =
         ( newImagePlugin, imagePluginCmds ) =
             ImagePlugin.init Nothing (externalMsg << ImagePluginMsg)
 
+        ( newGalleryPlugin, galleryPluginCmds ) =
+            GalleryPlugin.init Nothing availableThreads (externalMsg << GalleryPluginMsg)
+
         handlers =
             { containerClickHandler = externalMsg << SelectDoc
             , containerDblClickHandler = \_ -> externalMsg NoOp
@@ -329,7 +332,7 @@ reset mbDoc availableThreads externalMsg =
       , blockLinksPlugin = BlockLinksPlugin.init Nothing (externalMsg << BlockLinksPluginMsg)
       , fichesPlugin = FichesPlugin.init [] (externalMsg << FichesPluginMsg)
       , pictureLinksPlugin = PictureLinksPlugin.init [] (externalMsg << PictureLinksPluginMsg)
-      , galleryPlugin = GalleryPlugin.init Nothing availableThreads (externalMsg << GalleryPluginMsg)
+      , galleryPlugin = newGalleryPlugin
       , externalMsg = externalMsg
       }
     , Cmd.batch
@@ -340,6 +343,7 @@ reset mbDoc availableThreads externalMsg =
                 (Dom.getViewportOf "mainInterface")
         , textBlockPluginCmds
         , imagePluginCmds
+        , galleryPluginCmds
         , LocalStorage.send
             cmdPort
             (LocalStorage.listKeys "")
@@ -363,6 +367,7 @@ update :
     { config
         | pageTreeEditor : PageTreeEditor.Model msg
         , genDirEditor : GeneralDirectoryEditor.Model msg
+        , logInfo : Auth.LogInfo
     }
     -> Msg
     -> Model msg
@@ -379,6 +384,7 @@ internalUpdate :
     { config
         | pageTreeEditor : PageTreeEditor.Model msg
         , genDirEditor : GeneralDirectoryEditor.Model msg
+        , logInfo : Auth.LogInfo
     }
     -> Msg
     -> Model msg
@@ -1129,7 +1135,10 @@ internalUpdate config msg model =
         GalleryPluginMsg galleryPluginMsg ->
             let
                 ( newGalleryPlugin, galleryCmd, mbGalleryPluginResult ) =
-                    GalleryPlugin.update galleryPluginMsg model.galleryPlugin
+                    GalleryPlugin.update
+                        { logInfo = config.logInfo }
+                        galleryPluginMsg
+                        model.galleryPlugin
             in
             case mbGalleryPluginResult of
                 Nothing ->
@@ -1745,7 +1754,7 @@ openNewPlugin config model =
 
         Just GalleryPlugin ->
             let
-                galleryPlugin =
+                ( galleryPlugin, newCmds ) =
                     GalleryPlugin.init
                         Nothing
                         model.availableThreads
@@ -1755,7 +1764,7 @@ openNewPlugin config model =
                 | galleryPlugin =
                     galleryPlugin
               }
-            , Cmd.none
+            , newCmds
             )
 
         _ ->
@@ -1876,7 +1885,7 @@ openPlugin config model =
 
                 Gallery galleryMeta ->
                     let
-                        newGallery =
+                        ( newGallery, newCmds ) =
                             GalleryPlugin.init
                                 (Just galleryMeta)
                                 model.availableThreads
@@ -1887,7 +1896,7 @@ openPlugin config model =
                         , galleryPlugin =
                             newGallery
                       }
-                    , Cmd.none
+                    , newCmds
                     )
 
                 _ ->

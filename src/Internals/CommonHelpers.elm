@@ -68,6 +68,11 @@ break p xs =
     helper xs []
 
 
+strCons : String -> String -> String
+strCons tail head =
+    head ++ tail
+
+
 newLog : (Log -> msg) -> String -> Maybe String -> Bool -> Cmd msg
 newLog addLogMsg logMsg details isError =
     Task.perform addLogMsg <|

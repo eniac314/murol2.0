@@ -219,6 +219,7 @@ update msg model =
                         , loadedContent =
                             PageTreeEditor.loadedContent model.pageTreeEditor
                         , genDirEditor = model.generalDirectory
+                        , logInfo = Auth.getLogInfo model.authTool
                         }
                         pageEditorMsg
                         model.pageEditor
