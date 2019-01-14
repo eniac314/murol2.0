@@ -11,7 +11,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
    }
 
-  if(!isset($php_data->sessionId) || !isset($php_data->filename) || !isset($php_data->title) || !isset($php_data->contents) || !isset($php_data->thumb)){
+  if(!isset($php_data->sessionId) || !isset($php_data->filename) || !isset($php_data->title) || !isset($php_data->contents)){
      logError("wrong input");
   exit();
   }
@@ -29,6 +29,8 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 
   $thumbData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $php_data->thumb));
 
+
+
   $baseDir = getcwd().'/images/phototheque';
   $uploaddir = $baseDir.'/'.$php_data->title;
 
@@ -43,6 +45,10 @@ if(getenv('REQUEST_METHOD') == 'POST') {
      
      mkdir($uploaddir);
      mkdir($uploaddir.'/thumbs');
+
+     if (!is_null($php_data->HDef)){
+        mkdir($uploaddir.'/HQ');
+     }
   }
 
   $uploadPath = $uploaddir.'/'.$php_data->filename;
@@ -53,10 +59,6 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   } 
 
-  if(!file_exists($uploaddir)){
-     mkdir($uploaddir);
-     mkdir($uploaddir.'/thumbs');
-  }
 
   if(!file_put_contents($uploadPath, $data)){
     logError("File upload failed");
@@ -68,7 +70,15 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  echo "done!";
+  if (!is_null($php_data->HDef)){
+        $HDef = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $php_data->HDef));
+        if(!file_put_contents($uploaddir.'/HQ/'.$php_data->filename, $HDef)){
+          logError("HDef upload failed");
+          exit();
+        }
+  }
+
+  logger("done!");
   exit();
   
   } else {

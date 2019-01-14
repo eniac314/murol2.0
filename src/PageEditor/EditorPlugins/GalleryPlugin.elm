@@ -61,7 +61,7 @@ type alias Model msg =
     , keepHQAssets : Bool
     , output : Maybe GalleryMeta
     , seed : Maybe Random.Seed
-    , uploadProgress : Dict String Int
+    , uploadProgress : Dict String ( Int, Maybe UploadStatus )
     , externalMsg : Msg -> msg
     }
 
@@ -77,7 +77,7 @@ type Msg
     | PickGallery String (List ( String, String ))
     | SetInitialSeed Posix
     | GotProgress String Http.Progress
-    | Uploaded (Result Http.Error UploadStatus)
+    | Uploaded String (Result Http.Error UploadStatus)
     | Reset
     | GoToUpload
     | GoToEdit
@@ -257,9 +257,16 @@ update config msg model =
                 Sending { sent, size } ->
                     ( { model
                         | uploadProgress =
-                            Dict.insert
+                            Dict.update
                                 filename
-                                (round <| 100 * toFloat sent / toFloat size)
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( _, us ) ->
+                                            Just ( round <| 100 * toFloat sent / toFloat size, us )
+                                )
                                 model.uploadProgress
                       }
                     , Cmd.none
@@ -272,11 +279,44 @@ update config msg model =
                     , Nothing
                     )
 
-        Uploaded res ->
-            ( model
-            , Cmd.none
-            , Nothing
-            )
+        Uploaded filename res ->
+            case res of
+                Ok UploadSuccessful ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.insert
+                                filename
+                                ( 100, Just UploadSuccessful )
+                                model.uploadProgress
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Ok (UploadFailure e) ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.update
+                                filename
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( n, _ ) ->
+                                            Just ( n, Just <| UploadFailure e )
+                                )
+                                model.uploadProgress
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Err _ ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
 
         Reset ->
             ( { model
@@ -298,7 +338,7 @@ update config msg model =
                 | pluginState = Upload
                 , uploadProgress =
                     Dict.map
-                        (\_ _ -> 0)
+                        (\_ _ -> ( 0, Nothing ))
                         model.processedPics
               }
             , case ( config.logInfo, model.galleryTitleInput ) of
@@ -312,11 +352,17 @@ update config msg model =
                                         v.filename
                                         v.content
                                         v.thumb
+                                        (if model.keepHQAssets then
+                                            Dict.get v.filename model.base64Pics
+                                         else
+                                            Nothing
+                                        )
                                         info.sessionId
                                         :: acc
                                 )
                                 []
                                 model.processedPics
+                                |> List.reverse
                             )
 
                 _ ->
@@ -718,7 +764,11 @@ uploadView :
 uploadView config model =
     let
         canEdit =
-            True
+            model.uploadProgress
+                |> Dict.foldr
+                    (\_ ( _, us ) acc -> us :: acc)
+                    []
+                |> List.all (\us -> us == Just UploadSuccessful)
     in
     [ column
         (itemStyle
@@ -727,7 +777,9 @@ uploadView config model =
                ]
         )
         ([ el
-            []
+            [ Font.bold
+            , Font.size 18
+            ]
             (text "Mise en ligne")
          ]
             ++ List.map
@@ -765,6 +817,7 @@ uploadView config model =
                             , text <|
                                 "Transfert: "
                                     ++ (Dict.get p.filename model.uploadProgress
+                                            |> Maybe.map Tuple.first
                                             |> Maybe.withDefault 0
                                             |> String.fromInt
                                             |> String.padLeft 2 '0'
@@ -917,8 +970,8 @@ selectImages =
 --------------------
 
 
-uploadImage : String -> String -> String -> String -> String -> Cmd Msg
-uploadImage title filename contents thumb sessionId =
+uploadImage : String -> String -> String -> String -> Maybe String -> String -> Cmd Msg
+uploadImage title filename contents thumb mbHdef sessionId =
     let
         body =
             Encode.object
@@ -929,6 +982,10 @@ uploadImage title filename contents thumb sessionId =
                 , ( "filename", Encode.string filename )
                 , ( "contents", Encode.string contents )
                 , ( "thumb", Encode.string thumb )
+                , ( "HDef"
+                  , Maybe.map Encode.string mbHdef
+                        |> Maybe.withDefault Encode.null
+                  )
                 ]
                 |> Http.jsonBody
     in
@@ -937,7 +994,7 @@ uploadImage title filename contents thumb sessionId =
         , headers = []
         , url = "photothequeUpload.php"
         , body = body
-        , expect = Http.expectJson Uploaded decodeUploadStatus
+        , expect = Http.expectJson (Uploaded filename) decodeUploadStatus
         , timeout = Nothing
         , tracker = Just filename
         }
@@ -979,13 +1036,19 @@ decodeGalleryMeta =
         (Decode.field "images" (Decode.list DocumentDecoder.decodeImageMeta))
 
 
-type alias UploadStatus =
-    String
+type UploadStatus
+    = UploadSuccessful
+    | UploadFailure String
 
 
 decodeUploadStatus : Decode.Decoder UploadStatus
 decodeUploadStatus =
-    Decode.string
+    Decode.oneOf
+        [ Decode.field "serverError" Decode.string
+            |> Decode.map UploadFailure
+        , Decode.field "message" Decode.string
+            |> Decode.map (always UploadSuccessful)
+        ]
 
 
 
