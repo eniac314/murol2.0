@@ -2054,15 +2054,7 @@ decodeFile =
                     }
         )
         |> Pipeline.required "path"
-            (Decode.string
-                |> Decode.map
-                    (\s ->
-                        if String.contains "?" s then
-                            leftOf "?" s
-                        else
-                            s
-                    )
-            )
+            Decode.string
         |> Pipeline.required "name"
             (Decode.string
                 |> Decode.map
@@ -2213,6 +2205,12 @@ encodeFsItemPath : FsItem -> Encode.Value
 encodeFsItemPath fsItem =
     getPath fsItem
         |> String.join "/"
+        |> (\s ->
+                if String.contains "?" s then
+                    leftOf "?" s
+                else
+                    s
+           )
         |> Encode.string
 
 
