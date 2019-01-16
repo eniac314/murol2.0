@@ -119,6 +119,7 @@ type Msg
     | Launch
       --| CheckSessionStatus
     | FileExplorerMsg FileExplorer.Msg
+    | ReloadFiles
     | PageEditorMsg PageEditor.Msg
     | PageTreeEditorMsg PageTreeEditor.Msg
     | GeneralDirectoryMsg GeneralDirectoryEditor.Msg
@@ -158,6 +159,11 @@ update msg model =
         --            )
         --        _ ->
         --            ( model, Cmd.none )
+        ReloadFiles ->
+            ( model
+            , FileExplorer.load model.fileExplorer (Auth.getLogInfo model.authTool)
+            )
+
         FileExplorerMsg fileExplorerMsg ->
             let
                 ( newFileExplorer, fileExplorerCmds, mbEditorPluginResult ) =
@@ -220,6 +226,7 @@ update msg model =
                             PageTreeEditor.loadedContent model.pageTreeEditor
                         , genDirEditor = model.generalDirectory
                         , logInfo = Auth.getLogInfo model.authTool
+                        , reloadFilesMsg = ReloadFiles
                         }
                         pageEditorMsg
                         model.pageEditor

@@ -368,6 +368,7 @@ update :
         | pageTreeEditor : PageTreeEditor.Model msg
         , genDirEditor : GeneralDirectoryEditor.Model msg
         , logInfo : Auth.LogInfo
+        , reloadFilesMsg : msg
     }
     -> Msg
     -> Model msg
@@ -385,6 +386,7 @@ internalUpdate :
         | pageTreeEditor : PageTreeEditor.Model msg
         , genDirEditor : GeneralDirectoryEditor.Model msg
         , logInfo : Auth.LogInfo
+        , reloadFilesMsg : msg
     }
     -> Msg
     -> Model msg
@@ -1136,7 +1138,9 @@ internalUpdate config msg model =
             let
                 ( newGalleryPlugin, galleryCmd, mbGalleryPluginResult ) =
                     GalleryPlugin.update
-                        { logInfo = config.logInfo }
+                        { logInfo = config.logInfo
+                        , reloadFilesMsg = config.reloadFilesMsg
+                        }
                         galleryPluginMsg
                         model.galleryPlugin
             in

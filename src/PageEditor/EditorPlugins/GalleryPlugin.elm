@@ -61,7 +61,7 @@ type alias Model msg =
     , keepHQAssets : Bool
     , output : Maybe GalleryMeta
     , seed : Maybe Random.Seed
-    , uploadProgress : Dict String ( Int, Maybe UploadStatus )
+    , uploadProgress : Dict String ( Int, Int, Maybe UploadStatus )
     , externalMsg : Msg -> msg
     }
 
@@ -79,6 +79,7 @@ type Msg
     | GotProgress String Http.Progress
     | Uploaded String (Result Http.Error UploadStatus)
     | Reset
+    | ManualUpload String
     | GoToUpload
     | GoToEdit
     | SaveAndQuit
@@ -119,7 +120,14 @@ init mbGalleryMeta availableThreads externalMsg =
     )
 
 
-update : { a | logInfo : LogInfo } -> Msg -> Model msg -> ( Model msg, Cmd msg, Maybe (EditorPluginResult GalleryMeta) )
+update :
+    { a
+        | logInfo : LogInfo
+        , reloadFilesMsg : msg
+    }
+    -> Msg
+    -> Model msg
+    -> ( Model msg, Cmd msg, Maybe (EditorPluginResult GalleryMeta) )
 update config msg model =
     case msg of
         ImagesRequested ->
@@ -264,8 +272,8 @@ update config msg model =
                                         Nothing ->
                                             Nothing
 
-                                        Just ( _, us ) ->
-                                            Just ( round <| 100 * toFloat sent / toFloat size, us )
+                                        Just ( _, _, us ) ->
+                                            Just ( sent, size, us )
                                 )
                                 model.uploadProgress
                       }
@@ -282,14 +290,35 @@ update config msg model =
         Uploaded filename res ->
             case res of
                 Ok UploadSuccessful ->
+                    let
+                        newUploadProgress =
+                            Dict.update
+                                filename
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( sent, size, _ ) ->
+                                            Just ( sent, size, Just UploadSuccessful )
+                                )
+                                model.uploadProgress
+
+                        canEdit =
+                            newUploadProgress
+                                |> Dict.foldr
+                                    (\_ ( _, _, us ) acc -> us :: acc)
+                                    []
+                                |> List.all (\us -> us == Just UploadSuccessful)
+                    in
                     ( { model
                         | uploadProgress =
-                            Dict.insert
-                                filename
-                                ( 100, Just UploadSuccessful )
-                                model.uploadProgress
+                            newUploadProgress
                       }
-                    , Cmd.none
+                    , if canEdit then
+                        Task.perform (\_ -> config.reloadFilesMsg) (Task.succeed ())
+                      else
+                        Cmd.none
                     , Nothing
                     )
 
@@ -303,8 +332,8 @@ update config msg model =
                                         Nothing ->
                                             Nothing
 
-                                        Just ( n, _ ) ->
-                                            Just ( n, Just <| UploadFailure e )
+                                        Just ( sent, size, _ ) ->
+                                            Just ( sent, size, Just <| UploadFailure e )
                                 )
                                 model.uploadProgress
                       }
@@ -312,8 +341,21 @@ update config msg model =
                     , Nothing
                     )
 
-                Err _ ->
-                    ( model
+                Err e ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.update
+                                filename
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( sent, size, _ ) ->
+                                            Just ( sent, size, Just <| UploadFailure (httpErrorToString e) )
+                                )
+                                model.uploadProgress
+                      }
                     , Cmd.none
                     , Nothing
                     )
@@ -329,16 +371,73 @@ update config msg model =
                 , output = Nothing
                 , uploadProgress = Dict.empty
               }
-            , Cmd.none
+            , Cmd.batch
+                (List.map Http.cancel (Dict.keys model.uploadProgress))
+                |> Cmd.map model.externalMsg
             , Nothing
             )
+
+        ManualUpload s ->
+            case Dict.get s model.processedPics of
+                Just p ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.insert s
+                                ( 0
+                                , if model.keepHQAssets then
+                                    p.size
+                                        + (Dict.get p.filename model.fileSizes
+                                            |> Maybe.withDefault 0
+                                          )
+                                  else
+                                    p.size
+                                , Nothing
+                                )
+                                model.uploadProgress
+                      }
+                    , case ( config.logInfo, model.galleryTitleInput ) of
+                        ( LoggedIn info, Just title ) ->
+                            Cmd.map model.externalMsg <|
+                                uploadImage
+                                    title
+                                    p.filename
+                                    p.content
+                                    p.thumb
+                                    (if model.keepHQAssets then
+                                        Dict.get p.filename model.base64Pics
+                                     else
+                                        Nothing
+                                    )
+                                    info.sessionId
+
+                        _ ->
+                            Cmd.none
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
 
         GoToUpload ->
             ( { model
                 | pluginState = Upload
                 , uploadProgress =
                     Dict.map
-                        (\_ _ -> ( 0, Nothing ))
+                        (\_ p ->
+                            ( 0
+                            , if model.keepHQAssets then
+                                p.size
+                                    + (Dict.get p.filename model.fileSizes
+                                        |> Maybe.withDefault 0
+                                      )
+                              else
+                                p.size
+                            , Nothing
+                            )
+                        )
                         model.processedPics
               }
             , case ( config.logInfo, model.galleryTitleInput ) of
@@ -571,7 +670,7 @@ homeView config model =
                     model.galleryTitleInput
                         |> Maybe.withDefault ""
                 , placeholder =
-                    Just <| Input.placeholder [] (text "Nom de la galerie")
+                    Just <| Input.placeholder [] (text "Nom de l'album")
                 , label =
                     Input.labelHidden ""
                 }
@@ -593,7 +692,7 @@ homeView config model =
             , Input.button
                 (buttonStyle (model.galleryTitleInput /= Nothing))
                 { onPress = Just ImagesRequested
-                , label = text "Nouvelle galerie"
+                , label = text "Nouvel album"
                 }
             ]
         ]
@@ -655,6 +754,7 @@ galleryPickerView config model =
                     , List.head pics
                         |> Maybe.map Tuple.second
                         |> Maybe.withDefault ""
+                        |> thumbSrc
                         |> Background.uncropped
                     ]
                     Element.none
@@ -675,7 +775,7 @@ galleryPickerView config model =
             [ Font.bold
             , Font.size 18
             ]
-            (text "Utiliser une galerie existante")
+            (text "Utiliser un album existant")
         , wrappedRow
             [ spacing 15
             , width fill
@@ -711,19 +811,26 @@ imageProcessingView config model =
         [ el
             []
             (text "Chargement et mise à  l'échelle des images...")
-        , el []
-            ((Dict.size model.processedPics
-                |> String.fromInt
-                |> String.padLeft 2 '0'
-             )
-                |> strCons " \\ "
-                |> (Dict.size model.fileSizes
-                        |> String.fromInt
-                        |> String.padLeft 2 '0'
-                        |> strCons
-                   )
-                |> text
-            )
+        , row
+            [ spacing 15 ]
+            [ el []
+                ((Dict.size model.processedPics
+                    |> String.fromInt
+                    |> String.padLeft 2 '0'
+                 )
+                    |> strCons " \\ "
+                    |> (Dict.size model.fileSizes
+                            |> String.fromInt
+                            |> String.padLeft 2 '0'
+                            |> strCons
+                       )
+                    |> text
+                )
+            , if canUpload then
+                okMark
+              else
+                Element.none
+            ]
         ]
     , row
         (itemStyle
@@ -766,9 +873,35 @@ uploadView config model =
         canEdit =
             model.uploadProgress
                 |> Dict.foldr
-                    (\_ ( _, us ) acc -> us :: acc)
+                    (\_ ( _, _, us ) acc -> us :: acc)
                     []
                 |> List.all (\us -> us == Just UploadSuccessful)
+
+        progress ( sent, size, us ) =
+            let
+                p =
+                    floor <| 100 * toFloat sent / toFloat size
+            in
+            if us == Just UploadSuccessful then
+                100
+            else
+                min 99 p
+
+        progressTotal =
+            Dict.foldr
+                (\k ( sent, size, _ ) ( totalSent, totalSize ) ->
+                    ( sent + totalSent, size + totalSize )
+                )
+                ( 0, 0 )
+                model.uploadProgress
+                |> (\( tsent, tsize ) -> 100 * toFloat tsent / toFloat tsize)
+                |> round
+                |> (\t ->
+                        if canEdit then
+                            100
+                        else
+                            min 99 t
+                   )
     in
     [ column
         (itemStyle
@@ -781,6 +914,12 @@ uploadView config model =
             , Font.size 18
             ]
             (text "Mise en ligne")
+         , row
+            [ spacing 25 ]
+            [ el [ width (px 140) ]
+                (text "Transfert album: ")
+            , progressBar progressTotal
+            ]
          ]
             ++ List.map
                 (\p ->
@@ -814,15 +953,42 @@ uploadView config model =
                             , text <|
                                 "Nouvelle taille: "
                                     ++ Filesize.format p.size
-                            , text <|
-                                "Transfert: "
-                                    ++ (Dict.get p.filename model.uploadProgress
-                                            |> Maybe.map Tuple.first
-                                            |> Maybe.withDefault 0
-                                            |> String.fromInt
-                                            |> String.padLeft 2 '0'
-                                            |> strCons "%"
-                                       )
+                            , row
+                                [ spacing 15 ]
+                                [ case Dict.get p.filename model.uploadProgress of
+                                    Just ( _, _, Just (UploadFailure e) ) ->
+                                        row
+                                            [ spacing 5 ]
+                                            [ text "Echec transfert: "
+                                            , el
+                                                [ Font.color (rgb255 217 83 79) ]
+                                                (text e)
+                                            ]
+
+                                    _ ->
+                                        text <|
+                                            "Transfert: "
+                                                ++ (Dict.get p.filename model.uploadProgress
+                                                        |> Maybe.map progress
+                                                        |> Maybe.withDefault 0
+                                                        |> String.fromInt
+                                                        |> String.padLeft 2 '0'
+                                                        |> strCons "%"
+                                                   )
+                                , case Dict.get p.filename model.uploadProgress of
+                                    Just ( _, _, Just (UploadFailure e) ) ->
+                                        Input.button
+                                            (buttonStyle True)
+                                            { onPress = Just (ManualUpload p.filename)
+                                            , label = text "Réessayer"
+                                            }
+
+                                    Just ( _, _, Just UploadSuccessful ) ->
+                                        okMark
+
+                                    _ ->
+                                        Element.none
+                                ]
                             ]
                         ]
                 )
@@ -929,7 +1095,7 @@ captionEditorView { src, caption } =
                         [ width (px 140)
                         , height (px 105)
                         , centerX
-                        , Background.uncropped src_
+                        , Background.uncropped (thumbSrc src_)
                         , alignLeft
                         ]
                         Element.none
@@ -995,7 +1161,7 @@ uploadImage title filename contents thumb mbHdef sessionId =
         , url = "photothequeUpload.php"
         , body = body
         , expect = Http.expectJson (Uploaded filename) decodeUploadStatus
-        , timeout = Nothing
+        , timeout = Nothing --Just (120 * 1000)
         , tracker = Just filename
         }
 
@@ -1076,6 +1242,79 @@ makeGalleryMeta title pics =
                     pics
           }
         )
+
+
+thumbSrc : String -> String
+thumbSrc s =
+    case List.reverse <| String.indexes "/" s of
+        [] ->
+            s
+
+        n :: _ ->
+            String.Extra.insertAt "/thumbs" n s
+
+
+progressBar : Int -> Element msg
+progressBar n =
+    row
+        [ width (px 200)
+        , height (px 25)
+        , Border.innerShadow
+            { offset = ( 0, 1 )
+            , size = 1
+            , blur = 1
+            , color = rgb255 127 127 127
+            }
+        , Background.color (rgb255 245 245 245)
+        , Border.rounded 5
+        , clip
+        , inFront <|
+            el
+                [ width (px 200)
+                , height (px 25)
+                , Font.center
+                ]
+                (el
+                    [ centerX
+                    , centerY
+                    ]
+                    (String.fromInt n
+                        |> String.padLeft 2 '0'
+                        |> strCons "%"
+                        |> text
+                    )
+                )
+        ]
+        [ el
+            [ width (fillPortion n)
+            , height fill
+            , Background.color
+                (if n < 25 then
+                    rgb255 217 83 79
+                 else if n < 50 then
+                    rgb255 240 173 78
+                 else if n < 75 then
+                    rgb255 91 192 222
+                 else
+                    rgb255 92 184 92
+                )
+            , Font.center
+            ]
+            Element.none
+        , el
+            [ width (fillPortion (100 - n))
+            , height fill
+            ]
+            Element.none
+        ]
+
+
+okMark =
+    el
+        [ Font.bold
+        , Font.color (rgb255 92 184 92)
+        ]
+        (text "✓")
 
 
 containerStyle : List (Attribute msg)
