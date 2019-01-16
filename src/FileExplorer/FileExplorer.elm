@@ -2662,7 +2662,7 @@ indexPhototheque model =
 
                 (File meta) :: xs ->
                     ( meta.name
-                    , String.join "/" meta.path
+                    , "/" ++ String.join "/" meta.path
                     )
                         :: getPaths xs
     in

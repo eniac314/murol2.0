@@ -15,7 +15,9 @@ import Animation
         , to
         )
 import Browser.Events exposing (Visibility(..), onAnimationFrame, onKeyDown, onVisibilityChange)
-import Document.Document exposing (GalleryMeta, ImageMeta, dummyPic)
+import Dict exposing (..)
+import Document.Document exposing (GalleryMeta, ImageMeta, ImageSrc(..), dummyPic)
+import Document.DocumentViews.StyleSheets exposing (PreviewMode, docMaxWidth)
 import Ease exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -26,6 +28,7 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
+import Gallery.GalleryHelpers exposing (..)
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
@@ -39,26 +42,11 @@ import Time exposing (Posix, every, millisToPosix, posixToMillis)
 type alias Model msg =
     { loaded : Set String
     , title : String
-    , images : BiStream ImageMeta
+    , images : BiStream (List ImageMeta)
     , mbDrag : Maybe Drag
     , mbAnim : Maybe ( Animation, Direction )
     , clock : Float
     , externalMsg : Msg -> msg
-    }
-
-
-type Direction
-    = AnimateLeft
-    | AnimateRight
-
-
-type Drag
-    = Drag Position Position
-
-
-type alias Position =
-    { x : Int
-    , y : Int
     }
 
 
@@ -86,7 +74,9 @@ init : String -> List ImageMeta -> (Msg -> msg) -> Model msg
 init title images externalMsg =
     let
         stream =
-            biStream images dummyPic
+            images
+                |> (\xs -> biStream xs dummyPic)
+                |> chunkBiStream 3
     in
     { loaded = Set.empty
     , images = stream
@@ -98,7 +88,14 @@ init title images externalMsg =
     }
 
 
-update : { maxWidth : Int } -> Msg -> Model msg -> Model msg
+
+-------------------------------------------------------------------------------
+-------------
+-- Update ---
+-------------
+
+
+update : Config a msg -> Msg -> Model msg -> Model msg
 update config msg model =
     case msg of
         Next ->
@@ -129,7 +126,7 @@ update config msg model =
                         newAnimFun x =
                             animation model.clock
                                 |> from (toFloat x)
-                                |> to (toFloat config.maxWidth)
+                                |> to (toFloat (maxWidth config))
                                 |> speed 1
                                 |> ease Ease.inOutExpo
                     in
@@ -173,5 +170,171 @@ update config msg model =
                 Nothing ->
                     model
 
-        _ ->
+        Tick t ->
+            let
+                newClock =
+                    toFloat <| posixToMillis t
+
+                ( newAnim, newImages ) =
+                    case model.mbAnim of
+                        Just ( anim, AnimateLeft ) ->
+                            if isDone newClock anim then
+                                ( Nothing, right (.images model) )
+                            else
+                                ( model.mbAnim, model.images )
+
+                        Just ( anim, AnimateRight ) ->
+                            if isDone newClock anim then
+                                ( Nothing, left (.images model) )
+                            else
+                                ( model.mbAnim, model.images )
+
+                        _ ->
+                            ( model.mbAnim, model.images )
+            in
+            { model
+                | clock = newClock
+                , mbAnim = newAnim
+                , images = newImages
+            }
+
+        ImgLoaded src ->
+            { model | loaded = Set.insert src model.loaded }
+
+        NoOp ->
             model
+
+
+
+-------------------------------------------------------------------------------
+--------------------
+-- View functions --
+--------------------
+
+
+type alias Config a msg =
+    { a
+        | width : Int
+        , height : Int
+        , editMode : Bool
+        , previewMode : PreviewMode
+        , galleries : Dict String (Model msg)
+    }
+
+
+maxWidth config =
+    min config.width
+        (docMaxWidth ( config.width, config.height ) config.editMode config.previewMode)
+        - 40
+
+
+view : Config a msg -> Model msg -> Element msg
+view config model =
+    let
+        w =
+            maxWidth config
+
+        h =
+            min 600 (round <| toFloat w / 1.333333)
+    in
+    Element.map model.externalMsg <|
+        column
+            [ spacing 15 ]
+            [ el
+                [ centerX
+                , clipX
+                , width (px w)
+                , height (px h)
+                ]
+                (chunkView config model (current model.images))
+            ]
+
+
+chunkView : Config a msg -> Model msg -> List ImageMeta -> Element Msg
+chunkView config model chunk =
+    case chunk of
+        l :: c :: r :: [] ->
+            Lazy.lazy
+                (\mc ->
+                    row
+                        (events model.mbDrag ( DragStart, DragAt, DragEnd )
+                            ++ [ mc ]
+                        )
+                        [ picView config model l
+                        , picView config model c
+                        , picView config model r
+                        ]
+                )
+                (moveChunk config model)
+
+        _ ->
+            Element.none
+
+
+moveChunk config model =
+    let
+        w =
+            maxWidth config
+
+        animFun =
+            case model.mbAnim of
+                Nothing ->
+                    -- necessary in order to center the row
+                    moveLeft (toFloat w)
+
+                Just ( anim, AnimateLeft ) ->
+                    moveLeft (toFloat w + animate model.clock anim)
+
+                Just ( anim, AnimateRight ) ->
+                    moveRight ((toFloat <| -1 * w) + animate model.clock anim)
+    in
+    case model.mbDrag of
+        Nothing ->
+            animFun
+
+        Just (Drag start stop) ->
+            if start.x - stop.x <= 0 then
+                moveRight (toFloat <| (-1 * w) + abs (start.x - stop.x))
+            else
+                moveLeft (toFloat <| w + start.x - stop.x)
+
+
+picView : Config a msg -> Model msg -> ImageMeta -> Element Msg
+picView config model { src, size } =
+    let
+        w =
+            maxWidth config
+
+        h =
+            min 600 (round <| toFloat w / 1.333333)
+    in
+    case src of
+        UrlSrc src_ ->
+            el
+                ([ width (px w)
+                 , height (px h)
+                 , if Set.member src_ model.loaded then
+                    Background.uncropped src_
+                   else
+                    Background.uncropped "/assets/images/loading.gif"
+                 ]
+                    ++ unselectable
+                )
+                (html <|
+                    Html.img
+                        [ HtmlAttr.hidden True
+                        , HtmlEvents.on "load" (Decode.succeed (ImgLoaded src_))
+                        , HtmlAttr.src src_
+                        ]
+                        []
+                )
+
+        _ ->
+            Element.none
+
+
+
+-------------------------------------------------------------------------------
+------------------
+-- Misc Helpers --
+------------------

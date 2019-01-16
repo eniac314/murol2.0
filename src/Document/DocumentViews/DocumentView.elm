@@ -3,6 +3,7 @@ module Document.DocumentViews.DocumentView exposing (..)
 import Array exposing (..)
 import Dict exposing (..)
 import Document.Document exposing (..)
+import Document.DocumentViews.RenderConfig exposing (Config)
 import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -31,28 +32,8 @@ import Time exposing (Posix, Zone, millisToPosix)
 import UUID exposing (canonical)
 
 
-type alias Config msg =
-    { width : Int
-    , height : Int
-    , mainInterfaceHeight : Int
-    , customElems :
-        Dict String (Element msg)
-    , zipperHandlers : Maybe (ZipperHandlers msg)
-    , editMode : Bool
-    , previewMode : PreviewMode
-    , containersBkgColors : Bool
-    , season : Season
-    , currentTime : Posix
-    , zone : Zone
-    , pageIndex : Dict String String
-    , fiches : Dict String Fiche
-    , openedFiches : Set String
-    , openFicheMsg : String -> msg
-    , news : Dict String News
-    , openedNews : Set String
-    , openNewsMsg : String -> msg
-    , galleries : Dict String (Gallery.Model msg)
-    }
+--type alias Config msg =
+--    Document.DocumentViews.RenderConfig.Config msg
 
 
 renderDoc : Config msg -> Document -> List (Element msg)
@@ -1173,7 +1154,12 @@ renderPictureLinks config id attrs picLinks =
 
 
 renderGallery config id attrs galleryMeta =
-    []
+    case Dict.get (canonical galleryMeta.uuid) config.galleries of
+        Just gallery ->
+            [ Gallery.view config gallery ]
+
+        Nothing ->
+            []
 
 
 renderEmptyCell config id attrs =

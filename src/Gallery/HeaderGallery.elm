@@ -25,6 +25,7 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy as Lazy
 import Element.Region as Region
+import Gallery.GalleryHelpers exposing (..)
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
@@ -43,21 +44,6 @@ type alias Model msg =
     , clock : Float
     , visibility : Visibility
     , externalMsg : Msg -> msg
-    }
-
-
-type Direction
-    = AnimateLeft
-    | AnimateRight
-
-
-type Drag
-    = Drag Position Position
-
-
-type alias Position =
-    { x : Int
-    , y : Int
     }
 
 
@@ -87,7 +73,9 @@ subscriptions model =
         , if model.visibility == Hidden then
             Sub.none
           else
-            Time.every 15000 (Animate AnimateLeft)
+            Sub.none
+
+        --Time.every 15000 (Animate AnimateLeft)
         , onVisibilityChange VisibilityChange
         ]
 
@@ -263,7 +251,7 @@ chunkView model config chunk =
             Lazy.lazy
                 (\mc ->
                     row
-                        (events model.mbDrag
+                        (events model.mbDrag ( DragStart, DragAt, DragEnd )
                             ++ [ mc ]
                         )
                         [ picView model config l []
@@ -322,45 +310,3 @@ moveChunk config model =
                 moveRight (toFloat <| (-1 * config.maxWidth) + abs (start.x - stop.x))
             else
                 moveLeft (toFloat <| config.maxWidth + start.x - stop.x)
-
-
-
--- EVENTS
-
-
-events : Maybe Drag -> List (Attribute Msg)
-events drag =
-    List.map htmlAttribute <|
-        moveEvent drag
-            ++ [ HtmlEvents.on "mousedown" (Decode.map DragStart decodePosition)
-               , HtmlEvents.on "touchstart" (Decode.map DragStart decodePosition)
-               ]
-
-
-moveEvent : Maybe a -> List (Html.Attribute Msg)
-moveEvent drag =
-    case drag of
-        Just _ ->
-            [ HtmlEvents.preventDefaultOn "mousemove"
-                (Decode.map (\p -> ( DragAt p, True )) decodePosition)
-            , HtmlEvents.preventDefaultOn "touchmove"
-                (Decode.map (\p -> ( DragAt p, True )) decodePosition)
-            , HtmlEvents.on "mouseup" (Decode.succeed DragEnd)
-            , HtmlEvents.on "mouseleave" (Decode.succeed DragEnd)
-            , HtmlEvents.on "touchend" (Decode.succeed DragEnd)
-            , HtmlEvents.on "touchcancel" (Decode.succeed DragEnd)
-            ]
-
-        Nothing ->
-            []
-
-
-decodePosition : Decode.Decoder Position
-decodePosition =
-    let
-        decoder =
-            Decode.map2 Position
-                (Decode.field "pageX" (Decode.map floor Decode.float))
-                (Decode.field "pageY" (Decode.map floor Decode.float))
-    in
-    Decode.oneOf [ decoder, Decode.at [ "touches", "0" ] decoder ]

@@ -1,7 +1,5 @@
 port module Murol exposing (..)
 
---import Gallery.Image as GImage
-
 import Browser exposing (..)
 import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
@@ -9,7 +7,8 @@ import Browser.Navigation as Nav
 import Dict exposing (..)
 import Document.Document as Document
 import Document.DocumentViews.DocumentResponsive exposing (responsivePreFormat)
-import Document.DocumentViews.DocumentView exposing (Config, customHeading, renderDoc)
+import Document.DocumentViews.DocumentView exposing (customHeading, renderDoc)
+import Document.DocumentViews.RenderConfig exposing (Config)
 import Document.DocumentViews.StyleSheets as StyleSheets exposing (..)
 import Document.Json.DocumentDecoder exposing (decodeNews)
 import Element exposing (..)
@@ -590,7 +589,7 @@ update msg model =
                     let
                         newGallery =
                             Gallery.update
-                                { maxWidth = model.config.width }
+                                model.config
                                 galMsg
                                 gallery
 

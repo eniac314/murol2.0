@@ -3,7 +3,8 @@ module PageEditor.EditorPlugins.BlockLinksPlugin exposing (..)
 import Auth.AuthPlugin exposing (LogInfo)
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
-import Document.DocumentViews.DocumentView exposing (Config, renderBlocksLinksMeta)
+import Document.DocumentViews.DocumentView exposing (renderBlocksLinksMeta)
+import Document.DocumentViews.RenderConfig exposing (Config)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
