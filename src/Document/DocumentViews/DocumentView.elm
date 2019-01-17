@@ -1159,7 +1159,10 @@ renderGallery config id attrs galleryMeta =
             [ Gallery.view config gallery ]
 
         Nothing ->
-            []
+            if config.editMode then
+                [ text "test" ]
+            else
+                []
 
 
 renderEmptyCell config id attrs =

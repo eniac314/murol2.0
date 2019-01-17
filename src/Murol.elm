@@ -587,7 +587,7 @@ update msg model =
             case Dict.get uuid model.config.galleries of
                 Just gallery ->
                     let
-                        newGallery =
+                        ( newGallery, cmds ) =
                             Gallery.update
                                 model.config
                                 galMsg
@@ -602,7 +602,7 @@ update msg model =
                                     Dict.insert uuid newGallery config.galleries
                             }
                     in
-                    ( { model | config = newConfig }, Cmd.none )
+                    ( { model | config = newConfig }, cmds )
 
                 Nothing ->
                     ( model, Cmd.none )

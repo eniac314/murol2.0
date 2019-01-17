@@ -1,6 +1,7 @@
 port module PageEditor.EditorPlugins.GalleryPlugin exposing (..)
 
 import Auth.AuthPlugin exposing (LogInfo(..))
+import Delay exposing (..)
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
 import Document.Json.DocumentDecoder as DocumentDecoder
@@ -56,7 +57,7 @@ type alias Model msg =
     , base64Pics : Dict String String
     , processedPics : Dict String ProcessedImage
     , processing : Bool
-    , processingQueue : List ( String, String )
+    , processingQueue : List String
     , galleryTitleInput : Maybe String
     , keepHQAssets : Bool
     , output : Maybe GalleryMeta
@@ -164,10 +165,12 @@ update config msg model =
                 |> List.indexedMap
                     (\n ( fn, t ) ->
                         Task.perform
-                            (Base64Img
-                                (indexName n)
+                            (Delay.Millisecond
+                                (Base64Img
+                                    (indexName n)
+                                )
+                                t
                             )
-                            t
                     )
                 |> Cmd.batch
                 |> Cmd.map model.externalMsg
@@ -179,7 +182,7 @@ update config msg model =
                 ( cmd, processingQueue ) =
                     if model.processing then
                         ( Cmd.none
-                        , ( filename, data ) :: model.processingQueue
+                        , filename :: model.processingQueue
                         )
                     else
                         ( processCmd model filename data
@@ -205,11 +208,16 @@ update config msg model =
                                 [] ->
                                     ( Cmd.none, [], False )
 
-                                ( filename_, data_ ) :: rest ->
-                                    ( processCmd model filename_ data_
-                                    , rest
-                                    , True
-                                    )
+                                filename_ :: rest ->
+                                    case Dict.get filename_ model.base64Pics of
+                                        Just data_ ->
+                                            ( processCmd model filename_ data_
+                                            , rest
+                                            , True
+                                            )
+
+                                        Nothing ->
+                                            ( Cmd.none, rest, False )
                     in
                     ( { model
                         | processingQueue = processingQueue

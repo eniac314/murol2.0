@@ -73,9 +73,8 @@ subscriptions model =
         , if model.visibility == Hidden then
             Sub.none
           else
-            Sub.none
-
-        --Time.every 15000 (Animate AnimateLeft)
+            --Sub.none
+            Time.every 15000 (Animate AnimateLeft)
         , onVisibilityChange VisibilityChange
         ]
 
@@ -126,23 +125,33 @@ update config msg model =
             { model | mbAnim = newAnim }
 
         DragStart position ->
-            { model
-                | mbDrag = Just (Drag position position)
-            }
+            case model.mbAnim of
+                Nothing ->
+                    { model
+                        | mbDrag = Just (Drag position position)
+                    }
+
+                _ ->
+                    model
 
         DragAt position ->
             let
                 updateDrag current_ (Drag start _) =
                     Drag start current_
             in
-            { model
-                | mbDrag =
-                    Maybe.map (updateDrag position) model.mbDrag
-            }
+            case model.mbAnim of
+                Nothing ->
+                    { model
+                        | mbDrag =
+                            Maybe.map (updateDrag position) model.mbDrag
+                    }
+
+                _ ->
+                    model
 
         DragEnd ->
-            case model.mbDrag of
-                Just (Drag start current_) ->
+            case ( model.mbAnim, model.mbDrag ) of
+                ( Nothing, Just (Drag start current_) ) ->
                     let
                         newAnimFun x =
                             animation model.clock
@@ -157,7 +166,7 @@ update config msg model =
                                 case model.mbAnim of
                                     Nothing ->
                                         Just
-                                            ( newAnimFun current_.x
+                                            ( newAnimFun (start.x - current_.x)
                                             , AnimateLeft
                                             )
 
@@ -174,7 +183,7 @@ update config msg model =
                                 case model.mbAnim of
                                     Nothing ->
                                         Just
-                                            ( newAnimFun current_.x
+                                            ( newAnimFun (abs (start.x - current_.x))
                                             , AnimateRight
                                             )
 
@@ -188,7 +197,7 @@ update config msg model =
                     else
                         { model | mbDrag = Nothing }
 
-                Nothing ->
+                _ ->
                     model
 
         ImgLoaded src ->
@@ -266,25 +275,60 @@ chunkView model config chunk =
 
 
 picView model config { src } attrs =
-    el
-        ([ width (px config.maxWidth)
-         , height (px (round (toFloat config.maxWidth / 5)))
-         , if Set.member src model.loaded then
-            Background.image src
-           else
-            Background.uncropped "/assets/images/loading.gif"
-         ]
-            ++ attrs
-            ++ unselectable
-        )
-        (html <|
-            Html.img
-                [ HtmlAttr.hidden True
-                , HtmlEvents.on "load" (Decode.succeed (ImgLoaded src))
-                , HtmlAttr.src src
+    if Set.member src model.loaded then
+        el
+            ([ width (px config.maxWidth)
+             , height (px (round (toFloat config.maxWidth / 5)))
+             , Background.image src
+             ]
+                ++ attrs
+                ++ unselectable
+            )
+            Element.none
+    else
+        column
+            [ Background.color grey5
+            , width (px config.maxWidth)
+            , height (px (round (toFloat config.maxWidth / 5)))
+            ]
+            [ image
+                [ centerX
+                , centerY
+                , clip
                 ]
-                []
-        )
+                { src = "/assets/images/loading.gif"
+                , description = "chargement en cours"
+                }
+            , html <|
+                Html.img
+                    [ HtmlAttr.hidden True
+                    , HtmlEvents.on "load" (Decode.succeed (ImgLoaded src))
+                    , HtmlAttr.src src
+                    ]
+                    []
+            ]
+
+
+
+--el
+--    ([ width (px config.maxWidth)
+--     , height (px (round (toFloat config.maxWidth / 5)))
+--     , if Set.member src model.loaded then
+--        Background.image src
+--       else
+--        Background.uncropped "/assets/images/loading.gif"
+--     ]
+--        ++ attrs
+--        ++ unselectable
+--    )
+--    (html <|
+--        Html.img
+--            [ HtmlAttr.hidden True
+--            , HtmlEvents.on "load" (Decode.succeed (ImgLoaded src))
+--            , HtmlAttr.src src
+--            ]
+--            []
+--    )
 
 
 moveChunk config model =
