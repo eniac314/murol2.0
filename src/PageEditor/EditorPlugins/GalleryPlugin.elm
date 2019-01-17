@@ -56,8 +56,9 @@ type alias Model msg =
     , fileSizes : Dict String Int
     , base64Pics : Dict String String
     , processedPics : Dict String ProcessedImage
-    , processing : Bool
-    , processingQueue : List String
+
+    --, processing : Bool
+    , processingQueue : List ( String, File )
     , galleryTitleInput : Maybe String
     , keepHQAssets : Bool
     , output : Maybe GalleryMeta
@@ -70,6 +71,7 @@ type alias Model msg =
 type Msg
     = ImagesRequested
     | ImagesSelected File (List File)
+    | TimeBuffer String File
     | Base64Img String String
     | ImageProcessed Decode.Value
     | GalleryTitlePrompt String
@@ -105,7 +107,6 @@ init mbGalleryMeta availableThreads externalMsg =
       , fileSizes = Dict.empty
       , base64Pics = Dict.empty
       , processedPics = Dict.empty
-      , processing = False
       , processingQueue = []
       , galleryTitleInput = Nothing
       , keepHQAssets = False
@@ -139,11 +140,6 @@ update config msg model =
 
         ImagesSelected first remaining ->
             let
-                indexName n =
-                    String.fromInt n
-                        |> String.padLeft 3 '0'
-                        |> strCons ".jpg"
-
                 files =
                     first :: remaining
 
@@ -160,42 +156,38 @@ update config msg model =
             in
             ( { model
                 | fileSizes = fileSizes
+                , processingQueue =
+                    List.indexedMap
+                        (\n f -> ( indexName (n + 1), f ))
+                        remaining
               }
-            , List.map (\f -> ( File.name f, File.toUrl f )) files
-                |> List.indexedMap
-                    (\n ( fn, t ) ->
-                        Task.perform
-                            (Delay.Millisecond
-                                (Base64Img
-                                    (indexName n)
-                                )
-                                t
-                            )
-                    )
-                |> Cmd.batch
+            , Task.perform
+                (Base64Img (indexName 0))
+                (File.toUrl first)
+                |> Cmd.map model.externalMsg
+            , Nothing
+            )
+
+        TimeBuffer filename file ->
+            ( model
+            , Task.perform
+                (Base64Img filename)
+                (File.toUrl file)
                 |> Cmd.map model.externalMsg
             , Nothing
             )
 
         Base64Img filename data ->
-            let
-                ( cmd, processingQueue ) =
-                    if model.processing then
-                        ( Cmd.none
-                        , filename :: model.processingQueue
-                        )
-                    else
-                        ( processCmd model filename data
-                        , model.processingQueue
-                        )
-            in
             ( { model
-                | base64Pics = Dict.insert filename data model.base64Pics
-                , processingQueue = processingQueue
-                , processing = True
-                , pluginState = ImageProcessing
+                | pluginState = ImageProcessing
+                , base64Pics =
+                    if model.keepHQAssets then
+                        Dict.insert filename data model.base64Pics
+                    else
+                        model.base64Pics
               }
-            , cmd
+            , processCmd model filename data
+              --"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             , Nothing
             )
 
@@ -203,32 +195,25 @@ update config msg model =
             case Decode.decodeValue decodeProcessedData json of
                 Ok ({ content, filename } as pi) ->
                     let
-                        ( cmd, processingQueue, processing ) =
+                        ( cmd, processingQueue ) =
                             case model.processingQueue of
                                 [] ->
-                                    ( Cmd.none, [], False )
+                                    ( Cmd.none, [] )
 
-                                filename_ :: rest ->
-                                    case Dict.get filename_ model.base64Pics of
-                                        Just data_ ->
-                                            ( processCmd model filename_ data_
-                                            , rest
-                                            , True
-                                            )
-
-                                        Nothing ->
-                                            ( Cmd.none, rest, False )
+                                ( filename_, file ) :: rest ->
+                                    ( --Delay.after 500 Millisecond (TimeBuffer filename_ file)
+                                      --|> Cmd.map model.externalMsg
+                                      Task.perform
+                                        (Base64Img filename_)
+                                        (File.toUrl file)
+                                        |> Cmd.map model.externalMsg
+                                    , rest
+                                    )
                     in
                     ( { model
                         | processingQueue = processingQueue
-                        , processing = processing
                         , processedPics =
                             Dict.insert filename pi model.processedPics
-                        , base64Pics =
-                            if not model.keepHQAssets then
-                                Dict.remove filename model.base64Pics
-                            else
-                                model.base64Pics
                       }
                     , cmd
                     , Nothing
@@ -373,7 +358,6 @@ update config msg model =
                 | base64Pics = Dict.empty
                 , processedPics = Dict.empty
                 , fileSizes = Dict.empty
-                , processing = False
                 , processingQueue = []
                 , pluginState = Home
                 , output = Nothing
@@ -500,7 +484,6 @@ update config msg model =
                         | base64Pics = Dict.empty
                         , processedPics = Dict.empty
                         , fileSizes = Dict.empty
-                        , processing = False
                         , processingQueue = []
                         , pluginState = GalleryEditor
                         , seed = Just newSeed
@@ -535,7 +518,6 @@ update config msg model =
             ( { model
                 | base64Pics = Dict.empty
                 , processedPics = Dict.empty
-                , processing = False
                 , processingQueue = []
                 , output = Nothing
                 , uploadProgress = Dict.empty
@@ -1230,6 +1212,12 @@ decodeUploadStatus =
 ------------------
 -- Misc Helpers --
 ------------------
+
+
+indexName n =
+    String.fromInt n
+        |> String.padLeft 3 '0'
+        |> strCons ".jpg"
 
 
 makeGalleryMeta : String -> List ( String, String ) -> (Random.Seed -> ( Random.Seed, GalleryMeta ))

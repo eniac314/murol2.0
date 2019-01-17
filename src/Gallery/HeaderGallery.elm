@@ -309,28 +309,6 @@ picView model config { src } attrs =
             ]
 
 
-
---el
---    ([ width (px config.maxWidth)
---     , height (px (round (toFloat config.maxWidth / 5)))
---     , if Set.member src model.loaded then
---        Background.image src
---       else
---        Background.uncropped "/assets/images/loading.gif"
---     ]
---        ++ attrs
---        ++ unselectable
---    )
---    (html <|
---        Html.img
---            [ HtmlAttr.hidden True
---            , HtmlEvents.on "load" (Decode.succeed (ImgLoaded src))
---            , HtmlAttr.src src
---            ]
---            []
---    )
-
-
 moveChunk config model =
     let
         animFun =
