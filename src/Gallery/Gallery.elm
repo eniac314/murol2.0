@@ -32,36 +32,48 @@ import Gallery.GalleryHelpers exposing (..)
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
+import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
-import Internals.Icons exposing (chevronLeft, chevronRight)
-import Internals.Streams exposing (..)
+import Internals.Icons exposing (chevronLeft, chevronRight, grid, imageIcon)
+import Internals.Streams as Streams exposing (..)
 import Json.Decode as Decode
 import Set exposing (..)
-import String.Extra exposing (toSentenceCase)
+import String.Extra exposing (rightOfBack, toSentenceCase)
 import Task exposing (..)
 import Time exposing (Posix, every, millisToPosix, now, posixToMillis)
 
 
 type alias Model msg =
     { loaded : Set String
+    , loadedThumbs : Set String
     , title : String
-    , images : BiStream (List ImageMeta)
+    , imagesStream : BiStream (List ImageMeta)
+    , imagesSrcs : List ImageSrc
     , mbDrag : Maybe Drag
     , mbAnim : Maybe ( Animation, Direction )
     , clock : Float
-    , externalMsg : Msg -> msg
     , tickSubOn : Bool
+    , displayMode : DisplayMode
+    , externalMsg : Msg -> msg
     }
 
 
+type DisplayMode
+    = DisplayImage
+    | DisplayGrid
+
+
 type Msg
-    = Next
+    = ToogleDisplayMode
+    | Select ImageSrc
+    | Next
     | Previous
     | Animate Direction Posix
     | DragStart Position
     | DragAt Position
     | DragEnd
     | ImgLoaded String
+    | ThumbLoaded String
     | Tick Posix
     | NoOp
 
@@ -94,13 +106,16 @@ init title images externalMsg =
                 |> chunkBiStream 3
     in
     { loaded = Set.empty
-    , images = stream
+    , loadedThumbs = Set.empty
+    , imagesStream = stream
+    , imagesSrcs = List.map .src images
     , mbDrag = Nothing
     , mbAnim = Nothing
     , clock = 0
     , title = title
-    , externalMsg = externalMsg
     , tickSubOn = False
+    , displayMode = DisplayImage
+    , externalMsg = externalMsg
     }
 
 
@@ -114,6 +129,35 @@ init title images externalMsg =
 update : Config a msg -> Msg -> Model msg -> ( Model msg, Cmd msg )
 update config msg model =
     case msg of
+        ToogleDisplayMode ->
+            case model.displayMode of
+                DisplayImage ->
+                    ( { model | displayMode = DisplayGrid }
+                    , Cmd.none
+                    )
+
+                DisplayGrid ->
+                    ( { model | displayMode = DisplayImage }
+                    , Cmd.none
+                    )
+
+        Select src ->
+            ( { model
+                | imagesStream =
+                    Streams.goTo model.imagesStream
+                        (\chunk ->
+                            case chunk of
+                                l :: c :: r :: [] ->
+                                    c.src == src
+
+                                _ ->
+                                    False
+                        )
+                , displayMode = DisplayImage
+              }
+            , Cmd.none
+            )
+
         Next ->
             case model.mbAnim of
                 Just _ ->
@@ -261,23 +305,23 @@ update config msg model =
                     case model.mbAnim of
                         Just ( anim, AnimateLeft ) ->
                             if isDone newClock anim then
-                                ( Nothing, right (.images model), False )
+                                ( Nothing, right (.imagesStream model), False )
                             else
-                                ( model.mbAnim, model.images, True )
+                                ( model.mbAnim, model.imagesStream, True )
 
                         Just ( anim, AnimateRight ) ->
                             if isDone newClock anim then
-                                ( Nothing, left (.images model), False )
+                                ( Nothing, left (.imagesStream model), False )
                             else
-                                ( model.mbAnim, model.images, True )
+                                ( model.mbAnim, model.imagesStream, True )
 
                         _ ->
-                            ( model.mbAnim, model.images, model.tickSubOn )
+                            ( model.mbAnim, model.imagesStream, model.tickSubOn )
             in
             ( { model
                 | clock = newClock
                 , mbAnim = newAnim
-                , images = newImages
+                , imagesStream = newImages
                 , tickSubOn = tickSubOn
               }
             , Cmd.none
@@ -285,6 +329,11 @@ update config msg model =
 
         ImgLoaded src ->
             ( { model | loaded = Set.insert src model.loaded }
+            , Cmd.none
+            )
+
+        ThumbLoaded src ->
+            ( { model | loadedThumbs = Set.insert src model.loadedThumbs }
             , Cmd.none
             )
 
@@ -327,14 +376,17 @@ view config model =
     in
     Element.map model.externalMsg <|
         column
-            [ spacing 15
-            , Background.color grey6
+            [ Background.color grey6
             , Border.rounded 5
-            , paddingXY 0 15
             , centerX
             ]
             [ titleRow config model
-            , galleryView config model
+            , case model.displayMode of
+                DisplayImage ->
+                    galleryView config model
+
+                DisplayGrid ->
+                    gridView config model
             , captionRow config model
             ]
 
@@ -347,7 +399,7 @@ titleRow config model =
     in
     row
         [ width (maximum w fill)
-        , paddingXY 15 0
+        , paddingXY 15 5
         , spacing 20
         ]
         [ el
@@ -356,6 +408,23 @@ titleRow config model =
             , Font.bold
             ]
             (text <| String.Extra.toSentenceCase model.title)
+        , Input.button
+            (buttonStyle True
+                ++ [ alignRight
+                   ]
+            )
+            { onPress = Just ToogleDisplayMode
+            , label =
+                el [ paddingXY 0 0 ]
+                    (html <|
+                        case model.displayMode of
+                            DisplayImage ->
+                                grid 22
+
+                            DisplayGrid ->
+                                imageIcon 22
+                    )
+            }
         ]
 
 
@@ -365,11 +434,11 @@ captionRow config model =
         w =
             maxWidth config
     in
-    case current model.images of
+    case current model.imagesStream of
         l :: c :: r :: [] ->
             row
                 [ width (maximum w fill)
-                , paddingXY 15 0
+                , padding 15
                 , spacing 20
                 , height (minimum 20 fill)
                 ]
@@ -379,11 +448,11 @@ captionRow config model =
                 , el
                     [ alignRight ]
                     (text
-                        ((String.fromInt (1 + model.images.index)
+                        ((String.fromInt (1 + model.imagesStream.index)
                             |> String.padLeft 2 '0'
                          )
                             ++ "/"
-                            ++ (String.fromInt model.images.size
+                            ++ (String.fromInt model.imagesStream.size
                                     |> String.padLeft 2 '0'
                                )
                         )
@@ -447,7 +516,7 @@ galleryView config model =
         , inFront <|
             controlPanel [ alignRight ] Next chevronRight
         ]
-        (chunkView config model (current model.images))
+        (chunkView config model (current model.imagesStream))
 
 
 chunkView : Config a msg -> Model msg -> List ImageMeta -> Element Msg
@@ -557,8 +626,110 @@ picView config model { src, size } =
             Element.none
 
 
+gridView : Config a msg -> Model msg -> Element Msg
+gridView config model =
+    let
+        w =
+            maxWidth config
 
+        h =
+            min 600 (round <| toFloat w / 1.333333)
+
+        thumbSize =
+            135
+
+        chunkSize =
+            (w - 15) // (thumbSize + 10)
+
+        rows =
+            chunks chunkSize
+                (List.map thumbView model.imagesSrcs)
+                |> List.map
+                    (row
+                        [ width fill
+                        , spaceEvenly
+                        , paddingXY 10 0
+                        ]
+                    )
+
+        thumbView src =
+            case src of
+                UrlSrc src_ ->
+                    if Set.member src_ model.loadedThumbs then
+                        el
+                            [ padding 5
+                            , Background.color grey6
+                            , mouseOver
+                                [ Background.color grey4 ]
+                            , Border.rounded 5
+                            , Events.onClick (Select src)
+                            , pointer
+                            ]
+                            (el
+                                [ width (px thumbSize)
+                                , height (px thumbSize)
+                                , centerX
+                                , mouseOver
+                                    [ alpha 0.5 ]
+                                , Background.uncropped (thumbSrc src_)
+                                ]
+                                Element.none
+                            )
+                    else
+                        column
+                            [ padding 5
+                            , Background.color grey6
+                            , mouseOver
+                                [ Background.color grey4 ]
+                            , Border.rounded 5
+                            , pointer
+                            , width (px <| thumbSize + 10)
+                            , height (px <| thumbSize + 10)
+                            ]
+                            [ html <|
+                                Html.img
+                                    [ HtmlAttr.hidden True
+                                    , HtmlEvents.on "load" (Decode.succeed (ThumbLoaded src_))
+                                    , HtmlAttr.src (thumbSrc src_)
+                                    ]
+                                    []
+                            , image
+                                [ centerX
+                                , centerY
+                                ]
+                                { src = "/assets/images/loading.gif"
+                                , description = "chargement"
+                                }
+                            ]
+
+                _ ->
+                    Element.none
+    in
+    column
+        [ Background.color grey5
+        , width (px w)
+        , height (px h)
+        , scrollbarY
+        , spacing 10
+        , paddingXY 0 10
+        ]
+        rows
+
+
+
+--[ wrappedRow [ padding 10 ]
+--    (List.map thumbView model.imagesSrcs)
+--]
 -------------------------------------------------------------------------------
 ------------------
 -- Misc Helpers --
 ------------------
+
+
+extractFileName img =
+    case img.src of
+        UrlSrc src_ ->
+            rightOfBack "/" src_
+
+        _ ->
+            ""

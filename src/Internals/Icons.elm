@@ -223,6 +223,19 @@ imageIcon size =
         ]
 
 
+grid : Int -> Html msg
+grid size =
+    customSvgFeatherIcon size
+        "grid"
+        [ Svg.rect
+            [ Svg.Attributes.x "3", y "3", width "7", height "7" ]
+            []
+        , Svg.rect [ Svg.Attributes.x "14", y "3", width "7", height "7" ] []
+        , Svg.rect [ Svg.Attributes.x "14", y "14", width "7", height "7" ] []
+        , Svg.rect [ Svg.Attributes.x "3", y "14", width "7", height "7" ] []
+        ]
+
+
 youtube : Int -> Html msg
 youtube size =
     customSvgFeatherIcon size

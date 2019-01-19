@@ -32,10 +32,6 @@ import Time exposing (Posix, Zone, millisToPosix)
 import UUID exposing (canonical)
 
 
---type alias Config msg =
---    Document.DocumentViews.RenderConfig.Config msg
-
-
 renderDoc : Config msg -> Document -> List (Element msg)
 renderDoc config document =
     case document of
@@ -764,12 +760,6 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
                 UrlSrc s ->
                     s
     in
-    --[ image
-    --    attrs_
-    --    { src = src_
-    --    , description = ""
-    --    }
-    --]
     [ el attrs_
         (html <|
             Html.img
@@ -958,8 +948,6 @@ renderWeatherWidget config id attrs =
                 Html.iframe
                     [ Attr.style "border-width" "0"
                     , Attr.style "width" "300"
-
-                    --, Attr.style "heigth" "200"
                     , Attr.src "/meteo.html"
                     ]
                     []
@@ -1018,13 +1006,6 @@ renderDronePanorama config id attrs =
                         , Background.image "assets/images/misc/visiteVirt.jpg"
                         , Border.width 5
                         , Border.color (rgb 1 1 1)
-
-                        --, Border.shadow
-                        --    { offset = ( 5, 5 )
-                        --    , size = 5
-                        --    , blur = 5
-                        --    , color = rgb 0 0 0
-                        --    }
                         ]
                         Element.none
                 }
@@ -1160,7 +1141,53 @@ renderGallery config id attrs galleryMeta =
 
         Nothing ->
             if config.editMode then
-                [ text "test" ]
+                [ column
+                    ([ width (px 400)
+                     , Background.color grey6
+                     , Border.rounded 5
+                     , centerX
+                     ]
+                        ++ renderAttrs config attrs
+                    )
+                    [ row
+                        [ width fill
+                        , paddingXY 15 5
+                        ]
+                        [ el
+                            [ Font.size 16
+                            , Font.color (rgb 0 0.5 0)
+                            , Font.bold
+                            ]
+                            (text <| String.Extra.toSentenceCase galleryMeta.title)
+                        , el
+                            [ alignRight ]
+                            (text <|
+                                (String.fromInt <|
+                                    List.length galleryMeta.images
+                                )
+                                    ++ " images"
+                            )
+                        ]
+                    , el
+                        [ Background.color grey7 ]
+                        (el
+                            [ width (px 400)
+                            , height (px <| round (400 / 1.333333))
+                            , Background.uncropped <|
+                                case
+                                    List.head galleryMeta.images
+                                        |> Maybe.map .src
+                                of
+                                    Just (UrlSrc src) ->
+                                        src
+
+                                    _ ->
+                                        ""
+                            ]
+                            Element.none
+                        )
+                    ]
+                ]
             else
                 []
 

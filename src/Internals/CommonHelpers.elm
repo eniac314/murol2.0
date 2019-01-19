@@ -13,6 +13,7 @@ import Element.Region as Region
 import Http exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as D
+import String.Extra exposing (insertAt)
 import Task exposing (perform)
 import Time exposing (Month(..), Posix, Weekday(..), Zone, now, posixToMillis)
 
@@ -292,3 +293,13 @@ dateToFrench zone t =
                     "dimanche"
     in
     currentWeekday ++ " " ++ currentDay ++ " " ++ currentMonth ++ " " ++ currentYear
+
+
+thumbSrc : String -> String
+thumbSrc s =
+    case List.reverse <| String.indexes "/" s of
+        [] ->
+            s
+
+        n :: _ ->
+            String.Extra.insertAt "/thumbs" n s

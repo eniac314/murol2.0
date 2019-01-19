@@ -140,7 +140,7 @@ view config =
                             config.createNewCell GalleryPlugin
                     , label =
                         row [ spacing 10 ]
-                            [ text "Galerie photothèque"
+                            [ text "Album photothèque"
                             ]
                     }
                 , Input.button (buttonStyle True)

@@ -958,7 +958,8 @@ subTitleView maxWidth model =
                         ++ String.fromInt (Time.toYear model.config.zone model.config.currentTime)
               else
                 text "La municipalité de Murol vous souhaite la bienvenue"
-            , seasonSelectorView model
+
+            --, seasonSelectorView model
             ]
         )
 
@@ -1141,6 +1142,15 @@ topMenuView model =
                                     []
                                     (text <| toSentenceCase pageInfo.name)
                             }
+
+                menu =
+                    PageTreeEditor.Page
+                        { name = "accueil"
+                        , path = [ "accueil" ]
+                        , mbContentId = Nothing
+                        }
+                        []
+                        :: xs_
             in
             if model.config.width <= 600 then
                 column
@@ -1149,7 +1159,7 @@ topMenuView model =
                     , paddingXY 15 0
                     , Background.color (rgba 1 1 1 0.9)
                     ]
-                    (List.map mobileMainCatView xs_)
+                    (List.map mobileMainCatView menu)
             else
                 row
                     [ centerX
@@ -1162,7 +1172,7 @@ topMenuView model =
                         [ centerX
                         , spacing 40
                         ]
-                        (List.map mainCatView xs_)
+                        (List.map mainCatView menu)
                     ]
 
         Nothing ->
@@ -1492,7 +1502,13 @@ getFiches fichesIds =
         , expect =
             Http.expectJson
                 LoadFiches
-                (Decode.list decodeFiche)
+                (Decode.list
+                    (Decode.maybe decodeFiche)
+                    |> Decode.map
+                        (List.filterMap
+                            identity
+                        )
+                )
         }
 
 

@@ -56,8 +56,6 @@ type alias Model msg =
     , fileSizes : Dict String Int
     , base64Pics : Dict String String
     , processedPics : Dict String ProcessedImage
-
-    --, processing : Bool
     , processingQueue : List ( String, File )
     , galleryTitleInput : Maybe String
     , keepHQAssets : Bool
@@ -469,7 +467,7 @@ update config msg model =
                             List.map
                                 (\fn ->
                                     ( fn
-                                    , "images/phototheque/"
+                                    , "/images/phototheque/"
                                         ++ title
                                         ++ "/"
                                         ++ fn
@@ -1238,16 +1236,6 @@ makeGalleryMeta title pics =
                     pics
           }
         )
-
-
-thumbSrc : String -> String
-thumbSrc s =
-    case List.reverse <| String.indexes "/" s of
-        [] ->
-            s
-
-        n :: _ ->
-            String.Extra.insertAt "/thumbs" n s
 
 
 progressBar : Int -> Element msg
