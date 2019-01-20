@@ -2649,22 +2649,29 @@ getCurrentFilesys mode model =
                     model.mbDFilesys
 
 
-indexPhototheque : Model msg -> Dict String (List ( String, String ))
+indexPhototheque : Model msg -> Dict String ( Bool, List ( String, String ) )
 indexPhototheque model =
     let
-        getPaths files =
+        getPaths ( hq, acc ) files =
             case files of
                 [] ->
-                    []
+                    ( hq, List.reverse acc )
 
-                (Folder _ _) :: xs ->
-                    getPaths xs
+                (Folder meta _) :: xs ->
+                    if meta.name == "HQ" then
+                        getPaths ( True, acc ) xs
+                    else
+                        getPaths ( hq, acc ) xs
 
                 (File meta) :: xs ->
-                    ( meta.name
-                    , "/" ++ String.join "/" meta.path
-                    )
-                        :: getPaths xs
+                    getPaths
+                        ( hq
+                        , ( meta.name
+                          , "/" ++ String.join "/" meta.path
+                          )
+                            :: acc
+                        )
+                        xs
     in
     case
         getCurrentFilesys (ReadOnly ImagesRoot) model
@@ -2682,7 +2689,7 @@ indexPhototheque model =
                         Folder meta pictures ->
                             Dict.insert
                                 meta.name
-                                (getPaths pictures)
+                                (getPaths ( False, [] ) pictures)
                                 acc
                 )
                 Dict.empty

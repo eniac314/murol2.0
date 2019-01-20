@@ -75,7 +75,7 @@ type Msg
     | GalleryTitlePrompt String
     | CaptionPrompt String String
     | ToogleKeepHqAssets Bool
-    | PickGallery String (List ( String, String ))
+    | PickGallery Bool String (List ( String, String ))
     | SetInitialSeed Posix
     | GotProgress String Http.Progress
     | Uploaded String (Result Http.Error UploadStatus)
@@ -223,7 +223,7 @@ update config msg model =
                     , Nothing
                     )
 
-        PickGallery title pics ->
+        PickGallery hq title pics ->
             case model.seed of
                 Nothing ->
                     ( model
@@ -234,7 +234,7 @@ update config msg model =
                 Just seed ->
                     let
                         ( newSeed, galleryMeta ) =
-                            makeGalleryMeta title pics seed
+                            makeGalleryMeta title hq pics seed
                     in
                     ( { model
                         | seed = Just newSeed
@@ -476,7 +476,7 @@ update config msg model =
                                 (Dict.keys model.processedPics)
 
                         ( newSeed, galleryMeta ) =
-                            makeGalleryMeta title pics seed
+                            makeGalleryMeta title model.keepHQAssets pics seed
                     in
                     ( { model
                         | base64Pics = Dict.empty
@@ -646,7 +646,7 @@ homeView config model =
             [ Font.bold
             , Font.size 18
             ]
-            (text "Créer une nouvelle gallerie")
+            (text "Créer une nouvel album")
         , row
             [ width fill
             , spacing 15
@@ -714,7 +714,7 @@ galleryPickerView config model =
             FileExplorer.indexPhototheque config.fileExplorer
                 |> Dict.toList
 
-        galleryPreview ( name, pics ) =
+        galleryPreview ( name, ( hq, pics ) ) =
             column
                 [ spacing 10
                 , padding 10
@@ -726,7 +726,7 @@ galleryPickerView config model =
                 , Border.rounded 5
                 , pointer
                 , Events.onClick
-                    (PickGallery name pics)
+                    (PickGallery hq name pics)
                 ]
                 [ el
                     [ Font.bold
@@ -739,11 +739,32 @@ galleryPickerView config model =
                     [ width (px 140)
                     , height (px 105)
                     , centerX
+                    , if hq then
+                        inFront
+                            (el
+                                [ width (px 140)
+                                , height (px 105)
+                                ]
+                                (el
+                                    [ alignRight
+                                    , alignBottom
+                                    , paddingXY 7 3
+                                    , Font.size 22
+                                    , Font.bold
+                                    , Font.color (rgb 1 1 1)
+                                    , Border.rounded 4
+                                    , Background.color teal5
+                                    ]
+                                    (text "HD")
+                                )
+                            )
+                      else
+                        noAttr
                     , List.head pics
                         |> Maybe.map Tuple.second
                         |> Maybe.withDefault ""
                         |> thumbSrc
-                        |> Background.uncropped
+                        |> Background.image
                     ]
                     Element.none
                 , el
@@ -1184,10 +1205,11 @@ decodeProcessedData =
 
 decodeGalleryMeta : Decode.Decoder Document.GalleryMeta
 decodeGalleryMeta =
-    Decode.map3 Document.GalleryMeta
+    Decode.map4 Document.GalleryMeta
         (Decode.field "uuid" DocumentDecoder.decodeUUID)
         (Decode.field "title" Decode.string)
         (Decode.field "images" (Decode.list DocumentDecoder.decodeImageMeta))
+        (Decode.field "hq" Decode.bool)
 
 
 type UploadStatus
@@ -1218,8 +1240,8 @@ indexName n =
         |> strCons ".jpg"
 
 
-makeGalleryMeta : String -> List ( String, String ) -> (Random.Seed -> ( Random.Seed, GalleryMeta ))
-makeGalleryMeta title pics =
+makeGalleryMeta : String -> Bool -> List ( String, String ) -> (Random.Seed -> ( Random.Seed, GalleryMeta ))
+makeGalleryMeta title hq pics =
     \seed ->
         let
             ( uuid, newSeed ) =
@@ -1234,6 +1256,7 @@ makeGalleryMeta title pics =
                         { dummyPic | src = UrlSrc p }
                     )
                     pics
+          , hq = hq
           }
         )
 

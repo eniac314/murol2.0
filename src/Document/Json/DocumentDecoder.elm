@@ -137,6 +137,9 @@ decodeGalleryMeta =
         |> required
             "images"
             (list decodeImageMeta)
+        |> required
+            "hq"
+            bool
 
 
 decodeBlockLink : Decoder BlockLinkMeta

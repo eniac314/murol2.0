@@ -303,3 +303,13 @@ thumbSrc s =
 
         n :: _ ->
             String.Extra.insertAt "/thumbs" n s
+
+
+hdSrc : String -> String
+hdSrc s =
+    case List.reverse <| String.indexes "/" s of
+        [] ->
+            s
+
+        n :: _ ->
+            String.Extra.insertAt "/HQ" n s

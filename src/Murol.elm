@@ -372,6 +372,7 @@ update msg model =
                                                 (UUID.canonical gm.uuid)
                                                 (Gallery.init
                                                     gm.title
+                                                    gm.hq
                                                     gm.images
                                                     (GalleryMsg (UUID.canonical gm.uuid))
                                                 )

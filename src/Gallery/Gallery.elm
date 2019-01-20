@@ -47,6 +47,7 @@ type alias Model msg =
     { loaded : Set String
     , loadedThumbs : Set String
     , title : String
+    , hd : Bool
     , imagesStream : BiStream (List ImageMeta)
     , imagesSrcs : List ImageSrc
     , mbDrag : Maybe Drag
@@ -89,8 +90,8 @@ subscriptions model =
         ]
 
 
-init : String -> List ImageMeta -> (Msg -> msg) -> Model msg
-init title images externalMsg =
+init : String -> Bool -> List ImageMeta -> (Msg -> msg) -> Model msg
+init title hd images externalMsg =
     let
         images_ =
             case List.reverse images of
@@ -113,6 +114,7 @@ init title images externalMsg =
     , mbAnim = Nothing
     , clock = 0
     , title = title
+    , hd = hd
     , tickSubOn = False
     , displayMode = DisplayImage
     , externalMsg = externalMsg
@@ -445,6 +447,21 @@ captionRow config model =
                 [ paragraph
                     []
                     [ text <| Maybe.withDefault " " c.caption ]
+                , case ( c.src, model.hd ) of
+                    ( UrlSrc src, True ) ->
+                        Element.download
+                            ([ alignRight ] ++ buttonStyle True)
+                            { url = hdSrc src
+                            , label =
+                                el
+                                    [ Font.color (rgb 0 0 1)
+                                    , Font.underline
+                                    ]
+                                    (text "Télécharger version HD")
+                            }
+
+                    _ ->
+                        Element.none
                 , el
                     [ alignRight ]
                     (text

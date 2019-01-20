@@ -66,6 +66,7 @@ type alias GalleryMeta =
     { uuid : UUID
     , title : String
     , images : List ImageMeta
+    , hq : Bool
     }
 
 
