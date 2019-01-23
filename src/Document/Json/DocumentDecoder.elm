@@ -117,6 +117,15 @@ decodeCellContent =
                         "WeatherWidget" ->
                             succeed WeatherWidget
 
+                        "MurolInfo" ->
+                            succeed MurolInfo
+
+                        "Delib" ->
+                            succeed Delib
+
+                        "Bulletin" ->
+                            succeed Bulletin
+
                         somethingElse ->
                             fail <|
                                 "Unknown CellContent: "

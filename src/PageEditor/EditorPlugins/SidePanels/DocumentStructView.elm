@@ -275,5 +275,14 @@ cellContentToString lc =
         Gallery _ ->
             "Album photothèque"
 
+        MurolInfo ->
+            "Murol infos"
+
+        Delib ->
+            "Délibérations"
+
+        Bulletin ->
+            "Bulletins municipaux"
+
         EmptyCell ->
             "Cellule vide"

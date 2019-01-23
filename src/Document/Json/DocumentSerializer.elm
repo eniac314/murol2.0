@@ -123,6 +123,15 @@ encodeCellContent cellContent =
         DronePanorama ->
             string "DronePanorama"
 
+        MurolInfo ->
+            string "MurolInfo"
+
+        Delib ->
+            string "Delib"
+
+        Bulletin ->
+            string "Bulletin"
+
         EmptyCell ->
             string "EmptyCell"
 

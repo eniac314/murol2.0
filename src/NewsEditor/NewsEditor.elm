@@ -119,7 +119,6 @@ type Msg
     | ConfirmPic PickerResult
     | SaveNews
     | NewsSaved (Result Http.Error Bool)
-    | DeleteNews
     | TextBlockPluginMsg TextBlockPlugin.Msg
     | SetTimeAndInitSeed Time.Posix
     | NoOp
@@ -401,9 +400,6 @@ internalUpdate config msg model =
 
                 _ ->
                     ( model, Cmd.none )
-
-        DeleteNews ->
-            ( model, Cmd.none )
 
         TextBlockPluginMsg textBlockMsg ->
             let

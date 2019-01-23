@@ -59,6 +59,9 @@ type CellContent
     | DronePanorama
     | PictureLinks (List PictureLink)
     | Gallery GalleryMeta
+    | MurolInfo
+    | Delib
+    | Bulletin
     | EmptyCell
 
 
@@ -162,6 +165,27 @@ emptyNews =
     , pic = Nothing
     , uuid = UUID.nil
     , expiry = millisToPosix 0
+    }
+
+
+type alias MurolInfoMeta =
+    { issue : Int
+    , date : Posix
+    , topics : List String
+    }
+
+
+type alias DelibMeta =
+    { date : Posix
+    , topics : List String
+    }
+
+
+type alias BulletinMeta =
+    { issue : Int
+    , date : Posix
+    , cover : String
+    , index : Dict String Int
     }
 
 

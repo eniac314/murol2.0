@@ -21,6 +21,7 @@ import Internals.ToolHelpers exposing (..)
 import NewsEditor.NewsEditor as NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (..)
+import Publications.Publications as Publications
 import Task exposing (perform)
 import Time exposing (Posix, Zone, here, millisToPosix, utc)
 
@@ -46,6 +47,7 @@ type alias Model =
     , fileExplorer : FileExplorer.Model Msg
     , generalDirectory : GeneralDirectoryEditor.Model Msg
     , newsEditor : NewsEditor.Model Msg
+    , publications : Publications.Model Msg
     , authTool : Auth.Model Msg
     , loadingStatus : LoadingStatus
     , currentTool : Tool
@@ -60,6 +62,7 @@ subscriptions model =
     Sub.batch
         [ FileExplorer.subscriptions model.fileExplorer
         , PageEditor.subscriptions model.pageEditor
+        , Publications.subscriptions model.publications
         , onResize WinResize
 
         --, Time.every 120000 (always CheckSessionStatus)
@@ -86,12 +89,16 @@ init flags =
 
         ( newNewsEditor, newEditorCmds ) =
             NewsEditor.init NewsEditorMsg
+
+        publications =
+            Publications.init PublicationsMsg
     in
     ( { pageEditor = newPageEditor
       , pageTreeEditor = newPageTreeEditor
       , fileExplorer = newFileExplorer
       , generalDirectory = newGeneralDirectory
       , newsEditor = newNewsEditor
+      , publications = publications
       , authTool = Auth.init AuthMsg
       , loadingStatus = WaitingForLogin
       , currentTool = AuthTool
@@ -124,6 +131,7 @@ type Msg
     | PageTreeEditorMsg PageTreeEditor.Msg
     | GeneralDirectoryMsg GeneralDirectoryEditor.Msg
     | NewsEditorMsg NewsEditor.Msg
+    | PublicationsMsg Publications.Msg
     | SetCurrentTool Tool
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
@@ -138,6 +146,7 @@ type Tool
     | PageTreeTool
     | GeneralDirectoryTool
     | NewsEditorTool
+    | PublicationsTool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -197,6 +206,7 @@ update msg model =
                           , PageTreeEditor.load model.pageTreeEditor logInfo
                           , FileExplorer.load model.fileExplorer logInfo
                           , NewsEditor.load model.newsEditor logInfo
+                          , Publications.load model.publications logInfo
                           ]
                         )
                     else
@@ -281,6 +291,22 @@ update msg model =
                 | newsEditor = newNewsEditor
               }
             , newsEditorCmds
+            )
+
+        PublicationsMsg publicationsMsg ->
+            let
+                ( newPublications, newPubCmds ) =
+                    Publications.update
+                        { logInfo = Auth.getLogInfo model.authTool
+                        , zone = model.zone
+                        }
+                        publicationsMsg
+                        model.publications
+            in
+            ( { model
+                | publications = newPublications
+              }
+            , newPubCmds
             )
 
         SetCurrentTool t ->
@@ -403,6 +429,9 @@ view model =
                                 FileExplorerTool
                                 "Explorateur de fichiers"
                             , tabView model.currentTool
+                                PublicationsTool
+                                "Publications"
+                            , tabView model.currentTool
                                 AuthTool
                                 "Authentification"
                             ]
@@ -461,6 +490,15 @@ view model =
                                     , logInfo = Auth.getLogInfo model.authTool
                                     }
                                     model.newsEditor
+
+                            PublicationsTool ->
+                                Publications.view
+                                    { maxHeight =
+                                        model.winHeight - 35
+                                    , zone = model.zone
+                                    , logInfo = Auth.getLogInfo model.authTool
+                                    }
+                                    model.publications
                         ]
             )
         ]
