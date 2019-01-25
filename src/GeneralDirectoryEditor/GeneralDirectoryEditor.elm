@@ -894,7 +894,10 @@ internalUpdate config msg model =
                             TelBoth ( s, n )
 
                         TelBoth ( n1, n2 ) ->
-                            TelBoth ( s, n2 )
+                            if s == "" then
+                                TelPortable n2
+                            else
+                                TelBoth ( s, n2 )
 
                 newResp =
                     { baseResp | tel = newTel }
@@ -912,13 +915,22 @@ internalUpdate config msg model =
                 newTel =
                     case baseResp.tel of
                         TelFixe n ->
-                            TelBoth ( n, s )
+                            if n == "" then
+                                TelPortable s
+                            else
+                                TelBoth ( n, s )
 
                         TelPortable n ->
-                            TelPortable s
+                            if s == "" then
+                                TelFixe ""
+                            else
+                                TelPortable s
 
                         TelBoth ( n1, n2 ) ->
-                            TelBoth ( n1, s )
+                            if s == "" then
+                                TelFixe n1
+                            else
+                                TelBoth ( n1, s )
 
                 newResp =
                     { baseResp | tel = newTel }
@@ -1019,16 +1031,28 @@ internalUpdate config msg model =
                 newTel =
                     case fb.telNumber of
                         Just (TelFixe n) ->
-                            Just <| TelFixe s
+                            if s == "" then
+                                Nothing
+                            else
+                                Just <| TelFixe s
 
                         Just (TelPortable n) ->
-                            Just <| TelBoth ( s, n )
+                            if s == "" then
+                                Just (TelPortable n)
+                            else
+                                Just <| TelBoth ( s, n )
 
                         Just (TelBoth ( n1, n2 )) ->
-                            Just <| TelBoth ( s, n2 )
+                            if s == "" then
+                                Just (TelPortable n2)
+                            else
+                                Just <| TelBoth ( s, n2 )
 
                         Nothing ->
-                            Just <| TelFixe s
+                            if s == "" then
+                                Nothing
+                            else
+                                Just <| TelFixe s
 
                 newFb =
                     { fb | telNumber = newTel }
@@ -1045,16 +1069,28 @@ internalUpdate config msg model =
                 newTel =
                     case fb.telNumber of
                         Just (TelFixe n) ->
-                            Just <| TelBoth ( n, s )
+                            if s == "" then
+                                Just (TelFixe n)
+                            else
+                                Just <| TelBoth ( n, s )
 
                         Just (TelPortable n) ->
-                            Just <| TelPortable s
+                            if s == "" then
+                                Nothing
+                            else
+                                Just <| TelPortable s
 
                         Just (TelBoth ( n1, n2 )) ->
-                            Just <| TelBoth ( n1, s )
+                            if s == "" then
+                                Just (TelFixe n1)
+                            else
+                                Just <| TelBoth ( n1, s )
 
                         Nothing ->
-                            Just <| TelPortable s
+                            if s == "" then
+                                Nothing
+                            else
+                                Just <| TelPortable s
 
                 newFb =
                     { fb | telNumber = newTel }

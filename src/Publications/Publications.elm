@@ -16,6 +16,8 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy exposing (lazy)
+import File exposing (..)
+import File.Select as Select exposing (..)
 import FileExplorer.FileExplorer as FileExplorer
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
@@ -37,15 +39,23 @@ import Time exposing (..)
 import UUID exposing (..)
 
 
+port requestBulletinCover : E.Value -> Cmd msg
+
+
+port bulletinCover : (D.Value -> msg) -> Sub msg
+
+
 type alias Model msg =
     { displayMode : DisplayMode
     , murolInfos : Dict Int MurolInfoMeta
     , delibs : Dict Int DelibMeta
     , bulletins : Dict Int BulletinMeta
-    , lockedMurolInfos : Maybe Int
-    , lockedDelib : Maybe Int
-    , lockedBulletin : Maybe Int
+    , bulletinCover : Maybe String
+    , lockedMurolInfos : Dict Int MurolInfoMeta
+    , lockedDelibs : Dict Int DelibMeta
+    , lockedBulletins : Dict Int BulletinMeta
     , loadingStatus : ToolLoadingStatus
+    , debug : String
     , externalMsg : Msg -> msg
     }
 
@@ -55,6 +65,10 @@ type DisplayMode
     | MurolInfoEditor
     | DelibEditor
     | BulletinEditor
+
+
+
+--type UploadData =
 
 
 type alias Publications =
@@ -87,6 +101,10 @@ loadingView model =
 
 type Msg
     = LoadPublications (Result Http.Error Publications)
+    | FileRequested
+    | FileSelected File
+    | FileConverted String
+    | BulletinCover D.Value
     | SaveMurolInfo Int
     | MurolInfoSaved Int (Result Http.Error Bool)
     | DeleteMurolInfo Int
@@ -107,10 +125,12 @@ init externalMsg =
     , murolInfos = Dict.empty
     , delibs = Dict.empty
     , bulletins = Dict.empty
-    , lockedMurolInfos = Nothing
-    , lockedDelib = Nothing
-    , lockedBulletin = Nothing
+    , bulletinCover = Nothing
+    , lockedMurolInfos = Dict.empty
+    , lockedDelibs = Dict.empty
+    , lockedBulletins = Dict.empty
     , loadingStatus = ToolLoadingWaiting
+    , debug = ""
     , externalMsg = externalMsg
     }
 
@@ -118,7 +138,14 @@ init externalMsg =
 subscriptions model =
     Sub.map model.externalMsg <|
         Sub.batch
-            []
+            [ bulletinCover BulletinCover ]
+
+
+
+-------------------------------------------------------------------------------
+------------
+-- Update --
+------------
 
 
 update :
@@ -150,48 +177,295 @@ update config msg model =
                     , Cmd.none
                     )
 
+        FileRequested ->
+            ( model
+            , Cmd.map model.externalMsg selectFile
+            )
+
+        FileSelected file ->
+            ( model
+            , Task.perform
+                FileConverted
+                (File.toUrl file)
+                |> Cmd.map model.externalMsg
+            )
+
+        FileConverted fileStr ->
+            ( model
+            , fileStr
+                |> E.string
+                |> requestBulletinCover
+                |> Cmd.map model.externalMsg
+            )
+
+        BulletinCover json ->
+            case D.decodeValue decodeBulletinCover json of
+                Ok cover ->
+                    ( { model | bulletinCover = Just cover }
+                    , Cmd.none
+                    )
+
+                Err e ->
+                    ( model, Cmd.none )
+
+        --( { model | debug = Debug.toString e }, Cmd.none )
         SaveMurolInfo issue ->
-            ( model, Cmd.none )
+            case Dict.get issue model.murolInfos of
+                Just mu ->
+                    ( { model
+                        | lockedMurolInfos =
+                            Dict.insert issue mu model.lockedMurolInfos
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (saveMurolInfo mu)
+                        |> Cmd.map model.externalMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         MurolInfoSaved issue res ->
-            ( model, Cmd.none )
+            case res of
+                Ok True ->
+                    ( { model
+                        | lockedMurolInfos =
+                            Dict.remove issue model.lockedMurolInfos
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    )
 
         DeleteMurolInfo issue ->
-            ( model, Cmd.none )
+            case Dict.get issue model.murolInfos of
+                Just mu ->
+                    ( { model
+                        | lockedMurolInfos =
+                            Dict.insert issue mu model.lockedMurolInfos
+                        , murolInfos =
+                            Dict.remove issue model.murolInfos
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (deleteMurolInfo issue)
+                        |> Cmd.map model.externalMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         MurolInfoDeleted issue res ->
-            ( model, Cmd.none )
+            case ( res, Dict.get issue model.lockedMurolInfos ) of
+                ( Ok True, Just mu ) ->
+                    ( { model
+                        | lockedMurolInfos =
+                            Dict.remove issue model.lockedMurolInfos
+                      }
+                    , Cmd.none
+                    )
+
+                ( _, Just mu ) ->
+                    ( { model
+                        | lockedMurolInfos =
+                            Dict.remove issue model.lockedMurolInfos
+                        , murolInfos =
+                            Dict.insert issue mu model.murolInfos
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         SaveDelib date ->
-            ( model, Cmd.none )
+            case Dict.get date model.delibs of
+                Just delib ->
+                    ( { model
+                        | lockedDelibs =
+                            Dict.insert date delib model.lockedDelibs
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (saveDelib delib)
+                        |> Cmd.map model.externalMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         DelibSaved date res ->
-            ( model, Cmd.none )
+            case res of
+                Ok True ->
+                    ( { model
+                        | lockedDelibs = Dict.remove date model.lockedDelibs
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         DeleteDelib date ->
-            ( model, Cmd.none )
+            case Dict.get date model.delibs of
+                Just delib ->
+                    ( { model
+                        | lockedDelibs =
+                            Dict.insert date delib model.lockedDelibs
+                        , delibs =
+                            Dict.remove date model.delibs
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (deleteDelib date)
+                        |> Cmd.map model.externalMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         DelibDeleted date res ->
-            ( model, Cmd.none )
+            case ( res, Dict.get date model.lockedDelibs ) of
+                ( Ok True, Just delib ) ->
+                    ( { model
+                        | lockedDelibs =
+                            Dict.remove date model.lockedDelibs
+                      }
+                    , Cmd.none
+                    )
+
+                ( _, Just delib ) ->
+                    ( { model
+                        | lockedDelibs =
+                            Dict.remove date model.lockedDelibs
+                        , delibs =
+                            Dict.insert date delib model.delibs
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         SaveBulletin issue ->
-            ( model, Cmd.none )
+            case Dict.get issue model.bulletins of
+                Just bulletin ->
+                    ( { model
+                        | lockedBulletins =
+                            Dict.insert issue bulletin model.lockedBulletins
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (saveBulletin bulletin)
+                        |> Cmd.map model.externalMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         BulletinSaved issue res ->
-            ( model, Cmd.none )
+            case res of
+                Ok True ->
+                    ( { model
+                        | lockedBulletins =
+                            Dict.remove issue model.lockedBulletins
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         DeleteBulletin issue ->
-            ( model, Cmd.none )
+            case Dict.get issue model.bulletins of
+                Just bulletin ->
+                    ( { model
+                        | lockedBulletins =
+                            Dict.insert issue bulletin model.lockedBulletins
+                        , bulletins =
+                            Dict.remove issue model.bulletins
+                      }
+                    , cmdIfLogged
+                        config.logInfo
+                        (deleteBulletin issue)
+                        |> Cmd.map model.externalMsg
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         BulletinDeleted issue res ->
-            ( model, Cmd.none )
+            case ( res, Dict.get issue model.lockedBulletins ) of
+                ( Ok True, Just bulletin ) ->
+                    ( { model
+                        | lockedBulletins =
+                            Dict.remove issue model.lockedBulletins
+                      }
+                    , Cmd.none
+                    )
+
+                ( _, Just bulletin ) ->
+                    ( { model
+                        | lockedBulletins =
+                            Dict.remove issue model.lockedBulletins
+                        , bulletins =
+                            Dict.insert issue bulletin model.bulletins
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
 
 
+
+-------------------------------------------------------------------------------
+--------------------
+-- View functions --
+--------------------
+
+
 view config model =
-    Element.none
+    Element.map model.externalMsg <|
+        column
+            [ spacing 15
+            , padding 15
+            ]
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just FileRequested
+                , label = text "New File"
+                }
+            , text <| model.debug
+            , case model.bulletinCover of
+                Just cover ->
+                    image
+                        []
+                        { src = cover
+                        , description = ""
+                        }
+
+                _ ->
+                    Element.none
+            ]
+
+
+
+-------------------------------------------------------------------------------
+-------------------
+-- File handling --
+-------------------
+
+
+selectFile : Cmd Msg
+selectFile =
+    Select.file [ "application/pdf" ] FileSelected
 
 
 
@@ -241,6 +515,25 @@ saveMurolInfo murolInfo sessionId =
         }
 
 
+deleteMurolInfo : Int -> String -> Cmd Msg
+deleteMurolInfo issue sessionId =
+    let
+        body =
+            E.object
+                [ ( "issue", E.int issue )
+                , ( "sessionId"
+                  , E.string sessionId
+                  )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "deleteMurolInfo.php"
+        , body = body
+        , expect = Http.expectJson (MurolInfoDeleted issue) decodeSuccess
+        }
+
+
 saveDelib : DelibMeta -> String -> Cmd Msg
 saveDelib delib sessionId =
     let
@@ -263,6 +556,25 @@ saveDelib delib sessionId =
         }
 
 
+deleteDelib : Int -> String -> Cmd Msg
+deleteDelib date sessionId =
+    let
+        body =
+            E.object
+                [ ( "date", E.int date )
+                , ( "sessionId"
+                  , E.string sessionId
+                  )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "deleteDelib.php"
+        , body = body
+        , expect = Http.expectJson (DelibDeleted date) decodeSuccess
+        }
+
+
 saveBulletin : BulletinMeta -> String -> Cmd Msg
 saveBulletin bulletin sessionId =
     let
@@ -282,6 +594,25 @@ saveBulletin bulletin sessionId =
         { url = "saveBulletin.php"
         , body = body
         , expect = Http.expectJson (BulletinSaved bulletin.issue) decodeSuccess
+        }
+
+
+deleteBulletin : Int -> String -> Cmd Msg
+deleteBulletin issue sessionId =
+    let
+        body =
+            E.object
+                [ ( "issue", E.int issue )
+                , ( "sessionId"
+                  , E.string sessionId
+                  )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "deleteBulletin.php"
+        , body = body
+        , expect = Http.expectJson (BulletinDeleted issue) decodeSuccess
         }
 
 
@@ -356,6 +687,14 @@ encodeBulletin { issue, date, cover, index } =
         , ( "date", E.int (posixToMillis date) )
         , ( "cover", E.string cover )
         , ( "index", E.dict identity E.int index )
+        ]
+
+
+decodeBulletinCover : D.Decoder String
+decodeBulletinCover =
+    D.oneOf
+        [ D.field "content" D.string
+        , D.field "error" D.string
         ]
 
 

@@ -281,7 +281,7 @@ refView maxWidth { refOt, label, rank } =
 
 
 contactView : Fiche -> Element msg
-contactView { adresse, telNumber, email, site, responsables } =
+contactView { adresse, telNumber, fax, email, site, responsables } =
     column
         (subBlockStyle ++ [ spacing 10 ])
         [ paragraph
@@ -292,6 +292,16 @@ contactView { adresse, telNumber, email, site, responsables } =
         , Maybe.map
             telPreview
             telNumber
+            |> Maybe.withDefault Element.none
+        , Maybe.map
+            (\f ->
+                row
+                    [ spacing 5 ]
+                    [ el [ Font.bold ] (text "Fax:")
+                    , text f
+                    ]
+            )
+            fax
             |> Maybe.withDefault Element.none
         , case email of
             [] ->
