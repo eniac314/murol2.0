@@ -185,7 +185,6 @@ update config msg model =
                         model.base64Pics
               }
             , processCmd model filename data
-              --"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             , Nothing
             )
 
@@ -1210,21 +1209,6 @@ decodeGalleryMeta =
         (Decode.field "title" Decode.string)
         (Decode.field "images" (Decode.list DocumentDecoder.decodeImageMeta))
         (Decode.field "hq" Decode.bool)
-
-
-type UploadStatus
-    = UploadSuccessful
-    | UploadFailure String
-
-
-decodeUploadStatus : Decode.Decoder UploadStatus
-decodeUploadStatus =
-    Decode.oneOf
-        [ Decode.field "serverError" Decode.string
-            |> Decode.map UploadFailure
-        , Decode.field "message" Decode.string
-            |> Decode.map (always UploadSuccessful)
-        ]
 
 
 

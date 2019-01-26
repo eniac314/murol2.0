@@ -50,7 +50,17 @@ type alias Model msg =
     , murolInfos : Dict Int MurolInfoMeta
     , delibs : Dict Int DelibMeta
     , bulletins : Dict Int BulletinMeta
+    , fileToUpload : Maybe File
+    , uploadProgress : Maybe ( Int, Maybe UploadStatus )
+
+    --
+    , issueInput : Maybe String
+    , dateInput : Maybe Posix
+    , topics : Dict Int (Maybe String)
+    , bulletinIndex : Dict Int ( Maybe String, Maybe Int )
     , bulletinCover : Maybe String
+
+    --
     , lockedMurolInfos : Dict Int MurolInfoMeta
     , lockedDelibs : Dict Int DelibMeta
     , lockedBulletins : Dict Int BulletinMeta
@@ -61,14 +71,15 @@ type alias Model msg =
 
 
 type DisplayMode
-    = Initial
-    | MurolInfoEditor
-    | DelibEditor
-    | BulletinEditor
+    = Select PubType
+    | Edit PubType
+    | Upload PubType
 
 
-
---type UploadData =
+type PubType
+    = MurolInfo
+    | Delib
+    | Bulletin
 
 
 type alias Publications =
@@ -100,20 +111,34 @@ loadingView model =
 
 
 type Msg
-    = LoadPublications (Result Http.Error Publications)
+    = SetPubType PubType
+    | LoadPublications (Result Http.Error Publications)
+      --
+    | SetIssue String
+    | SetDate String
+    | NewTopic
+    | SetTopic Int String
+    | RemoveTopic Int
+    | NewIndexEntry
+    | SetIndexEntryTopic Int String
+    | SetIndexEntryPageNbr Int Int
+    | RemoveIndexEntry Int
+      --
     | FileRequested
     | FileSelected File
     | FileConverted String
     | BulletinCover D.Value
-    | SaveMurolInfo Int
+    | GotProgress Http.Progress
+    | UploadDone (Cmd Msg) (Result Http.Error UploadStatus)
+    | SaveMurolInfo
     | MurolInfoSaved Int (Result Http.Error Bool)
     | DeleteMurolInfo Int
     | MurolInfoDeleted Int (Result Http.Error Bool)
-    | SaveDelib Int
+    | SaveDelib
     | DelibSaved Int (Result Http.Error Bool)
     | DeleteDelib Int
     | DelibDeleted Int (Result Http.Error Bool)
-    | SaveBulletin Int
+    | SaveBulletin
     | BulletinSaved Int (Result Http.Error Bool)
     | DeleteBulletin Int
     | BulletinDeleted Int (Result Http.Error Bool)
@@ -121,11 +146,17 @@ type Msg
 
 
 init externalMsg =
-    { displayMode = Initial
+    { displayMode = Edit MurolInfo
     , murolInfos = Dict.empty
     , delibs = Dict.empty
     , bulletins = Dict.empty
+    , fileToUpload = Nothing
+    , uploadProgress = Nothing
+    , issueInput = Nothing
+    , dateInput = Nothing
+    , topics = Dict.empty
     , bulletinCover = Nothing
+    , bulletinIndex = Dict.empty
     , lockedMurolInfos = Dict.empty
     , lockedDelibs = Dict.empty
     , lockedBulletins = Dict.empty
@@ -138,7 +169,9 @@ init externalMsg =
 subscriptions model =
     Sub.map model.externalMsg <|
         Sub.batch
-            [ bulletinCover BulletinCover ]
+            [ bulletinCover BulletinCover
+            , Http.track "publicationUpload" GotProgress
+            ]
 
 
 
@@ -158,6 +191,23 @@ update :
     -> ( Model msg, Cmd msg )
 update config msg model =
     case msg of
+        SetPubType pt ->
+            case model.displayMode of
+                Select _ ->
+                    ( { model | displayMode = Select pt }
+                    , Cmd.none
+                    )
+
+                Edit _ ->
+                    ( { model | displayMode = Edit pt }
+                    , Cmd.none
+                    )
+
+                Upload _ ->
+                    ( { model | displayMode = Upload pt }
+                    , Cmd.none
+                    )
+
         LoadPublications res ->
             case res of
                 Ok { murolInfos, delibs, bulletins } ->
@@ -177,17 +227,126 @@ update config msg model =
                     , Cmd.none
                     )
 
+        SetIssue issue ->
+            let
+                newIssue =
+                    if issue == "" then
+                        Nothing
+                    else
+                        Just issue
+            in
+            ( { model | issueInput = newIssue }
+            , Cmd.none
+            )
+
+        SetDate date ->
+            case parseDate config.zone date of
+                Just posix ->
+                    ( { model | dateInput = Just posix }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        NewTopic ->
+            let
+                key =
+                    nextKey model.topics
+            in
+            ( { model
+                | topics = Dict.insert key Nothing model.topics
+              }
+            , Cmd.none
+            )
+
+        SetTopic key topic ->
+            let
+                newTopic =
+                    if topic == "" then
+                        Nothing
+                    else
+                        Just topic
+            in
+            ( { model
+                | topics =
+                    Dict.insert key newTopic model.topics
+              }
+            , Cmd.none
+            )
+
+        RemoveTopic key ->
+            ( { model
+                | topics = Dict.remove key model.topics
+              }
+            , Cmd.none
+            )
+
+        NewIndexEntry ->
+            let
+                key =
+                    nextKey model.bulletinIndex
+            in
+            ( { model
+                | bulletinIndex =
+                    Dict.insert key ( Nothing, Nothing ) model.bulletinIndex
+              }
+            , Cmd.none
+            )
+
+        SetIndexEntryTopic key topic ->
+            case Dict.get key model.bulletinIndex of
+                Just ( _, pNbr ) ->
+                    ( { model
+                        | bulletinIndex =
+                            Dict.insert key ( Just topic, pNbr ) model.bulletinIndex
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        SetIndexEntryPageNbr key pageNbr ->
+            case Dict.get key model.bulletinIndex of
+                Just ( topic, _ ) ->
+                    ( { model
+                        | bulletinIndex =
+                            Dict.insert key ( topic, Just pageNbr ) model.bulletinIndex
+                      }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        RemoveIndexEntry key ->
+            ( { model
+                | bulletinIndex =
+                    Dict.remove key model.bulletinIndex
+              }
+            , Cmd.none
+            )
+
         FileRequested ->
             ( model
             , Cmd.map model.externalMsg selectFile
             )
 
         FileSelected file ->
-            ( model
-            , Task.perform
-                FileConverted
-                (File.toUrl file)
-                |> Cmd.map model.externalMsg
+            ( { model
+                | fileToUpload = Just file
+                , displayMode = Edit (extractPubType model)
+              }
+            , case model.displayMode of
+                Edit Bulletin ->
+                    Task.perform
+                        FileConverted
+                        (File.toUrl file)
+                        |> Cmd.map model.externalMsg
+
+                _ ->
+                    Cmd.none
             )
 
         FileConverted fileStr ->
@@ -208,17 +367,72 @@ update config msg model =
                 Err e ->
                     ( model, Cmd.none )
 
-        --( { model | debug = Debug.toString e }, Cmd.none )
-        SaveMurolInfo issue ->
-            case Dict.get issue model.murolInfos of
-                Just mu ->
+        GotProgress progress ->
+            case progress of
+                Sending { sent, size } ->
                     ( { model
-                        | lockedMurolInfos =
-                            Dict.insert issue mu model.lockedMurolInfos
+                        | uploadProgress =
+                            Just
+                                ( floor <| 100 * toFloat sent / toFloat size
+                                , Nothing
+                                )
                       }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        UploadDone saveMetaCmd res ->
+            case res of
+                Ok UploadSuccessful ->
+                    ( { model
+                        | uploadProgress =
+                            Just ( 100, Just UploadSuccessful )
+                      }
+                    , Cmd.map model.externalMsg saveMetaCmd
+                    )
+
+                Ok (UploadFailure e) ->
+                    ( { model
+                        | uploadProgress =
+                            Just ( 0, Just (UploadFailure e) )
+                      }
+                    , Cmd.none
+                    )
+
+                Err e ->
+                    ( { model
+                        | uploadProgress =
+                            Just ( 0, Just (UploadFailure (httpErrorToString e)) )
+                      }
+                    , Cmd.none
+                    )
+
+        SaveMurolInfo ->
+            case
+                ( ( Maybe.andThen String.toInt model.issueInput
+                  , model.dateInput
+                  )
+                , ( Dict.values model.topics
+                        |> List.filterMap identity
+                  , model.fileToUpload
+                  )
+                )
+            of
+                ( ( Just issue, Just date ), ( t :: ts, Just file ) ) ->
+                    let
+                        saveMetaCmd =
+                            saveMurolInfoMeta
+                                { issue = issue
+                                , date = date
+                                , topics = t :: ts
+                                }
+                    in
+                    ( model
                     , cmdIfLogged
                         config.logInfo
-                        (saveMurolInfo mu)
+                        (uploadPub file MurolInfo saveMetaCmd)
                         |> Cmd.map model.externalMsg
                     )
 
@@ -281,16 +495,26 @@ update config msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SaveDelib date ->
-            case Dict.get date model.delibs of
-                Just delib ->
-                    ( { model
-                        | lockedDelibs =
-                            Dict.insert date delib model.lockedDelibs
-                      }
+        SaveDelib ->
+            case
+                ( model.dateInput
+                , Dict.values model.topics
+                    |> List.filterMap identity
+                , model.fileToUpload
+                )
+            of
+                ( Just date, t :: ts, Just file ) ->
+                    let
+                        saveMetaCmd =
+                            saveDelibMeta
+                                { date = date
+                                , topics = t :: ts
+                                }
+                    in
+                    ( model
                     , cmdIfLogged
                         config.logInfo
-                        (saveDelib delib)
+                        (uploadPub file Delib saveMetaCmd)
                         |> Cmd.map model.externalMsg
                     )
 
@@ -350,16 +574,41 @@ update config msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SaveBulletin issue ->
-            case Dict.get issue model.bulletins of
-                Just bulletin ->
-                    ( { model
-                        | lockedBulletins =
-                            Dict.insert issue bulletin model.lockedBulletins
-                      }
+        SaveBulletin ->
+            case
+                ( ( Maybe.andThen String.toInt model.issueInput
+                  , model.dateInput
+                  , model.bulletinCover
+                  )
+                , ( Dict.values model.bulletinIndex
+                        |> List.foldr
+                            (\v acc ->
+                                case v of
+                                    ( Just topic, Just pageNbr ) ->
+                                        ( topic, pageNbr ) :: acc
+
+                                    _ ->
+                                        acc
+                            )
+                            []
+                  , model.fileToUpload
+                  )
+                )
+            of
+                ( ( Just issue, Just date, Just cover ), ( x :: xs, Just file ) ) ->
+                    let
+                        saveMetaCmd =
+                            saveBulletinMeta
+                                { issue = issue
+                                , date = date
+                                , cover = cover
+                                , index = Dict.fromList (x :: xs)
+                                }
+                    in
+                    ( model
                     , cmdIfLogged
                         config.logInfo
-                        (saveBulletin bulletin)
+                        (uploadPub file Bulletin saveMetaCmd)
                         |> Cmd.map model.externalMsg
                     )
 
@@ -434,26 +683,136 @@ update config msg model =
 view config model =
     Element.map model.externalMsg <|
         column
-            [ spacing 15
-            , padding 15
+            [ padding 15
+            , spacing 15
+            , width fill
+            , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+            , clip
+            , width fill
+            , height (maximum config.maxHeight fill)
+            , scrollbarY
             ]
-            [ Input.button
-                (buttonStyle True)
-                { onPress = Just FileRequested
-                , label = text "New File"
-                }
-            , text <| model.debug
-            , case model.bulletinCover of
-                Just cover ->
-                    image
-                        []
-                        { src = cover
-                        , description = ""
-                        }
+            [ case model.displayMode of
+                Select _ ->
+                    initialView config model
 
-                _ ->
-                    Element.none
+                Edit MurolInfo ->
+                    newMurolInfoView config model
+
+                Edit Delib ->
+                    newDelibView config model
+
+                Edit Bulletin ->
+                    newBulletinView config model
+
+                Upload _ ->
+                    uploadView config model
             ]
+
+
+initialView config model =
+    column
+        (containerStyle ++ [ spacing 15 ])
+        [ column
+            (itemStyle
+                ++ [ spacing 15
+                   , width (px 940)
+                   ]
+            )
+            [ el
+                [ Font.bold
+                , Font.size 20
+                ]
+                (text "Type de publication")
+            , row
+                [ width fill ]
+                [ Input.radioRow
+                    [ spacing 20 ]
+                    { onChange = SetPubType
+                    , options =
+                        [ Input.option
+                            MurolInfo
+                            (text "Murol info")
+                        , Input.option
+                            Delib
+                            (text "Délibération")
+                        , Input.option
+                            Bulletin
+                            (text "Bulletin municipal")
+                        ]
+                    , selected =
+                        Just <| extractPubType model
+                    , label =
+                        Input.labelHidden ""
+                    }
+                , Input.button
+                    (buttonStyle True ++ [ alignRight ])
+                    { onPress = Just FileRequested
+                    , label = text "Mettre en ligne"
+                    }
+                ]
+            ]
+        ]
+
+
+newMurolInfoView config model =
+    column
+        (itemStyle
+            ++ [ spacing 15
+               , width (px 940)
+               ]
+        )
+        [ el
+            [ Font.bold
+            , Font.size 20
+            ]
+            (text "Nouveau Murol info")
+        ]
+
+
+newDelibView config model =
+    column
+        (itemStyle
+            ++ [ spacing 15
+               , width (px 940)
+               ]
+        )
+        [ el
+            [ Font.bold
+            , Font.size 20
+            ]
+            (text "Nouvelle délibération")
+        ]
+
+
+newBulletinView config model =
+    column
+        (itemStyle
+            ++ [ spacing 15
+               , width (px 940)
+               ]
+        )
+        [ el
+            [ Font.bold
+            , Font.size 20
+            ]
+            (text "Nouveau bulletin municipal")
+        ]
+
+
+uploadView config model =
+    column
+        (itemStyle
+            ++ [ spacing 15
+               , width (px 940)
+               ]
+        )
+        [ el
+            [ Font.bold
+            , Font.size 20
+            ]
+            (text "Mise en ligne...")
+        ]
 
 
 
@@ -493,8 +852,43 @@ getAllPublications sessionId =
         }
 
 
-saveMurolInfo : MurolInfoMeta -> String -> Cmd Msg
-saveMurolInfo murolInfo sessionId =
+uploadPub : File -> PubType -> (String -> Cmd Msg) -> String -> Cmd Msg
+uploadPub file pubType saveMetaCmd sessionId =
+    let
+        pubTypeStr =
+            case pubType of
+                MurolInfo ->
+                    "murolInfo"
+
+                Delib ->
+                    "delib"
+
+                Bulletin ->
+                    "bulletin"
+
+        body =
+            Http.multipartBody
+                [ Http.stringPart "sessionId" sessionId
+                , Http.stringPart "pubType" pubTypeStr
+                , Http.filePart "file" file
+                ]
+    in
+    Http.request
+        { method = "POST"
+        , headers = []
+        , url = "uploadPub.php"
+        , body = body
+        , expect =
+            Http.expectJson
+                (UploadDone (saveMetaCmd sessionId))
+                decodeUploadStatus
+        , timeout = Nothing
+        , tracker = Just "publicationUpload"
+        }
+
+
+saveMurolInfoMeta : MurolInfoMeta -> String -> Cmd Msg
+saveMurolInfoMeta murolInfo sessionId =
     let
         body =
             E.object
@@ -534,8 +928,8 @@ deleteMurolInfo issue sessionId =
         }
 
 
-saveDelib : DelibMeta -> String -> Cmd Msg
-saveDelib delib sessionId =
+saveDelibMeta : DelibMeta -> String -> Cmd Msg
+saveDelibMeta delib sessionId =
     let
         body =
             E.object
@@ -575,8 +969,8 @@ deleteDelib date sessionId =
         }
 
 
-saveBulletin : BulletinMeta -> String -> Cmd Msg
-saveBulletin bulletin sessionId =
+saveBulletinMeta : BulletinMeta -> String -> Cmd Msg
+saveBulletinMeta bulletin sessionId =
     let
         body =
             E.object
@@ -701,3 +1095,63 @@ decodeBulletinCover =
 decodeSuccess : D.Decoder Bool
 decodeSuccess =
     D.at [ "message" ] (D.succeed True)
+
+
+
+-------------------------------------------------------------------------------
+----------
+-- Misc --
+----------
+
+
+extractPubType model =
+    case model.displayMode of
+        Select pt ->
+            pt
+
+        Edit pt ->
+            pt
+
+        Upload pt ->
+            pt
+
+
+nextKey : Dict Int a -> Int
+nextKey dict =
+    Dict.keys dict
+        |> List.foldr max 0
+        |> (\n -> n + 1)
+
+
+containerStyle : List (Attribute msg)
+containerStyle =
+    [ padding 15
+    , Background.color grey6
+    , Border.rounded 5
+    ]
+
+
+itemStyle : List (Attribute msg)
+itemStyle =
+    [ padding 15
+    , Background.color grey7
+    , Border.rounded 5
+    ]
+
+
+parseDate : Zone -> String -> Maybe Posix
+parseDate zone s =
+    case
+        String.split "/" s
+            |> List.filterMap String.toInt
+    of
+        day :: month :: year :: [] ->
+            let
+                choosenTime =
+                    newDateRecord year month day 0 0 0 0 zone
+                        |> civilToPosix
+            in
+            Just choosenTime
+
+        _ ->
+            Nothing

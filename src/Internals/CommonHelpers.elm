@@ -25,6 +25,21 @@ type Status
     | Failure
 
 
+type UploadStatus
+    = UploadSuccessful
+    | UploadFailure String
+
+
+decodeUploadStatus : D.Decoder UploadStatus
+decodeUploadStatus =
+    D.oneOf
+        [ D.field "serverError" D.string
+            |> D.map UploadFailure
+        , D.field "message" D.string
+            |> D.map (always UploadSuccessful)
+        ]
+
+
 type alias Log =
     { message : String
     , mbDetails : Maybe String
