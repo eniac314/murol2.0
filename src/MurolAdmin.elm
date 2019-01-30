@@ -299,6 +299,7 @@ update msg model =
                     Publications.update
                         { logInfo = Auth.getLogInfo model.authTool
                         , zone = model.zone
+                        , reloadFilesMsg = ReloadFiles
                         }
                         publicationsMsg
                         model.publications
