@@ -168,6 +168,13 @@ emptyNews =
     }
 
 
+type alias Publications =
+    { murolInfos : Dict Int MurolInfoMeta
+    , delibs : Dict Int DelibMeta
+    , bulletins : Dict Int BulletinMeta
+    }
+
+
 type alias MurolInfoMeta =
     { issue : Int
     , date : Posix

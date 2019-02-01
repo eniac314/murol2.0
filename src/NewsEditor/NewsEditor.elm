@@ -987,6 +987,7 @@ renderConfig externalMsg =
     , openedNews = Set.empty
     , openNewsMsg = always (externalMsg NoOp)
     , galleries = Dict.empty
+    , publications = Nothing
     }
 
 

@@ -504,24 +504,30 @@ telPreview tel =
         [ spacing 10 ]
         (case tel of
             TelFixe s ->
-                [ paragraph
+                if s == "" then
                     []
-                    [ el
-                        [ Font.bold ]
-                        (text "Tel. fixe: ")
-                    , el [] (text s)
+                else
+                    [ paragraph
+                        []
+                        [ el
+                            [ Font.bold ]
+                            (text "Tel. fixe: ")
+                        , el [] (text s)
+                        ]
                     ]
-                ]
 
             TelPortable s ->
-                [ paragraph
+                if s == "" then
                     []
-                    [ el
-                        [ Font.bold ]
-                        (text "Tel. portable: ")
-                    , el [] (text s)
+                else
+                    [ paragraph
+                        []
+                        [ el
+                            [ Font.bold ]
+                            (text "Tel. portable: ")
+                        , el [] (text s)
+                        ]
                     ]
-                ]
 
             TelBoth ( s1, s2 ) ->
                 [ paragraph

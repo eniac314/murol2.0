@@ -31,6 +31,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
+import Publications.Publications exposing (getAllPublications)
 import Random exposing (..)
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
@@ -100,6 +101,7 @@ type Msg
     | LoadPages (Result Http.Error Decode.Value)
     | LoadFiches (Result Http.Error (List Fiche))
     | LoadNews (Result Http.Error (List Document.News))
+    | LoadPublications (Result Http.Error Document.Publications)
     | SearchPromptInput String
     | Search
     | ResetSearchEngine
@@ -193,6 +195,7 @@ init flags url key =
             , openNewsMsg = ToogleNews
             , previewMode = PreviewScreen
             , galleries = Dict.empty
+            , publications = Nothing
             }
 
         url_ =
@@ -234,6 +237,7 @@ init flags url key =
       }
     , Cmd.batch
         [ getPages
+        , getAllPublications LoadPublications
         , if url /= url_ then
             Nav.pushUrl key (Url.toString url_)
           else
@@ -449,6 +453,24 @@ update msg model =
                     ( { model | config = newConfig }, Cmd.none )
 
                 _ ->
+                    ( model, Cmd.none )
+
+        LoadPublications res ->
+            case res of
+                Ok publications ->
+                    let
+                        config =
+                            model.config
+
+                        newConfig =
+                            { config
+                                | publications =
+                                    Just publications
+                            }
+                    in
+                    ( { model | config = newConfig }, Cmd.none )
+
+                Err e ->
                     ( model, Cmd.none )
 
         SearchPromptInput s ->

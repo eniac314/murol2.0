@@ -326,6 +326,27 @@ chevronRight size =
         [ Svg.polyline [ points "9 18 15 12 9 6" ] [] ]
 
 
+chevronUp : Int -> Html msg
+chevronUp size =
+    customSvgFeatherIcon
+        size
+        "chevron-up"
+        [ Svg.polyline
+            [ points "18 15 12 9 6 15" ]
+            []
+        ]
+
+
+chevronDown : Int -> Html msg
+chevronDown size =
+    customSvgFeatherIcon size
+        "chevron-down"
+        [ Svg.polyline
+            [ points "6 9 12 15 18 9" ]
+            []
+        ]
+
+
 chevronsUp : Int -> Html msg
 chevronsUp size =
     customSvgFeatherIcon size

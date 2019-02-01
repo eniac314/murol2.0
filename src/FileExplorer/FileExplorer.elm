@@ -1173,7 +1173,16 @@ sidePanelView config model =
                 ]
 
         regFilePreviewPanel meta =
-            Element.none
+            Element.download
+                []
+                { url = String.join "/" meta.path
+                , label =
+                    el
+                        [ Font.color (rgb 0 0 1)
+                        , Font.underline
+                        ]
+                        (text "Télécharger")
+                }
 
         noSelectionControlsPanel =
             column

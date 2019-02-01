@@ -26,6 +26,7 @@ import Json.Decode as Decode
 import List.Extra exposing (splitAt)
 import Murmur3 exposing (hashString)
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
+import Publications.PublicationsView as PublicationsView
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Time exposing (Posix, Zone, millisToPosix)
@@ -296,7 +297,7 @@ renderFiches config id attrs fichesId =
                 f
 
         cols =
-            chunks (ceiling <| (toFloat <| List.length fiches) / nbrCols) (List.map ficheView_ fiches)
+            chunks (ceiling <| (toFloat <| List.length fiches) / nbrCols) (List.map ficheView_ (List.sortBy .nomEntite fiches))
                 |> List.map
                     (column
                         [ alignTop
@@ -1241,7 +1242,19 @@ renderGallery config id attrs galleryMeta =
 
 
 renderMurolInfo config id attrs =
-    []
+    case config.publications of
+        Nothing ->
+            [ el
+                [ width fill
+                , Background.color grey6
+                , paddingXY 0 7
+                , Font.center
+                ]
+                (text "Murol infos")
+            ]
+
+        Just { murolInfos } ->
+            [ PublicationsView.murolInfosView config ]
 
 
 renderDelib config id attrs =

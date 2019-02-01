@@ -193,6 +193,36 @@ view config =
                             [ text "Panoramique aérien"
                             ]
                     }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "MurolInfos"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Murol infos"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "Delibs"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Délibérations"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "Bulletins"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Bulletins municipaux"
+                            ]
+                    }
                 ]
             ]
         , Input.button (buttonStyle True)
@@ -224,6 +254,15 @@ cellContStrToCellContent s =
 
         "DronePanorama" ->
             Just DronePanorama
+
+        "MurolInfos" ->
+            Just MurolInfo
+
+        "Delibs" ->
+            Just Delib
+
+        "Bulletins" ->
+            Just Bulletin
 
         _ ->
             Nothing

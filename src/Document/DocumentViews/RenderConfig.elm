@@ -31,4 +31,5 @@ type alias Config msg =
     , openedNews : Set String
     , openNewsMsg : String -> msg
     , galleries : Dict String (Gallery.Model msg)
+    , publications : Maybe Publications
     }

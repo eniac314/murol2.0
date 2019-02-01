@@ -24,10 +24,11 @@ import Html.Attributes as HtmlAttr
 import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
-import Internals.Icons as Icons exposing (checkSquare, square)
+import Internals.Icons as Icons exposing (checkSquare, chevronDown, chevronUp, square)
 import Internals.ToolHelpers exposing (..)
 import Json.Decode as D
 import Json.Encode as E
+import List.Extra exposing (swapAt)
 import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (Model)
@@ -47,6 +48,7 @@ port bulletinCover : (D.Value -> msg) -> Sub msg
 
 type alias Model msg =
     { displayMode : DisplayMode
+    , modifyingExisting : Bool
     , murolInfos : Dict Int MurolInfoMeta
     , delibs : Dict Int DelibMeta
     , bulletins : Dict Int BulletinMeta
@@ -84,11 +86,12 @@ type PubType
     | Bulletin
 
 
-type alias Publications =
-    { murolInfos : Dict Int MurolInfoMeta
-    , delibs : Dict Int DelibMeta
-    , bulletins : Dict Int BulletinMeta
-    }
+
+--type alias Publications =
+--    { murolInfos : Dict Int MurolInfoMeta
+--    , delibs : Dict Int DelibMeta
+--    , bulletins : Dict Int BulletinMeta
+--    }
 
 
 load : Model msg -> LogInfo -> Cmd msg
@@ -97,7 +100,7 @@ load model logInfo =
         LoggedIn { sessionId } ->
             Cmd.map model.externalMsg <|
                 Cmd.batch
-                    [ getAllPublications sessionId ]
+                    [ getAllPublications LoadPublications ]
 
         LoggedOut ->
             Cmd.none
@@ -116,6 +119,10 @@ type Msg
     = SetPubType PubType
     | LoadPublications (Result Http.Error Publications)
       --
+    | SelectMurolInfo Int
+    | SelectDelib Int
+    | SelectBulletin Int
+      --
     | SetIssue String
     | SetDate String
     | NewTopic
@@ -125,6 +132,8 @@ type Msg
     | SetIndexEntryTopic Int String
     | SetIndexEntryPageNbr Int String
     | RemoveIndexEntry Int
+    | SwapUp Int
+    | SwapDown Int
       --
     | FileRequested
     | FileSelected File
@@ -150,6 +159,7 @@ type Msg
 
 init externalMsg =
     { displayMode = Select MurolInfo
+    , modifyingExisting = False
     , murolInfos = Dict.empty
     , delibs = Dict.empty
     , bulletins = Dict.empty
@@ -232,6 +242,69 @@ update config msg model =
                       }
                     , Cmd.none
                     )
+
+        SelectMurolInfo n ->
+            case Dict.get n model.murolInfos of
+                Just { issue, date, topics } ->
+                    ( { model
+                        | displayMode = Edit MurolInfo
+                        , modifyingExisting = True
+                        , issueInput = Just <| String.fromInt issue
+                        , dateInput = Just date
+                        , dateBuffer = dateToStr config.zone date
+                        , topics =
+                            List.indexedMap
+                                (\i t -> ( i, Just t ))
+                                topics
+                                |> Dict.fromList
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        SelectDelib n ->
+            case Dict.get n model.delibs of
+                Just { date, topics } ->
+                    ( { model
+                        | displayMode = Edit Delib
+                        , modifyingExisting = True
+                        , dateInput = Just date
+                        , dateBuffer = dateToStr config.zone date
+                        , topics =
+                            List.indexedMap
+                                (\i t -> ( i, Just t ))
+                                topics
+                                |> Dict.fromList
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        SelectBulletin n ->
+            case Dict.get n model.bulletins of
+                Just { issue, date, cover, index } ->
+                    ( { model
+                        | displayMode = Edit Bulletin
+                        , modifyingExisting = True
+                        , issueInput = Just <| String.fromInt issue
+                        , dateInput = Just date
+                        , dateBuffer = dateToStr config.zone date
+                        , bulletinIndex =
+                            List.indexedMap
+                                (\i ( t, p ) -> ( i, ( Just t, Just p ) ))
+                                (Dict.toList index)
+                                |> Dict.fromList
+                        , bulletinCover = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         SetIssue issue ->
             let
@@ -342,6 +415,50 @@ update config msg model =
             , Cmd.none
             )
 
+        SwapUp i ->
+            case extractPubType model of
+                Bulletin ->
+                    let
+                        newIndex =
+                            Dict.values model.bulletinIndex
+                                |> swapAt i (i - 1)
+                                |> List.indexedMap Tuple.pair
+                                |> Dict.fromList
+                    in
+                    ( { model | bulletinIndex = newIndex }, Cmd.none )
+
+                _ ->
+                    let
+                        newTopics =
+                            Dict.values model.topics
+                                |> swapAt i (i - 1)
+                                |> List.indexedMap Tuple.pair
+                                |> Dict.fromList
+                    in
+                    ( { model | topics = newTopics }, Cmd.none )
+
+        SwapDown i ->
+            case extractPubType model of
+                Bulletin ->
+                    let
+                        newIndex =
+                            Dict.values model.bulletinIndex
+                                |> swapAt i (i + 1)
+                                |> List.indexedMap Tuple.pair
+                                |> Dict.fromList
+                    in
+                    ( { model | bulletinIndex = newIndex }, Cmd.none )
+
+                _ ->
+                    let
+                        newTopics =
+                            Dict.values model.topics
+                                |> swapAt i (i + 1)
+                                |> List.indexedMap Tuple.pair
+                                |> Dict.fromList
+                    in
+                    ( { model | topics = newTopics }, Cmd.none )
+
         FileRequested ->
             ( model
             , Cmd.map model.externalMsg selectFile
@@ -425,16 +542,13 @@ update config msg model =
 
         SaveMurolInfo ->
             case
-                ( ( Maybe.andThen String.toInt model.issueInput
-                  , model.dateInput
-                  )
-                , ( Dict.values model.topics
-                        |> List.filterMap identity
-                  , model.fileToUpload
-                  )
+                ( Maybe.andThen String.toInt model.issueInput
+                , model.dateInput
+                , Dict.values model.topics
+                    |> List.filterMap identity
                 )
             of
-                ( ( Just issue, Just date ), ( t :: ts, Just file ) ) ->
+                ( Just issue, Just date, t :: ts ) ->
                     let
                         saveMetaCmd =
                             saveMurolInfoMeta
@@ -448,15 +562,31 @@ update config msg model =
                                 |> String.padLeft 3 '0'
                                 |> (\s -> s ++ ".pdf")
                     in
-                    ( { model
-                        | displayMode = Upload MurolInfo
-                        , metaDataUploaded = Waiting
-                      }
-                    , cmdIfLogged
-                        config.logInfo
-                        (uploadPub file MurolInfo name saveMetaCmd)
-                        |> Cmd.map model.externalMsg
-                    )
+                    if model.modifyingExisting then
+                        ( { model
+                            | displayMode = Upload MurolInfo
+                            , metaDataUploaded = Waiting
+                          }
+                        , cmdIfLogged
+                            config.logInfo
+                            saveMetaCmd
+                            |> Cmd.map model.externalMsg
+                        )
+                    else
+                        case model.fileToUpload of
+                            Just file ->
+                                ( { model
+                                    | displayMode = Upload MurolInfo
+                                    , metaDataUploaded = Waiting
+                                  }
+                                , cmdIfLogged
+                                    config.logInfo
+                                    (uploadPub file MurolInfo name saveMetaCmd)
+                                    |> Cmd.map model.externalMsg
+                                )
+
+                            _ ->
+                                ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -523,10 +653,9 @@ update config msg model =
                 ( model.dateInput
                 , Dict.values model.topics
                     |> List.filterMap identity
-                , model.fileToUpload
                 )
             of
-                ( Just date, t :: ts, Just file ) ->
+                ( Just date, t :: ts ) ->
                     let
                         saveMetaCmd =
                             saveDelibMeta
@@ -535,19 +664,35 @@ update config msg model =
                                 }
 
                         name =
-                            dateToFrench config.zone date
+                            dateToStr config.zone date
                                 |> String.replace "/" "-"
                                 |> (\s -> s ++ ".pdf")
                     in
-                    ( { model
-                        | displayMode = Upload Delib
-                        , metaDataUploaded = Waiting
-                      }
-                    , cmdIfLogged
-                        config.logInfo
-                        (uploadPub file Delib name saveMetaCmd)
-                        |> Cmd.map model.externalMsg
-                    )
+                    if model.modifyingExisting then
+                        ( { model
+                            | displayMode = Upload Delib
+                            , metaDataUploaded = Waiting
+                          }
+                        , cmdIfLogged
+                            config.logInfo
+                            saveMetaCmd
+                            |> Cmd.map model.externalMsg
+                        )
+                    else
+                        case model.fileToUpload of
+                            Just file ->
+                                ( { model
+                                    | displayMode = Upload Delib
+                                    , metaDataUploaded = Waiting
+                                  }
+                                , cmdIfLogged
+                                    config.logInfo
+                                    (uploadPub file Delib name saveMetaCmd)
+                                    |> Cmd.map model.externalMsg
+                                )
+
+                            _ ->
+                                ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -568,6 +713,13 @@ update config msg model =
         DeleteDelib date ->
             case Dict.get date model.delibs of
                 Just delib ->
+                    let
+                        name =
+                            millisToPosix date
+                                |> dateToStr config.zone
+                                |> String.replace "/" "-"
+                                |> (\s -> s ++ ".pdf")
+                    in
                     ( { model
                         | lockedDelibs =
                             Dict.insert date delib model.lockedDelibs
@@ -576,7 +728,7 @@ update config msg model =
                       }
                     , cmdIfLogged
                         config.logInfo
-                        (deleteDelib date)
+                        (deleteDelib name date)
                         |> Cmd.map model.externalMsg
                     )
 
@@ -610,30 +762,30 @@ update config msg model =
             case
                 ( ( Maybe.andThen String.toInt model.issueInput
                   , model.dateInput
-                  , model.bulletinCover
                   )
-                , ( Dict.values model.bulletinIndex
-                        |> List.foldr
-                            (\v acc ->
-                                case v of
-                                    ( Just topic, Just pageNbr ) ->
-                                        ( topic, pageNbr ) :: acc
+                , Dict.values model.bulletinIndex
+                    |> List.foldr
+                        (\v acc ->
+                            case v of
+                                ( Just topic, Just pageNbr ) ->
+                                    ( topic, pageNbr ) :: acc
 
-                                    _ ->
-                                        acc
-                            )
-                            []
-                  , model.fileToUpload
-                  )
+                                _ ->
+                                    acc
+                        )
+                        []
                 )
             of
-                ( ( Just issue, Just date, Just cover ), ( x :: xs, Just file ) ) ->
+                ( ( Just issue, Just date ), x :: xs ) ->
                     let
                         saveMetaCmd =
                             saveBulletinMeta
                                 { issue = issue
                                 , date = date
-                                , cover = cover
+                                , cover =
+                                    Maybe.withDefault
+                                        ""
+                                        model.bulletinCover
                                 , index = Dict.fromList (x :: xs)
                                 }
 
@@ -642,15 +794,31 @@ update config msg model =
                                 |> String.padLeft 3 '0'
                                 |> (\s -> s ++ ".pdf")
                     in
-                    ( { model
-                        | displayMode = Upload Bulletin
-                        , metaDataUploaded = Waiting
-                      }
-                    , cmdIfLogged
-                        config.logInfo
-                        (uploadPub file Bulletin name saveMetaCmd)
-                        |> Cmd.map model.externalMsg
-                    )
+                    if model.modifyingExisting then
+                        ( { model
+                            | displayMode = Upload Bulletin
+                            , metaDataUploaded = Waiting
+                          }
+                        , cmdIfLogged
+                            config.logInfo
+                            saveMetaCmd
+                            |> Cmd.map model.externalMsg
+                        )
+                    else
+                        case model.fileToUpload of
+                            Just file ->
+                                ( { model
+                                    | displayMode = Upload Bulletin
+                                    , metaDataUploaded = Waiting
+                                  }
+                                , cmdIfLogged
+                                    config.logInfo
+                                    (uploadPub file Bulletin name saveMetaCmd)
+                                    |> Cmd.map model.externalMsg
+                                )
+
+                            _ ->
+                                ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -712,9 +880,7 @@ update config msg model =
 
         Reset ->
             ( init model.externalMsg
-            , cmdIfLogged
-                config.logInfo
-                getAllPublications
+            , getAllPublications LoadPublications
                 |> Cmd.map model.externalMsg
             )
 
@@ -801,13 +967,26 @@ initialView config model =
                     }
                 ]
             , column
-                (itemStyle ++ [ spacing 15 ])
+                (itemStyle
+                    ++ [ width fill
+                       , height (px 500)
+                       , scrollbarY
+                       , Background.color (rgb 1 1 1)
+                       ]
+                )
                 (case extractPubType model of
                     MurolInfo ->
                         Dict.foldr
                             (\n { issue, date } acc ->
                                 row
-                                    [ spacing 15 ]
+                                    [ spacing 15
+                                    , width fill
+                                    , if modBy 2 n == 0 then
+                                        Background.color teal7
+                                      else
+                                        Background.color blue7
+                                    , paddingXY 7 7
+                                    ]
                                     [ row []
                                         [ el [ Font.bold ]
                                             (text "Numéro: ")
@@ -816,13 +995,23 @@ initialView config model =
                                     , row []
                                         [ el [ Font.bold ]
                                             (text "Date: ")
-                                        , text <| dateToFrench config.zone date
+                                        , text <| dateToStr config.zone date
                                         ]
-                                    , Input.button
-                                        (buttonStyle True)
-                                        { onPress = Just <| DeleteMurolInfo n
-                                        , label = text "Supprimer"
-                                        }
+                                    , row
+                                        [ spacing 15
+                                        , alignRight
+                                        ]
+                                        [ Input.button
+                                            (buttonStyle True)
+                                            { onPress = Just <| SelectMurolInfo n
+                                            , label = text "Modifier"
+                                            }
+                                        , Input.button
+                                            (buttonStyle True)
+                                            { onPress = Just <| DeleteMurolInfo n
+                                            , label = text "Supprimer"
+                                            }
+                                        ]
                                     ]
                                     :: acc
                             )
@@ -833,17 +1022,34 @@ initialView config model =
                         Dict.foldr
                             (\n { date } acc ->
                                 row
-                                    [ spacing 15 ]
+                                    [ spacing 15
+                                    , width fill
+                                    , if modBy 2 n == 0 then
+                                        Background.color blue6
+                                      else
+                                        Background.color blue7
+                                    , paddingXY 7 7
+                                    ]
                                     [ row []
                                         [ el [ Font.bold ]
                                             (text "Date: ")
-                                        , text <| dateToFrench config.zone date
+                                        , text <| dateToStr config.zone date
                                         ]
-                                    , Input.button
-                                        (buttonStyle True)
-                                        { onPress = Just <| DeleteDelib n
-                                        , label = text "Supprimer"
-                                        }
+                                    , row
+                                        [ spacing 15
+                                        , alignRight
+                                        ]
+                                        [ Input.button
+                                            (buttonStyle True)
+                                            { onPress = Just <| SelectDelib n
+                                            , label = text "Modifier"
+                                            }
+                                        , Input.button
+                                            (buttonStyle True)
+                                            { onPress = Just <| DeleteDelib n
+                                            , label = text "Supprimer"
+                                            }
+                                        ]
                                     ]
                                     :: acc
                             )
@@ -854,7 +1060,14 @@ initialView config model =
                         Dict.foldr
                             (\n { issue, date } acc ->
                                 row
-                                    [ spacing 15 ]
+                                    [ spacing 15
+                                    , width fill
+                                    , if modBy 2 n == 0 then
+                                        Background.color blue6
+                                      else
+                                        Background.color blue7
+                                    , paddingXY 7 7
+                                    ]
                                     [ row []
                                         [ el [ Font.bold ]
                                             (text "Numéro: ")
@@ -863,13 +1076,23 @@ initialView config model =
                                     , row []
                                         [ el [ Font.bold ]
                                             (text "Date: ")
-                                        , text <| dateToFrench config.zone date
+                                        , text <| dateToStr config.zone date
                                         ]
-                                    , Input.button
-                                        (buttonStyle True)
-                                        { onPress = Just <| DeleteBulletin n
-                                        , label = text "Supprimer"
-                                        }
+                                    , row
+                                        [ spacing 15
+                                        , alignRight
+                                        ]
+                                        [ Input.button
+                                            (buttonStyle True)
+                                            { onPress = Just <| SelectBulletin n
+                                            , label = text "Modifier"
+                                            }
+                                        , Input.button
+                                            (buttonStyle True)
+                                            { onPress = Just <| DeleteBulletin n
+                                            , label = text "Supprimer"
+                                            }
+                                        ]
                                     ]
                                     :: acc
                             )
@@ -884,17 +1107,15 @@ newMurolInfoView config model =
     let
         canUpload =
             case
-                ( ( Maybe.andThen String.toInt model.issueInput
-                  , model.dateInput
-                  )
-                , ( Dict.values model.topics
-                        |> List.filterMap identity
-                  , model.fileToUpload
-                  )
+                ( Maybe.andThen String.toInt model.issueInput
+                , model.dateInput
+                , Dict.values model.topics
+                    |> List.filterMap identity
                 )
             of
-                ( ( Just issue, Just date ), ( t :: ts, Just file ) ) ->
-                    True
+                ( Just issue, Just date, t :: ts ) ->
+                    model.modifyingExisting
+                        || (model.fileToUpload /= Nothing)
 
                 _ ->
                     False
@@ -959,11 +1180,11 @@ newDelibView config model =
                 ( model.dateInput
                 , Dict.values model.topics
                     |> List.filterMap identity
-                , model.fileToUpload
                 )
             of
-                ( Just date, t :: ts, Just file ) ->
-                    True
+                ( Just date, t :: ts ) ->
+                    model.modifyingExisting
+                        || (model.fileToUpload /= Nothing)
 
                 _ ->
                     False
@@ -1024,27 +1245,24 @@ newBulletinView config model =
     let
         canUpload =
             case
-                ( ( Maybe.andThen String.toInt model.issueInput
-                  , model.dateInput
-                  , model.bulletinCover
-                  )
-                , ( Dict.values model.bulletinIndex
-                        |> List.foldr
-                            (\v acc ->
-                                case v of
-                                    ( Just topic, Just pageNbr ) ->
-                                        ( topic, pageNbr ) :: acc
+                ( Maybe.andThen String.toInt model.issueInput
+                , model.dateInput
+                , Dict.values model.bulletinIndex
+                    |> List.foldr
+                        (\v acc ->
+                            case v of
+                                ( Just topic, Just pageNbr ) ->
+                                    ( topic, pageNbr ) :: acc
 
-                                    _ ->
-                                        acc
-                            )
-                            []
-                  , model.fileToUpload
-                  )
+                                _ ->
+                                    acc
+                        )
+                        []
                 )
             of
-                ( ( Just issue, Just date, Just cover ), ( x :: xs, Just file ) ) ->
-                    True
+                ( Just issue, Just date, x :: xs ) ->
+                    model.modifyingExisting
+                        || (model.fileToUpload /= Nothing)
 
                 _ ->
                     False
@@ -1080,22 +1298,45 @@ newBulletinView config model =
                                 Element.none
 
                         _ ->
-                            el
-                                [ width (px 105)
-                                , height (px <| 297 // 2)
-                                , centerY
-                                , centerX
-                                , Background.color grey6
-                                ]
-                                (image
-                                    [ centerX
-                                    , centerY
-                                    , clip
+                            if model.modifyingExisting then
+                                let
+                                    imgSrc =
+                                        model.issueInput
+                                            |> Maybe.map (String.padLeft 3 '0')
+                                            |> Maybe.map
+                                                (\s ->
+                                                    "/baseDocumentaire/publications/bulletins/miniatures/"
+                                                        ++ s
+                                                        ++ ".jpg"
+                                                )
+                                            |> Maybe.withDefault ""
+                                in
+                                el
+                                    [ centerY
+                                    , centerX
+                                    , width (px 105)
+                                    , height (px <| 297 // 2)
+                                    , Background.image
+                                        imgSrc
                                     ]
-                                    { src = "/assets/images/loading.gif"
-                                    , description = "chargement"
-                                    }
-                                )
+                                    Element.none
+                            else
+                                el
+                                    [ width (px 105)
+                                    , height (px <| 297 // 2)
+                                    , centerY
+                                    , centerX
+                                    , Background.color grey6
+                                    ]
+                                    (image
+                                        [ centerX
+                                        , centerY
+                                        , clip
+                                        ]
+                                        { src = "/assets/images/loading.gif"
+                                        , description = "chargement"
+                                        }
+                                    )
                     )
                 ]
             , el
@@ -1145,7 +1386,7 @@ newBulletinView config model =
 uploadView config model =
     let
         canReset =
-            True
+            model.metaDataUploaded == Success
     in
     column (containerStyle ++ [ spacing 15 ])
         [ row
@@ -1166,15 +1407,18 @@ uploadView config model =
                    , width (px 940)
                    ]
             )
-            [ row
-                [ spacing 15 ]
-                [ el
-                    [ Font.bold ]
-                    (text "Transfert fichier: ")
-                , Maybe.map Tuple.first model.uploadProgress
-                    |> Maybe.withDefault 0
-                    |> progressBar
-                ]
+            [ if model.modifyingExisting then
+                Element.none
+              else
+                row
+                    [ spacing 15 ]
+                    [ el
+                        [ Font.bold ]
+                        (text "Transfert fichier: ")
+                    , Maybe.map Tuple.first model.uploadProgress
+                        |> Maybe.withDefault 0
+                        |> progressBar
+                    ]
             , row
                 [ spacing 15 ]
                 [ el
@@ -1199,7 +1443,11 @@ uploadView config model =
             )
             [ Input.button
                 (buttonStyle canReset)
-                { onPress = Just Reset
+                { onPress =
+                    if canReset then
+                        Just Reset
+                    else
+                        Nothing
                 , label = text "Retour"
                 }
             ]
@@ -1214,77 +1462,113 @@ uploadView config model =
 
 
 issueInputView config model =
-    Input.text
-        (textInputStyle ++ [ width (px 50) ])
-        { onChange = SetIssue
-        , text =
-            model.issueInput
-                |> Maybe.withDefault ""
-        , placeholder = Nothing
-        , label =
-            Input.labelLeft
-                [ centerY
-                , Font.bold
-                ]
+    if model.modifyingExisting then
+        row
+            []
+            [ el [ Font.bold ]
                 (text "Numéro: ")
-        }
+            , text
+                (model.issueInput
+                    |> Maybe.withDefault ""
+                )
+            ]
+    else
+        Input.text
+            (textInputStyle ++ [ width (px 50) ])
+            { onChange = SetIssue
+            , text =
+                model.issueInput
+                    |> Maybe.withDefault ""
+            , placeholder = Nothing
+            , label =
+                Input.labelLeft
+                    [ centerY
+                    , Font.bold
+                    ]
+                    (text "Numéro: ")
+            }
 
 
 dateInputView config model =
-    Input.text
-        (textInputStyle
-            ++ [ width (px 150)
-               , case model.dateInput of
-                    Just _ ->
-                        Font.color green4
+    case ( extractPubType model, model.modifyingExisting ) of
+        ( Delib, True ) ->
+            text <| model.dateBuffer
 
-                    _ ->
-                        Font.color red4
-               ]
-        )
-        { onChange = SetDate
-        , label =
-            Input.labelLeft
-                [ centerY
-                , Font.bold
-                ]
-                (text "Date: ")
-        , placeholder =
-            Just <| Input.placeholder [ clip ] (text "jj/mm/aaaa")
-        , text =
-            case model.dateInput of
-                Nothing ->
-                    model.dateBuffer
+        _ ->
+            Input.text
+                (textInputStyle
+                    ++ [ width (px 150)
+                       , case model.dateInput of
+                            Just _ ->
+                                Font.color green4
 
-                Just t ->
-                    dateToStr config.zone t
-        }
+                            _ ->
+                                Font.color red4
+                       ]
+                )
+                { onChange = SetDate
+                , label =
+                    Input.labelLeft
+                        [ centerY
+                        , Font.bold
+                        ]
+                        (text "Date: ")
+                , placeholder =
+                    Just <| Input.placeholder [ clip ] (text "jj/mm/aaaa")
+                , text =
+                    case model.dateInput of
+                        Nothing ->
+                            model.dateBuffer
+
+                        Just t ->
+                            dateToStr config.zone t
+                }
 
 
 topicEditorView config model =
     let
-        topicView ( n, t ) =
-            row
-                [ width fill
-                , spacing 15
-                ]
-                [ Input.text
-                    (textInputStyle
-                        ++ [ width (px 600) ]
-                    )
-                    { onChange =
-                        SetTopic n
-                    , label = Input.labelHidden ""
-                    , placeholder = Nothing
-                    , text =
-                        Maybe.withDefault "" t
-                    }
-                , Input.button
-                    (buttonStyle True)
-                    { onPress = Just <| RemoveTopic n
-                    , label = text "Supprimer"
-                    }
-                ]
+        topicView ( i, ( n, t ) ) =
+            Keyed.el []
+                ( String.fromInt i
+                , row
+                    [ width fill
+                    , spacing 15
+                    ]
+                    [ Input.text
+                        (textInputStyle
+                            ++ [ width (px 600) ]
+                        )
+                        { onChange =
+                            SetTopic n
+                        , label = Input.labelHidden ""
+                        , placeholder = Nothing
+                        , text =
+                            Maybe.withDefault "" t
+                        }
+                    , row
+                        [ spacing 5 ]
+                        [ Input.button
+                            (buttonStyle True)
+                            { onPress = Just (SwapUp i)
+                            , label =
+                                el []
+                                    (html <| chevronUp 14)
+                            }
+                        , Input.button
+                            (buttonStyle True)
+                            { onPress = Just (SwapDown i)
+                            , label =
+                                el []
+                                    (html <| chevronDown 14)
+                            }
+                        ]
+                    , Input.button
+                        (buttonStyle True)
+                        { onPress = Just <| RemoveTopic n
+                        , label = text "Supprimer"
+                        }
+                    ]
+                )
     in
     column
         (itemStyle
@@ -1311,6 +1595,7 @@ topicEditorView config model =
             ]
          ]
             ++ (Dict.toList model.topics
+                    |> List.indexedMap Tuple.pair
                     |> List.map topicView
                )
         )
@@ -1318,41 +1603,62 @@ topicEditorView config model =
 
 indexEditorView config model =
     let
-        topicView ( n, ( t, p ) ) =
-            row
-                [ width fill
-                , spacing 15
-                ]
-                [ Input.text
-                    (textInputStyle
-                        ++ [ width (px 600) ]
-                    )
-                    { onChange =
-                        SetIndexEntryTopic n
-                    , label = Input.labelHidden ""
-                    , placeholder = Nothing
-                    , text =
-                        Maybe.withDefault "" t
-                    }
-                , Input.text
-                    (textInputStyle ++ [ width (px 50) ])
-                    { onChange = SetIndexEntryPageNbr n
-                    , text =
-                        Maybe.withDefault "" (Maybe.map String.fromInt p)
-                    , placeholder = Nothing
-                    , label =
-                        Input.labelLeft
-                            [ centerY
-                            , Font.bold
-                            ]
-                            (text "Page: ")
-                    }
-                , Input.button
-                    (buttonStyle True)
-                    { onPress = Just <| RemoveIndexEntry n
-                    , label = text "Supprimer"
-                    }
-                ]
+        topicView ( i, ( n, ( t, p ) ) ) =
+            Keyed.el
+                []
+                ( String.fromInt i
+                , row
+                    [ width fill
+                    , spacing 15
+                    ]
+                    [ Input.text
+                        (textInputStyle
+                            ++ [ width (px 600) ]
+                        )
+                        { onChange =
+                            SetIndexEntryTopic n
+                        , label = Input.labelHidden ""
+                        , placeholder = Nothing
+                        , text =
+                            Maybe.withDefault "" t
+                        }
+                    , Input.text
+                        (textInputStyle ++ [ width (px 50) ])
+                        { onChange = SetIndexEntryPageNbr n
+                        , text =
+                            Maybe.withDefault "" (Maybe.map String.fromInt p)
+                        , placeholder = Nothing
+                        , label =
+                            Input.labelLeft
+                                [ centerY
+                                , Font.bold
+                                ]
+                                (text "Page: ")
+                        }
+                    , row
+                        [ spacing 5 ]
+                        [ Input.button
+                            (buttonStyle True)
+                            { onPress = Just (SwapUp i)
+                            , label =
+                                el []
+                                    (html <| chevronUp 14)
+                            }
+                        , Input.button
+                            (buttonStyle True)
+                            { onPress = Just (SwapDown i)
+                            , label =
+                                el []
+                                    (html <| chevronDown 14)
+                            }
+                        ]
+                    , Input.button
+                        (buttonStyle True)
+                        { onPress = Just <| RemoveIndexEntry n
+                        , label = text "Supprimer"
+                        }
+                    ]
+                )
     in
     column
         (itemStyle
@@ -1374,6 +1680,7 @@ indexEditorView config model =
             ]
          ]
             ++ (Dict.toList model.bulletinIndex
+                    |> List.indexedMap Tuple.pair
                     |> List.map topicView
                )
         )
@@ -1398,21 +1705,18 @@ selectFile =
 -----------------
 
 
-getAllPublications : String -> Cmd Msg
-getAllPublications sessionId =
+getAllPublications : (Result Http.Error Publications -> msg) -> Cmd msg
+getAllPublications msg =
     let
         body =
             E.object
-                [ ( "sessionId"
-                  , E.string sessionId
-                  )
-                ]
+                []
                 |> Http.jsonBody
     in
     Http.post
-        { url = "getAllPublications.php"
+        { url = "/getAllPublications.php"
         , body = body
-        , expect = Http.expectJson LoadPublications decodePublications
+        , expect = Http.expectJson msg decodePublications
         }
 
 
@@ -1441,7 +1745,7 @@ uploadPub file pubType name saveMetaCmd sessionId =
     Http.request
         { method = "POST"
         , headers = []
-        , url = "uploadPub.php"
+        , url = "/uploadPub.php"
         , body = body
         , expect =
             Http.expectJson
@@ -1468,7 +1772,7 @@ saveMurolInfoMeta murolInfo sessionId =
                 |> Http.jsonBody
     in
     Http.post
-        { url = "saveMurolInfo.php"
+        { url = "/saveMurolInfo.php"
         , body = body
         , expect = Http.expectJson (MurolInfoSaved murolInfo.issue) decodeSuccess
         }
@@ -1493,7 +1797,7 @@ deleteMurolInfo issue sessionId =
                 |> Http.jsonBody
     in
     Http.post
-        { url = "deleteMurolInfo.php"
+        { url = "/deleteMurolInfo.php"
         , body = body
         , expect = Http.expectJson (MurolInfoDeleted issue) decodeSuccess
         }
@@ -1515,18 +1819,19 @@ saveDelibMeta delib sessionId =
                 |> Http.jsonBody
     in
     Http.post
-        { url = "saveDelib.php"
+        { url = "/saveDelib.php"
         , body = body
         , expect = Http.expectJson (DelibSaved (posixToMillis delib.date)) decodeSuccess
         }
 
 
-deleteDelib : Int -> String -> Cmd Msg
-deleteDelib date sessionId =
+deleteDelib : String -> Int -> String -> Cmd Msg
+deleteDelib name date sessionId =
     let
         body =
             E.object
                 [ ( "date", E.int date )
+                , ( "name", E.string name )
                 , ( "sessionId"
                   , E.string sessionId
                   )
@@ -1534,7 +1839,7 @@ deleteDelib date sessionId =
                 |> Http.jsonBody
     in
     Http.post
-        { url = "deleteDelib.php"
+        { url = "/deleteDelib.php"
         , body = body
         , expect = Http.expectJson (DelibDeleted date) decodeSuccess
         }
@@ -1564,7 +1869,7 @@ saveBulletinMeta bulletin sessionId =
     Http.request
         { method = "POST"
         , headers = []
-        , url = "saveBulletin.php"
+        , url = "/saveBulletin.php"
         , body = body
         , expect =
             Http.expectJson
@@ -1578,9 +1883,21 @@ saveBulletinMeta bulletin sessionId =
 deleteBulletin : Int -> String -> Cmd Msg
 deleteBulletin issue sessionId =
     let
+        name =
+            String.fromInt issue
+                |> String.padLeft 3 '0'
+                |> (\s -> s ++ ".pdf")
+
+        cover =
+            String.fromInt issue
+                |> String.padLeft 3 '0'
+                |> (\s -> s ++ ".jpg")
+
         body =
             E.object
                 [ ( "issue", E.int issue )
+                , ( "name", E.string name )
+                , ( "cover", E.string cover )
                 , ( "sessionId"
                   , E.string sessionId
                   )
@@ -1588,7 +1905,7 @@ deleteBulletin issue sessionId =
                 |> Http.jsonBody
     in
     Http.post
-        { url = "deleteBulletin.php"
+        { url = "/deleteBulletin.php"
         , body = body
         , expect = Http.expectJson (BulletinDeleted issue) decodeSuccess
         }
@@ -1665,7 +1982,12 @@ encodeBulletin { issue, date, cover, index } =
     E.object
         [ ( "issue", E.int issue )
         , ( "date", E.int (posixToMillis date) )
-        , ( "cover", E.string cover )
+        , ( "cover"
+          , if cover == "" then
+                E.null
+            else
+                E.string cover
+          )
         , ( "index", E.dict identity E.int index )
         ]
 

@@ -306,6 +306,7 @@ reset mbDoc availableThreads externalMsg =
             , openedNews = Set.empty
             , openNewsMsg = always (externalMsg NoOp)
             , galleries = Dict.empty
+            , publications = Nothing
             }
 
         funnelState =

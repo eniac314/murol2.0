@@ -375,6 +375,7 @@ view model =
                         , PageTreeEditor.loadingView model.pageTreeEditor
                         , GeneralDirectoryEditor.loadingView model.generalDirectory
                         , NewsEditor.loadingView model.newsEditor
+                        , Publications.loadingView model.publications
                         , Input.button (buttonStyle loadingComplete)
                             { onPress = Just Launch
                             , label =

@@ -1105,7 +1105,13 @@ internalUpdate config msg model =
                     model.ficheBuffer
 
                 newFb =
-                    { fb | fax = Just s }
+                    { fb
+                        | fax =
+                            if s == "" then
+                                Nothing
+                            else
+                                Just s
+                    }
             in
             ( { model | ficheBuffer = newFb }
             , Cmd.none
@@ -1206,7 +1212,13 @@ internalUpdate config msg model =
                     model.ficheBuffer
 
                 newFb =
-                    { fb | pjaun = Just s }
+                    { fb
+                        | pjaun =
+                            if s == "" then
+                                Nothing
+                            else
+                                Just s
+                    }
             in
             ( { model | ficheBuffer = newFb }
             , Cmd.none
@@ -1217,13 +1229,21 @@ internalUpdate config msg model =
                 fb =
                     model.ficheBuffer
 
-                baseSite =
-                    Maybe.withDefault ( "", "" ) fb.site
-
                 newFb =
                     { fb
                         | site =
-                            Just (Tuple.mapSecond (always s) baseSite)
+                            case fb.site of
+                                Just ( l, url ) ->
+                                    if l == "" && s == "" then
+                                        Nothing
+                                    else
+                                        Just ( l, s )
+
+                                Nothing ->
+                                    if s == "" then
+                                        Nothing
+                                    else
+                                        Just ( "", s )
                     }
             in
             ( { model | ficheBuffer = newFb }
@@ -1235,13 +1255,21 @@ internalUpdate config msg model =
                 fb =
                     model.ficheBuffer
 
-                baseSite =
-                    Maybe.withDefault ( "", "" ) fb.site
-
                 newFb =
                     { fb
                         | site =
-                            Just (Tuple.mapFirst (always s) baseSite)
+                            case fb.site of
+                                Just ( l, url ) ->
+                                    if s == "" && url == "" then
+                                        Nothing
+                                    else
+                                        Just ( s, url )
+
+                                Nothing ->
+                                    if s == "" then
+                                        Nothing
+                                    else
+                                        Just ( s, "" )
                     }
             in
             ( { model | ficheBuffer = newFb }
