@@ -28,22 +28,26 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $name  = $php_data->name; 
   $issue = $php_data->bulletin->issue;
   $date  = $php_data->bulletin->date;
-  $cover = $php_data->bulletin->cover;
   $index = serialize($php_data->bulletin->index);
 
-  $baseDir =  getcwd().'/baseDocumentaire/publications/bulletins/miniatures';
+  if(!is_null($php_data->bulletin->cover)){
 
-  $uploadPath = $baseDir.'/'.$name;
-  $checkPath = realpath(pathinfo($uploadPath)['dirname']);
+    $cover = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $php_data->bulletin->cover));
 
-  if(strpos($checkPath, $baseDir) !== 0 || strpos($checkPath, $baseDir) === false){ 
-    logError("invalid upload path");
-    exit();
-  }
+    $baseDir =  getcwd().'/baseDocumentaire/publications/bulletins/miniatures';
 
-  if(!file_put_contents($uploadPath, $cover)){
-    logError("File upload failed");
-    exit();
+    $uploadPath = $baseDir.'/'.$name;
+    $checkPath = realpath(pathinfo($uploadPath)['dirname']);
+
+    if(strpos($checkPath, $baseDir) !== 0 || strpos($checkPath, $baseDir) === false){ 
+      logError("invalid upload path");
+      exit();
+    }
+
+    if(!file_put_contents($uploadPath, $cover)){
+      logError("File upload failed");
+      exit();
+    }
   }
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
@@ -55,7 +59,12 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   }
 
   $query = 
-    "INSERT INTO bulletins( issue, date, index_) VALUES (?,?,?)";
+    "INSERT INTO bulletins( issue, date, index_) VALUES 
+    (?,?,?)
+    ON DUPLICATE KEY UPDATE
+     date = VALUES(date),
+     index_ = VALUES(index_)";
+     
   mysqli_stmt_prepare($stmt, $query);
   mysqli_stmt_bind_param($stmt,'sis', $issue, $date, $index);
   mysqli_stmt_execute($stmt);

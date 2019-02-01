@@ -11,7 +11,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
    }
 
-  if(!isset($php_data->sessionId) || !isset($php_data->delib)){
+  if(!isset($php_data->sessionId) || !isset($php_data->date) || !isset($php_data->name)){
      logError("wrong input");
   exit();
   }
@@ -25,8 +25,25 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  $date  = $php_data->delib->date;
-  $topics = serialize($php_data->delib->topics);
+  $name  = $php_data->name; 
+  $date = $php_data->date;
+
+  $baseDir =  getcwd().'/baseDocumentaire/publications/delibs';
+
+  $path = $baseDir.'/'.$name;
+  $checkPath = realpath(pathinfo($path)['dirname']);
+
+  if(strpos($checkPath, $baseDir) !== 0 || strpos($checkPath, $baseDir) === false){ 
+    logError("invalid path");
+    exit();
+  }
+
+  if(file_exists($path)) {
+    unlink($path);
+  } else { 
+    logError("requested file not found");
+    exit(); 
+  } 
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);
@@ -36,18 +53,13 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     exit();
   }
 
-  $query = 
-    "INSERT INTO delibs( date, topics) VALUES 
-    (?,?)
-    ON DUPLICATE KEY UPDATE
-     topics = VALUES(topics)";
-     
+  $query = "DELETE FROM delibs WHERE date = ?";
   mysqli_stmt_prepare($stmt, $query);
-  mysqli_stmt_bind_param($stmt,'is', $date, $topics);
+  mysqli_stmt_bind_param($stmt,'i', $date);
   mysqli_stmt_execute($stmt);
 
   if (mysqli_stmt_affected_rows($stmt) == 0){
-    logError("impossible de sauvegarder delib");
+    logError("impossible d'effacer la délibération");
     mysqli_close($db);
     exit();
   }
@@ -55,8 +67,10 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   logger("success!");
   mysqli_close($db);
   exit();
-  
- } else {
+
+
+
+} else {
   logError("invalid request");
   exit();
 }

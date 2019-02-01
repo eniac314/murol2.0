@@ -11,20 +11,6 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   	exit();
    }
 
-  if(!isset($php_data->sessionId)){
-    logError("wrong input");
- 	  exit();
-  }
-
-  ini_set('session.use_cookies', '0');
-  session_id($php_data->sessionId);
-  session_start();
-
-  if (!isset($_SESSION['logInfo']['username'])){
-    logError("wrong credentials");
-    exit();
-  }
-
   
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);

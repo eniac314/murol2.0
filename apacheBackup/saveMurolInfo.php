@@ -38,7 +38,12 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   }
 
   $query = 
-    "INSERT INTO murolInfos(issue, date, topics) VALUES (?,?,?)";
+    "INSERT INTO murolInfos(issue, date, topics) VALUES 
+    (?,?,?)
+    ON DUPLICATE KEY UPDATE
+     date = VALUES(date),
+     topics = VALUES(topics)";
+     
   mysqli_stmt_prepare($stmt, $query);
   mysqli_stmt_bind_param($stmt,'sis', $issue, $date, $topics);
   mysqli_stmt_execute($stmt);
