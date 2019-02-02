@@ -386,7 +386,14 @@ update config msg model =
                 Just ( _, pNbr ) ->
                     ( { model
                         | bulletinIndex =
-                            Dict.insert key ( Just topic, pNbr ) model.bulletinIndex
+                            Dict.insert key
+                                ( if topic == "" then
+                                    Nothing
+                                  else
+                                    Just topic
+                                , pNbr
+                                )
+                                model.bulletinIndex
                       }
                     , Cmd.none
                     )
@@ -976,7 +983,7 @@ initialView config model =
                 )
                 (case extractPubType model of
                     MurolInfo ->
-                        Dict.foldr
+                        Dict.foldl
                             (\n { issue, date } acc ->
                                 row
                                     [ spacing 15
@@ -1019,7 +1026,7 @@ initialView config model =
                             model.murolInfos
 
                     Delib ->
-                        Dict.foldr
+                        Dict.foldl
                             (\n { date } acc ->
                                 row
                                     [ spacing 15
@@ -1057,7 +1064,7 @@ initialView config model =
                             model.delibs
 
                     Bulletin ->
-                        Dict.foldr
+                        Dict.foldl
                             (\n { issue, date } acc ->
                                 row
                                     [ spacing 15
@@ -1114,8 +1121,11 @@ newMurolInfoView config model =
                 )
             of
                 ( Just issue, Just date, t :: ts ) ->
-                    model.modifyingExisting
-                        || (model.fileToUpload /= Nothing)
+                    (not <| Dict.member issue model.murolInfos)
+                        && (List.length (t :: ts) == Dict.size model.topics)
+                        && (model.modifyingExisting
+                                || (model.fileToUpload /= Nothing)
+                           )
 
                 _ ->
                     False
@@ -1183,8 +1193,11 @@ newDelibView config model =
                 )
             of
                 ( Just date, t :: ts ) ->
-                    model.modifyingExisting
-                        || (model.fileToUpload /= Nothing)
+                    (not <| Dict.member (posixToMillis date) model.delibs)
+                        && (List.length (t :: ts) == Dict.size model.topics)
+                        && (model.modifyingExisting
+                                || (model.fileToUpload /= Nothing)
+                           )
 
                 _ ->
                     False
@@ -1261,8 +1274,11 @@ newBulletinView config model =
                 )
             of
                 ( Just issue, Just date, x :: xs ) ->
-                    model.modifyingExisting
-                        || (model.fileToUpload /= Nothing)
+                    (not <| Dict.member issue model.bulletins)
+                        && (List.length (x :: xs) == Dict.size model.bulletinIndex)
+                        && (model.modifyingExisting
+                                || (model.fileToUpload /= Nothing)
+                           )
 
                 _ ->
                     False
@@ -2016,7 +2032,7 @@ coverFilename : Int -> String
 coverFilename n =
     String.fromInt n
         |> String.padLeft 3 '0'
-        |> (\s -> "baseDocumentaire/publications/bulletins/miniatures/" ++ s ++ ".jpg")
+        |> (\s -> "/baseDocumentaire/publications/bulletins/miniatures/" ++ s ++ ".jpg")
 
 
 extractPubType model =

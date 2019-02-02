@@ -1724,7 +1724,7 @@ uploadView config model =
         , Font.family
             [ Font.typeface "Arial" ]
         ]
-        [ case model.root of
+        [ case modeRoot config.mode model.root of
             ImagesRoot ->
                 imagesUploadView
 

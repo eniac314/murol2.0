@@ -21,7 +21,7 @@ import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
 import Internals.CommonHelpers exposing (chunks, dateToFrench, dateToStr)
 import Internals.CommonStyleHelpers exposing (..)
-import Internals.Icons exposing (chevronsDown, chevronsUp)
+import Internals.Icons exposing (chevronsDown, chevronsUp, externalLink)
 import Json.Decode as Decode
 import List.Extra exposing (splitAt)
 import Murmur3 exposing (hashString)
@@ -214,13 +214,24 @@ renderBlocksLinksMeta nbrChunks config id attrs { image, label, targetBlank, url
                             , Background.color (blockLinkGreyAlpha 0.8)
                             , Font.color aliceBlue
                             ]
-                            (el
-                                ([ Font.center
-                                 , width fill
-                                 ]
-                                    ++ unselectable
-                                )
-                                (text <| toSentenceCase label)
+                            (row
+                                [ width fill ]
+                                [ el
+                                    ([ Font.center
+                                     , width fill
+                                     ]
+                                        ++ unselectable
+                                    )
+                                    (text <| toSentenceCase label)
+                                , if targetBlank then
+                                    el
+                                        [ alignRight
+                                        , Font.color (rgb 1 1 1)
+                                        ]
+                                        (html <| externalLink 16)
+                                  else
+                                    Element.none
+                                ]
                             )
                         )
                     ]
@@ -1258,11 +1269,35 @@ renderMurolInfo config id attrs =
 
 
 renderDelib config id attrs =
-    []
+    case config.publications of
+        Nothing ->
+            [ el
+                [ width fill
+                , Background.color grey6
+                , paddingXY 0 7
+                , Font.center
+                ]
+                (text "Délibérations")
+            ]
+
+        Just { delibs } ->
+            [ PublicationsView.delibsView config ]
 
 
 renderBulletin config id attrs =
-    []
+    case config.publications of
+        Nothing ->
+            [ el
+                [ width fill
+                , Background.color grey6
+                , paddingXY 0 7
+                , Font.center
+                ]
+                (text "Bulletins municipaux")
+            ]
+
+        Just { delibs } ->
+            [ PublicationsView.bulletinsView config ]
 
 
 renderEmptyCell config id attrs =
