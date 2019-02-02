@@ -192,7 +192,7 @@ type alias BulletinMeta =
     { issue : Int
     , date : Posix
     , cover : String
-    , index : Dict String Int
+    , index : List ( String, Int )
     }
 
 

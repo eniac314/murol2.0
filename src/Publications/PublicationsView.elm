@@ -255,7 +255,7 @@ bulletinsView config =
                             ]
                             (text "Dans ce numéro: ")
                          ]
-                            ++ List.indexedMap (indexView issue) (List.sortBy Tuple.second <| Dict.toList index)
+                            ++ List.indexedMap (indexView issue) index
                         )
                     ]
                 ]

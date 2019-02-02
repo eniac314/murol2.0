@@ -296,9 +296,7 @@ update config msg model =
                         , bulletinIndex =
                             List.indexedMap
                                 (\i ( t, p ) -> ( i, ( Just t, Just p ) ))
-                                (Dict.toList index
-                                    |> List.sortBy Tuple.second
-                                )
+                                index
                                 |> Dict.fromList
                         , bulletinCover = Nothing
                       }
@@ -795,7 +793,7 @@ update config msg model =
                                     Maybe.withDefault
                                         ""
                                         model.bulletinCover
-                                , index = Dict.fromList (x :: xs)
+                                , index = x :: xs
                                 }
 
                         name =
@@ -1994,17 +1992,30 @@ encodeDelib { date, topics } =
 
 decodeBulletin : D.Decoder BulletinMeta
 decodeBulletin =
+    let
+        decodeIndexEntry =
+            D.map2 Tuple.pair
+                (D.field "topic" D.string)
+                (D.field "page" D.int)
+    in
     D.map4 BulletinMeta
         (D.field "issue" D.int)
         (D.field "date" (D.map millisToPosix D.int))
         (D.field "issue" D.int
             |> D.map coverFilename
         )
-        (D.field "index" (D.dict D.int))
+        (D.field "index" (D.list decodeIndexEntry))
 
 
 encodeBulletin : BulletinMeta -> E.Value
 encodeBulletin { issue, date, cover, index } =
+    let
+        encodeIndexEntry ( topic, page ) =
+            E.object
+                [ ( "topic", E.string topic )
+                , ( "page", E.int page )
+                ]
+    in
     E.object
         [ ( "issue", E.int issue )
         , ( "date", E.int (posixToMillis date) )
@@ -2014,7 +2025,7 @@ encodeBulletin { issue, date, cover, index } =
             else
                 E.string cover
           )
-        , ( "index", E.dict identity E.int index )
+        , ( "index", E.list encodeIndexEntry index )
         ]
 
 
