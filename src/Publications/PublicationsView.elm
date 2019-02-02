@@ -255,7 +255,7 @@ bulletinsView config =
                             ]
                             (text "Dans ce numéro: ")
                          ]
-                            ++ List.indexedMap (indexView issue) (Dict.toList index)
+                            ++ List.indexedMap (indexView issue) (List.sortBy Tuple.second <| Dict.toList index)
                         )
                     ]
                 ]
@@ -350,7 +350,7 @@ indexView issue n ( topic, page ) =
             , label =
                 row [ spacing 10 ]
                     [ text "●"
-                    , text topic
+                    , paragraph [] [ text topic ]
                     ]
             }
         ]

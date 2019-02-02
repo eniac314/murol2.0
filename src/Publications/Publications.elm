@@ -296,7 +296,9 @@ update config msg model =
                         , bulletinIndex =
                             List.indexedMap
                                 (\i ( t, p ) -> ( i, ( Just t, Just p ) ))
-                                (Dict.toList index)
+                                (Dict.toList index
+                                    |> List.sortBy Tuple.second
+                                )
                                 |> Dict.fromList
                         , bulletinCover = Nothing
                       }
@@ -1121,7 +1123,9 @@ newMurolInfoView config model =
                 )
             of
                 ( Just issue, Just date, t :: ts ) ->
-                    (not <| Dict.member issue model.murolInfos)
+                    (model.modifyingExisting
+                        || (not <| Dict.member issue model.murolInfos)
+                    )
                         && (List.length (t :: ts) == Dict.size model.topics)
                         && (model.modifyingExisting
                                 || (model.fileToUpload /= Nothing)
@@ -1193,7 +1197,11 @@ newDelibView config model =
                 )
             of
                 ( Just date, t :: ts ) ->
-                    (not <| Dict.member (posixToMillis date) model.delibs)
+                    (model.modifyingExisting
+                        || (not <|
+                                Dict.member (posixToMillis date) model.delibs
+                           )
+                    )
                         && (List.length (t :: ts) == Dict.size model.topics)
                         && (model.modifyingExisting
                                 || (model.fileToUpload /= Nothing)
@@ -1274,7 +1282,9 @@ newBulletinView config model =
                 )
             of
                 ( Just issue, Just date, x :: xs ) ->
-                    (not <| Dict.member issue model.bulletins)
+                    (model.modifyingExisting
+                        || (not <| Dict.member issue model.bulletins)
+                    )
                         && (List.length (x :: xs) == Dict.size model.bulletinIndex)
                         && (model.modifyingExisting
                                 || (model.fileToUpload /= Nothing)
