@@ -40,7 +40,7 @@ type alias Model msg =
     { loaded : Set String
     , images : BiStream (List Image)
     , mbDrag : Maybe Drag
-    , mbAnim : Maybe ( Animation, Direction )
+    , mbAnim : Maybe ( Animation, AnimType )
     , clock : Float
     , visibility : Visibility
     , externalMsg : Msg -> msg
@@ -53,8 +53,14 @@ type alias Image =
     }
 
 
+type AnimType
+    = AnimateLeft
+    | AnimateRight
+    | AlphaFade
+
+
 type Msg
-    = Animate Direction Posix
+    = Animate AnimType Posix
     | DragStart Position
     | DragAt Position
     | DragEnd
@@ -74,7 +80,7 @@ subscriptions model =
             Sub.none
           else
             --Sub.none
-            Time.every 15000 (Animate AnimateLeft)
+            Time.every 15000 (Animate AlphaFade)
         , onVisibilityChange VisibilityChange
         ]
 
@@ -117,6 +123,16 @@ update config msg model =
                                     |> speed 1
                                     |> ease Ease.inOutExpo
                                 , AnimateLeft
+                                )
+
+                        ( Nothing, AlphaFade ) ->
+                            Just
+                                ( animation newClock
+                                    |> from 1
+                                    |> to 0
+                                    |> duration 1500
+                                    |> ease Ease.linear
+                                , AlphaFade
                                 )
 
                         _ ->
@@ -222,6 +238,12 @@ update config msg model =
                             else
                                 ( model.mbAnim, model.images )
 
+                        Just ( anim, AlphaFade ) ->
+                            if isDone newClock anim then
+                                ( Nothing, left (.images model) )
+                            else
+                                ( model.mbAnim, model.images )
+
                         _ ->
                             ( model.mbAnim, model.images )
             in
@@ -255,6 +277,23 @@ galleryView model config =
 
 
 chunkView model config chunk =
+    let
+        frontOpacity =
+            case model.mbAnim of
+                Just ( anim, AlphaFade ) ->
+                    alpha <| animate model.clock anim
+
+                _ ->
+                    alpha 1
+
+        backOpacity =
+            case model.mbAnim of
+                Just ( anim, AlphaFade ) ->
+                    alpha <| 1 - animate model.clock anim
+
+                _ ->
+                    alpha 0
+    in
     case chunk of
         l :: c :: r :: [] ->
             Lazy.lazy
@@ -264,7 +303,11 @@ chunkView model config chunk =
                             ++ [ mc ]
                         )
                         [ picView model config l []
-                        , picView model config c []
+                        , el
+                            [ behindContent
+                                (picView model config l [ backOpacity ])
+                            ]
+                            (picView model config c [ frontOpacity ])
                         , picView model config r []
                         ]
                 )
@@ -276,15 +319,18 @@ chunkView model config chunk =
 
 picView model config { src } attrs =
     if Set.member src model.loaded then
-        el
-            ([ width (px config.maxWidth)
-             , height (px (round (toFloat config.maxWidth / 5)))
-             , Background.image src
-             ]
-                ++ attrs
-                ++ unselectable
-            )
-            Element.none
+        column
+            []
+            [ el
+                ([ width (px config.maxWidth)
+                 , height (px (round (toFloat config.maxWidth / 5)))
+                 , Background.image src
+                 ]
+                    ++ attrs
+                    ++ unselectable
+                )
+                Element.none
+            ]
     else
         column
             [ Background.color grey5
@@ -313,15 +359,15 @@ moveChunk config model =
     let
         animFun =
             case model.mbAnim of
-                Nothing ->
-                    -- necessary in order to center the row
-                    moveLeft (toFloat config.maxWidth)
-
                 Just ( anim, AnimateLeft ) ->
                     moveLeft (toFloat config.maxWidth + animate model.clock anim)
 
                 Just ( anim, AnimateRight ) ->
                     moveRight ((toFloat <| -1 * config.maxWidth) + animate model.clock anim)
+
+                _ ->
+                    -- necessary in order to center the row
+                    moveLeft (toFloat config.maxWidth)
     in
     case model.mbDrag of
         Nothing ->
