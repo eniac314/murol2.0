@@ -108,6 +108,12 @@ decodeCellContent =
                         "Calendar" ->
                             succeed Calendar
 
+                        "CalendarSalleMurol" ->
+                            succeed CalendarSalleMurol
+
+                        "CalendarSalleBeaune" ->
+                            succeed CalendarSalleBeaune
+
                         "CalendarWidget" ->
                             succeed CalendarWidget
 

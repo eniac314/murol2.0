@@ -88,6 +88,12 @@ renderDoc config document =
                 Calendar ->
                     renderCalendar config id attrs
 
+                CalendarSalleMurol ->
+                    renderCalendarSalleMurol config id attrs
+
+                CalendarSalleBeaune ->
+                    renderCalendarSalleBeaune config id attrs
+
                 WeatherWidget ->
                     renderWeatherWidget config id attrs
 
@@ -961,6 +967,92 @@ renderCalendar config id attrs =
                 html <|
                     Html.iframe
                         [ Attr.src <| "https://calendar.google.com/calendar/embed?showTitle=0&height=" ++ (String.fromInt << round <| toFloat maxWidth / 1.333333) ++ "&wkst=1&;bgcolor=%23FFFFFF&src=1claq68scg7llpg29j2fasprtk%40group.calendar.google.com&;color=%23fe3b00&;src=n1jce3hgvarkt6n3o69c6nl66g%40group.calendar.google.com&;color=%23007451&;src=r46rbonnui234n2b2glau5btoo%40group.calendar.google.com&;color=%2305f2ff&ctz=Europe%2FParis"
+                        , Attr.height (round <| toFloat maxWidth / 1.333333)
+                        , Attr.style "border-width" "0"
+                        ]
+                        []
+            )
+        ]
+    ]
+
+
+renderCalendarSalleMurol config id attrs =
+    let
+        maxWidth =
+            min
+                (docMaxWidth
+                    ( config.width, config.height )
+                    config.editMode
+                    config.previewMode
+                )
+                config.width
+                - 40
+    in
+    [ column
+        [ width (px maxWidth)
+        , centerX
+        , spacing 15
+        ]
+        [ customHeading config 1 [] "Calendrier"
+        , el
+            [ centerX
+            , width fill
+            , height (px << round <| toFloat maxWidth / 1.333333)
+            ]
+            (if maxWidth <= 500 then
+                html <|
+                    Html.iframe
+                        [ Attr.src "https://calendar.google.com/calendar/embed?showTitle=0&showTabs=0&showNav=0&showPrint=0&showCalendars=0&showTz=0&mode=AGENDA&height=150&wkst=2&hl=fr&bgcolor=%23FFFFFF&src=r46rbonnui234n2b2glau5btoo%40group.calendar.google.com&ctz=Europe%2FParis"
+                        , Attr.style "border-width" "0"
+                        ]
+                        []
+             else
+                html <|
+                    Html.iframe
+                        [ Attr.src <| "https://calendar.google.com/calendar/embed?showTitle=0&height=" ++ (String.fromInt << round <| toFloat maxWidth / 1.333333) ++ "&wkst=1&;bgcolor=%23FFFFFF&src=r46rbonnui234n2b2glau5btoo%40group.calendar.google.com&ctz=Europe%2FParis"
+                        , Attr.height (round <| toFloat maxWidth / 1.333333)
+                        , Attr.style "border-width" "0"
+                        ]
+                        []
+            )
+        ]
+    ]
+
+
+renderCalendarSalleBeaune config id attrs =
+    let
+        maxWidth =
+            min
+                (docMaxWidth
+                    ( config.width, config.height )
+                    config.editMode
+                    config.previewMode
+                )
+                config.width
+                - 40
+    in
+    [ column
+        [ width (px maxWidth)
+        , centerX
+        , spacing 15
+        ]
+        [ customHeading config 1 [] "Calendrier"
+        , el
+            [ centerX
+            , width fill
+            , height (px << round <| toFloat maxWidth / 1.333333)
+            ]
+            (if maxWidth <= 500 then
+                html <|
+                    Html.iframe
+                        [ Attr.src "https://calendar.google.com/calendar/embed?showTitle=0&showTabs=0&showNav=0&showPrint=0&showCalendars=0&showTz=0&mode=AGENDA&height=150&wkst=2&hl=fr&bgcolor=%23FFFFFF&src=n1jce3hgvarkt6n3o69c6nl66g%40group.calendar.google.com&ctz=Europe%2FParis"
+                        , Attr.style "border-width" "0"
+                        ]
+                        []
+             else
+                html <|
+                    Html.iframe
+                        [ Attr.src <| "https://calendar.google.com/calendar/embed?showTitle=0&height=" ++ (String.fromInt << round <| toFloat maxWidth / 1.333333) ++ "&wkst=1&;bgcolor=%23FFFFFF&src=n1jce3hgvarkt6n3o69c6nl66g%40group.calendar.google.com&ctz=Europe%2FParis"
                         , Attr.height (round <| toFloat maxWidth / 1.333333)
                         , Attr.style "border-width" "0"
                         ]

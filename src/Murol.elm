@@ -17,6 +17,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import Element.Region as Region
 import Gallery.Gallery as Gallery
 import Gallery.HeaderGallery as HeaderGallery
@@ -30,7 +31,7 @@ import Internals.CommonStyleHelpers exposing (blockLinkGrey, buttonStyle)
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
-import PageTreeEditor.PageTreeEditor as PageTreeEditor
+import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (Child(..), Page(..), decodeContent)
 import Publications.Publications exposing (getAllPublications)
 import Random exposing (..)
 import Set exposing (..)
@@ -55,7 +56,7 @@ type alias Model =
     , searchStr : String
     , results : Maybe SearchResult
     , searchEngineStatus : SearchEngineStatus
-    , pageTree : Maybe PageTreeEditor.Page
+    , pageTree : Maybe Page
     , debug : String
     , seed : Seed
     , unfoldedTopic : Maybe String
@@ -224,8 +225,6 @@ init flags url key =
                     |> List.map
                         (\s ->
                             "/assets/images/headerGallery/"
-                                ++ seasonToStr season
-                                ++ "/"
                                 ++ s
                                 ++ ".jpg"
                         )
@@ -333,11 +332,22 @@ update msg model =
                                     Cmd.none
 
                                 Nothing ->
-                                    let
-                                        url =
-                                            model.url
-                                    in
-                                    Nav.pushUrl model.key (Url.toString { url | path = "/accueil" })
+                                    if
+                                        model.url.path
+                                            == "/accueil/plan%20de%20site"
+                                            || model.url.path
+                                            == "/accueil/contact"
+                                            || model.url.path
+                                            == "/accueil/mentions%20l%C3%A9gales"
+                                    then
+                                        Cmd.none
+                                    else
+                                        let
+                                            url =
+                                                model.url
+                                        in
+                                        --Cmd.none
+                                        Nav.pushUrl model.key (Url.toString { url | path = "/accueil" })
                             )
 
                         _ ->
@@ -1031,7 +1041,13 @@ mainView maxWidth model =
             loadingView
 
         _ ->
-            if model.initialLoadDone then
+            if model.url.path == "/accueil/plan%20de%20site" then
+                sitemapView model maxWidth
+            else if model.url.path == "/accueil/contact" then
+                contactView model maxWidth
+            else if model.url.path == "/accueil/mentions%20l%C3%A9gales" then
+                legalView model maxWidth
+            else if model.initialLoadDone then
                 el
                     [ centerX
                     , width (maximum maxWidth fill)
@@ -1039,7 +1055,7 @@ mainView maxWidth model =
                     , padding 15
                     , height (px 300)
                     ]
-                    (text "Pas de contenu.")
+                    (text <| "Pas de contenu.")
             else
                 loadingView
 
@@ -1175,7 +1191,7 @@ topMenuView model =
                         []
                         :: xs_
             in
-            if model.config.width <= 600 then
+            if model.config.width <= 800 then
                 column
                     [ width (maximum maxWidth fill)
                     , spacing 5
@@ -1368,7 +1384,7 @@ footerView model =
                     , paddingXY 15 5
                     ]
                     [ link [ paddingXY 0 5 ]
-                        { url = ""
+                        { url = "/accueil/plan de site"
                         , label =
                             el
                                 [ footerStyle model.config.season
@@ -1379,7 +1395,7 @@ footerView model =
                                 (text "Plan de site")
                         }
                     , link [ paddingXY 0 5 ]
-                        { url = ""
+                        { url = "/accueil/contact"
                         , label =
                             el
                                 [ Font.color (rgb 1 1 1)
@@ -1388,7 +1404,7 @@ footerView model =
                                 (text "Contacter le webmaster")
                         }
                     , link [ paddingXY 0 5 ]
-                        { url = ""
+                        { url = "/accueil/mentions légales"
                         , label =
                             el
                                 [ Font.color (rgb 1 1 1)
@@ -1436,6 +1452,114 @@ footerStyle season =
             , frameBackground = rgba255 51 51 102 1
             , frameFontColor = rgba255 240 248 255 1
             }
+
+
+
+-------------------------------------------------------------------------------
+-------------
+-- Sitemap --
+-------------
+
+
+sitemapView model maxWidth =
+    column
+        [ centerX
+        , width (maximum maxWidth fill)
+        , Background.color (rgba 1 1 1 0.9)
+        , padding 15
+        , height (minimum 300 fill)
+        ]
+        [ customHeading model.config 1 [] "Plan de site"
+        , column
+            [ spacing 2
+            , width fill
+            , Font.size 16
+            , height fill
+            , padding 15
+            ]
+            (model.pageTree
+                |> Maybe.map
+                    (pageTreeView [])
+                |> Maybe.withDefault []
+            )
+        ]
+
+
+pageTreeView : List Child -> Page -> List (Element Msg)
+pageTreeView offsets (PageTreeEditor.Page pageInfo children) =
+    let
+        l =
+            List.length children
+
+        ( firsts, last ) =
+            ( List.take (l - 1) children, List.drop (l - 1) children )
+    in
+    [ row
+        [ width fill ]
+        (PageTreeEditor.prefix offsets
+            ++ [ Keyed.el
+                    []
+                    ( String.join "/" pageInfo.path
+                    , link
+                        [ mouseOver
+                            [ Font.color (rgb255 136 149 167) ]
+                        ]
+                        { url =
+                            "/" ++ String.join "/" pageInfo.path
+                        , label = text <| String.Extra.toSentenceCase pageInfo.name
+                        }
+                    )
+               ]
+        )
+    ]
+        ++ List.concatMap
+            (pageTreeView
+                (NotLastChild True
+                    :: offsets
+                )
+            )
+            firsts
+        ++ List.concatMap
+            (pageTreeView
+                (LastChild True :: offsets)
+            )
+            last
+
+
+
+-------------------------------------------------------------------------------
+-------------
+-- Contact --
+-------------
+
+
+contactView model maxWidth =
+    column
+        [ centerX
+        , width (maximum maxWidth fill)
+        , Background.color (rgba 1 1 1 0.9)
+        , padding 15
+        , height (minimum 300 fill)
+        ]
+        [ customHeading model.config 1 [] "Contact" ]
+
+
+
+-------------------------------------------------------------------------------
+----------------------
+-- Mentions légales --
+----------------------
+
+
+legalView model maxWidth =
+    column
+        [ centerX
+        , width (maximum maxWidth fill)
+        , Background.color (rgba 1 1 1 0.9)
+        , padding 15
+        , height (minimum 300 fill)
+        ]
+        [ customHeading model.config 1 [] "Mentions légales" ]
 
 
 

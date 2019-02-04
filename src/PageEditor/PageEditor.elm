@@ -736,11 +736,12 @@ internalUpdate config msg model =
                 ( Container cv xs, Just doc ) ->
                     let
                         newDoc =
-                            Container cv (xs ++ [ doc ])
+                            Container cv (xs ++ [ fixUids model.nextUid doc ])
                     in
                     ( { model
                         | document = updateCurrent newDoc model.document
                         , clipboard = Nothing
+                        , nextUid = maxUid newDoc + 1
                       }
                     , Cmd.none
                     )

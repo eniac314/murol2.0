@@ -114,6 +114,12 @@ encodeCellContent cellContent =
         CalendarWidget ->
             string "CalendarWidget"
 
+        CalendarSalleMurol ->
+            string "CalendarSalleMurol"
+
+        CalendarSalleBeaune ->
+            string "CalendarSalleBeaune"
+
         Calendar ->
             string "Calendar"
 

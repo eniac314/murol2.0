@@ -170,7 +170,27 @@ view config =
                                 "Calendar"
                     , label =
                         row [ spacing 10 ]
-                            [ text "Calendrier"
+                            [ text "Calendrier animation"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "CalendarSalleMurol"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Calendrier salle Murol"
+                            ]
+                    }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.insertNewCell
+                                "CalendarSalleBeaune"
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Calendrier salle Beaune"
                             ]
                     }
                 , Input.button (buttonStyle True)
@@ -248,6 +268,12 @@ cellContStrToCellContent s =
 
         "Calendar" ->
             Just Calendar
+
+        "CalendarSalleMurol" ->
+            Just CalendarSalleMurol
+
+        "CalendarSalleBeaune" ->
+            Just CalendarSalleBeaune
 
         "WeatherWidget" ->
             Just WeatherWidget

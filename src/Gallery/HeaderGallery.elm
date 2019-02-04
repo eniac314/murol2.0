@@ -80,7 +80,7 @@ subscriptions model =
             Sub.none
           else
             --Sub.none
-            Time.every 15000 (Animate AlphaFade)
+            Time.every 10000 (Animate AlphaFade)
         , onVisibilityChange VisibilityChange
         ]
 

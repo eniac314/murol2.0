@@ -243,7 +243,7 @@ dateToFrench zone t =
                     "janvier"
 
                 Feb ->
-                    "férier"
+                    "février"
 
                 Mar ->
                     "mars"

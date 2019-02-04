@@ -122,7 +122,7 @@ setAligment a attrs =
 
 
 
--- NOTE: this function sets a unique id starting at 0 (document root) to each
+-- NOTE: this function sets a unique id starting at nextUid to each
 --       cell and container.
 --       Also adds unique css id selector "defaultHtmlID" ++ uid
 
@@ -179,14 +179,6 @@ docSize doc =
 
 maxUid doc =
     let
-        getUid doc_ =
-            case doc_ of
-                Cell { cellContent, id, attrs } ->
-                    id.uid
-
-                Container { containerLabel, id, attrs } _ ->
-                    id.uid
-
         listMax =
             List.foldr (\x acc -> max x acc) 0
 

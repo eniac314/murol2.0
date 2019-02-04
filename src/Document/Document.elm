@@ -1,8 +1,9 @@
 module Document.Document exposing (..)
 
+--import Document.DocumentViews.StyleSheets exposing (..)
+
 import Array exposing (Array)
 import Dict exposing (Dict)
-import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
 import Html.Attributes as Attr
 import Html.Events exposing (on)
@@ -55,6 +56,8 @@ type CellContent
     | NewsBlock
     | CalendarWidget
     | Calendar
+    | CalendarSalleMurol
+    | CalendarSalleBeaune
     | WeatherWidget
     | DronePanorama
     | PictureLinks (List PictureLink)
@@ -367,6 +370,19 @@ getUid doc =
 
         Container { containerLabel, id, attrs } _ ->
             id.uid
+
+
+setUid doc newUid =
+    let
+        id =
+            getId doc
+    in
+    case doc of
+        Cell meta ->
+            Cell { meta | id = { id | uid = newUid } }
+
+        Container meta children ->
+            Container { meta | id = { id | uid = newUid } } children
 
 
 getDocStyleId doc =

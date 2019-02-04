@@ -261,7 +261,13 @@ cellContentToString lc =
             "Mini calendrier"
 
         Calendar ->
-            "Calendrier"
+            "Calendrier animation"
+
+        CalendarSalleMurol ->
+            "Calendrier salle Murol"
+
+        CalendarSalleBeaune ->
+            "Calendrier salle Beaune"
 
         WeatherWidget ->
             "Météo"
