@@ -27,7 +27,8 @@ import Html as Html
 import Html.Attributes as Attr
 import Html.Events as HtmlEvents
 import Http exposing (..)
-import Internals.CommonStyleHelpers exposing (blockLinkGrey, buttonStyle)
+import Internals.CommonStyleHelpers exposing (blockLinkGrey, blue4, blue5, buttonStyle)
+import Internals.Contact as Contact
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
@@ -61,6 +62,7 @@ type alias Model =
     , seed : Seed
     , unfoldedTopic : Maybe String
     , initialLoadDone : Bool
+    , contactPlugin : Contact.Model Msg
     , headerGallery : HeaderGallery.Model Msg
     }
 
@@ -115,6 +117,7 @@ type Msg
     | FoldTopic
     | UnfoldTopic String
     | SetZone Time.Zone
+    | ContactMsg Contact.Msg
     | HGmsg HeaderGallery.Msg
     | GalleryMsg String Gallery.Msg
     | NoOp
@@ -151,6 +154,7 @@ subscriptions model =
         ([ onResize WinResize
          , searchResult ProcessSearchResult
          , Sub.map HGmsg (HeaderGallery.subscriptions model.headerGallery)
+         , Contact.subscriptions model.contactPlugin
          ]
             ++ (model.config.galleries
                     |> Dict.map
@@ -204,6 +208,9 @@ init flags url key =
                 { url | path = "/accueil" }
             else
                 url
+
+        contact =
+            Contact.init ContactMsg
     in
     ( { config = config
       , key = key
@@ -217,6 +224,7 @@ init flags url key =
       , debug = ""
       , unfoldedTopic = Nothing
       , initialLoadDone = False
+      , contactPlugin = contact
       , headerGallery =
             HeaderGallery.init
                 (List.map
@@ -605,6 +613,15 @@ update msg model =
             in
             ( { model | config = newConfig }, Cmd.none )
 
+        ContactMsg contactMsg ->
+            let
+                ( contact, contactCmd ) =
+                    Contact.update contactMsg model.contactPlugin
+            in
+            ( { model | contactPlugin = contact }
+            , contactCmd
+            )
+
         HGmsg hgMsg ->
             ( { model
                 | headerGallery =
@@ -786,11 +803,6 @@ searchEngineView maxWidth model =
             _ ->
                 Element.none
         ]
-
-
-
---type alias SearchResult =
---    ( List String, Dict String ( Int, Set String ) )
 
 
 resView : Dict String ( String, String ) -> String -> ( Int, Set String ) -> Element Msg
@@ -1541,7 +1553,11 @@ contactView model maxWidth =
         , padding 15
         , height (minimum 300 fill)
         ]
-        [ customHeading model.config 1 [] "Contact" ]
+        [ customHeading model.config 1 [] "Contact"
+        , el
+            [ paddingXY 0 15 ]
+            (Contact.view model.contactPlugin)
+        ]
 
 
 
@@ -1558,8 +1574,59 @@ legalView model maxWidth =
         , Background.color (rgba 1 1 1 0.9)
         , padding 15
         , height (minimum 300 fill)
+        , spacing 15
         ]
-        [ customHeading model.config 1 [] "Mentions légales" ]
+        [ customHeading model.config 1 [] "Mentions légales"
+        , customHeading model.config 2 [] "Conception"
+        , wrappedRow
+            [ spacing 15 ]
+            [ el
+                [ Background.image "/assets/images/logoCropped.gif"
+                , width (px 150)
+                , height (px 150)
+                , Border.rounded 10
+                ]
+                Element.none
+            , column
+                [ spacing 5
+                , alignTop
+                ]
+                [ customHeading model.config 3 [] "Gillard Informatique"
+                , el
+                    []
+                    (text "5 Place de l'église")
+                , el
+                    []
+                    (text "89520 Lainsecq")
+                , el
+                    []
+                    (text "Tel +33 (0)3 86 74 72 64")
+                , el
+                    []
+                    (text "Mobile +33 (0)6 52 11 05 72")
+                , el
+                    []
+                    (text "Siret: 823 705 009 00020")
+                , row
+                    [ spacing 10 ]
+                    [ el [] (text "Site officiel:")
+                    , newTabLink
+                        [ Font.color blue4
+                        , mouseOver [ Font.color blue5 ]
+                        ]
+                        { url = "http://www.gillardinformatique.net"
+                        , label = text "gillardinformatique.net"
+                        }
+                    ]
+                ]
+            ]
+        , customHeading model.config 2 [] "Hébergement"
+        , el [] (text "Ionos 1&1 Internet")
+        , customHeading model.config 2 [] "Données personnelles"
+        , paragraph
+            []
+            [ text "Les données personnelles collectées par ce site via le formulaire de contact sont uniquement destinées à un usage interne. En aucun cas ces données ne seront cédées, communiquées ou vendues à des tiers. " ]
+        ]
 
 
 
