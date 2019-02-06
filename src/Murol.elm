@@ -791,8 +791,10 @@ searchEngineView maxWidth model =
                                 , scrollbarY
                                 , paddingXY 15 0
                                 ]
-                                (Dict.map (\cId v -> resView pagesIndex cId v) results
-                                    |> Dict.values
+                                (Dict.toList results
+                                    |> List.sortBy (\( k, ( score, _ ) ) -> score)
+                                    |> List.reverse
+                                    |> List.map (\( cId, v ) -> resView pagesIndex cId v)
                                 )
 
                     Nothing ->

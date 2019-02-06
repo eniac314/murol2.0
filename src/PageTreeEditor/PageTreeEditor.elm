@@ -1,6 +1,7 @@
 module PageTreeEditor.PageTreeEditor exposing (..)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
+import Base64 exposing (..)
 import Dict exposing (..)
 import Document.Document exposing (..)
 import Document.Json.DocumentDecoder exposing (..)
@@ -12,6 +13,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Keyed as Keyed
+import Html as Html
 import Html.Attributes as HtmlAttr
 import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
@@ -28,6 +30,7 @@ import Set as Set
 import Task exposing (..)
 import Time exposing (Zone, now, posixToMillis)
 import UUID exposing (UUID, canonical)
+import Url as Url
 
 
 type alias Model msg =
@@ -54,6 +57,7 @@ type alias Model msg =
     , lockedPages : List Page
     , lockedContents : Dict String (Maybe Content)
     , lockedKeywords : Set.Set ( String, String )
+    , currentTime : Maybe Time.Posix
     , error : String
     }
 
@@ -158,6 +162,7 @@ init externalMsg =
     , lockedPages = []
     , lockedContents = Dict.empty
     , lockedKeywords = Set.empty
+    , currentTime = Nothing
     , error = ""
     }
 
@@ -917,6 +922,7 @@ internalUpdate config msg model =
                     posixToMillis t
                         |> Random.initialSeed
                         |> Just
+                , currentTime = Just t
               }
             , Cmd.none
             )
@@ -1794,6 +1800,42 @@ keywordsAdminView config model =
         , width fill
         ]
         [ el
+            [ Border.widthEach
+                { top = 0
+                , bottom = 2
+                , left = 0
+                , right = 0
+                }
+            , Border.color (rgb 0.8 0.8 0.8)
+            , paddingEach
+                { top = 0
+                , bottom = 15
+                , left = 0
+                , right = 0
+                }
+            , width fill
+            ]
+            (case Maybe.map extractPage model.pageTree of
+                Nothing ->
+                    Element.none
+
+                Just page ->
+                    row
+                        [ spacing 10 ]
+                        [ el [ Font.bold ] (text "SiteMap: ")
+                        , el []
+                            (html <|
+                                Html.a
+                                    [ HtmlAttr.href <|
+                                        "data:application/octet-stream;charset=utf-16le;base64,"
+                                            ++ Base64.encode (siteMap model page)
+                                    , HtmlAttr.download "sitemap.xml"
+                                    ]
+                                    [ Html.text "sitemap.xml" ]
+                            )
+                        ]
+            )
+        , el
             [ Font.bold
             , Font.size 18
             ]
@@ -2241,6 +2283,52 @@ prefix offsets =
                         xs
     in
     helper [] (List.reverse offsets)
+
+
+
+-------------------------------------------------------------------------------
+------------------------
+-- SiteMap generation --
+------------------------
+
+
+siteMap : Model msg -> Page -> String
+siteMap model page =
+    case model.currentTime of
+        Just ct ->
+            let
+                urlStr loc =
+                    "<url>\n"
+                        ++ "<loc>"
+                        ++ loc
+                        ++ "</loc>\n"
+                        ++ "<lastmod>"
+                        ++ dateToW3c ct
+                        ++ "</lastmod>\n"
+                        ++ "</url>\n"
+
+                helper (Page pageInfo children) =
+                    (("https://www.murol.fr/"
+                        ++ (List.map Url.percentEncode pageInfo.path
+                                |> String.join "/"
+                           )
+                     )
+                        |> urlStr
+                    )
+                        ++ (List.map helper children
+                                |> String.join ""
+                           )
+            in
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                ++ "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n"
+                ++ helper page
+                ++ urlStr "https://www.murol.fr/accueil/plan%20de%20site"
+                ++ urlStr "https://www.murol.fr/accueil/contact"
+                ++ urlStr "https://www.murol.fr/accueil/mentions%20l%C3%A9gales"
+                ++ "</urlset>\n"
+
+        Nothing ->
+            ""
 
 
 

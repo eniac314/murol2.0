@@ -230,6 +230,36 @@ dateToStr zone d =
         ++ String.fromInt dateRec.year
 
 
+dateToW3c : Time.Posix -> String
+dateToW3c d =
+    let
+        dateRec =
+            posixToCivil (addTimezoneMilliseconds Time.utc d)
+    in
+    String.fromInt dateRec.year
+        ++ "-"
+        ++ (String.fromInt dateRec.month
+                |> String.padLeft 2 '0'
+           )
+        ++ "-"
+        ++ (String.fromInt dateRec.day
+                |> String.padLeft 2 '0'
+           )
+        ++ "T"
+        ++ (String.fromInt dateRec.hour
+                |> String.padLeft 2 '0'
+           )
+        ++ ":"
+        ++ (String.fromInt dateRec.minute
+                |> String.padLeft 2 '0'
+           )
+        ++ ":"
+        ++ (String.fromInt dateRec.second
+                |> String.padLeft 2 '0'
+           )
+        ++ "Z"
+
+
 dateToFrench : Time.Zone -> Time.Posix -> String
 dateToFrench zone t =
     let
