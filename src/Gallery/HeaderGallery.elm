@@ -76,10 +76,15 @@ subscriptions model =
             Sub.none
           else
             onAnimationFrame Tick
-        , if model.visibility == Hidden then
+        , if
+            (model.visibility
+                == Hidden
+            )
+                || (model.mbAnim /= Nothing)
+                || (model.mbDrag /= Nothing)
+          then
             Sub.none
           else
-            --Sub.none
             Time.every 10000 (Animate AlphaFade)
         , onVisibilityChange VisibilityChange
         ]

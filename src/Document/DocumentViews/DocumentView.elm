@@ -1168,7 +1168,7 @@ renderDronePanorama config id attrs =
                     []
                     (text "Réalisée par la société ")
                 , newTabLink [ Font.color teal3 ]
-                    { url = "http://www.w3ds.fr/"
+                    { url = "https://www.w3ds.fr/"
                     , label = text "W3D's"
                     }
                 ]
