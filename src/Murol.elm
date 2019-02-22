@@ -247,6 +247,7 @@ init flags url key =
         , getAllPublications LoadPublications
         , if url /= url_ then
             Nav.pushUrl key (Url.toString url_)
+            --Nav.loadUrl (Url.toString url_)
           else
             Cmd.none
         , Task.perform SetTime Time.now
@@ -271,6 +272,13 @@ update msg model =
         ClickedLink urlRequest ->
             case urlRequest of
                 Internal url ->
+                    --let
+                    --    url_ =
+                    --        if url.path == "/" then
+                    --            { url | path = "/accueil" }
+                    --        else
+                    --            url
+                    --in
                     ( model
                     , Nav.pushUrl
                         model.key

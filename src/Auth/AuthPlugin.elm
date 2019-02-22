@@ -44,7 +44,6 @@ type alias Model msg =
     , pluginMode : PluginMode
     , logs :
         List Log
-        --, zone : Time.Zone
     , externalMsg : Msg -> msg
     }
 
@@ -57,7 +56,8 @@ init externalMsg =
     , pluginMode = LoginMode Initial
     , logs =
         []
-        --, zone = Time.utc
+
+    --, zone = Time.utc
     , externalMsg = externalMsg
     }
 
@@ -106,7 +106,7 @@ update msg model =
         ( newModel, cmds, mbToolResult ) =
             internalUpdate msg model
     in
-        ( newModel, Cmd.map model.externalMsg cmds, mbToolResult )
+    ( newModel, Cmd.map model.externalMsg cmds, mbToolResult )
 
 
 internalUpdate msg model =
@@ -251,11 +251,11 @@ login model =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "login.php"
-            , body = body
-            , expect = Http.expectJson ConfirmLogin decodeLoginResult
-            }
+    Http.post
+        { url = "login.php"
+        , body = body
+        , expect = Http.expectJson ConfirmLogin decodeLoginResult
+        }
 
 
 decodeLoginResult : Decode.Decoder LogInfo
@@ -279,11 +279,11 @@ signUp model =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "signup.php"
-            , body = body
-            , expect = Http.expectJson ConfirmSignUp decodeSignupResult
-            }
+    Http.post
+        { url = "signup.php"
+        , body = body
+        , expect = Http.expectJson ConfirmSignUp decodeSignupResult
+        }
 
 
 decodeSignupResult =
@@ -359,7 +359,7 @@ signUpView config status model =
                         , label = text "Envoyer"
                         }
                     , Input.button (buttonStyle True)
-                        { onPress = Just Quit
+                        { onPress = Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Retour"
                         }
                     ]
@@ -380,10 +380,11 @@ signUpView config status model =
                             Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Connexion"
                         }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just Quit
-                        , label = text "Retour"
-                        }
+
+                    --, Input.button (buttonStyle True)
+                    --    { onPress = Just Quit
+                    --    , label = text "Retour"
+                    --    }
                     ]
                 ]
 
@@ -398,38 +399,39 @@ signUpView config status model =
                             Just <| ChangePluginMode (SignUpMode Initial)
                         , label = text "Réessayer"
                         }
+
+                    --, Input.button (buttonStyle True)
+                    --    { onPress =
+                    --        Just <| ChangePluginMode (LoginMode Initial)
+                    --    , label = text "Connexion"
+                    --    }
                     , Input.button (buttonStyle True)
-                        { onPress =
-                            Just <| ChangePluginMode (LoginMode Initial)
-                        , label = text "Connexion"
-                        }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just Quit
+                        { onPress = Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Retour"
                         }
                     ]
                 ]
     in
-        column
-            [ padding 15
-            , spacing 15
-            , Font.size 16
-            , alignTop
-            ]
-            [ text "Nouvel utilisateur: "
-            , case status of
-                Initial ->
-                    initialView
+    column
+        [ padding 15
+        , spacing 15
+        , Font.size 16
+        , alignTop
+        ]
+        [ text "Nouvel utilisateur: "
+        , case status of
+            Initial ->
+                initialView
 
-                Waiting ->
-                    waitingView
+            Waiting ->
+                waitingView
 
-                Success ->
-                    successView
+            Success ->
+                successView
 
-                Failure ->
-                    failureView
-            ]
+            Failure ->
+                failureView
+        ]
 
 
 loginView config status model =
@@ -484,10 +486,11 @@ loginView config status model =
                         { onPress = Just <| ChangePluginMode (LogoutMode Initial)
                         , label = text "Deconnexion"
                         }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just Quit
-                        , label = text "Retour"
-                        }
+
+                    --, Input.button (buttonStyle True)
+                    --    { onPress = Just Quit
+                    --    , label = text "Retour"
+                    --    }
                     ]
                 ]
 
@@ -502,33 +505,34 @@ loginView config status model =
                             Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Réessayer"
                         }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just Quit
-                        , label = text "Retour"
-                        }
+
+                    --, Input.button (buttonStyle True)
+                    --    { onPress = Just Quit
+                    --    , label = text "Retour"
+                    --    }
                     ]
                 ]
     in
-        column
-            [ padding 15
-            , spacing 15
-            , Font.size 16
-            , alignTop
-            ]
-            [ text "Connexion: "
-            , case status of
-                Initial ->
-                    initialView
+    column
+        [ padding 15
+        , spacing 15
+        , Font.size 16
+        , alignTop
+        ]
+        [ text "Connexion: "
+        , case status of
+            Initial ->
+                initialView
 
-                Waiting ->
-                    waitingView
+            Waiting ->
+                waitingView
 
-                Success ->
-                    successView
+            Success ->
+                successView
 
-                Failure ->
-                    failureView
-            ]
+            Failure ->
+                failureView
+        ]
 
 
 logoutView config status model =
@@ -556,10 +560,11 @@ logoutView config status model =
                         { onPress = Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Connexion"
                         }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just Quit
-                        , label = text "Retour"
-                        }
+
+                    --, Input.button (buttonStyle True)
+                    --    { onPress = Just Quit
+                    --    , label = text "Retour"
+                    --    }
                     ]
                 ]
 
@@ -574,30 +579,31 @@ logoutView config status model =
                             Just <| ChangePluginMode (LogoutMode Initial)
                         , label = text "Réessayer"
                         }
-                    , Input.button (buttonStyle True)
-                        { onPress = Just Quit
-                        , label = text "Retour"
-                        }
+
+                    --, Input.button (buttonStyle True)
+                    --    { onPress = Just Quit
+                    --    , label = text "Retour"
+                    --    }
                     ]
                 ]
     in
-        column
-            [ padding 15
-            , spacing 15
-            , Font.size 16
-            , alignTop
-            ]
-            [ text "Déconnexion: "
-            , case status of
-                Initial ->
-                    initialView
+    column
+        [ padding 15
+        , spacing 15
+        , Font.size 16
+        , alignTop
+        ]
+        [ text "Déconnexion: "
+        , case status of
+            Initial ->
+                initialView
 
-                Waiting ->
-                    waitingView
+            Waiting ->
+                waitingView
 
-                Success ->
-                    successView
+            Success ->
+                successView
 
-                Failure ->
-                    failureView
-            ]
+            Failure ->
+                failureView
+        ]

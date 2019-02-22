@@ -452,7 +452,7 @@ view model =
                             FileExplorerTool ->
                                 FileExplorer.view
                                     { maxHeight =
-                                        model.winHeight - 35
+                                        model.winHeight - 70
                                     , zone = model.zone
                                     , logInfo = Auth.getLogInfo model.authTool
                                     , mode = FileExplorer.Full
@@ -465,7 +465,7 @@ view model =
                             PageTreeTool ->
                                 PageTreeEditor.view
                                     { maxHeight =
-                                        model.winHeight - 35
+                                        model.winHeight - 70
                                     , zone = model.zone
                                     , logInfo = Auth.getLogInfo model.authTool
                                     , mode = PageTreeEditor.Full
@@ -475,7 +475,7 @@ view model =
                             GeneralDirectoryTool ->
                                 GeneralDirectoryEditor.view
                                     { maxHeight =
-                                        model.winHeight - 35
+                                        model.winHeight - 70
                                     , zone = model.zone
                                     , fileExplorer = model.fileExplorer
                                     , logInfo = Auth.getLogInfo model.authTool
@@ -485,7 +485,7 @@ view model =
                             NewsEditorTool ->
                                 NewsEditor.view
                                     { maxHeight =
-                                        model.winHeight - 35
+                                        model.winHeight - 70
                                     , zone = model.zone
                                     , fileExplorer = model.fileExplorer
                                     , pageTreeEditor = model.pageTreeEditor
@@ -496,11 +496,12 @@ view model =
                             PublicationsTool ->
                                 Publications.view
                                     { maxHeight =
-                                        model.winHeight - 35
+                                        model.winHeight - 70
                                     , zone = model.zone
                                     , logInfo = Auth.getLogInfo model.authTool
                                     }
                                     model.publications
+                        , notificationsPanelView model
                         ]
             )
         ]
@@ -571,3 +572,19 @@ tabView currentTool tool s =
             )
             (text s)
         )
+
+
+notificationsPanelView : Model -> Element Msg
+notificationsPanelView model =
+    row
+        [ width fill
+        , height (px 35)
+        , Border.color (rgb 0.8 0.8 0.8)
+        , Border.widthEach
+            { top = 2
+            , bottom = 0
+            , left = 0
+            , right = 0
+            }
+        ]
+        []

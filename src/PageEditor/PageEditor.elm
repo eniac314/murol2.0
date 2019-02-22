@@ -1417,7 +1417,7 @@ view config model =
     in
     column
         ([ width fill
-         , height (maximum (newConfig.height - 35) fill)
+         , height (maximum (newConfig.height - 70) fill)
          ]
             ++ (if model.menuClicked then
                     [ onClick (model.externalMsg MenuClickOff) ]
@@ -1523,7 +1523,7 @@ pluginView config model plugin =
                 { picListing = []
                 , fileExplorer = config.fileExplorer
                 , zone = config.zone
-                , maxHeight = model.config.height - model.config.mainInterfaceHeight - 35
+                , maxHeight = model.config.height - model.config.mainInterfaceHeight - 70
                 , logInfo = config.logInfo
                 }
                 model.imagePlugin
@@ -1627,7 +1627,7 @@ pluginView config model plugin =
             column
                 [ width fill ]
                 [ PageTreeEditor.view
-                    { maxHeight = model.config.height - model.config.mainInterfaceHeight - 85
+                    { maxHeight = model.config.height - model.config.mainInterfaceHeight - 120
                     , zone = config.zone
                     , logInfo = config.logInfo
                     , mode = mode

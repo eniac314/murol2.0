@@ -1,6 +1,15 @@
+-------------------------------------------------------------------------------
+---------------
+-- Todo list --
+---------------
+
+- fix retry login
+
+- fix fiches label overflowing
+
 - add break to parser
 
-- add calendar
+- filter .htaccess in file explorer
 
 - add 360 pics
 
@@ -17,9 +26,7 @@
 - fix add sizetracked ids happening only at init time
 	|-> recompute when adding/editing? new image
 
-
 - refaire keyboard subs 
-
 
 - 2 possibiltés pour les custom leaves:
 	* hardcoded
@@ -27,26 +34,29 @@
 
 - demander tradeoffs z-index
 
-
-- colaboratory : https://colab.research.google.com/notebooks/welcome.ipynb#scrollTo=oYZkU7ZN3CL0
-
 - remove background colors, selected and hovered class from stylesheet
 	put them in documentView associated with config flags
-
-- check elm spa
 
 - remove empty docs before saving
 
 - check elm test for testing uuid uniqueness invariants
 
-
 - height shrink in Input.multiline fo Table
 
 - desactiver couper / supprimer  pour dernier élément dans un containeur
 
-- image plugin ellie https://ellie-app.com/3zLhjdtxP3ga1
-
 - check "" bug in gallery name
+
+- changer image se loger 
+
+- changer style lien
+
+-- add cookie banner
+
+-------------------------------------------------------------------------------
+----------
+-- Memo --
+----------
 
 find . -name '*.elm' | xargs wc -l
 
@@ -96,7 +106,7 @@ CallStack (from HasCallStack):
   error, called at ./Data/Vector/Internal/Check.hs:87:5 in vector-0.12.0.1-IfIQAgrX0q07Xkx6bkYLRX:Data.Vector.Internal.Check
 elm: thread blocked indefinitely in an MVar operation
 
-- changer couleurs titre news 
-- enlever menu déroulant tablette
-- changer image se loger 
-- changer style lien
+- colaboratory : https://colab.research.google.com/notebooks/welcome.ipynb#scrollTo=oYZkU7ZN3CL0
+
+- image plugin ellie https://ellie-app.com/3zLhjdtxP3ga1
+
