@@ -645,7 +645,7 @@ homeView config model =
             [ Font.bold
             , Font.size 18
             ]
-            (text "Créer une nouvel album")
+            (text "Créer un nouvel album")
         , row
             [ width fill
             , spacing 15

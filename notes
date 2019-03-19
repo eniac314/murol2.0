@@ -53,6 +53,8 @@
 
 -- add cookie banner
 
+-- remove available threads flags in MurolAdmin.elm
+
 -------------------------------------------------------------------------------
 ----------
 -- Memo --

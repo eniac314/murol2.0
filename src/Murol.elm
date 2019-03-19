@@ -272,17 +272,14 @@ update msg model =
         ClickedLink urlRequest ->
             case urlRequest of
                 Internal url ->
-                    --let
-                    --    url_ =
-                    --        if url.path == "/" then
-                    --            { url | path = "/accueil" }
-                    --        else
-                    --            url
-                    --in
                     ( model
-                    , Nav.pushUrl
-                        model.key
-                        (Url.toString url)
+                    , Cmd.batch
+                        [ Nav.pushUrl
+                            model.key
+                            (Url.toString url)
+                        , Task.attempt (\_ -> NoOp)
+                            (Dom.setViewportOf "topAnchor" 0 127)
+                        ]
                     )
 
                 External url ->
@@ -303,8 +300,6 @@ update msg model =
                       }
                     , Cmd.batch
                         [ getContent ( url.path, cId, name )
-                        , Task.attempt (\_ -> NoOp)
-                            (Dom.setViewportOf "mainContainer" 0 0)
                         ]
                     )
 
@@ -701,7 +696,10 @@ view model =
                 (column
                     [ width fill
                     , scrollbarY
-                    , htmlAttribute <| Attr.style "id" "mainContainer"
+                    , if model.config.width > 500 then
+                        noAttr
+                      else
+                        htmlAttribute <| Attr.id "topAnchor"
                     ]
                     [ pageTitleView maxWidth model
                     , subTitleView maxWidth model
