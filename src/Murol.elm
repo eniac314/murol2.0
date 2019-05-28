@@ -1,4 +1,4 @@
-port module Murol exposing (..)
+port module Murol exposing (ContentIdStr, Flags, Keyword, LoadingStatus(..), Model, Msg(..), PageName, Pages, PathStr, SearchEngineStatus(..), SearchResult, TopMenuStyle, clickablePath, contactView, decodePages, decodeSearchResults, footerStyle, footerView, getContent, getFiches, getNews, getPages, init, legalView, main, mainView, noAttr, onEnter, onEscape, onKeyEvent, pageTitleView, pageToPages, pageTreeView, resView, searchEngineView, searchResult, seasonSelectorView, sitemapView, subTitleView, subscriptions, toSearchEngine, topMenuStyle, topMenuView, update, view)
 
 import Browser exposing (..)
 import Browser.Dom as Dom
@@ -206,6 +206,7 @@ init flags url key =
         url_ =
             if url.path == "/" then
                 { url | path = "/accueil" }
+
             else
                 url
 
@@ -248,6 +249,7 @@ init flags url key =
         , if url /= url_ then
             Nav.pushUrl key (Url.toString url_)
             --Nav.loadUrl (Url.toString url_)
+
           else
             Cmd.none
         , Task.perform SetTime Time.now
@@ -352,6 +354,7 @@ update msg model =
                                             == "/accueil/mentions%20l%C3%A9gales"
                                     then
                                         Cmd.none
+
                                     else
                                         let
                                             url =
@@ -381,6 +384,7 @@ update msg model =
                                         (\id acc ->
                                             if Dict.member id model.config.fiches then
                                                 acc
+
                                             else
                                                 id :: acc
                                         )
@@ -420,6 +424,7 @@ update msg model =
                               }
                             , if fichesToDownload /= [] then
                                 getFiches fichesToDownload
+
                               else
                                 Cmd.none
                             )
@@ -578,6 +583,7 @@ update msg model =
                         | openedFiches =
                             if Set.member fId config.openedFiches then
                                 Set.remove fId config.openedFiches
+
                             else
                                 Set.insert fId config.openedFiches
                     }
@@ -594,6 +600,7 @@ update msg model =
                         | openedNews =
                             if Set.member nId config.openedNews then
                                 Set.remove nId config.openedNews
+
                             else
                                 Set.insert nId config.openedNews
                     }
@@ -696,8 +703,10 @@ view model =
                 (column
                     [ width fill
                     , scrollbarY
+                    , htmlAttribute <| Attr.style "-webkit-overflow-scrolling" "touch"
                     , if model.config.width > 500 then
                         noAttr
+
                       else
                         htmlAttribute <| Attr.id "topAnchor"
                     ]
@@ -705,6 +714,7 @@ view model =
                     , subTitleView maxWidth model
                     , if model.config.width > 500 then
                         HeaderGallery.view { maxWidth = min 1000 model.config.width } model.headerGallery
+
                       else
                         Element.none
                     , clickablePath maxWidth model
@@ -757,6 +767,7 @@ searchEngineView maxWidth model =
                 , focused [ Border.glow (rgb 1 1 1) 0 ]
                 , if model.config.width < 500 then
                     width (px 150)
+
                   else
                     width (px 270)
                 , onKeyEvent
@@ -789,6 +800,7 @@ searchEngineView maxWidth model =
                             el
                                 [ paddingXY 15 0 ]
                                 (text "pas de resultats")
+
                         else
                             column
                                 [ width fill
@@ -1009,6 +1021,7 @@ subTitleView maxWidth model =
                 text <|
                     "La municipalité de Murol vous souhaite une bonne année "
                         ++ String.fromInt (Time.toYear model.config.zone model.config.currentTime)
+
               else
                 text "La municipalité de Murol vous souhaite la bienvenue"
 
@@ -1063,10 +1076,13 @@ mainView maxWidth model =
         _ ->
             if model.url.path == "/accueil/plan%20de%20site" then
                 sitemapView model maxWidth
+
             else if model.url.path == "/accueil/contact" then
                 contactView model maxWidth
+
             else if model.url.path == "/accueil/mentions%20l%C3%A9gales" then
                 legalView model maxWidth
+
             else if model.initialLoadDone then
                 el
                     [ centerX
@@ -1076,6 +1092,7 @@ mainView maxWidth model =
                     , height (px 300)
                     ]
                     (text <| "Pas de contenu.")
+
             else
                 loadingView
 
@@ -1109,10 +1126,12 @@ topMenuView model =
                         [ alignTop
                         , if model.config.width >= 1000 then
                             Events.onMouseEnter (UnfoldTopic pageInfo.name)
+
                           else
                             noAttr
                         , if model.config.width >= 1000 then
                             Events.onMouseLeave FoldTopic
+
                           else
                             noAttr
                         , if model.unfoldedTopic == Just pageInfo.name then
@@ -1121,6 +1140,7 @@ topMenuView model =
                                     []
                                     (List.map subCatView xs)
                                 )
+
                           else
                             noAttr
                         ]
@@ -1219,6 +1239,7 @@ topMenuView model =
                     , Background.color (rgba 1 1 1 0.9)
                     ]
                     (List.map mobileMainCatView menu)
+
             else
                 row
                     [ centerX
@@ -1824,8 +1845,10 @@ onKeyEvent =
             (\kc ->
                 if kc == 13 then
                     Search
+
                 else if kc == 27 then
                     ResetSearchEngine
+
                 else
                     NoOp
             )
@@ -1841,6 +1864,7 @@ onEnter msg =
             (\kc ->
                 if kc == 13 then
                     msg
+
                 else
                     NoOp
             )
@@ -1856,6 +1880,7 @@ onEscape msg =
             (\kc ->
                 if kc == 27 then
                     msg
+
                 else
                     NoOp
             )

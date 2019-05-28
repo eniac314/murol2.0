@@ -678,7 +678,11 @@ homeView config model =
                 }
             , Input.button
                 (buttonStyle (model.galleryTitleInput /= Nothing))
-                { onPress = Just ImagesRequested
+                { onPress =
+                    if model.galleryTitleInput /= Nothing then
+                        Just ImagesRequested
+                    else
+                        Nothing
                 , label = text "Nouvel album"
                 }
             ]

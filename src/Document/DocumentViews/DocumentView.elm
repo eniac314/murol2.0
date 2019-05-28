@@ -446,7 +446,7 @@ renderNews config id attrs =
                     el
                         [ width (px 266)
                         , height (px 200)
-                        , Background.image url
+                        , Background.uncropped url
                         ]
                         Element.none
 
