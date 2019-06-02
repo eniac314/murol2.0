@@ -49,9 +49,22 @@
       }
       
       get selection(){
-        return this._currentSelection || "no selection";  
+        this._textarea = this.querySelector('textarea');
+        var start = this._textarea.selectionStart;
+        var finish = this._textarea.selectionEnd;
+        var sel = this._textarea.value.substring(start, finish);
+        
+        return { start: start, 
+                 finish: finish,
+                 sel: sel
+               };  
       }
 
+      get value(){
+        this._textarea = this.querySelector('textarea');
+        return this._textarea.value;
+      }
+      
       get cols(){
         return this._cols || "0";
       }
@@ -70,20 +83,12 @@
         this._textarea = this.querySelector('textarea');
             
         this._textarea.addEventListener('click', (event) => {
-            
-          var start = this._textarea.selectionStart;
-          var finish = this._textarea.selectionEnd;
-          var sel = this._textarea.value.substring(start, finish);
-
-           this._currentSelection = 
-               { start: start, 
-                 finish: finish,
-                 sel: sel
-               };
-
           this.dispatchEvent(new CustomEvent('Selection'));
-        }); 
-      
+        });
+
+        this._textarea.addEventListener('input', (event) => {
+          this.dispatchEvent(new CustomEvent('Input'));
+        });
       }
     });
 

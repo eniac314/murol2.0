@@ -64,7 +64,7 @@ type Msg
     = ---------------------------
       -- Textarea Manipulation --
       ---------------------------
-      TextInput String
+      TextInput CustomInput
     | InsertTrackingTag TrackedDataKind
     | NewSelection Selection
     | SetSelection
@@ -188,21 +188,27 @@ update config msg model =
         ---------------------------
         -- Textarea Manipulation --
         ---------------------------
-        TextInput s ->
-            case run textBlock s of
+        TextInput { selection, value } ->
+            case run textBlock value of
                 Ok res ->
                     let
                         newTrackedData =
                             updateTrackedData model.trackedData res
                     in
                     ( { model
-                        | rawInput = s
+                        | rawInput = value
                         , parsedInput = Ok res
                         , trackedData = newTrackedData
                         , currentTrackedData =
                             getSelectedTrackedData model.cursorPos newTrackedData
                         , nextUid = findNextAvailableUid newTrackedData
                         , output = List.filterMap (toTextBlocElement newTrackedData) res
+                        , cursorPos =
+                            if selection.start == selection.finish then
+                                Just selection.start
+
+                            else
+                                Nothing
                       }
                     , Cmd.batch
                         []
@@ -253,6 +259,7 @@ update config msg model =
                 currentTrackedData =
                     if s.start == s.finish then
                         getSelectedTrackedData (Just s.start) model.trackedData
+
                     else
                         Nothing
             in
@@ -260,11 +267,13 @@ update config msg model =
                 | selected =
                     if s.start == s.finish then
                         Nothing
+
                     else
                         Just s
                 , cursorPos =
                     if s.start == s.finish then
                         Just s.start
+
                     else
                         Nothing
                 , currentTrackedData = currentTrackedData
@@ -273,6 +282,7 @@ update config msg model =
                         Maybe.map
                             (\td -> encodeSelection td.meta.start td.meta.stop)
                             (getSelectedTrackedData (Just s.start) model.trackedData)
+
                     else
                         Nothing
               }
@@ -850,18 +860,37 @@ view config renderConfig model =
                     [ Events.onClick
                         (model.externalMsg InternalUrlSelectorClickOff)
                     ]
+
                 else
                     []
                )
             ++ (if not (model.colorPickerOpen == Nothing) then
                     [ Events.onClick (model.externalMsg ColorPickerClickOff) ]
+
                 else
                     []
                )
         )
         [ interfaceView config False model
+        , column
+            [ width fill
+            , spacing 15
+            ]
+            (Dict.toList model.trackedData
+                |> List.map
+                    (\( key, td ) ->
+                        Element.paragraph
+                            [ spacing 15 ]
+                            [ text <| String.fromInt key
+                            , text <| Debug.toString td
+                            ]
+                    )
+            )
+        , el [] (text <| Debug.toString model.selected)
+        , el [] (text <| Debug.toString model.cursorPos)
         , (if renderConfig.width < 1600 then
             column
+
            else
             row
           )
@@ -911,11 +940,13 @@ newsEditorView config model =
                     [ Events.onClick
                         (model.externalMsg InternalUrlSelectorClickOff)
                     ]
+
                 else
                     []
                )
             ++ (if not (model.colorPickerOpen == Nothing) then
                     [ Events.onClick (model.externalMsg ColorPickerClickOff) ]
+
                 else
                     []
                )
@@ -965,12 +996,14 @@ interfaceView config isNewsView model =
             ]
             [ if isNewsView then
                 Element.none
+
               else
                 Input.button
                     (buttonStyle isActive)
                     { onPress =
                         if isActive then
                             Just (model.externalMsg <| InsertTrackingTag <| Heading 1)
+
                         else
                             Nothing
                     , label =
@@ -984,6 +1017,7 @@ interfaceView config isNewsView model =
                 { onPress =
                     if isActive then
                         Just (model.externalMsg <| InsertTrackingTag <| InternalLink False "")
+
                     else
                         Nothing
                 , label =
@@ -997,6 +1031,7 @@ interfaceView config isNewsView model =
                 { onPress =
                     if isActive then
                         Just (model.externalMsg <| InsertTrackingTag <| ExternalLink "")
+
                     else
                         Nothing
                 , label =
@@ -1010,6 +1045,7 @@ interfaceView config isNewsView model =
                 { onPress =
                     if isActive then
                         Just (model.externalMsg <| InsertTrackingTag <| InlineStyled)
+
                     else
                         Nothing
                 , label =
@@ -1217,9 +1253,11 @@ internalLinkView externalMsg config =
                     ]
                     [ if config.isDoc then
                         chooseDocView externalMsg config.td.meta.uid config.fileExplorer config.zone config.logInfo
+
                       else
                         chooseInternalPageView externalMsg config.td.meta.uid config.pageTreeEditor config.zone config.logInfo
                     ]
+
             else
                 Element.none
         ]
@@ -1488,6 +1526,42 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
             ]
 
 
+
+-------------------------------------------------------------------------------
+---------------------
+-- Custom textarea --
+---------------------
+
+
+type alias CustomInput =
+    { selection : Selection
+    , value : String
+    }
+
+
+decodeCustomInput : Decode.Decoder CustomInput
+decodeCustomInput =
+    Decode.map2 CustomInput
+        (Decode.at [ "target", "selection" ]
+            (Decode.map3 Selection
+                (Decode.field "start" Decode.int)
+                (Decode.field "finish" Decode.int)
+                (Decode.field "sel" Decode.string)
+            )
+        )
+        (Decode.at [ "target", "value" ] Decode.string)
+
+
+onCustomInput : (CustomInput -> msg) -> Html.Attribute msg
+onCustomInput tagger =
+    HtmlEvents.stopPropagationOn "Input" (Decode.map alwaysStop (Decode.map tagger decodeCustomInput))
+
+
+alwaysStop : a -> ( a, Bool )
+alwaysStop x =
+    ( x, True )
+
+
 customTextArea :
     List (Element.Attribute Msg)
     -> Maybe Encode.Value
@@ -1498,8 +1572,11 @@ customTextArea attrs setSelection height rawInput =
     el attrs
         (html <|
             Html.node "custom-textarea"
-                ([ HtmlEvents.onInput TextInput
-                 , HtmlEvents.on "Selection" decodeSelection
+                ([ HtmlEvents.on "Selection" decodeSelection
+                 , onCustomInput TextInput
+
+                 --, HtmlEvents.onInput
+                 --   (\s -> TextInput { selection = Selection 0 0 "", value = s })
                  ]
                     ++ (case setSelection of
                             Just selection ->
@@ -1515,6 +1592,7 @@ customTextArea attrs setSelection height rawInput =
                     , HtmlAttr.cols
                         (if height == 300 then
                             70
+
                          else
                             60
                         )
@@ -1526,6 +1604,10 @@ customTextArea attrs setSelection height rawInput =
                     []
                 ]
         )
+
+
+
+-------------------------------------------------------------------------------
 
 
 textBlockPreview : Model msg -> Config msg -> Element.Element msg
@@ -1622,6 +1704,7 @@ colorPicker colorPickerOpen currentColor label msg uid =
                                 , padding 10
                                 ]
                                 colors
+
                         else
                             Element.none
 
@@ -2049,6 +2132,7 @@ updateTrackedData currentTrackedData elems =
                     (\k acc ->
                         if not (List.member k newKeys) then
                             Dict.remove k acc
+
                         else
                             acc
                     )
@@ -2143,6 +2227,7 @@ insertTagHelper rawInput selection nextUid tagname =
                         ++ sel
                         ++ (if needSpace then
                                 " </> "
+
                             else
                                 "</>"
                            )
@@ -2416,6 +2501,7 @@ fromTextBlocPrimitive nextUid tbp =
             { resultString =
                 (if targetBlank then
                     "< lien-externe "
+
                  else
                     "< lien-interne "
                 )
@@ -2430,6 +2516,7 @@ fromTextBlocPrimitive nextUid tbp =
                     , dataKind =
                         if targetBlank then
                             ExternalLink url
+
                         else
                             InternalLink
                                 (String.startsWith "/baseDocumentaire" url)
@@ -2521,6 +2608,7 @@ entryView mbSel msg e =
             Just sel ->
                 if sel == e then
                     Background.color (rgb 0.8 0.8 0.8)
+
                 else
                     Background.color (rgb 1 1 1)
 
@@ -2606,8 +2694,10 @@ updateAttrs p attrWrapper val attrs =
                 x :: xs_ ->
                     if attrWrapper val == x then
                         List.reverse acc ++ xs_
+
                     else if p x then
                         List.reverse (attrWrapper val :: acc) ++ xs_
+
                     else
                         helper (x :: acc) xs_
     in
