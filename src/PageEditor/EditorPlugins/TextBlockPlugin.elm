@@ -872,22 +872,23 @@ view config renderConfig model =
                )
         )
         [ interfaceView config False model
-        , column
-            [ width fill
-            , spacing 15
-            ]
-            (Dict.toList model.trackedData
-                |> List.map
-                    (\( key, td ) ->
-                        Element.paragraph
-                            [ spacing 15 ]
-                            [ text <| String.fromInt key
-                            , text <| Debug.toString td
-                            ]
-                    )
-            )
-        , el [] (text <| Debug.toString model.selected)
-        , el [] (text <| Debug.toString model.cursorPos)
+
+        --, column
+        --    [ width fill
+        --    , spacing 15
+        --    ]
+        --    (Dict.toList model.trackedData
+        --        |> List.map
+        --            (\( key, td ) ->
+        --                Element.paragraph
+        --                    [ spacing 15 ]
+        --                    [ text <| String.fromInt key
+        --                    , text <| Debug.toString td
+        --                    ]
+        --            )
+        --    )
+        --, el [] (text <| Debug.toString model.selected)
+        --, el [] (text <| Debug.toString model.cursorPos)
         , (if renderConfig.width < 1600 then
             column
 
@@ -2040,6 +2041,39 @@ type TrackedDataKind
     | ExternalLink String
     | Heading Int
     | InlineStyled
+
+
+
+--offsetTrackedData : Dict ( Int, Int ) TrackedData -> Maybe Int -> Maybe Int -> Dict ( Int, Int ) TrackedData
+--offsetTrackedData trackedDataDict mbOldCursor mbNewCursor =
+--    case ( mbOldCursor, mbNewCursor ) of
+--        ( Just oldCursor, Just newCursor ) ->
+--            let
+--                offset =
+--                    newCursor - oldCursor
+--                needUpdate start stop =
+--                    start >= newCursor
+--                tdModified start stop tdKind =
+--                    let tagnameLength =
+--                            case tdKind of
+--                                InternalLink _ _ ->
+--                                    String.length "lien-interne"
+--                                ExternalLink _ ->
+--                                    String.length  "lien-externe"
+--                                Heading _ ->
+--                                    String.length
+--                                        "titre"
+--                                InlineStyled ->
+--                                    String.length  "style"
+--                        (innerStart, innerStop) =
+--            in
+--            Dict.toList trackedDataDict
+--            |> List.map
+--                (\((start, stop),{meta, dataKind} as td) ->
+--                    if needUpdate start stop then
+--                        (start))
+--        _ ->
+--            trackedDataDict
 
 
 updateTrackedData : Dict Int TrackedData -> List Element -> Dict Int TrackedData
