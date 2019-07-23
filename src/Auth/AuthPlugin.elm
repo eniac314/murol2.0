@@ -49,17 +49,25 @@ type alias Model msg =
 
 
 init externalMsg =
-    { username = ""
-    , password = ""
-    , confirmPassword = ""
-    , logInfo = LoggedOut
-    , pluginMode = LoginMode Initial
-    , logs =
-        []
+    ( { username = ""
+      , password = ""
+      , confirmPassword = ""
+      , logInfo = LoggedOut
+      , pluginMode = LoginMode Waiting
+      , logs =
+            []
 
-    --, zone = Time.utc
-    , externalMsg = externalMsg
-    }
+      --, zone = Time.utc
+      , externalMsg = externalMsg
+      }
+    , Cmd.map externalMsg <| checkLogin
+    )
+
+
+subscriptions model =
+    Sub.map model.externalMsg <|
+        Sub.batch
+            [ Time.every (30 * 1000) (\_ -> Ping) ]
 
 
 reset model =
@@ -89,6 +97,7 @@ type Msg
     | SetPassword String
     | SetConfirmPassword String
     | Login
+    | LoginChecked (Result Http.Error LogInfo)
     | ConfirmLogin (Result Http.Error LogInfo)
     | SignUp
     | ConfirmSignUp (Result Http.Error Bool)
@@ -97,6 +106,8 @@ type Msg
     | ChangePluginMode PluginMode
       --| AddLog (Posix -> Log) Posix
     | AddLog Log
+    | Ping
+    | PingResult (Result Http.Error Bool)
     | Quit
     | NoOp
 
@@ -136,6 +147,26 @@ internalUpdate msg model =
             , login model
             , Nothing
             )
+
+        LoginChecked res ->
+            case res of
+                Err e ->
+                    ( { model
+                        | logInfo = LoggedOut
+                        , pluginMode = LoginMode Initial
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Ok logInfo ->
+                    ( { model
+                        | logInfo = logInfo
+                        , pluginMode = LoginMode Success
+                      }
+                    , Cmd.none
+                    , Just ToolQuit
+                    )
 
         ConfirmLogin res ->
             case res of
@@ -230,6 +261,22 @@ internalUpdate msg model =
             , Nothing
             )
 
+        Ping ->
+            case model.logInfo of
+                LoggedIn li ->
+                    ( model, ping li.sessionId, Nothing )
+
+                _ ->
+                    ( model, Cmd.none, Nothing )
+
+        PingResult res ->
+            case res of
+                Ok True ->
+                    ( model, Cmd.none, Nothing )
+
+                _ ->
+                    ( { model | logInfo = LoggedOut }, Cmd.none, Nothing )
+
         Quit ->
             ( model, Cmd.none, Just ToolQuit )
 
@@ -255,6 +302,14 @@ login model =
         { url = "login.php"
         , body = body
         , expect = Http.expectJson ConfirmLogin decodeLoginResult
+        }
+
+
+checkLogin : Cmd Msg
+checkLogin =
+    Http.get
+        { url = "login.php"
+        , expect = Http.expectJson LoginChecked decodeLoginResult
         }
 
 
@@ -288,6 +343,29 @@ signUp model =
 
 decodeSignupResult =
     Decode.field "signUpComplete" Decode.bool
+
+
+ping : String -> Cmd Msg
+ping sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "ping.php"
+        , body = body
+        , expect = Http.expectJson PingResult decodePing
+        }
+
+
+decodePing =
+    Decode.field "message" Decode.string
+        |> Decode.map (\s -> s == "success!")
 
 
 logout : Cmd Msg

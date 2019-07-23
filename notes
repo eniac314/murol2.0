@@ -2,8 +2,15 @@
 ---------------
 -- Todo list --
 ---------------
+- make a cron task to backup data via ionos panel
 
-- fix retry login
+- display current page 
+
+- reverse news order in news editor
+
+- fix folder names 
+
+- add ping and connection status
 
 - fix fiches label overflowing
 

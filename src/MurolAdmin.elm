@@ -1,4 +1,4 @@
-port module MurolAdmin exposing (..)
+port module MurolAdmin exposing (Flags, LoadingStatus(..), Model, Msg(..), Tool(..), init, main, notificationsPanelView, subscriptions, tabView, update, view)
 
 import Auth.AuthPlugin as Auth
 import Browser exposing (document)
@@ -92,6 +92,9 @@ init flags =
 
         publications =
             Publications.init PublicationsMsg
+
+        ( newAuthTool, authToolCmds ) =
+            Auth.init AuthMsg
     in
     ( { pageEditor = newPageEditor
       , pageTreeEditor = newPageTreeEditor
@@ -99,7 +102,7 @@ init flags =
       , generalDirectory = newGeneralDirectory
       , newsEditor = newNewsEditor
       , publications = publications
-      , authTool = Auth.init AuthMsg
+      , authTool = newAuthTool
       , loadingStatus = WaitingForLogin
       , currentTool = AuthTool
       , winWidth = 1920
@@ -109,6 +112,7 @@ init flags =
     , Cmd.batch
         [ pageEditorCmds
         , generalDirectoryCmds
+        , authToolCmds
         , Task.perform CurrentViewport Dom.getViewport
         , Task.perform SetZone Time.here
         ]
@@ -209,6 +213,7 @@ update msg model =
                           , Publications.load model.publications logInfo
                           ]
                         )
+
                     else
                         ( model.loadingStatus, [] )
             in
@@ -218,6 +223,7 @@ update msg model =
                 , currentTool =
                     if mbToolResult == Just ToolQuit then
                         PageEditorTool
+
                     else
                         model.currentTool
               }
@@ -526,12 +532,14 @@ tabView currentTool tool s =
             }
          , if currentTool == tool then
             Background.color (rgb 1 1 1)
+
            else
             Background.color (rgb 0.9 0.9 0.9)
          ]
             ++ (if currentTool == tool then
                     [ Border.color (rgb 0.8 0.8 0.8)
                     ]
+
                 else
                     [ Border.color (rgb 0.9 0.9 0.9)
                     , pointer
@@ -560,6 +568,7 @@ tabView currentTool tool s =
                         , moveDown 2
                         , Background.color (rgb 1 1 1)
                         ]
+
                     else
                         [ paddingEach
                             { top = 5
