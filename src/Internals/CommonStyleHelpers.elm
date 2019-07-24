@@ -1,4 +1,4 @@
-module Internals.CommonStyleHelpers exposing (..)
+module Internals.CommonStyleHelpers exposing (aliceBlue, blockLinkGrey, blockLinkGreyAlpha, blue1, blue2, blue3, blue4, blue5, blue6, blue7, buttonStyle, green1, green2, green3, green4, green5, green6, green7, grey1, grey2, grey3, grey4, grey5, grey6, grey7, noAttr, noHtmlAttr, okMark, progressBar, property, red1, red2, red3, red4, red5, red6, red7, redStar, sides, strCons, teal1, teal2, teal3, teal4, teal5, teal6, teal7, textInputStyle, toogleButtonStyle, unselectable, yellow1, yellow2, yellow3, yellow4, yellow5, yellow6, yellow7)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -49,10 +49,13 @@ progressBar n =
             , Background.color
                 (if n < 25 then
                     rgb255 217 83 79
+
                  else if n < 50 then
                     rgb255 240 173 78
+
                  else if n < 75 then
                     rgb255 91 192 222
+
                  else
                     rgb255 92 184 92
                 )
@@ -96,6 +99,7 @@ buttonStyle isActive =
                 , Border.width 1
                 , Border.color (rgb 0.9 0.9 0.9)
                 ]
+
             else
                 [ Background.color (rgb 0.95 0.95 0.95)
                 , Font.color (rgb 0.7 0.7 0.7)
@@ -123,12 +127,14 @@ toogleButtonStyle isPressed isActive =
                 ]
                     ++ (if isPressed then
                             []
+
                         else
                             [ Background.color (rgb 1 1 1)
                             , Border.width 1
                             , Border.color (rgb 0.9 0.9 0.9)
                             ]
                        )
+
             else
                 [ Background.color (rgb 0.95 0.95 0.95)
                 , Font.color (rgb 0.7 0.7 0.7)
@@ -168,6 +174,14 @@ unselectable =
         , HtmlAttr.style "-ms-user-select" "none"
         , HtmlAttr.style "user-select" "none"
         ]
+
+
+sides =
+    { top = 0
+    , bottom = 0
+    , left = 0
+    , right = 0
+    }
 
 
 

@@ -1,9 +1,10 @@
-port module MurolAdmin exposing (Flags, LoadingStatus(..), Model, Msg(..), Tool(..), init, main, notificationsPanelView, subscriptions, tabView, update, view)
+module MurolAdmin exposing (Flags, LoadingStatus(..), Model, Msg(..), Tool(..), init, main, notificationsPanelView, subscriptions, tabView, update, view)
 
 import Auth.AuthPlugin as Auth
 import Browser exposing (document)
 import Browser.Dom as Dom
 import Browser.Events exposing (onKeyDown, onKeyUp, onResize)
+import Dict exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -17,13 +18,15 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
+import Internals.Icons exposing (chevronsDown, chevronsUp, messageSquare, save, wifi, wifiOff)
 import Internals.ToolHelpers exposing (..)
 import NewsEditor.NewsEditor as NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (..)
 import Publications.Publications as Publications
+import Random exposing (Seed, initialSeed)
 import Task exposing (perform)
-import Time exposing (Posix, Zone, here, millisToPosix, utc)
+import Time exposing (Posix, Zone, here, millisToPosix, posixToMillis, utc)
 
 
 main : Program Flags Model Msg
@@ -37,7 +40,7 @@ main =
 
 
 type alias Flags =
-    { availableThreads : Int
+    { currentTime : Int
     }
 
 
@@ -54,6 +57,9 @@ type alias Model =
     , winWidth : Int
     , winHeight : Int
     , zone : Time.Zone
+    , logs : Dict.Dict Int ( Log, Bool )
+    , logsOpen : Bool
+    , seed : Random.Seed
     }
 
 
@@ -63,9 +69,13 @@ subscriptions model =
         [ FileExplorer.subscriptions model.fileExplorer
         , PageEditor.subscriptions model.pageEditor
         , Publications.subscriptions model.publications
+        , Auth.subscriptions model.authTool
         , onResize WinResize
 
-        --, Time.every 120000 (always CheckSessionStatus)
+        --, if model.logsOpen then
+        --    Browser.Events.onMouseDown (outsideTargetHandler "logsPanel" CloseLogs)
+        --  else
+        --    Sub.none
         ]
 
 
@@ -82,7 +92,7 @@ init flags =
                 PageTreeEditorMsg
 
         ( newPageEditor, pageEditorCmds ) =
-            PageEditor.init Nothing flags.availableThreads PageEditorMsg
+            PageEditor.init Nothing PageEditorMsg
 
         ( newGeneralDirectory, generalDirectoryCmds ) =
             GeneralDirectoryEditor.init GeneralDirectoryMsg
@@ -108,6 +118,9 @@ init flags =
       , winWidth = 1920
       , winHeight = 1080
       , zone = Time.utc
+      , logs = Dict.empty
+      , logsOpen = False
+      , seed = initialSeed flags.currentTime
       }
     , Cmd.batch
         [ pageEditorCmds
@@ -128,7 +141,6 @@ type LoadingStatus
 type Msg
     = AuthMsg Auth.Msg
     | Launch
-      --| CheckSessionStatus
     | FileExplorerMsg FileExplorer.Msg
     | ReloadFiles
     | PageEditorMsg PageEditor.Msg
@@ -140,6 +152,9 @@ type Msg
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
     | SetZone Time.Zone
+    | AddLog Log
+    | ToogleLogs
+    | ToogleLog Int
     | NoOp
 
 
@@ -164,14 +179,6 @@ update msg model =
             , Cmd.none
             )
 
-        --CheckSessionStatus ->
-        --    case Auth.getLogInfo model.authTool of
-        --        LoggedIn sessionId ->
-        --            ( model
-        --            , checkSessionStatus sessionId
-        --            )
-        --        _ ->
-        --            ( model, Cmd.none )
         ReloadFiles ->
             ( model
             , FileExplorer.load model.fileExplorer (Auth.getLogInfo model.authTool)
@@ -258,6 +265,7 @@ update msg model =
                         { logInfo = Auth.getLogInfo model.authTool
                         , currentDocument =
                             PageEditor.currentDocument model.pageEditor
+                        , addLog = AddLog
                         }
                         pageTreeEditorMsg
                         model.pageTreeEditor
@@ -339,6 +347,45 @@ update msg model =
 
         SetZone zone ->
             ( { model | zone = zone }
+            , Cmd.none
+            )
+
+        AddLog log ->
+            let
+                ( logHash, newSeed ) =
+                    hashLog model.seed log
+
+                newLogs =
+                    safeInsert (\k -> k + 1) logHash ( log, False ) model.logs
+            in
+            ( { model
+                | logs = newLogs
+                , seed = newSeed
+              }
+            , Cmd.none
+            )
+
+        ToogleLogs ->
+            ( { model | logsOpen = not model.logsOpen }
+            , Cmd.none
+            )
+
+        --CloseLogs ->
+        --    ( { model | logsOpen = False }
+        --    , Cmd.none
+        --    )
+        ToogleLog h ->
+            ( { model
+                | logs =
+                    Dict.update
+                        h
+                        (Maybe.andThen
+                            (\( l, isOpen ) ->
+                                Just ( l, not isOpen )
+                            )
+                        )
+                        model.logs
+              }
             , Cmd.none
             )
 
@@ -583,17 +630,131 @@ tabView currentTool tool s =
         )
 
 
+comsMonitorView : Model -> Element Msg
+comsMonitorView model =
+    row
+        [ alignRight
+        , spacing 15
+        , paddingEach { sides | right = 15 }
+        , Border.color (rgb 0.8 0.8 0.8)
+        , Border.widthEach { sides | left = 2 }
+        , paddingXY 15 0
+        ]
+        [ el
+            [ Font.color
+                (case savingStatus model of
+                    Waiting ->
+                        yellow4
+
+                    Failure ->
+                        red6
+
+                    _ ->
+                        grey6
+                )
+            , width (px 20)
+            ]
+            (html <| save 18)
+        , el
+            [ Font.color
+                (if Auth.isLogged model.authTool.logInfo then
+                    green6
+
+                 else
+                    red6
+                )
+            , width (px 20)
+            ]
+            (html <|
+                if Auth.isLogged model.authTool.logInfo then
+                    wifi 18
+
+                else
+                    wifiOff 18
+            )
+        ]
+
+
+savingStatus : Model -> Status
+savingStatus model =
+    Initial
+
+
 notificationsPanelView : Model -> Element Msg
 notificationsPanelView model =
+    let
+        ( newest, others ) =
+            case
+                Dict.toList model.logs
+                    |> List.sortBy (posixToMillis << .timeStamp << Tuple.first << Tuple.second)
+                    |> List.reverse
+            of
+                [] ->
+                    ( [], [] )
+
+                l :: xs ->
+                    ( [ l ], xs )
+    in
     row
         [ width fill
         , height (px 35)
         , Border.color (rgb 0.8 0.8 0.8)
-        , Border.widthEach
-            { top = 2
-            , bottom = 0
-            , left = 0
-            , right = 0
-            }
+        , Border.widthEach { sides | top = 2 }
+        , above
+            (logsViewPanel model.logsOpen (newest ++ others) model.zone ToogleLog)
+        , spacing 15
         ]
-        []
+        [ el
+            [ Border.color (rgb 0.8 0.8 0.8)
+            , Border.widthEach { sides | right = 2 }
+            , paddingXY 10 0
+            ]
+            (html <| messageSquare 22)
+        , case newest of
+            ( _, ( l, _ ) ) :: [] ->
+                logTitleView l model.zone
+
+            _ ->
+                Element.none
+        , el
+            [ alignRight
+            , Events.onClick ToogleLogs
+            ]
+            (if model.logsOpen then
+                html <| chevronsDown 22
+
+             else
+                html <| chevronsUp 22
+            )
+        , comsMonitorView model
+        ]
+
+
+logsViewPanel : Bool -> List ( Int, ( Log, Bool ) ) -> Time.Zone -> (Int -> Msg) -> Element Msg
+logsViewPanel logsOpen logs zone toogleLog =
+    if logsOpen then
+        column
+            [ width fill
+            , Border.color (rgb 0.8 0.8 0.8)
+            , Border.widthEach { sides | top = 2 }
+            , Background.color (rgb 1 1 1)
+            , moveUp 2
+            ]
+            [ el
+                [ Font.bold
+                , Border.color (rgb 0.8 0.8 0.8)
+                , Border.widthEach { sides | bottom = 2 }
+                , width fill
+                , paddingXY 10 5
+                ]
+                (text "Historique des notifications")
+            , column
+                [ height (px 200)
+                , scrollbarY
+                , width fill
+                ]
+                (logsDictView logs zone toogleLog)
+            ]
+
+    else
+        Element.none

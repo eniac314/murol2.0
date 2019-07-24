@@ -1,4 +1,4 @@
-module Auth.AuthPlugin exposing (LogInfo(..), Model, Msg, cmdIfLogged, getLogInfo, init, update, view)
+module Auth.AuthPlugin exposing (LogInfo(..), Model, Msg, cmdIfLogged, getLogInfo, init, isLogged, subscriptions, update, view)
 
 import Element exposing (..)
 import Element.Background as Background
@@ -28,6 +28,16 @@ cmdIfLogged logInfo cmd =
             Cmd.none
 
 
+isLogged : LogInfo -> Bool
+isLogged logInfo =
+    case logInfo of
+        LoggedIn _ ->
+            True
+
+        _ ->
+            False
+
+
 type LogInfo
     = LoggedIn
         { username : String
@@ -42,8 +52,7 @@ type alias Model msg =
     , confirmPassword : String
     , logInfo : LogInfo
     , pluginMode : PluginMode
-    , logs :
-        List Log
+    , logs : List Log
     , externalMsg : Msg -> msg
     }
 
@@ -54,10 +63,7 @@ init externalMsg =
       , confirmPassword = ""
       , logInfo = LoggedOut
       , pluginMode = LoginMode Waiting
-      , logs =
-            []
-
-      --, zone = Time.utc
+      , logs = []
       , externalMsg = externalMsg
       }
     , Cmd.map externalMsg <| checkLogin
@@ -104,7 +110,6 @@ type Msg
     | Logout
     | ConfirmLogout (Result Http.Error Bool)
     | ChangePluginMode PluginMode
-      --| AddLog (Posix -> Log) Posix
     | AddLog Log
     | Ping
     | PingResult (Result Http.Error Bool)

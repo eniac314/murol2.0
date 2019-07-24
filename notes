@@ -2,6 +2,8 @@
 ---------------
 -- Todo list --
 ---------------
+- fix same height image row in new elm ui 
+
 - make a cron task to backup data via ionos panel
 
 - display current page 
@@ -60,7 +62,6 @@
 
 -- add cookie banner
 
--- remove available threads flags in MurolAdmin.elm
 
 -------------------------------------------------------------------------------
 ----------

@@ -1,4 +1,4 @@
-port module PageEditor.PageEditor exposing (..)
+port module PageEditor.PageEditor exposing (AppFunnel, Funnel(..), FunnelState, MenuConfig, Model, Msg(..), ViewConfig, cmdPort, currentDocument, documentView, funnels, iconSize, init, internalUpdate, keyDecoder, mainInterface, mainMenu, openNewPlugin, openPlugin, pluginView, reset, scrollTo, storageAccessors, storageHandler, subPort, subscriptions, undoCacheDepth, update, view)
 
 import Auth.AuthPlugin as Auth exposing (LogInfo(..), getLogInfo)
 import Browser.Dom as Dom
@@ -149,7 +149,6 @@ storageHandler response state mdl =
 
 type alias Model msg =
     { config : Config msg
-    , availableThreads : Int
     , document : DocZipper
     , undoCache : List DocZipper
     , clipboard : Maybe Document
@@ -263,8 +262,8 @@ init =
     reset
 
 
-reset : Maybe Document -> Int -> (Msg -> msg) -> ( Model msg, Cmd msg )
-reset mbDoc availableThreads externalMsg =
+reset : Maybe Document -> (Msg -> msg) -> ( Model msg, Cmd msg )
+reset mbDoc externalMsg =
     let
         doc_ =
             Maybe.withDefault emptyDoc mbDoc
@@ -277,7 +276,7 @@ reset mbDoc availableThreads externalMsg =
             ImagePlugin.init Nothing (externalMsg << ImagePluginMsg)
 
         ( newGalleryPlugin, galleryPluginCmds ) =
-            GalleryPlugin.init Nothing availableThreads (externalMsg << GalleryPluginMsg)
+            GalleryPlugin.init Nothing (externalMsg << GalleryPluginMsg)
 
         handlers =
             { containerClickHandler = externalMsg << SelectDoc
@@ -313,7 +312,6 @@ reset mbDoc availableThreads externalMsg =
             { storage = LocalStorage.initialState "Editor" }
     in
     ( { config = config
-      , availableThreads = availableThreads
       , document = initZip doc_
       , clipboard = Nothing
       , undoCache = []
@@ -411,6 +409,7 @@ internalUpdate config msg model =
                         , previewMode =
                             if vp.viewport.width < 1300 then
                                 PreviewTablet
+
                             else
                                 PreviewScreen
                     }
@@ -459,12 +458,14 @@ internalUpdate config msg model =
         KeyDown s ->
             if s == "Control" then
                 ( { model | controlDown = True }, Cmd.none )
+
             else
                 ( model, Cmd.none )
 
         KeyUp s ->
             if s == "Control" then
                 ( { model | controlDown = False }, Cmd.none )
+
             else
                 ( model, Cmd.none )
 
@@ -572,6 +573,7 @@ internalUpdate config msg model =
                                 (\toAdd attrs ->
                                     if List.member toAdd attrs then
                                         attrs
+
                                     else
                                         attrs ++ [ toAdd ]
                                 )
@@ -1195,7 +1197,7 @@ internalUpdate config msg model =
                 Just (Ok newDoc) ->
                     let
                         ( newModel, cmd ) =
-                            reset (Just newDoc) model.availableThreads model.externalMsg
+                            reset (Just newDoc) model.externalMsg
                     in
                     ( { newModel | currentPlugin = Just PersistencePlugin }
                     , cmd
@@ -1371,7 +1373,7 @@ internalUpdate config msg model =
                 Just { docContent } ->
                     let
                         ( newModel, cmd ) =
-                            reset (Just docContent) model.availableThreads model.externalMsg
+                            reset (Just docContent) model.externalMsg
                     in
                     ( { newModel | currentPlugin = Nothing }
                     , cmd
@@ -1421,6 +1423,7 @@ view config model =
          ]
             ++ (if model.menuClicked then
                     [ onClick (model.externalMsg MenuClickOff) ]
+
                 else
                     []
                )
@@ -1656,6 +1659,7 @@ pluginView config model plugin =
                                     [ text "Ouvrir"
                                     ]
                             }
+
                       else
                         Element.none
                     ]
@@ -1764,7 +1768,6 @@ openNewPlugin config model =
                 ( galleryPlugin, newCmds ) =
                     GalleryPlugin.init
                         Nothing
-                        model.availableThreads
                         (model.externalMsg << GalleryPluginMsg)
             in
             ( { model
@@ -1895,7 +1898,6 @@ openPlugin config model =
                         ( newGallery, newCmds ) =
                             GalleryPlugin.init
                                 (Just galleryMeta)
-                                model.availableThreads
                                 (model.externalMsg << GalleryPluginMsg)
                     in
                     ( { model
@@ -1947,6 +1949,7 @@ mainInterface config =
                 { onPress =
                     if buttonConfig.isActive then
                         buttonConfig.msg
+
                     else
                         Nothing
                 , label =
@@ -1980,6 +1983,7 @@ mainInterface config =
             ]
                 ++ (if isActive then
                         [ pointer ]
+
                     else
                         [ Font.color (rgb 0.7 0.7 0.7)
                         , htmlAttribute <| HtmlAttr.style "cursor" "default"
@@ -2035,6 +2039,7 @@ mainInterface config =
                     , msg =
                         if config.selectionIsContainer then
                             Just EditContainer
+
                         else
                             Just EditCell
                     , isActive =
@@ -2109,6 +2114,7 @@ mainMenu config =
                                 )
                             , Background.color (rgb 0.9 0.9 0.9)
                             ]
+
                         else
                             []
                        )
@@ -2134,6 +2140,7 @@ mainMenu config =
                             [ onClick msg
                             , pointer
                             ]
+
                         else
                             [ Font.color (rgb 0.7 0.7 0.7)
                             , htmlAttribute <| HtmlAttr.style "cursor" "default"
@@ -2144,10 +2151,12 @@ mainMenu config =
                     [ el [] (html <| checkSquare 15)
                     , text label
                     ]
+
                  else if isSelectable then
                     [ el [] (html <| square 15)
                     , text label
                     ]
+
                  else
                     [ text label ]
                 )

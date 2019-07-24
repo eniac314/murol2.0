@@ -20,10 +20,11 @@
 <body>
 
   <script type="text/javascript">
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'js/pdf_js/build/pdf.worker.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdf_js/build/pdf.worker.js';
 
-    var app = Elm.MurolAdmin.init({flags: {availableThreads: window.navigator.hardwareConcurrency || 1 }});
+    var currentTime = new Date().getTime();
+
+    var app = Elm.MurolAdmin.init({flags: {currentTime: currentTime}});
 
     app.ports.toImageProcessor.subscribe(function(d){
       processImage(d);

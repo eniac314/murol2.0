@@ -1,4 +1,4 @@
-port module PageEditor.EditorPlugins.GalleryPlugin exposing (..)
+port module PageEditor.EditorPlugins.GalleryPlugin exposing (Model, Msg(..), PluginState(..), ProcessedImage, captionEditorView, containerStyle, decodeGalleryMeta, decodeProcessedData, galleryEditorView, galleryPickerView, homeView, imageProcessingView, indexName, init, itemStyle, makeGalleryMeta, processCmd, processedImages, selectImages, subscription, toImageProcessor, update, uploadImage, uploadView, view)
 
 import Auth.AuthPlugin exposing (LogInfo(..))
 import Delay exposing (..)
@@ -95,11 +95,12 @@ type PluginState
     | GalleryEditor
 
 
-init : Maybe GalleryMeta -> Int -> (Msg -> msg) -> ( Model msg, Cmd msg )
-init mbGalleryMeta availableThreads externalMsg =
+init : Maybe GalleryMeta -> (Msg -> msg) -> ( Model msg, Cmd msg )
+init mbGalleryMeta externalMsg =
     ( { pluginState =
             if mbGalleryMeta == Nothing then
                 Home
+
             else
                 GalleryEditor
       , fileSizes = Dict.empty
@@ -181,6 +182,7 @@ update config msg model =
                 , base64Pics =
                     if model.keepHQAssets then
                         Dict.insert filename data model.base64Pics
+
                     else
                         model.base64Pics
               }
@@ -307,6 +309,7 @@ update config msg model =
                       }
                     , if canEdit then
                         Task.perform (\_ -> config.reloadFilesMsg) (Task.succeed ())
+
                       else
                         Cmd.none
                     , Nothing
@@ -378,6 +381,7 @@ update config msg model =
                                         + (Dict.get p.filename model.fileSizes
                                             |> Maybe.withDefault 0
                                           )
+
                                   else
                                     p.size
                                 , Nothing
@@ -394,6 +398,7 @@ update config msg model =
                                     p.thumb
                                     (if model.keepHQAssets then
                                         Dict.get p.filename model.base64Pics
+
                                      else
                                         Nothing
                                     )
@@ -422,6 +427,7 @@ update config msg model =
                                     + (Dict.get p.filename model.fileSizes
                                         |> Maybe.withDefault 0
                                       )
+
                               else
                                 p.size
                             , Nothing
@@ -442,6 +448,7 @@ update config msg model =
                                         v.thumb
                                         (if model.keepHQAssets then
                                             Dict.get v.filename model.base64Pics
+
                                          else
                                             Nothing
                                         )
@@ -669,6 +676,7 @@ homeView config model =
                         if b then
                             el [ Font.color grey1 ]
                                 (html <| checkSquare 18)
+
                         else
                             el [ Font.color grey1 ]
                                 (html <| square 18)
@@ -681,6 +689,7 @@ homeView config model =
                 { onPress =
                     if model.galleryTitleInput /= Nothing then
                         Just ImagesRequested
+
                     else
                         Nothing
                 , label = text "Nouvel album"
@@ -761,6 +770,7 @@ galleryPickerView config model =
                                     (text "HD")
                                 )
                             )
+
                       else
                         noAttr
                     , List.head pics
@@ -840,6 +850,7 @@ imageProcessingView config model =
                 )
             , if canUpload then
                 okMark
+
               else
                 Element.none
             ]
@@ -860,6 +871,7 @@ imageProcessingView config model =
             { onPress =
                 if canUpload then
                     Just GoToUpload
+
                 else
                     Nothing
             , label = text "Continuer"
@@ -896,6 +908,7 @@ uploadView config model =
             in
             if us == Just UploadSuccessful then
                 100
+
             else
                 min 99 p
 
@@ -911,6 +924,7 @@ uploadView config model =
                 |> (\t ->
                         if canEdit then
                             100
+
                         else
                             min 99 t
                    )
@@ -1022,6 +1036,7 @@ uploadView config model =
             { onPress =
                 if canEdit then
                     Just GoToEdit
+
                 else
                     Nothing
             , label = text "Continuer"

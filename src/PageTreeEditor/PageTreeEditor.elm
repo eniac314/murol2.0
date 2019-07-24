@@ -1,4 +1,4 @@
-module PageTreeEditor.PageTreeEditor exposing (..)
+module PageTreeEditor.PageTreeEditor exposing (Child(..), Content, Contents, Context, Mode(..), Model, Msg(..), Page(..), PageInfo, PageTree, Path, break, decodeContent, decodeContents, decodeKeyword, decodeKeywords, decodePage, decodePageInfo, decodePageTree, decodeSuccess, decodeUUID, delete, deleteContent, emptyPages, encodePage, encodePageInfo, extractPage, fileIoSelectedPageInfo, fixPaths, fullView, getContents, getKeywords, getMbContentId, getName, getPageTree, getPath, getPathFromId, init, initPageTree, insert, internalPageSelectedPageInfo, isSubPage, keywordsAdminView, load, loadedContent, loadingStatus, loadingView, openView, pageTreeView, pageTreeView_, prefix, rewind, saveAsView, saveContent, savePageTree, saveView, selectView, selectedPageInfo, setInternalPageSelection, setKeyword, siteMap, swapLeft, swapRight, unsetKeyword, update, updateCurrPageTree, validMbStr, view, zipDown, zipTo, zipUp)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Base64 exposing (..)
@@ -41,7 +41,8 @@ type alias Model msg =
     , saveAsSelected : Maybe Page
     , internalPageSelected : Maybe Page
     , pageTreeUpdatedStatus : Status
-    , contentUpdatedStatus : Status
+
+    --, contentUpdatedStatus : Status
     , externalMsg : Msg -> msg
     , pageTreeLoaded : Status
     , contentsLoaded : Status
@@ -110,6 +111,7 @@ getPathFromId model cId =
         findPath (Page { path, mbContentId } xs) =
             if mbContentId == Result.toMaybe (UUID.fromString cId) then
                 Just ("/" ++ String.join "/" path)
+
             else
                 List.filterMap findPath xs
                     |> List.head
@@ -146,7 +148,8 @@ init externalMsg =
     , internalPageSelected = Nothing
     , saveAsSelected = Nothing
     , pageTreeUpdatedStatus = Initial
-    , contentUpdatedStatus = Initial
+
+    --, contentUpdatedStatus = Initial
     , keywordsLoaded = Initial
     , externalMsg = externalMsg
     , pageTreeLoaded = Initial
@@ -259,27 +262,12 @@ update :
     { a
         | logInfo : LogInfo
         , currentDocument : Document
+        , addLog : Log -> msg
     }
     -> Msg
     -> Model msg
     -> ( Model msg, Cmd msg )
 update config msg model =
-    let
-        ( newModel, cmds ) =
-            internalUpdate config msg model
-    in
-    ( newModel, Cmd.map model.externalMsg cmds )
-
-
-internalUpdate :
-    { a
-        | logInfo : LogInfo
-        , currentDocument : Document
-    }
-    -> Msg
-    -> Model msg
-    -> ( Model msg, Cmd Msg )
-internalUpdate config msg model =
     case msg of
         SelectPage ((Page pageInfo xs) as page) ->
             ( { model
@@ -328,19 +316,31 @@ internalUpdate config msg model =
                                 | contents = contents
                                 , contentsLoaded = Success
                               }
-                            , Cmd.none
+                            , newLog
+                                config.addLog
+                                "Chargement des pages réussi"
+                                Nothing
+                                False
                             )
 
                         Err e ->
                             ( { model
                                 | contentsLoaded = Failure
                               }
-                            , Cmd.none
+                            , newLog
+                                config.addLog
+                                "Erreur décodage Json"
+                                (Just <| Decode.errorToString e)
+                                True
                             )
 
-                Err _ ->
+                Err e ->
                     ( { model | contentsLoaded = Failure }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Impossible de charger les pages"
+                        (Just <| httpErrorToString e)
+                        True
                     )
 
         LoadPageTree res ->
@@ -350,12 +350,20 @@ internalUpdate config msg model =
                         | pageTree = Just pageTree
                         , pageTreeLoaded = Success
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Chargement arborescence réussi"
+                        Nothing
+                        False
                     )
 
-                Err _ ->
+                Err e ->
                     ( { model | pageTreeLoaded = Failure }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Impossible de charger l'arborescence"
+                        (Just <| httpErrorToString e)
+                        True
                     )
 
         LoadKeywords res ->
@@ -365,7 +373,11 @@ internalUpdate config msg model =
                         | keywords = keywords
                         , keywordsLoaded = Success
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Chargement mots clés réussi"
+                        Nothing
+                        False
                     )
 
                 Err e ->
@@ -373,7 +385,11 @@ internalUpdate config msg model =
                         | keywordsLoaded = Failure
                         , error = ""
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Impossible de charger les mots clés"
+                        (Just <| httpErrorToString e)
+                        True
                     )
 
         PageTreeUpdated mbBackup page res ->
@@ -381,18 +397,22 @@ internalUpdate config msg model =
                 Ok True ->
                     ( { model
                         | pageTreeUpdatedStatus = Success
-                        , lockedPages = remove page model.lockedPages
+                        , lockedPages = List.Extra.remove page model.lockedPages
 
                         --, fileIoSelected = Nothing
                         , selected = Nothing
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Arborescence mise à jour"
+                        Nothing
+                        False
                     )
 
-                _ ->
+                error ->
                     ( { model
                         | pageTreeUpdatedStatus = Failure
-                        , lockedPages = remove page model.lockedPages
+                        , lockedPages = List.Extra.remove page model.lockedPages
                         , pageTree =
                             case mbBackup of
                                 Just backup ->
@@ -405,7 +425,16 @@ internalUpdate config msg model =
                                         |> Maybe.andThen delete
                                         |> Maybe.map rewind
                       }
-                    , Cmd.none
+                    , case error of
+                        Err e ->
+                            newLog
+                                config.addLog
+                                "Echec de la mise à jour de l'arborescence"
+                                (Just <| httpErrorToString e)
+                                True
+
+                        _ ->
+                            Cmd.none
                     )
 
         SaveContent ((Page pageInfo xs) as page) ->
@@ -450,8 +479,9 @@ internalUpdate config msg model =
                             Dict.insert (canonical contentId) newContent model.contents
                     in
                     ( { model
-                        | contentUpdatedStatus = Initial
-                        , pageTreeUpdatedStatus = Initial
+                        | --,
+                          --    contentUpdatedStatus = Initial
+                          pageTreeUpdatedStatus = Waiting
                         , pageTree = newPageTree
                         , contents = newContents
                         , seed = Just newSeed
@@ -472,6 +502,7 @@ internalUpdate config msg model =
                         [ cmdIfLogged
                             config.logInfo
                             (saveContent contentId config.currentDocument)
+                            |> Cmd.map model.externalMsg
                         , Maybe.map extractPage newPageTree
                             |> Maybe.map
                                 (\pt ->
@@ -484,6 +515,17 @@ internalUpdate config msg model =
                                         )
                                 )
                             |> Maybe.withDefault Cmd.none
+                            |> Cmd.map model.externalMsg
+                        , newLog
+                            config.addLog
+                            "Sauvegarde page..."
+                            Nothing
+                            False
+                        , newLog
+                            config.addLog
+                            "Sauvegarde arborescence..."
+                            Nothing
+                            False
                         ]
                     )
 
@@ -492,7 +534,7 @@ internalUpdate config msg model =
 
         ContentUpdated uuid res ->
             case res of
-                Ok True ->
+                Ok _ ->
                     ( { model
                         | pageTreeUpdatedStatus = Success
                         , lockedContents =
@@ -502,10 +544,14 @@ internalUpdate config msg model =
                             Set.filter (\( k, cId ) -> Dict.member cId model.contents)
                                 model.keywords
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Page sauvegardée"
+                        Nothing
+                        False
                     )
 
-                _ ->
+                Err e ->
                     ( { model
                         | pageTreeUpdatedStatus = Failure
                         , lockedContents =
@@ -518,7 +564,11 @@ internalUpdate config msg model =
                                 _ ->
                                     Dict.remove (canonical uuid) model.contents
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Echec sauvegarde page"
+                        (Just <| httpErrorToString e)
+                        True
                     )
 
         RenamePageInput s ->
@@ -567,7 +617,9 @@ internalUpdate config msg model =
                                         )
                                 )
                             |> Maybe.withDefault Cmd.none
+                            |> Cmd.map model.externalMsg
                         )
+
                     else
                         ( model, Cmd.none )
 
@@ -582,6 +634,7 @@ internalUpdate config msg model =
         NewPage ->
             if model.newPageBuffer == "" then
                 ( model, Cmd.none )
+
             else
                 case ( model.saveAsSelected, model.seed ) of
                     ( Just ((Page pageInfo xs) as page), Just seed ) ->
@@ -608,7 +661,7 @@ internalUpdate config msg model =
                         ( { model
                             | pageTree = newPageTree
                             , newPageBuffer = ""
-                            , pageTreeUpdatedStatus = Initial
+                            , pageTreeUpdatedStatus = Waiting
                             , lockedPages = newPage :: model.lockedPages
                           }
                         , Maybe.map extractPage newPageTree
@@ -623,6 +676,7 @@ internalUpdate config msg model =
                                         )
                                 )
                             |> Maybe.withDefault Cmd.none
+                            |> Cmd.map model.externalMsg
                         )
 
                     _ ->
@@ -675,6 +729,7 @@ internalUpdate config msg model =
                                         )
                                     |> Maybe.withDefault Cmd.none
                                 ]
+                                |> Cmd.map model.externalMsg
                             )
 
                         Nothing ->
@@ -735,6 +790,7 @@ internalUpdate config msg model =
                                     )
                             )
                         |> Maybe.withDefault Cmd.none
+                        |> Cmd.map model.externalMsg
                     )
 
                 _ ->
@@ -748,6 +804,7 @@ internalUpdate config msg model =
                             |> Maybe.andThen
                                 (if up then
                                     swapLeft
+
                                  else
                                     swapRight
                                 )
@@ -776,6 +833,7 @@ internalUpdate config msg model =
                                                 pt
                                             )
                                    )
+                                |> Cmd.map model.externalMsg
                             )
 
                         Nothing ->
@@ -825,7 +883,9 @@ internalUpdate config msg model =
                         , cmdIfLogged
                             config.logInfo
                             (setKeyword newEntry)
+                            |> Cmd.map model.externalMsg
                         )
+
                     else
                         ( model, Cmd.none )
 
@@ -857,6 +917,7 @@ internalUpdate config msg model =
                     , cmdIfLogged
                         config.logInfo
                         (setKeyword newEntry)
+                        |> Cmd.map model.externalMsg
                     )
 
                 _ ->
@@ -886,6 +947,7 @@ internalUpdate config msg model =
                     , cmdIfLogged
                         config.logInfo
                         (unsetKeyword newEntry)
+                        |> Cmd.map model.externalMsg
                     )
 
                 _ ->
@@ -910,6 +972,7 @@ internalUpdate config msg model =
                         , keywords =
                             if unset then
                                 Set.insert ( k, cId ) model.keywords
+
                             else
                                 Set.remove ( k, cId ) model.keywords
                       }
@@ -1353,12 +1416,14 @@ zipTo path pageTree =
                 curr :: [] ->
                     if getName (extractPage pageTree_) /= curr then
                         Nothing
+
                     else
                         Just pageTree_
 
                 curr :: next :: rest ->
                     if getName (extractPage pageTree_) /= curr then
                         Nothing
+
                     else
                         zipDown (\page -> getName page == next) pageTree_
                             |> Maybe.andThen (helper (next :: rest))
@@ -1474,6 +1539,7 @@ insert p mbPage_ =
                         home :: _ ->
                             if home /= getName homePage then
                                 Nothing
+
                             else
                                 helper
                                     path
@@ -1487,14 +1553,17 @@ insert p mbPage_ =
                         curr :: [] ->
                             if curr /= pageInfo.name then
                                 Nothing
+
                             else if List.any (\c -> getName c == getName p) children then
                                 Just <| Page pageInfo children
+
                             else
                                 Just <| Page pageInfo (p :: children)
 
                         curr :: next :: rest ->
                             if curr /= pageInfo.name then
                                 Nothing
+
                             else
                                 let
                                     ( l, r ) =
@@ -1614,6 +1683,7 @@ fullView config model =
                         if model.renamePageBuffer == Nothing then
                             Maybe.map getName model.selected
                                 |> Maybe.withDefault ""
+
                         else
                             Maybe.withDefault "" model.renamePageBuffer
                     , placeholder =
@@ -1661,6 +1731,7 @@ fullView config model =
                     { onPress =
                         if model.pastePageBuffer == Nothing then
                             Maybe.map (\_ -> CutPage) model.selected
+
                         else
                             Nothing
                     , label =
@@ -1673,6 +1744,7 @@ fullView config model =
                     { onPress =
                         if model.pastePageBuffer /= Nothing then
                             Maybe.map (\_ -> PastePage) model.selected
+
                         else
                             Nothing
                     , label =
@@ -1764,6 +1836,7 @@ keywordsAdminView config model =
                         ( Events.onClick (SelectPageKeyword k)
                         , model.selectedPageKeyword == Just k
                         )
+
                     else
                         ( Events.onClick (SelectKeyword k)
                         , model.selectedKeyword == Just k
@@ -1777,6 +1850,7 @@ keywordsAdminView config model =
                 , if selected then
                     Background.color
                         (rgba 0 0 1 0.3)
+
                   else
                     noAttr
                 ]
@@ -1846,6 +1920,7 @@ keywordsAdminView config model =
             , text =
                 if model.keywordsPromptInput == Nothing then
                     Maybe.withDefault "" model.selectedKeyword
+
                 else
                     Maybe.withDefault "" model.keywordsPromptInput
             , placeholder =
@@ -1894,11 +1969,13 @@ keywordsAdminView config model =
                             && (model.selectedKeyword /= Nothing)
                     then
                         Just SetKeyword
+
                     else if
                         (Maybe.andThen getMbContentId model.selected /= Nothing)
                             && validMbStr model.keywordsPromptInput
                     then
                         Just NewKeyword
+
                     else
                         Nothing
                 , label =
@@ -1921,6 +1998,7 @@ keywordsAdminView config model =
                             && (model.selectedPageKeyword /= Nothing)
                     then
                         Just UnsetKeyword
+
                     else
                         Nothing
                 , label =
@@ -2109,11 +2187,13 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                         , pointer
                         , mouseOver [ Font.color (rgba 0 0 1 1) ]
                         ]
+
                      else
                         []
                     )
                         ++ [ if selected == Just (Page pageInfo children) then
                                 Font.color (rgba 0 0 1 1)
+
                              else
                                 noAttr
                            ]
@@ -2121,6 +2201,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                 Save ->
                     [ if selected == Just (Page pageInfo children) then
                         Font.color (rgba 0 0 1 1)
+
                       else
                         Font.color (rgba 0.8 0.8 0.8 1)
                     ]
@@ -2146,6 +2227,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                     ]
                         ++ [ if selected == Just (Page pageInfo children) then
                                 Font.color (rgba 0 0 1 1)
+
                              else
                                 fontColor
                            ]
@@ -2175,11 +2257,13 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                         , pointer
                         , mouseOver [ Font.color (rgba 0 0 1 1) ]
                         ]
+
                      else
                         []
                     )
                         ++ [ if selected == Just (Page pageInfo children) then
                                 Font.color (rgba 0 0 1 1)
+
                              else
                                 fontColor
                            ]
@@ -2190,6 +2274,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                     , mouseOver [ Font.color (rgba 0 0 1 1) ]
                     , if selected == Just (Page pageInfo children) then
                         Font.color (rgba 0 0 1 1)
+
                       else
                         noAttr
                     ]
@@ -2201,6 +2286,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                     (attrs
                         ++ [ if isLocked then
                                 Font.color (rgba 0.8 0.8 0.8 1)
+
                              else
                                 noAttr
                            ]
@@ -2239,6 +2325,7 @@ prefix offsets =
         attrs sel =
             [ if sel then
                 Font.color (rgba 0 0 1 1)
+
               else
                 Font.color (rgba 0.8 0.8 0.8 1)
             ]
@@ -2358,6 +2445,7 @@ break p xs =
                 y :: ys_ ->
                     if p y then
                         ( List.reverse left, y :: ys_ )
+
                     else
                         helper ys_ (y :: left)
     in

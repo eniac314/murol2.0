@@ -1,7 +1,8 @@
-module Internals.CommonHelpers exposing (..)
+module Internals.CommonHelpers exposing (Log, PickerResult(..), Status(..), UploadStatus(..), break, chunks, dateToFrench, dateToStr, dateToW3c, decodeUploadStatus, hashLog, hdSrc, httpErrorToString, jsonResolver, logTitleView, logsDictView, logsView, newLog, outsideTargetHandler, parseDate, safeInsert, thumbSrc)
 
 import Derberos.Date.Core exposing (addTimezoneMilliseconds, civilToPosix, newDateRecord, posixToCivil)
 import Derberos.Date.Utils exposing (monthToNumber1, numberOfDaysInMonth, numberToMonth)
+import Dict exposing (Dict, insert, member)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -13,6 +14,8 @@ import Element.Region as Region
 import Http exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Json.Decode as D
+import Murmur3 exposing (hashString)
+import Random exposing (Seed, int, step)
 import String.Extra exposing (insertAt)
 import Task exposing (perform)
 import Time exposing (Month(..), Posix, Weekday(..), Zone, now, posixToMillis)
@@ -38,14 +41,6 @@ decodeUploadStatus =
         , D.field "message" D.string
             |> D.map (always UploadSuccessful)
         ]
-
-
-type alias Log =
-    { message : String
-    , mbDetails : Maybe String
-    , isError : Bool
-    , timeStamp : Posix
-    }
 
 
 type PickerResult
@@ -78,10 +73,52 @@ break p xs =
                 y :: ys_ ->
                     if p y then
                         ( List.reverse left, y :: ys_ )
+
                     else
                         helper ys_ (y :: left)
     in
     helper xs []
+
+
+
+-------------------------------------------------------------------------------
+------------
+-- Logger --
+------------
+
+
+type alias Log =
+    { message : String
+    , mbDetails : Maybe String
+    , isError : Bool
+    , timeStamp : Posix
+    }
+
+
+hashLog : Seed -> Log -> ( Int, Seed )
+hashLog seed log =
+    let
+        ( hashSeed, newSeed ) =
+            Random.step (Random.int 0 10000) seed
+
+        hash =
+            (log.message
+                ++ (log.mbDetails
+                        |> Maybe.withDefault ""
+                   )
+                ++ (if log.isError then
+                        "t"
+
+                    else
+                        "f"
+                   )
+                ++ (posixToMillis log.timeStamp
+                        |> String.fromInt
+                   )
+            )
+                |> hashString hashSeed
+    in
+    ( hash, newSeed )
 
 
 newLog : (Log -> msg) -> String -> Maybe String -> Bool -> Cmd msg
@@ -99,45 +136,46 @@ newLog addLogMsg logMsg details isError =
         )
 
 
+formatTime =
+    String.fromInt
+        >> String.padLeft 2 '0'
+
+
+logTitleView l zone =
+    row [ spacing 15 ]
+        [ el [ Font.color (rgb 0.7 0.7 0.7) ]
+            (text <|
+                formatTime (Time.toHour zone l.timeStamp)
+                    ++ ":"
+                    ++ formatTime (Time.toMinute zone l.timeStamp)
+            )
+        , el
+            [ if l.isError then
+                Font.color (rgb 1 0 0)
+
+              else
+                noAttr
+            ]
+            (text l.message)
+        ]
+
+
 logsView : List Log -> Time.Zone -> Element msg
 logsView logs zone =
     let
-        formatTime =
-            String.fromInt
-                >> String.padLeft 2 '0'
-
-        logView { message, mbDetails, isError, timeStamp } =
+        logView ({ message, mbDetails, isError, timeStamp } as log) =
             column
                 [ spacing 5
                 , width (maximum 500 fill)
                 ]
-                [ row [ spacing 15 ]
-                    [ el [ Font.color (rgb 0.7 0.7 0.7) ]
-                        (text <|
-                            formatTime (Time.toHour zone timeStamp)
-                                ++ ":"
-                                ++ formatTime (Time.toMinute zone timeStamp)
-                        )
-                    , el
-                        [ if isError then
-                            Font.color (rgb 1 0 0)
-                          else
-                            noAttr
-                        ]
-                        (text message)
-                    ]
+                [ logTitleView log zone
                 , case mbDetails of
                     Nothing ->
                         Element.none
 
                     Just details ->
                         paragraph
-                            [ paddingEach
-                                { top = 0
-                                , bottom = 0
-                                , left = 20
-                                , right = 0
-                                }
+                            [ paddingEach { sides | left = 20 }
                             , Font.size 12
                             ]
                             [ text details ]
@@ -145,6 +183,48 @@ logsView logs zone =
     in
     column [ spacing 15 ]
         (List.map logView logs)
+
+
+logsDictView : List ( Int, ( Log, Bool ) ) -> Time.Zone -> (Int -> msg) -> List (Element msg)
+logsDictView logs zone toogleLog =
+    let
+        logView i ( k, ( { message, mbDetails, isError, timeStamp } as log, isOpen ) ) =
+            column
+                [ spacing 5
+                , width fill
+                , Events.onClick (toogleLog k)
+                ]
+                [ el
+                    [ if modBy 2 i /= 0 then
+                        Background.color (rgb 1 1 1)
+
+                      else
+                        Background.color grey7
+                    , width fill
+                    , paddingXY 10 7
+                    ]
+                    (logTitleView log zone)
+                , case mbDetails of
+                    Nothing ->
+                        Element.none
+
+                    Just details ->
+                        if isOpen then
+                            paragraph
+                                [ paddingEach { sides | left = 20 }
+                                , Font.size 12
+                                ]
+                                [ text details ]
+
+                        else
+                            Element.none
+                ]
+    in
+    List.indexedMap logView logs
+
+
+
+-------------------------------------------------------------------------------
 
 
 httpErrorToString : Http.Error -> String
@@ -206,6 +286,7 @@ parseDate currentTime zone s =
             in
             if posixToMillis currentTime > posixToMillis choosenTime then
                 Nothing
+
             else
                 Just ( day, month, year )
 
@@ -353,3 +434,61 @@ hdSrc s =
 
         n :: _ ->
             String.Extra.insertAt "/HQ" n s
+
+
+
+-------------------------------------------------------------------------------
+---------------------------
+-- Outside click decoder --
+---------------------------
+
+
+outsideTargetHandler : String -> msg -> D.Decoder msg
+outsideTargetHandler targetId handler =
+    D.field "target" (isOutsideTarget targetId)
+        |> D.andThen
+            (\isOutside ->
+                if isOutside then
+                    D.succeed handler
+
+                else
+                    D.fail "inside target"
+            )
+
+
+isOutsideTarget targetId =
+    D.oneOf
+        [ D.field "id" D.string
+            |> D.andThen
+                (\id ->
+                    if targetId == id then
+                        -- found match by id
+                        D.succeed False
+
+                    else
+                        -- try next decoder
+                        D.fail "continue"
+                )
+        , D.lazy (\_ -> D.field "parentNode" (isOutsideTarget targetId))
+
+        -- fallback if all previous decoders failed
+        , D.succeed True
+        ]
+
+
+
+-------------------------------------------------------------------------------
+
+
+safeInsert :
+    (comparable -> comparable)
+    -> comparable
+    -> b
+    -> Dict comparable b
+    -> Dict comparable b
+safeInsert f k v d =
+    if Dict.member k d then
+        safeInsert f (f k) v d
+
+    else
+        Dict.insert k v d

@@ -19,7 +19,7 @@ import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents
 import Http exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
-import Internals.Icons exposing (alignCenter, alignLeft, alignRight, rotateCcw, rotateCw)
+import Internals.Icons as Icons exposing (alignCenter, alignLeft, alignRight, rotateCcw, rotateCw)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
@@ -226,7 +226,7 @@ imageAttributeEditorView model =
             [ spacing 15 ]
             [ Input.button (toogleButtonStyle (model.alignment == ALeft) True)
                 { onPress = Just (SetAlignment ALeft)
-                , label = el [] (html <| alignLeft iconSize)
+                , label = el [] (html <| Icons.alignLeft iconSize)
                 }
             , Input.button (toogleButtonStyle (model.alignment == ACenter) True)
                 { onPress = Just (SetAlignment ACenter)
@@ -234,7 +234,7 @@ imageAttributeEditorView model =
                 }
             , Input.button (toogleButtonStyle (model.alignment == ARight) True)
                 { onPress = Just (SetAlignment ARight)
-                , label = el [] (html <| alignRight iconSize)
+                , label = el [] (html <| Icons.alignRight iconSize)
                 }
             ]
         , row

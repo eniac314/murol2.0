@@ -1,4 +1,4 @@
-module Internals.Icons exposing (..)
+module Internals.Icons exposing (alignCenter, alignJustify, alignLeft, alignRight, bold, checkSquare, chevronDown, chevronLeft, chevronRight, chevronUp, chevronsDown, chevronsLeft, chevronsRight, chevronsUp, customSvgFeatherIcon, download, edit, externalLink, fileText, folder, folderMinus, folderPlus, grid, home, imageIcon, italic, layout, link2, list, menu, messageSquare, minusSquare, moreHorizontal, moreVertical, plusSquare, refreshCw, rotateCcw, rotateCw, save, scissors, settings, square, tag, type_, upload, wifi, wifiOff, xSquare, youtube)
 
 import Html exposing (Html)
 import Svg exposing (Svg, svg)
@@ -538,4 +538,37 @@ scissors size =
         , Svg.line [ x1 "20", y1 "4", x2 "8.12", y2 "15.88" ] []
         , Svg.line [ x1 "14.47", y1 "14.48", x2 "20", y2 "20" ] []
         , Svg.line [ x1 "8.12", y1 "8.12", x2 "12", y2 "12" ] []
+        ]
+
+
+wifi : Int -> Html msg
+wifi size =
+    customSvgFeatherIcon size
+        "wifi"
+        [ Svg.path [ d "M5 12.55a11 11 0 0 1 14.08 0" ] []
+        , Svg.path [ d "M1.42 9a16 16 0 0 1 21.16 0" ] []
+        , Svg.path [ d "M8.53 16.11a6 6 0 0 1 6.95 0" ] []
+        , Svg.line [ x1 "12", y1 "20", x2 "12", y2 "20" ] []
+        ]
+
+
+wifiOff : Int -> Html msg
+wifiOff size =
+    customSvgFeatherIcon size
+        "wifi-off"
+        [ Svg.line [ x1 "1", y1 "1", x2 "23", y2 "23" ] []
+        , Svg.path [ d "M16.72 11.06A10.94 10.94 0 0 1 19 12.55" ] []
+        , Svg.path [ d "M5 12.55a10.94 10.94 0 0 1 5.17-2.39" ] []
+        , Svg.path [ d "M10.71 5.05A16 16 0 0 1 22.58 9" ] []
+        , Svg.path [ d "M1.42 9a15.91 15.91 0 0 1 4.7-2.88" ] []
+        , Svg.path [ d "M8.53 16.11a6 6 0 0 1 6.95 0" ] []
+        , Svg.line [ x1 "12", y1 "20", x2 "12", y2 "20" ] []
+        ]
+
+
+messageSquare : Int -> Html msg
+messageSquare size =
+    customSvgFeatherIcon size
+        "message-square"
+        [ Svg.path [ d "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" ] []
         ]
