@@ -1,4 +1,4 @@
-module Internals.Icons exposing (alignCenter, alignJustify, alignLeft, alignRight, bold, checkSquare, chevronDown, chevronLeft, chevronRight, chevronUp, chevronsDown, chevronsLeft, chevronsRight, chevronsUp, customSvgFeatherIcon, download, edit, externalLink, fileText, folder, folderMinus, folderPlus, grid, home, imageIcon, italic, layout, link2, list, menu, messageSquare, minusSquare, moreHorizontal, moreVertical, plusSquare, refreshCw, rotateCcw, rotateCw, save, scissors, settings, square, tag, type_, upload, wifi, wifiOff, xSquare, youtube)
+module Internals.Icons exposing (alignCenter, alignJustify, alignLeft, alignRight, bold, checkSquare, chevronDown, chevronLeft, chevronRight, chevronUp, chevronsDown, chevronsLeft, chevronsRight, chevronsUp, customSvgFeatherIcon, download, edit, externalLink, file, fileText, folder, folderMinus, folderPlus, grid, home, imageIcon, italic, layout, link2, list, menu, messageSquare, minusSquare, moreHorizontal, moreVertical, plusSquare, refreshCw, rotateCcw, rotateCw, save, scissors, settings, square, tag, type_, upload, wifi, wifiOff, xSquare, youtube)
 
 import Html exposing (Html)
 import Svg exposing (Svg, svg)
@@ -510,6 +510,15 @@ download size =
             []
         , Svg.polyline [ points "7 10 12 15 17 10" ] []
         , Svg.line [ x1 "12", y1 "15", x2 "12", y2 "3" ] []
+        ]
+
+
+file : Int -> Html msg
+file size =
+    customSvgFeatherIcon size
+        "file"
+        [ Svg.path [ d "M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" ] []
+        , Svg.polyline [ points "13 2 13 9 20 9" ] []
         ]
 
 

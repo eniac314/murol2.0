@@ -14,6 +14,7 @@ module PageTreeEditor.PageTreeEditor exposing
     , loadedContent
     , loadingStatus
     , loadingView
+    , resetFileIoSelected
     , setInternalPageSelection
     , status
     , update
@@ -58,7 +59,7 @@ type alias Model msg =
     , contents : Contents
     , selected : Maybe Page
     , fileIoSelected : Maybe Page
-    , saveAsSelected : Maybe Page
+    , saveNewSelected : Maybe Page
     , internalPageSelected : Maybe Page
     , pageTreeUpdatedStatus : Status
     , externalMsg : Msg -> msg
@@ -151,7 +152,7 @@ getPathFromId model cId =
 type Mode
     = Full
     | Save
-    | SaveAs
+    | SaveNew
     | Open
     | Select
 
@@ -174,7 +175,7 @@ init externalMsg =
     , selected = Nothing
     , fileIoSelected = Nothing
     , internalPageSelected = Nothing
-    , saveAsSelected = Nothing
+    , saveNewSelected = Nothing
     , pageTreeUpdatedStatus = Initial
 
     --, contentUpdatedStatus = Initial
@@ -244,7 +245,7 @@ type Msg
       SelectPage Page
     | FileIOSelectPage Page
     | SelectInternalPage Page
-    | SaveAsSelectPage Page
+    | SaveNewSelectPage Page
       -----------------------
       -- Cmds from outside --
       -----------------------
@@ -258,13 +259,13 @@ type Msg
       ---------------------------
       -- Cmds / Coms to server --
       ---------------------------
-    | PageTreeUpdated (Maybe Page) Page (Result Http.Error Bool)
+    | NewPage
     | SaveContent Page
+    | PageTreeUpdated (Maybe Page) Page (Result Http.Error Bool)
     | ContentUpdated UUID (Result Http.Error Bool)
     | RenamePageInput String
     | RenamePage
     | NewPageInput String
-    | NewPage
     | DeletePage
     | CutPage
     | PastePage
@@ -282,8 +283,14 @@ type Msg
       ----------
       -- Misc --
       ----------
+    | ResetFileIoSelected
     | SetInitialSeed Time.Posix
     | NoOp
+
+
+resetFileIoSelected : Model msg -> Cmd msg
+resetFileIoSelected model =
+    Task.perform (always <| model.externalMsg ResetFileIoSelected) (succeed ())
 
 
 update :
@@ -319,9 +326,9 @@ update config msg model =
             , Cmd.none
             )
 
-        SaveAsSelectPage page ->
+        SaveNewSelectPage page ->
             ( { model
-                | saveAsSelected = Just page
+                | saveNewSelected = Just page
               }
             , Cmd.none
             )
@@ -473,6 +480,43 @@ update config msg model =
                         _ ->
                             Cmd.none
                     )
+
+        NewPage ->
+            if model.newPageBuffer == "" then
+                ( model, Cmd.none )
+
+            else
+                case ( model.saveNewSelected, model.seed ) of
+                    ( Just ((Page pageInfo xs) as page), Just seed ) ->
+                        let
+                            newPage =
+                                Page
+                                    { name = model.newPageBuffer
+                                    , path = pageInfo.path ++ [ model.newPageBuffer ]
+                                    , mbContentId = Nothing
+                                    }
+                                    []
+
+                            newPageTree =
+                                Maybe.andThen (zipTo pageInfo.path) model.pageTree
+                                    |> Maybe.map
+                                        (updateCurrPageTree
+                                            (Page
+                                                pageInfo
+                                                (xs ++ [ newPage ])
+                                            )
+                                        )
+                                    |> Maybe.map rewind
+
+                            newModel =
+                                { model
+                                    | pageTree = newPageTree
+                                }
+                        in
+                        update config (SaveContent newPage) newModel
+
+                    _ ->
+                        ( model, Cmd.none )
 
         SaveContent ((Page pageInfo xs) as page) ->
             case model.seed of
@@ -671,57 +715,6 @@ update config msg model =
             ( { model | newPageBuffer = s }
             , Cmd.none
             )
-
-        NewPage ->
-            if model.newPageBuffer == "" then
-                ( model, Cmd.none )
-
-            else
-                case ( model.saveAsSelected, model.seed ) of
-                    ( Just ((Page pageInfo xs) as page), Just seed ) ->
-                        let
-                            newPage =
-                                Page
-                                    { name = model.newPageBuffer
-                                    , path = pageInfo.path ++ [ model.newPageBuffer ]
-                                    , mbContentId = Nothing
-                                    }
-                                    []
-
-                            newPageTree =
-                                Maybe.andThen (zipTo pageInfo.path) model.pageTree
-                                    |> Maybe.map
-                                        (updateCurrPageTree
-                                            (Page
-                                                pageInfo
-                                                (xs ++ [ newPage ])
-                                            )
-                                        )
-                                    |> Maybe.map rewind
-                        in
-                        ( { model
-                            | pageTree = newPageTree
-                            , newPageBuffer = ""
-                            , pageTreeUpdatedStatus = Waiting
-                            , lockedPages = newPage :: model.lockedPages
-                          }
-                        , Maybe.map extractPage newPageTree
-                            |> Maybe.map
-                                (\pt ->
-                                    cmdIfLogged
-                                        config.logInfo
-                                        (savePageTree
-                                            Nothing
-                                            newPage
-                                            pt
-                                        )
-                                )
-                            |> Maybe.withDefault Cmd.none
-                            |> Cmd.map model.externalMsg
-                        )
-
-                    _ ->
-                        ( model, Cmd.none )
 
         DeletePage ->
             case model.selected of
@@ -1020,6 +1013,11 @@ update config msg model =
                       }
                     , Cmd.none
                     )
+
+        ResetFileIoSelected ->
+            ( { model | fileIoSelected = Nothing }
+            , Cmd.none
+            )
 
         SetInitialSeed t ->
             ( { model
@@ -1671,8 +1669,8 @@ view config model =
                 Save ->
                     saveView config model
 
-                SaveAs ->
-                    saveAsView config model
+                SaveNew ->
+                    saveNewView config model
 
                 Open ->
                     openView config model
@@ -2082,15 +2080,15 @@ saveView config model =
         ]
 
 
-saveAsView : { config | mode : Mode } -> Model msg -> Element.Element Msg
-saveAsView config model =
+saveNewView : { config | mode : Mode } -> Model msg -> Element.Element Msg
+saveNewView config model =
     let
         canSave =
-            (model.saveAsSelected /= Nothing)
+            (model.saveNewSelected /= Nothing)
                 && (model.newPageBuffer /= "")
     in
     column
-        [ spacing 15
+        [ spacing 20
         , padding 5
         , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
         , clip
@@ -2101,36 +2099,38 @@ saveAsView config model =
             [ Font.bold
             , Font.size 18
             ]
-            (text "Enregistrer sous")
+            (text "Enregistrement nouvelle page")
+        , column
+            [ spacing 15
+            , clip
+            , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
+            , height fill
+            , width fill
+            ]
+            [ el
+                []
+                (text "Emplacement de la page dans l'arborescence:")
+            , pageTreeView config model
+            ]
         , row [ spacing 15 ]
             [ Input.text
                 (textInputStyle ++ [ width (px 250), spacing 0 ])
                 { onChange = NewPageInput
                 , text = model.newPageBuffer
                 , placeholder =
-                    Nothing
+                    Just <| Input.placeholder [] (text "titre de la nouvelle page")
                 , label =
                     Input.labelLeft [] Element.none
                 }
-            , Input.button
-                (saveButtonStyle canSave)
-                { onPress =
-                    if canSave then
-                        Just NewPage
-
-                    else
-                        Nothing
-                , label =
-                    row [ spacing 10 ]
-                        [ text "Nouvelle page"
-                        ]
-                }
             ]
-        , pageTreeView config model
         , Input.button
-            (saveButtonStyle (model.saveAsSelected /= Nothing))
+            (saveButtonStyle canSave)
             { onPress =
-                Maybe.map SaveContent model.saveAsSelected
+                if canSave then
+                    Just NewPage
+
+                else
+                    Nothing
             , label =
                 row [ spacing 10 ]
                     [ text "Enregistrer"
@@ -2186,8 +2186,8 @@ pageTreeView config model =
                 Select ->
                     model.internalPageSelected
 
-                SaveAs ->
-                    model.saveAsSelected
+                SaveNew ->
+                    model.saveNewSelected
 
                 _ ->
                     model.fileIoSelected
@@ -2268,7 +2268,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                         Font.color (rgba 0.8 0.8 0.8 1)
                     ]
 
-                SaveAs ->
+                SaveNew ->
                     let
                         fontColor =
                             case pageInfo.mbContentId of
@@ -2283,7 +2283,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                                         Nothing ->
                                             Font.color (rgba 1 0 0 0.7)
                     in
-                    [ Events.onClick (SaveAsSelectPage (Page pageInfo children))
+                    [ Events.onClick (SaveNewSelectPage (Page pageInfo children))
                     , pointer
                     , mouseOver
                         [ if selected == Just (Page pageInfo children) then

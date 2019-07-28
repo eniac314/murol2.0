@@ -250,6 +250,7 @@ type Msg
       ---------
       -- Misc--
       ---------
+    | NewPage
     | LoadDocument
     | NoOp
 
@@ -1368,6 +1369,18 @@ internalUpdate config msg model =
         ---------
         -- Misc--
         ---------
+        NewPage ->
+            let
+                ( newModel, cmd ) =
+                    reset Nothing model.externalMsg
+            in
+            ( { newModel | currentPlugin = Nothing }
+            , Cmd.batch
+                [ cmd
+                , PageTreeEditor.resetFileIoSelected config.pageTreeEditor
+                ]
+            )
+
         LoadDocument ->
             case PageTreeEditor.loadedContent config.pageTreeEditor of
                 Just { docContent } ->
@@ -2043,6 +2056,14 @@ mainInterface config =
             ]
             (List.map interfaceButton <|
                 [ { defButtonConfig
+                    | icons = [ file iconSize ]
+                    , labelText = "Nouvelle page"
+                    , msg = Just NewPage
+                    , isActive =
+                        not config.isInPlugin
+                            && config.canSave
+                  }
+                , { defButtonConfig
                     | icons = [ plusSquare iconSize ]
                     , labelText = "Ajouter"
                     , msg = Just AddNewInside
@@ -2217,18 +2238,18 @@ mainMenu config =
                         , msg = SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.Open)
                     }
                   , { defEntry
-                        | label = "Enregistrer"
-                        , isActive = not config.isInPlugin && config.canSave
-                        , msg = SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.Save)
-                    }
-                  , { defEntry
-                        | label = "Enregistrer sous"
+                        | label = "Synchroniser"
                         , isActive = not config.isInPlugin
-                        , msg = SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.SaveAs)
+                        , msg =
+                            if config.canSave then
+                                SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.Save)
+
+                            else
+                                SetEditorPlugin (Just <| PageTreeEditorPlugin PageTreeEditor.SaveNew)
                     }
                   ]
                 , [ { defEntry
-                        | label = "Sauvegarde cache"
+                        | label = "Administration avancée"
                         , isActive = not config.isInPlugin
                         , msg = SetEditorPlugin (Just PersistencePlugin)
                     }
