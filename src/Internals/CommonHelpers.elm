@@ -1,4 +1,4 @@
-module Internals.CommonHelpers exposing (Log, PickerResult(..), Status(..), UploadStatus(..), break, chunks, dateToFrench, dateToStr, dateToW3c, decodeUploadStatus, hashLog, hdSrc, httpErrorToString, jsonResolver, logTitleView, logsDictView, logsView, newLog, outsideTargetHandler, parseDate, safeInsert, thumbSrc)
+module Internals.CommonHelpers exposing (Log, PickerResult(..), Status(..), UploadStatus(..), break, chunks, combineStatus, dateToFrench, dateToStr, dateToW3c, decodeUploadStatus, hashLog, hdSrc, httpErrorToString, jsonResolver, logTitleView, logsDictView, logsView, newLog, outsideTargetHandler, parseDate, safeInsert, thumbSrc)
 
 import Derberos.Date.Core exposing (addTimezoneMilliseconds, civilToPosix, newDateRecord, posixToCivil)
 import Derberos.Date.Utils exposing (monthToNumber1, numberOfDaysInMonth, numberToMonth)
@@ -91,6 +91,7 @@ type alias Log =
     { message : String
     , mbDetails : Maybe String
     , isError : Bool
+    , isImportant : Bool
     , timeStamp : Posix
     }
 
@@ -107,10 +108,16 @@ hashLog seed log =
                         |> Maybe.withDefault ""
                    )
                 ++ (if log.isError then
-                        "t"
+                        "isError"
 
                     else
-                        "f"
+                        "isNotError"
+                   )
+                ++ (if log.isImportant then
+                        "isImportant"
+
+                    else
+                        "isNotImportant"
                    )
                 ++ (posixToMillis log.timeStamp
                         |> String.fromInt
@@ -121,8 +128,8 @@ hashLog seed log =
     ( hash, newSeed )
 
 
-newLog : (Log -> msg) -> String -> Maybe String -> Bool -> Cmd msg
-newLog addLogMsg logMsg details isError =
+newLog : (Log -> msg) -> String -> Maybe String -> Bool -> Bool -> Cmd msg
+newLog addLogMsg logMsg details isError isImportant =
     Task.perform addLogMsg <|
         (Time.now
             |> Task.andThen
@@ -131,6 +138,7 @@ newLog addLogMsg logMsg details isError =
                         Log logMsg
                             details
                             isError
+                            isImportant
                             t
                 )
         )
@@ -492,3 +500,15 @@ safeInsert f k v d =
 
     else
         Dict.insert k v d
+
+
+combineStatus : List Status -> Status
+combineStatus xs =
+    if List.member Failure xs then
+        Failure
+
+    else if List.member Waiting xs then
+        Waiting
+
+    else
+        Success

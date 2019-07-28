@@ -1,4 +1,4 @@
-module GeneralDirectoryEditor.GeneralDirectoryEditor exposing (..)
+module GeneralDirectoryEditor.GeneralDirectoryEditor exposing (Model, Msg, ficheSelectorView, fichesData, formsView, init, internalUpdate, load, loadingStatus, loadingView, previewFicheView, update, view)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Base64 exposing (..)
@@ -156,6 +156,7 @@ internalUpdate config msg model =
                 | catFilter =
                     if model.catFilter == Just cat then
                         Nothing
+
                     else
                         Just cat
               }
@@ -167,6 +168,7 @@ internalUpdate config msg model =
                 | activFilter =
                     if model.activFilter == Just activ then
                         Nothing
+
                     else
                         Just activ
               }
@@ -178,6 +180,7 @@ internalUpdate config msg model =
                 | labelFilter =
                     if model.labelFilter == Just label then
                         Nothing
+
                     else
                         Just label
               }
@@ -189,11 +192,13 @@ internalUpdate config msg model =
                 | selectedFiche =
                     if model.selectedFiche == Just s then
                         Nothing
+
                     else
                         Just s
                 , ficheBuffer =
                     if model.selectedFiche == Just s then
                         emptyFiche
+
                     else
                         Dict.get s model.fiches
                             |> Maybe.withDefault emptyFiche
@@ -270,6 +275,7 @@ internalUpdate config msg model =
                 | selectedCatInFiche =
                     if model.selectedCatInFiche == Just s then
                         Nothing
+
                     else
                         Just s
                 , selectedAvailableCat = Nothing
@@ -283,11 +289,13 @@ internalUpdate config msg model =
                 | selectedAvailableCat =
                     if model.selectedAvailableCat == Just s then
                         Nothing
+
                     else
                         Just s
                 , catBuffer =
                     if model.selectedAvailableCat == Just s then
                         Nothing
+
                     else
                         Just s
                 , selectedCatInFiche = Nothing
@@ -303,6 +311,7 @@ internalUpdate config msg model =
                 ( Just avCat, Just newCat ) ->
                     if avCat == newCat then
                         ( model, Cmd.none )
+
                     else
                         let
                             ( newFiches, fichesToUpdate ) =
@@ -350,6 +359,7 @@ internalUpdate config msg model =
                           }
                         , Cmd.none
                         )
+
                     else
                         ( model, Cmd.none )
 
@@ -407,6 +417,7 @@ internalUpdate config msg model =
                 | selectedActivInFiche =
                     if model.selectedActivInFiche == Just s then
                         Nothing
+
                     else
                         Just s
                 , selectedAvailableActiv = Nothing
@@ -420,11 +431,13 @@ internalUpdate config msg model =
                 | selectedAvailableActiv =
                     if model.selectedAvailableActiv == Just s then
                         Nothing
+
                     else
                         Just s
                 , activBuffer =
                     if model.selectedAvailableActiv == Just s then
                         Nothing
+
                     else
                         Just s
                 , selectedActivInFiche = Nothing
@@ -440,6 +453,7 @@ internalUpdate config msg model =
                 ( Just avActiv, Just newActiv ) ->
                     if avActiv == newActiv then
                         ( model, Cmd.none )
+
                     else
                         let
                             ( newFiches, fichesToUpdate ) =
@@ -487,6 +501,7 @@ internalUpdate config msg model =
                           }
                         , Cmd.none
                         )
+
                     else
                         ( model, Cmd.none )
 
@@ -544,6 +559,7 @@ internalUpdate config msg model =
                 | selectedLabelInFiche =
                     if model.selectedLabelInFiche == Just s then
                         Nothing
+
                     else
                         Just s
                 , selectedAvailableLabel = Nothing
@@ -557,11 +573,13 @@ internalUpdate config msg model =
                 | selectedAvailableLabel =
                     if model.selectedAvailableLabel == Just s then
                         Nothing
+
                     else
                         Just s
                 , labelBuffer =
                     if model.selectedAvailableLabel == Just s then
                         Nothing
+
                     else
                         List.filter (\l -> l.nom == s) model.labels
                             |> List.head
@@ -716,6 +734,7 @@ internalUpdate config msg model =
                 ( Just avLabel, Just newLabel ) ->
                     if avLabel == newLabel then
                         ( model, Cmd.none )
+
                     else
                         let
                             ( newFiches, fichesToUpdate ) =
@@ -842,11 +861,13 @@ internalUpdate config msg model =
                 | selectedResp =
                     if model.selectedResp == Just r then
                         Nothing
+
                     else
                         Just r
                 , respBuffer =
                     if model.selectedResp == Just r then
                         Nothing
+
                     else
                         Just r
               }
@@ -896,6 +917,7 @@ internalUpdate config msg model =
                         TelBoth ( n1, n2 ) ->
                             if s == "" then
                                 TelPortable n2
+
                             else
                                 TelBoth ( s, n2 )
 
@@ -917,18 +939,21 @@ internalUpdate config msg model =
                         TelFixe n ->
                             if n == "" then
                                 TelPortable s
+
                             else
                                 TelBoth ( n, s )
 
                         TelPortable n ->
                             if s == "" then
                                 TelFixe ""
+
                             else
                                 TelPortable s
 
                         TelBoth ( n1, n2 ) ->
                             if s == "" then
                                 TelFixe n1
+
                             else
                                 TelBoth ( n1, s )
 
@@ -969,6 +994,7 @@ internalUpdate config msg model =
                 Just r ->
                     if r == emptyResp then
                         ( model, Cmd.none )
+
                     else
                         let
                             fb =
@@ -1033,24 +1059,28 @@ internalUpdate config msg model =
                         Just (TelFixe n) ->
                             if s == "" then
                                 Nothing
+
                             else
                                 Just <| TelFixe s
 
                         Just (TelPortable n) ->
                             if s == "" then
                                 Just (TelPortable n)
+
                             else
                                 Just <| TelBoth ( s, n )
 
                         Just (TelBoth ( n1, n2 )) ->
                             if s == "" then
                                 Just (TelPortable n2)
+
                             else
                                 Just <| TelBoth ( s, n2 )
 
                         Nothing ->
                             if s == "" then
                                 Nothing
+
                             else
                                 Just <| TelFixe s
 
@@ -1071,24 +1101,28 @@ internalUpdate config msg model =
                         Just (TelFixe n) ->
                             if s == "" then
                                 Just (TelFixe n)
+
                             else
                                 Just <| TelBoth ( n, s )
 
                         Just (TelPortable n) ->
                             if s == "" then
                                 Nothing
+
                             else
                                 Just <| TelPortable s
 
                         Just (TelBoth ( n1, n2 )) ->
                             if s == "" then
                                 Just (TelFixe n1)
+
                             else
                                 Just <| TelBoth ( n1, s )
 
                         Nothing ->
                             if s == "" then
                                 Nothing
+
                             else
                                 Just <| TelPortable s
 
@@ -1109,6 +1143,7 @@ internalUpdate config msg model =
                         | fax =
                             if s == "" then
                                 Nothing
+
                             else
                                 Just s
                     }
@@ -1123,11 +1158,13 @@ internalUpdate config msg model =
                 | selectedEmail =
                     if model.selectedEmail == Just s then
                         Nothing
+
                     else
                         Just s
                 , emailBuffer =
                     if model.selectedEmail == Just s then
                         Nothing
+
                     else
                         Just s
               }
@@ -1165,6 +1202,7 @@ internalUpdate config msg model =
                 Just mail ->
                     if mail == "" then
                         ( model, Cmd.none )
+
                     else
                         let
                             fb =
@@ -1216,6 +1254,7 @@ internalUpdate config msg model =
                         | pjaun =
                             if s == "" then
                                 Nothing
+
                             else
                                 Just s
                     }
@@ -1236,12 +1275,14 @@ internalUpdate config msg model =
                                 Just ( l, url ) ->
                                     if l == "" && s == "" then
                                         Nothing
+
                                     else
                                         Just ( l, s )
 
                                 Nothing ->
                                     if s == "" then
                                         Nothing
+
                                     else
                                         Just ( "", s )
                     }
@@ -1262,12 +1303,14 @@ internalUpdate config msg model =
                                 Just ( l, url ) ->
                                     if s == "" && url == "" then
                                         Nothing
+
                                     else
                                         Just ( s, url )
 
                                 Nothing ->
                                     if s == "" then
                                         Nothing
+
                                     else
                                         Just ( s, "" )
                     }
@@ -1332,11 +1375,13 @@ internalUpdate config msg model =
                 | selectedDescr =
                     if model.selectedDescr == Just s then
                         Nothing
+
                     else
                         Just s
                 , descrBuffer =
                     if model.selectedDescr == Just s then
                         Nothing
+
                     else
                         Just s
               }
@@ -1382,6 +1427,7 @@ internalUpdate config msg model =
                 Just d ->
                     if d == "" then
                         ( model, Cmd.none )
+
                     else
                         let
                             fb =
@@ -1482,11 +1528,13 @@ internalUpdate config msg model =
                 | selectedLinkedDoc =
                     if model.selectedLinkedDoc == Just ld then
                         Nothing
+
                     else
                         Just ld
                 , linkedDocBuffer =
                     if model.selectedLinkedDoc == Just ld then
                         Nothing
+
                     else
                         Just ld
                 , expiryDateBuffer = Nothing
@@ -1529,6 +1577,7 @@ internalUpdate config msg model =
                 Just ld ->
                     if not (validLinkedDoc ld) then
                         ( model, Cmd.none )
+
                     else
                         let
                             fb =
@@ -1681,6 +1730,7 @@ internalUpdate config msg model =
                         ( uuid, newSeed ) =
                             if fb.uuid == UUID.nil then
                                 Random.step UUID.generator seed
+
                             else
                                 ( fb.uuid, seed )
 
@@ -1727,6 +1777,7 @@ internalUpdate config msg model =
         RemoveFiche ->
             if model.ficheBuffer == emptyFiche then
                 ( model, Cmd.none )
+
             else
                 let
                     f =
@@ -1747,11 +1798,13 @@ internalUpdate config msg model =
                 , ficheBuffer =
                     if d == PreviewFiche then
                         emptyFiche
+
                     else
                         model.ficheBuffer
                 , selectedFiche =
                     if d == PreviewFiche then
                         Nothing
+
                     else
                         model.selectedFiche
                 , visualPickerOpen = False
@@ -1822,6 +1875,7 @@ view config model =
         ]
         [ if model.rightPanelDisplay == EditFiche then
             Element.none
+
           else
             Element.map model.externalMsg <| ficheSelectorView model
         , formsView config model
@@ -1849,6 +1903,7 @@ ficheSelectorView model =
                 , if Just entry == selected || isSelected entry then
                     Background.color
                         (rgba 0 0 1 0.3)
+
                   else
                     noAttr
                 ]
@@ -2118,7 +2173,7 @@ previewFicheView model =
                         , label = el [] (text "Modifier fiche")
                         }
             , Input.button
-                (buttonStyle (model.selectedFiche /= Nothing))
+                (deleteButtonStyle (model.selectedFiche /= Nothing))
                 { onPress =
                     Maybe.map (\_ -> RemoveFiche) model.selectedFiche
                 , label = el [] (text "Supprimer fiche")

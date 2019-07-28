@@ -1,4 +1,4 @@
-port module Publications.Publications exposing (..)
+port module Publications.Publications exposing (DisplayMode(..), Model, Msg(..), PubType(..), bulletinCover, containerStyle, coverFilename, dateInputView, decodeBulletin, decodeBulletinCover, decodeDelib, decodeMurolInfo, decodePublications, decodeSuccess, deleteBulletin, deleteDelib, deleteMurolInfo, encodeBulletin, encodeDelib, encodeMurolInfo, extractPubType, getAllPublications, indexEditorView, init, initialView, issueInputView, itemStyle, load, loadingStatus, loadingView, newBulletinView, newDelibView, newMurolInfoView, nextKey, parseDate, requestBulletinCover, saveBulletinMeta, saveDelibMeta, saveMurolInfoMeta, selectFile, subscriptions, topicEditorView, update, uploadPub, uploadView, view)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Derberos.Date.Core exposing (civilToPosix, newDateRecord)
@@ -311,6 +311,7 @@ update config msg model =
                 newIssue =
                     if issue == "" then
                         Nothing
+
                     else
                         Just issue
             in
@@ -352,6 +353,7 @@ update config msg model =
                 newTopic =
                     if topic == "" then
                         Nothing
+
                     else
                         Just topic
             in
@@ -389,6 +391,7 @@ update config msg model =
                             Dict.insert key
                                 ( if topic == "" then
                                     Nothing
+
                                   else
                                     Just topic
                                 , pNbr
@@ -579,6 +582,7 @@ update config msg model =
                             saveMetaCmd
                             |> Cmd.map model.externalMsg
                         )
+
                     else
                         case model.fileToUpload of
                             Just file ->
@@ -685,6 +689,7 @@ update config msg model =
                             saveMetaCmd
                             |> Cmd.map model.externalMsg
                         )
+
                     else
                         case model.fileToUpload of
                             Just file ->
@@ -811,6 +816,7 @@ update config msg model =
                             saveMetaCmd
                             |> Cmd.map model.externalMsg
                         )
+
                     else
                         case model.fileToUpload of
                             Just file ->
@@ -990,6 +996,7 @@ initialView config model =
                                     , width fill
                                     , if modBy 2 n == 0 then
                                         Background.color teal7
+
                                       else
                                         Background.color blue7
                                     , paddingXY 7 7
@@ -1014,7 +1021,7 @@ initialView config model =
                                             , label = text "Modifier"
                                             }
                                         , Input.button
-                                            (buttonStyle True)
+                                            (deleteButtonStyle True)
                                             { onPress = Just <| DeleteMurolInfo n
                                             , label = text "Supprimer"
                                             }
@@ -1033,6 +1040,7 @@ initialView config model =
                                     , width fill
                                     , if modBy 2 n == 0 then
                                         Background.color blue6
+
                                       else
                                         Background.color blue7
                                     , paddingXY 7 7
@@ -1071,6 +1079,7 @@ initialView config model =
                                     , width fill
                                     , if modBy 2 n == 0 then
                                         Background.color blue6
+
                                       else
                                         Background.color blue7
                                     , paddingXY 7 7
@@ -1168,10 +1177,11 @@ newMurolInfoView config model =
                    ]
             )
             [ Input.button
-                (buttonStyle canUpload)
+                (saveButtonStyle canUpload)
                 { onPress =
                     if canUpload then
                         Just SaveMurolInfo
+
                     else
                         Nothing
                 , label = text "Valider"
@@ -1243,10 +1253,11 @@ newDelibView config model =
                    ]
             )
             [ Input.button
-                (buttonStyle canUpload)
+                (saveButtonStyle canUpload)
                 { onPress =
                     if canUpload then
                         Just SaveDelib
+
                     else
                         Nothing
                 , label = text "Valider"
@@ -1344,6 +1355,7 @@ newBulletinView config model =
                                         imgSrc
                                     ]
                                     Element.none
+
                             else
                                 el
                                     [ width (px 105)
@@ -1390,10 +1402,11 @@ newBulletinView config model =
                    ]
             )
             [ Input.button
-                (buttonStyle canUpload)
+                (saveButtonStyle canUpload)
                 { onPress =
                     if canUpload then
                         Just SaveBulletin
+
                     else
                         Nothing
                 , label = text "Valider"
@@ -1433,6 +1446,7 @@ uploadView config model =
             )
             [ if model.modifyingExisting then
                 Element.none
+
               else
                 row
                     [ spacing 15 ]
@@ -1470,6 +1484,7 @@ uploadView config model =
                 { onPress =
                     if canReset then
                         Just Reset
+
                     else
                         Nothing
                 , label = text "Retour"
@@ -1496,6 +1511,7 @@ issueInputView config model =
                     |> Maybe.withDefault ""
                 )
             ]
+
     else
         Input.text
             (textInputStyle ++ [ width (px 50) ])
@@ -2022,6 +2038,7 @@ encodeBulletin { issue, date, cover, index } =
         , ( "cover"
           , if cover == "" then
                 E.null
+
             else
                 E.string cover
           )
@@ -2100,6 +2117,7 @@ parseDate zone s =
         day :: month :: year :: [] ->
             if year < 2000 then
                 Nothing
+
             else
                 let
                     choosenTime =

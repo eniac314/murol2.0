@@ -1,4 +1,21 @@
-module FileExplorer.FileExplorer exposing (..)
+module FileExplorer.FileExplorer exposing
+    ( Mode(..)
+    , Model
+    , Msg(..)
+    , Root(..)
+    , getSelectedDoc
+    , getSelectedImage
+    , indexPhototheque
+    , init
+    , load
+    , loadingStatus
+    , loadingView
+    , pickerView
+    , status
+    , subscriptions
+    , update
+    , view
+    )
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Dict exposing (..)
@@ -39,7 +56,8 @@ type alias Model msg =
     , lastLocation : Maybe FsItem
     , selectedFsItem : Maybe FsItem
     , cutBuffer : Maybe FsItem
-    , logs : List Log
+
+    --, logs : List Log
     , loadingStatus : ToolLoadingStatus
     , imageFiles : Maybe (List FsItem)
     , docFiles : Maybe (List FsItem)
@@ -96,7 +114,10 @@ modeRoot mode root =
 type MainPanelDisplay
     = FilesysDisplay
     | UploadDisplay
-    | LogsDisplay
+
+
+
+--| LogsDisplay
 
 
 type alias ImageFromFile =
@@ -138,7 +159,8 @@ init root externalMsg =
     , lastLocation = Nothing
     , selectedFsItem = Nothing
     , cutBuffer = Nothing
-    , logs = []
+
+    --, logs = []
     , imageFiles = Nothing
     , docFiles = Nothing
     , loadingStatus = ToolLoadingWaiting
@@ -181,6 +203,11 @@ load model logInfo =
 
 loadingStatus model =
     model.loadingStatus
+
+
+status model =
+    combineStatus
+        []
 
 
 loadingView model =
@@ -230,8 +257,8 @@ type Msg
       ----------
       -- Logs --
       ----------
-    | AddLog Log
-    | ToogleLogsView
+      --| AddLog Log
+      --| ToogleLogsView
       ----------
       -- Misc --
       ----------
@@ -285,19 +312,8 @@ getSelectedDoc model =
             Nothing
 
 
-update : { a | logInfo : LogInfo } -> Msg -> Model msg -> ( Model msg, Cmd msg, Maybe a )
+update : { a | logInfo : LogInfo, addLog : Log -> msg } -> Msg -> Model msg -> ( Model msg, Cmd msg, Maybe a )
 update config msg model =
-    -- NOTE : Le troisième élément du tuple est toujours égal à Nothing
-    -- -> laissé au cas où.
-    let
-        ( newModel, cmds, mbPluginAction ) =
-            internalUpdate config msg model
-    in
-    ( newModel, Cmd.map model.externalMsg cmds, mbPluginAction )
-
-
-internalUpdate : { a | logInfo : LogInfo } -> Msg -> Model msg -> ( Model msg, Cmd Msg, Maybe a )
-internalUpdate config msg model =
     case msg of
         ----------------
         -- Navigation --
@@ -406,6 +422,7 @@ internalUpdate config msg model =
                 , Cmd.none
                 , Nothing
                 )
+
             else
                 case Maybe.map extractFsItem (getCurrentFilesys mode model) of
                     Just (Folder meta children) ->
@@ -418,6 +435,7 @@ internalUpdate config msg model =
                             , Cmd.none
                             , Nothing
                             )
+
                         else
                             ( model, Cmd.none, Nothing )
 
@@ -446,8 +464,9 @@ internalUpdate config msg model =
                         model.newFolderNameBuffer
                         (modeRoot mode model.root)
                     )
+                    |> Cmd.map model.externalMsg
                 , newLog
-                    AddLog
+                    config.addLog
                     ("Requête: Nouveau dossier "
                         ++ model.newFolderNameBuffer
                         ++ " dans "
@@ -455,6 +474,7 @@ internalUpdate config msg model =
                     )
                     Nothing
                     False
+                    True
                 ]
             , Nothing
             )
@@ -469,11 +489,13 @@ internalUpdate config msg model =
                 [ cmdIfLogged
                     config.logInfo
                     (deleteFile fsItem (modeRoot mode model.root))
+                    |> Cmd.map model.externalMsg
                 , newLog
-                    AddLog
+                    config.addLog
                     ("Requête: Suppression " ++ getName fsItem)
                     Nothing
                     False
+                    True
                 ]
             , Nothing
             )
@@ -499,8 +521,9 @@ internalUpdate config msg model =
                         [ cmdIfLogged
                             config.logInfo
                             (pasteFile src dest (modeRoot mode model.root))
+                            |> Cmd.map model.externalMsg
                         , newLog
-                            AddLog
+                            config.addLog
                             ("Requête: Collage de"
                                 ++ getName src
                                 ++ " dans "
@@ -508,6 +531,7 @@ internalUpdate config msg model =
                             )
                             Nothing
                             False
+                            True
                         ]
                     , Nothing
                     )
@@ -528,11 +552,13 @@ internalUpdate config msg model =
                 [ cmdIfLogged
                     config.logInfo
                     (renameFile fsItem model.renameBuffer (modeRoot mode model.root))
+                    |> Cmd.map model.externalMsg
                 , newLog
-                    AddLog
+                    config.addLog
                     ("Requête: Renommage " ++ getName fsItem)
                     Nothing
                     False
+                    True
                 ]
             , Nothing
             )
@@ -616,10 +642,11 @@ internalUpdate config msg model =
                                 |> Maybe.withDefault model.lockedFsItems
                       }
                     , newLog
-                        AddLog
+                        config.addLog
                         log
                         Nothing
                         False
+                        True
                     , Nothing
                     )
 
@@ -628,6 +655,7 @@ internalUpdate config msg model =
                         | loadingStatus =
                             if model.loadingStatus == ToolLoadingWaiting then
                                 ToolLoadingFailure (httpErrorToString e)
+
                             else
                                 model.loadingStatus
                         , lockedFsItems =
@@ -635,9 +663,10 @@ internalUpdate config msg model =
                                 |> Maybe.withDefault model.lockedFsItems
                       }
                     , newLog
-                        AddLog
-                        "Echec requête: "
+                        config.addLog
+                        "Echec requête"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     , Nothing
                     )
@@ -653,6 +682,7 @@ internalUpdate config msg model =
                 , needToUpload =
                     if uploadDone then
                         False
+
                     else
                         model.needToUpload
               }
@@ -663,6 +693,8 @@ internalUpdate config msg model =
                         (modeRoot mode model.root)
                         (List.map .filename files)
                     )
+                    |> Cmd.map model.externalMsg
+
               else
                 Cmd.none
             , Nothing
@@ -684,8 +716,8 @@ internalUpdate config msg model =
                         FilesysDisplay ->
                             UploadDisplay
 
-                        LogsDisplay ->
-                            FilesysDisplay
+                --LogsDisplay ->
+                --    FilesysDisplay
             in
             ( { model
                 | mainPanelDisplay = mainPanelDisplay
@@ -736,6 +768,7 @@ internalUpdate config msg model =
                             (Maybe.withDefault filename model.desiredFilename)
                             contents
                         )
+                        |> Cmd.map model.externalMsg
                     , Nothing
                     )
 
@@ -884,32 +917,28 @@ internalUpdate config msg model =
         ----------
         -- Logs --
         ----------
-        AddLog log ->
-            ( { model | logs = log :: model.logs }
-            , Cmd.none
-            , Nothing
-            )
-
-        ToogleLogsView ->
-            let
-                mainPanelDisplay =
-                    case model.mainPanelDisplay of
-                        UploadDisplay ->
-                            UploadDisplay
-
-                        FilesysDisplay ->
-                            LogsDisplay
-
-                        LogsDisplay ->
-                            FilesysDisplay
-            in
-            ( { model
-                | mainPanelDisplay = mainPanelDisplay
-              }
-            , Cmd.none
-            , Nothing
-            )
-
+        --AddLog log ->
+        --    ( { model | logs = log :: model.logs }
+        --    , Cmd.none
+        --    , Nothing
+        --    )
+        --ToogleLogsView ->
+        --    let
+        --        mainPanelDisplay =
+        --            case model.mainPanelDisplay of
+        --                UploadDisplay ->
+        --                    UploadDisplay
+        --                FilesysDisplay ->
+        --                    LogsDisplay
+        --                LogsDisplay ->
+        --                    FilesysDisplay
+        --    in
+        --    ( { model
+        --        | mainPanelDisplay = mainPanelDisplay
+        --      }
+        --    , Cmd.none
+        --    , Nothing
+        --    )
         ----------
         -- Misc --
         ----------
@@ -963,9 +992,8 @@ view config model =
                     FilesysDisplay ->
                         filesysView config model
 
-                    LogsDisplay ->
-                        logsView config model
-
+                    --LogsDisplay ->
+                    --    logsView config model
                     UploadDisplay ->
                         uploadView config model
                 ]
@@ -994,6 +1022,7 @@ mainInterface config model =
                         [ html <| Icons.fileText iconSize
                         ]
                 }
+
           else
             Element.none
         , if config.mode == Full then
@@ -1006,6 +1035,7 @@ mainInterface config model =
                         [ html <| Icons.imageIcon iconSize
                         ]
                 }
+
           else
             Element.none
         , Input.button (buttonStyle True)
@@ -1020,6 +1050,7 @@ mainInterface config model =
             { onPress =
                 if model.lastLocation /= Nothing then
                     Just <| GoNext config.mode
+
                 else
                     Nothing
             , label =
@@ -1036,23 +1067,23 @@ mainInterface config model =
                     ]
             }
         , clickablePath config model
-        , case config.mode of
-            ReadOnly _ ->
-                Element.none
 
-            _ ->
-                Input.button
-                    (toogleButtonStyle
-                        (model.mainPanelDisplay == LogsDisplay)
-                        (model.mainPanelDisplay /= UploadDisplay)
-                    )
-                    { onPress =
-                        Just <| ToogleLogsView
-                    , label =
-                        row [ spacing 10 ]
-                            [ html <| Icons.list iconSize
-                            ]
-                    }
+        --, case config.mode of
+        --ReadOnly _ ->
+        --    Element.none
+        --_ ->
+        --    Input.button
+        --        (toogleButtonStyle
+        --            (model.mainPanelDisplay == LogsDisplay)
+        --            (model.mainPanelDisplay /= UploadDisplay)
+        --        )
+        --        { onPress =
+        --            Just <| ToogleLogsView
+        --        , label =
+        --            row [ spacing 10 ]
+        --                [ html <| Icons.list iconSize
+        --                ]
+        --        }
         ]
 
 
@@ -1214,6 +1245,7 @@ sidePanelView config model =
                                 if model.newFolderNameBuffer /= "" then
                                     Maybe.map extractFsItem (getCurrentFilesys config.mode model)
                                         |> Maybe.map (NewFolder config.mode)
+
                                 else
                                     Nothing
                             , label =
@@ -1222,6 +1254,7 @@ sidePanelView config model =
                                     ]
                             }
                         ]
+
                   else
                     Element.none
                 , case config.mode of
@@ -1248,6 +1281,7 @@ sidePanelView config model =
                                         if model.cutBuffer /= Nothing then
                                             Maybe.map (Paste config.mode << extractFsItem)
                                                 (getCurrentFilesys config.mode model)
+
                                         else
                                             Nothing
                                     , label =
@@ -1255,6 +1289,7 @@ sidePanelView config model =
                                             [ text "Coller"
                                             ]
                                     }
+
                               else
                                 Element.none
                             ]
@@ -1300,6 +1335,7 @@ sidePanelView config model =
                                 { onPress =
                                     if model.renameBuffer /= "" then
                                         Maybe.map (Rename config.mode) model.selectedFsItem
+
                                     else
                                         Nothing
                                 , label =
@@ -1335,6 +1371,7 @@ sidePanelView config model =
                                     ]
                             }
                         ]
+
                   else
                     Element.none
                 ]
@@ -1346,6 +1383,7 @@ sidePanelView config model =
                 || (model.mainPanelDisplay == UploadDisplay && config.mode /= Full)
           then
             width (px 180)
+
           else
             width (px 330)
         , padding 15
@@ -1411,6 +1449,7 @@ filesysView config model =
                  ]
                     ++ (if List.member file model.lockedFsItems then
                             [ alpha 0.5 ]
+
                         else
                             [ pointer
                             , Events.onClick (SelectFsItem config.mode file)
@@ -1437,10 +1476,13 @@ filesysView config model =
                             RegFile ->
                                 if String.contains ".pdf" name then
                                     Background.uncropped "/assets/images/pdf.svg"
+
                                 else if String.contains ".ppt" name then
                                     Background.uncropped "/assets/images/ppt.svg"
+
                                 else if String.contains ".doc" name then
                                     Background.uncropped "/assets/images/doc.svg"
+
                                 else
                                     Background.uncropped "/assets/images/file.svg"
                         , Background.color (rgba 1 1 1 1)
@@ -1486,6 +1528,7 @@ filesysView config model =
                             [ alpha 0.5
                             , onDoubleClick NoOp
                             ]
+
                         else
                             [ pointer
                             , Events.onClick (SelectFsItem config.mode folder)
@@ -1557,16 +1600,17 @@ filesysView config model =
                         ]
 
 
-logsView : { a | mode : Mode, zone : Zone } -> Model msg -> Element Msg
-logsView config model =
-    column
-        [ scrollbarY
-        , height fill
-        , width fill
-        , alignTop
-        , padding 15
-        ]
-        [ Internals.CommonHelpers.logsView model.logs config.zone ]
+
+--logsView : { a | mode : Mode, zone : Zone } -> Model msg -> Element Msg
+--logsView config model =
+--    column
+--        [ scrollbarY
+--        , height fill
+--        , width fill
+--        , alignTop
+--        , padding 15
+--        ]
+--        [ Internals.CommonHelpers.logsView model.logs config.zone ]
 
 
 uploadView :
@@ -1637,6 +1681,7 @@ uploadView config model =
                                     ]
                                ]
                         )
+
                   else
                     Input.button
                         (buttonStyle <| True)
@@ -1659,6 +1704,7 @@ uploadView config model =
                     (decodeFilesToUpload (FilesToUpload config.mode))
                  , if model.canUpload then
                     HtmlAttr.hidden True
+
                    else
                     noHtmlAttr
                  , Maybe.map extractFsItem (getCurrentFilesys config.mode model)
@@ -1686,6 +1732,7 @@ uploadView config model =
                                 LoggedIn { sessionId } ->
                                     HtmlAttr.property "sendFiles"
                                         (Encode.string sessionId)
+
                          else
                             noHtmlAttr
                        ]
@@ -1704,10 +1751,12 @@ uploadView config model =
                                 ++ " "
                                 ++ (if success then
                                         "ok"
+
                                     else
                                         "erreur"
                                    )
                             )
+
                      else
                         text "pret"
                     )
@@ -1778,16 +1827,19 @@ imageControllerView config model imgContMode =
              , HtmlEvents.on "imageRead" (decodeImageData ImageRead)
              , if imgContMode /= FileReader then
                 HtmlAttr.hidden True
+
                else
                 noHtmlAttr
              , if model.needToRotate then
                 HtmlAttr.property "rotationAngle" (Encode.int model.desiredRotationAngle)
+
                else
                 noHtmlAttr
              ]
                 ++ (if model.needToResize then
                         [ (if model.desiredRotationAngle == 90 || model.desiredRotationAngle == 270 then
                             model.desiredWidth
+
                            else
                             model.desiredHeight
                           )
@@ -1795,6 +1847,7 @@ imageControllerView config model imgContMode =
                             |> Maybe.map (\val -> HtmlAttr.property "desiredSize" val)
                             |> Maybe.withDefault noHtmlAttr
                         ]
+
                     else
                         []
                    )
@@ -1928,6 +1981,7 @@ editView config model =
                         { onPress =
                             if model.canResize then
                                 Just SetResize
+
                             else
                                 Nothing
                         , label = text "Redimensionner"
@@ -2047,6 +2101,7 @@ decodeFile =
                         , name = f
                     }
                     []
+
             else
                 File
                     { path =
@@ -2070,6 +2125,7 @@ decodeFile =
                     (\s ->
                         if String.contains "?" s then
                             leftOf "?" s
+
                         else
                             s
                     )
@@ -2217,6 +2273,7 @@ encodeFsItemPath fsItem =
         |> (\s ->
                 if String.contains "?" s then
                     leftOf "?" s
+
                 else
                     s
            )
@@ -2454,12 +2511,14 @@ zipToFsItem path filesys =
                 curr :: [] ->
                     if getName (extractFsItem filesys_) /= curr then
                         Nothing
+
                     else
                         Just filesys_
 
                 curr :: next :: rest ->
                     if getName (extractFsItem filesys_) /= curr then
                         Nothing
+
                     else
                         zipDownFilesys (\fsItem -> getName fsItem == next) filesys_
                             |> Maybe.andThen (helper (next :: rest))
@@ -2556,6 +2615,7 @@ insert f rootName mbFsItem_ =
                         root :: _ ->
                             if root /= rootName then
                                 Nothing
+
                             else
                                 helper
                                     path
@@ -2569,14 +2629,17 @@ insert f rootName mbFsItem_ =
                         curr :: [] ->
                             if curr /= meta.name then
                                 Nothing
+
                             else if List.any (\c -> getName c == getName f) children then
                                 Just <| Folder meta children
+
                             else
                                 Just <| Folder meta (f :: children)
 
                         curr :: next :: rest ->
                             if curr /= meta.name then
                                 Nothing
+
                             else
                                 let
                                     ( l, r ) =
@@ -2669,6 +2732,7 @@ indexPhototheque model =
                 (Folder meta _) :: xs ->
                     if meta.name == "HQ" then
                         getPaths ( True, acc ) xs
+
                     else
                         getPaths ( hq, acc ) xs
 
@@ -2719,6 +2783,7 @@ break p xs =
                 y :: ys_ ->
                     if p y then
                         ( List.reverse left, y :: ys_ )
+
                     else
                         helper ys_ (y :: left)
     in
@@ -2734,6 +2799,7 @@ onDoubleClick msg =
         preventIfDoubleClick n =
             if n > 1 then
                 ( msg, True )
+
             else
                 ( NoOp, False )
     in
@@ -2757,6 +2823,7 @@ prettyName2 name n =
                                     "." ++ rightOfBack "." l1 ++ l2
                             in
                             String.join "\n" [ newL1, newL2 ]
+
                         else
                             String.join "" res
                                 |> String.Extra.wrap n
@@ -2771,6 +2838,7 @@ prettyName2 name n =
                                     "." ++ rightOfBack "." l2 ++ l3
                             in
                             String.join "\n" [ l1, newL2, newL3 ]
+
                         else
                             String.join "" [ l1, l2, String.Extra.ellipsis (n - 3) l3 ]
                                 |> String.Extra.wrap n
@@ -2794,6 +2862,7 @@ prettyName name n =
                     String.split "." s
                         |> String.join " ."
                         |> String.words
+
                 else
                     [ s ]
             )
@@ -2808,13 +2877,16 @@ prettyName name n =
                             if i == 2 then
                                 if String.length s >= 7 then
                                     String.left 7 s ++ "..."
+
                                 else
                                     s ++ "..."
+
                             else
                                 s
                         )
                         xs
                         |> List.take 3
+
                 else
                     xs
            )
@@ -2834,6 +2906,7 @@ customJoin acc n s xs =
                     && (String.contains "." xs1 || String.contains "." xs2)
             then
                 customJoin ((xs1 ++ xs2) :: acc) n s rest
+
             else
                 customJoin (xs1 :: acc) n s (xs2 :: rest)
 
@@ -2886,6 +2959,7 @@ pickerView backMsg confirmMsg root config externalMsg =
             { maxHeight =
                 if config.maxHeight < 800 then
                     400
+
                 else
                     500
             , zone = config.zone

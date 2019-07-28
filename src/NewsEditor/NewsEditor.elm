@@ -1,4 +1,4 @@
-module NewsEditor.NewsEditor exposing (..)
+module NewsEditor.NewsEditor exposing (Model, Msg(..), NewsEditorMode(..), ViewConfig, checkView, containerStyle, decodeNewsDict, decodeSuccess, getAllTheNews, getNews, getNewsDict, init, internalUpdate, itemStyle, load, loadingStatus, loadingView, newsEditorView, newsSelectorView, removeNews, renderConfig, setNews, setVisual, update, validNews, view, visualPickerView)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Derberos.Date.Core exposing (civilToPosix, newDateRecord)
@@ -185,11 +185,13 @@ internalUpdate config msg model =
                 | buffer =
                     if Set.member id model.checkedNews then
                         Nothing
+
                     else
                         Dict.get id model.news
                 , checkedNews =
                     if Set.member id model.checkedNews then
                         Set.remove id model.checkedNews
+
                     else
                         Set.insert id model.checkedNews
               }
@@ -356,6 +358,7 @@ internalUpdate config msg model =
                         ( uuid, newSeed ) =
                             if news.uuid == UUID.nil then
                                 Random.step UUID.generator seed
+
                             else
                                 ( news.uuid, seed )
 
@@ -507,10 +510,11 @@ newsSelectorView config model =
                 , label = text "Modifier actualité"
                 }
             , Input.button
-                (buttonStyle (not <| Set.isEmpty model.checkedNews))
+                (deleteButtonStyle (not <| Set.isEmpty model.checkedNews))
                 { onPress =
                     if not <| Set.isEmpty model.checkedNews then
                         Just RemoveNews
+
                     else
                         Nothing
                 , label =
@@ -518,6 +522,7 @@ newsSelectorView config model =
                         |> (\n ->
                                 if n > 1 then
                                     "Supprimer actualités"
+
                                 else
                                     "Supprimer actualité"
                            )
@@ -587,11 +592,13 @@ checkView isChecked isBuffer newsId title zone date expiry =
         , mouseOver
             [ if isBuffer then
                 Background.color grey4
+
               else
                 Background.color grey5
             ]
         , if isBuffer then
             Background.color grey4
+
           else
             noAttr
         , spacing 10
@@ -601,6 +608,7 @@ checkView isChecked isBuffer newsId title zone date expiry =
                 [ if isChecked then
                     el [ Font.color grey1 ]
                         (html <| checkSquare 18)
+
                   else
                     el [ Font.color grey1 ]
                         (html <| square 18)
@@ -651,6 +659,7 @@ newsEditorView config model =
                     [ below <|
                         if not model.picPickerOpen then
                             Element.none
+
                         else
                             el
                                 [ Background.color (rgb 1 1 1)
@@ -688,6 +697,7 @@ newsEditorView config model =
                             ++ [ width (px 150)
                                , if Maybe.map .expiry model.buffer /= (Just <| millisToPosix 0) then
                                     Font.color green4
+
                                  else
                                     Font.color red4
                                ]
@@ -704,6 +714,7 @@ newsEditorView config model =
                                 Just t ->
                                     if t == millisToPosix 0 then
                                         model.expiryBuffer
+
                                     else
                                         dateToStr config.zone t
                         }
@@ -722,6 +733,7 @@ newsEditorView config model =
                         , label =
                             if model.contentPreview then
                                 text "Edition"
+
                             else
                                 text "Aperçu"
                         }
@@ -735,6 +747,7 @@ newsEditorView config model =
                             model.textBlockPlugin
                             (renderConfig model.externalMsg)
                         )
+
                   else
                     TextBlockPlugin.newsEditorView textBlockConfig model.textBlockPlugin
                 ]
@@ -753,7 +766,7 @@ newsEditorView config model =
                        ]
                 )
                 [ Input.button
-                    (buttonStyle
+                    (saveButtonStyle
                         (Maybe.map validNews model.buffer
                             |> Maybe.withDefault False
                         )

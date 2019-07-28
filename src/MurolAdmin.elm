@@ -14,6 +14,7 @@ import Element.Input as Input
 import Element.Lazy exposing (lazy)
 import FileExplorer.FileExplorer as FileExplorer
 import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (..)
+import Help.Help exposing (..)
 import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
@@ -166,6 +167,7 @@ type Tool
     | GeneralDirectoryTool
     | NewsEditorTool
     | PublicationsTool
+    | HelpTool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -189,6 +191,7 @@ update msg model =
                 ( newFileExplorer, fileExplorerCmds, mbEditorPluginResult ) =
                     FileExplorer.update
                         { logInfo = Auth.getLogInfo model.authTool
+                        , addLog = AddLog
                         }
                         fileExplorerMsg
                         model.fileExplorer
@@ -203,7 +206,7 @@ update msg model =
                     Auth.getLogInfo newAuthTool
 
                 ( newAuthTool, authToolCmds, mbToolResult ) =
-                    Auth.update authToolMsg model.authTool
+                    Auth.update { addLog = AddLog } authToolMsg model.authTool
 
                 ( newLoadingStatus, loadingCmds ) =
                     if
@@ -407,7 +410,30 @@ view model =
             ]
             (case model.loadingStatus of
                 WaitingForLogin ->
-                    Auth.view { zone = model.zone } model.authTool
+                    column
+                        [ centerX
+                        , centerY
+                        , Background.color grey6
+                        , Border.rounded 5
+                        , padding 15
+                        , spacing 15
+                        ]
+                        [ el
+                            [ Font.center
+                            , Background.color (rgb 1 1 1)
+                            , width fill
+                            , padding 15
+                            ]
+                            (text "MurolAdmin")
+                        , column
+                            [ spacing 15
+                            , padding 15
+                            , centerX
+                            , centerY
+                            , Background.color (rgb 1 1 1)
+                            ]
+                            [ Auth.view { zone = model.zone } model.authTool ]
+                        ]
 
                 Loading ->
                     let
@@ -420,20 +446,38 @@ view model =
                                 ]
                     in
                     column
-                        [ spacing 15
-                        , width fill
+                        [ centerX
+                        , centerY
+                        , Background.color grey6
+                        , Border.rounded 5
                         , padding 15
+                        , spacing 15
                         ]
-                        [ FileExplorer.loadingView model.fileExplorer
-                        , PageTreeEditor.loadingView model.pageTreeEditor
-                        , GeneralDirectoryEditor.loadingView model.generalDirectory
-                        , NewsEditor.loadingView model.newsEditor
-                        , Publications.loadingView model.publications
-                        , Input.button (buttonStyle loadingComplete)
-                            { onPress = Just Launch
-                            , label =
-                                text "Commencer"
-                            }
+                        [ el
+                            [ Font.center
+                            , Background.color (rgb 1 1 1)
+                            , width fill
+                            , padding 15
+                            ]
+                            (text "MurolAdmin")
+                        , column
+                            [ spacing 15
+                            , padding 15
+                            , centerX
+                            , centerY
+                            , Background.color (rgb 1 1 1)
+                            ]
+                            [ FileExplorer.loadingView model.fileExplorer
+                            , PageTreeEditor.loadingView model.pageTreeEditor
+                            , GeneralDirectoryEditor.loadingView model.generalDirectory
+                            , NewsEditor.loadingView model.newsEditor
+                            , Publications.loadingView model.publications
+                            , Input.button (buttonStyle loadingComplete)
+                                { onPress = Just Launch
+                                , label =
+                                    text "Commencer"
+                                }
+                            ]
                         ]
 
                 Ready ->
@@ -489,6 +533,9 @@ view model =
                             , tabView model.currentTool
                                 AuthTool
                                 "Authentification"
+                            , tabView model.currentTool
+                                HelpTool
+                                "Aide"
                             ]
                         , case model.currentTool of
                             PageEditorTool ->
@@ -554,6 +601,9 @@ view model =
                                     , logInfo = Auth.getLogInfo model.authTool
                                     }
                                     model.publications
+
+                            HelpTool ->
+                                Element.none
                         , notificationsPanelView model
                         ]
             )
@@ -658,7 +708,7 @@ comsMonitorView model =
         , el
             [ Font.color
                 (if Auth.isLogged model.authTool.logInfo then
-                    green6
+                    green4
 
                  else
                     red6
@@ -677,23 +727,24 @@ comsMonitorView model =
 
 savingStatus : Model -> Status
 savingStatus model =
-    Initial
+    combineStatus
+        [ Auth.status model.authTool
+        , PageTreeEditor.status model.pageTreeEditor
+        , FileExplorer.status model.fileExplorer
+        ]
 
 
 notificationsPanelView : Model -> Element Msg
 notificationsPanelView model =
     let
-        ( newest, others ) =
-            case
-                Dict.toList model.logs
-                    |> List.sortBy (posixToMillis << .timeStamp << Tuple.first << Tuple.second)
-                    |> List.reverse
-            of
-                [] ->
-                    ( [], [] )
+        logs =
+            Dict.toList model.logs
+                |> List.sortBy (posixToMillis << .timeStamp << Tuple.first << Tuple.second)
+                |> List.reverse
 
-                l :: xs ->
-                    ( [ l ], xs )
+        newest =
+            List.filter (\( _, ( l, _ ) ) -> .isImportant l) logs
+                |> List.head
     in
     row
         [ width fill
@@ -701,8 +752,9 @@ notificationsPanelView model =
         , Border.color (rgb 0.8 0.8 0.8)
         , Border.widthEach { sides | top = 2 }
         , above
-            (logsViewPanel model.logsOpen (newest ++ others) model.zone ToogleLog)
+            (logsViewPanel model.logsOpen logs model.zone ToogleLog)
         , spacing 15
+        , alignBottom
         ]
         [ el
             [ Border.color (rgb 0.8 0.8 0.8)
@@ -711,7 +763,7 @@ notificationsPanelView model =
             ]
             (html <| messageSquare 22)
         , case newest of
-            ( _, ( l, _ ) ) :: [] ->
+            Just ( _, ( l, _ ) ) ->
                 logTitleView l model.zone
 
             _ ->

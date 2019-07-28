@@ -1,4 +1,4 @@
-module GeneralDirectoryEditor.GeneralDirMainFormView exposing (..)
+module GeneralDirectoryEditor.GeneralDirMainFormView exposing (ViewConfig, catsActivsCont, contactsCont, containerStyle, descrCont, docPickerView, editFicheView, formItemStyle, hashLinkedDoc, labOtRankCont, labelVisualPickerView, linkDocsCont, linkedDocView, nameVisualCont, ouvertureCont, selectView, setActivs, setAdresse, setCats, setDescriptions, setEmails, setFax, setLabelVisual, setLabels, setLinkedDocs, setNomEntite, setOt, setOuverture, setRank, setResponsables, setSite, setTel, setVisual, visualPickerView)
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Dict exposing (..)
@@ -59,6 +59,7 @@ editFicheView config model =
                     , el []
                         (text <| dateToStr config.zone model.ficheBuffer.lastEdit)
                     ]
+
               else
                 Element.none
             ]
@@ -69,6 +70,7 @@ editFicheView config model =
             , inFront <|
                 if not model.visualPickerOpen then
                     Element.none
+
                 else
                     el
                         [ Background.color (rgb 1 1 1)
@@ -102,10 +104,11 @@ editFicheView config model =
                 , label = el [] (text "Annuler")
                 }
             , Input.button
-                (buttonStyle (isValidFiche model.ficheBuffer))
+                (saveButtonStyle (isValidFiche model.ficheBuffer))
                 { onPress =
                     if isValidFiche model.ficheBuffer then
                         Just (model.externalMsg SaveFiche)
+
                     else
                         Nothing
                 , label = el [] (text "Sauvegarder fiche")
@@ -412,6 +415,7 @@ setCats config model =
                 { onPress =
                     if canAdd then
                         Just AddCatToFiche
+
                     else
                         Nothing
                 , label = el [] (text "Ajouter catégorie")
@@ -421,6 +425,7 @@ setCats config model =
                 { onPress =
                     if canRemove then
                         Just RemoveCatFromFiche
+
                     else
                         Nothing
                 , label = el [] (text "Supprimer catégorie")
@@ -430,6 +435,7 @@ setCats config model =
                 { onPress =
                     if canModify then
                         Just ModifyCat
+
                     else
                         Nothing
                 , label = el [] (text "Modifier catégorie")
@@ -557,6 +563,7 @@ setActivs config model =
                 { onPress =
                     if canAdd then
                         Just AddActivToFiche
+
                     else
                         Nothing
                 , label = el [] (text "Ajouter activité")
@@ -566,6 +573,7 @@ setActivs config model =
                 { onPress =
                     if canRemove then
                         Just RemoveActivFromFiche
+
                     else
                         Nothing
                 , label = el [] (text "Supprimer activité")
@@ -575,6 +583,7 @@ setActivs config model =
                 { onPress =
                     if canModify then
                         Just ModifyActiv
+
                     else
                         Nothing
                 , label = el [] (text "Modifier activité")
@@ -602,6 +611,7 @@ setLabels config model =
             [ below <|
                 if not model.labelVisualPickerOpen then
                     Element.none
+
                 else
                     el
                         [ Background.color (rgb 1 1 1)
@@ -770,6 +780,7 @@ setLabels config model =
                     { onPress =
                         if canAdd then
                             Just AddLabelToFiche
+
                         else
                             Nothing
                     , label = el [] (text "Ajouter label")
@@ -779,6 +790,7 @@ setLabels config model =
                     { onPress =
                         if canRemove then
                             Just RemoveLabelFromFiche
+
                         else
                             Nothing
                     , label = el [] (text "Supprimer label")
@@ -788,6 +800,7 @@ setLabels config model =
                     { onPress =
                         if canModify then
                             Just ModifyLabel
+
                         else
                             Nothing
                     , label =
@@ -1156,6 +1169,7 @@ setEmails config model =
                 { onPress =
                     if canModify then
                         Just ModifyEmail
+
                     else
                         Nothing
                 , label = el [] (text "Modifier email")
@@ -1165,6 +1179,7 @@ setEmails config model =
                 { onPress =
                     if canAddEmail then
                         Just AddEmail
+
                     else
                         Nothing
                 , label = el [] (text "Ajouter email")
@@ -1174,6 +1189,7 @@ setEmails config model =
                 { onPress =
                     if canDeleteEmail then
                         Just RemoveEmail
+
                     else
                         Nothing
                 , label = el [] (text "Supprimer email")
@@ -1407,6 +1423,7 @@ setResponsables config model =
                 { onPress =
                     if canModify then
                         Just ModifyResp
+
                     else
                         Nothing
                 , label = el [] (text "Modifier responsable")
@@ -1416,6 +1433,7 @@ setResponsables config model =
                 { onPress =
                     if canAddResp then
                         Just AddResp
+
                     else
                         Nothing
                 , label = el [] (text "Ajouter responsable")
@@ -1425,6 +1443,7 @@ setResponsables config model =
                 { onPress =
                     if canDeleteResp then
                         Just RemoveResp
+
                     else
                         Nothing
                 , label = el [] (text "Supprimer responsable")
@@ -1548,6 +1567,7 @@ setDescriptions config model =
                 { onPress =
                     if canModify then
                         Just ModifyDescr
+
                     else
                         Nothing
                 , label = el [] (text "Modifier description")
@@ -1557,6 +1577,7 @@ setDescriptions config model =
                 { onPress =
                     if canAdd then
                         Just AddDescription
+
                     else
                         Nothing
                 , label = el [] (text "Ajouter description")
@@ -1566,6 +1587,7 @@ setDescriptions config model =
                 { onPress =
                     if canDelete then
                         Just RemoveDescription
+
                     else
                         Nothing
                 , label = el [] (text "Supprimer description")
@@ -1663,6 +1685,7 @@ setLinkedDocs config model =
                         ++ [ width (px 230)
                            , if Maybe.andThen .expiryDate model.linkedDocBuffer /= Nothing then
                                 Font.color green4
+
                              else
                                 Font.color red4
                            , spacingXY 0 15
@@ -1704,6 +1727,7 @@ setLinkedDocs config model =
             , above <|
                 if not model.docPickerOpen then
                     Element.none
+
                 else
                     el
                         [ Background.color (rgb 1 1 1)
@@ -1749,6 +1773,7 @@ setLinkedDocs config model =
                 { onPress =
                     if canModify then
                         Just (model.externalMsg ModifyLinkedDoc)
+
                     else
                         Nothing
                 , label = el [] (text "Modifier document")
@@ -1758,6 +1783,7 @@ setLinkedDocs config model =
                 { onPress =
                     if canAdd then
                         Just (model.externalMsg AddLinkedDoc)
+
                     else
                         Nothing
                 , label = el [] (text "Ajouter document")
@@ -1767,6 +1793,7 @@ setLinkedDocs config model =
                 { onPress =
                     if canDelete then
                         Just (model.externalMsg RemoveLinkedDoc)
+
                     else
                         Nothing
                 , label = el [] (text "Supprimer document")
@@ -1802,6 +1829,7 @@ linkedDocView externalMsg zone selected ({ url, descr, label, expiryDate } as ld
         , if Just ld == selected then
             Background.color
                 grey4
+
           else
             noAttr
         , width fill
@@ -1898,10 +1926,12 @@ selectView isFicheData selected handler entry =
         , if Just entry == selected then
             Background.color
                 grey4
+
           else
             noAttr
         , if isFicheData then
             Font.color teal3
+
           else
             Font.color grey2
         ]

@@ -1,4 +1,24 @@
-module PageTreeEditor.PageTreeEditor exposing (Child(..), Content, Contents, Context, Mode(..), Model, Msg(..), Page(..), PageInfo, PageTree, Path, break, decodeContent, decodeContents, decodeKeyword, decodeKeywords, decodePage, decodePageInfo, decodePageTree, decodeSuccess, decodeUUID, delete, deleteContent, emptyPages, encodePage, encodePageInfo, extractPage, fileIoSelectedPageInfo, fixPaths, fullView, getContents, getKeywords, getMbContentId, getName, getPageTree, getPath, getPathFromId, init, initPageTree, insert, internalPageSelectedPageInfo, isSubPage, keywordsAdminView, load, loadedContent, loadingStatus, loadingView, openView, pageTreeView, pageTreeView_, prefix, rewind, saveAsView, saveContent, savePageTree, saveView, selectView, selectedPageInfo, setInternalPageSelection, setKeyword, siteMap, swapLeft, swapRight, unsetKeyword, update, updateCurrPageTree, validMbStr, view, zipDown, zipTo, zipUp)
+module PageTreeEditor.PageTreeEditor exposing
+    ( Child(..)
+    , Mode(..)
+    , Model
+    , Msg(..)
+    , decodeContent
+    , decodeKeywords
+    , decodePage
+    , fileIoSelectedPageInfo
+    , getPathFromId
+    , init
+    , internalPageSelectedPageInfo
+    , load
+    , loadedContent
+    , loadingStatus
+    , loadingView
+    , setInternalPageSelection
+    , status
+    , update
+    , view
+    )
 
 import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
 import Base64 exposing (..)
@@ -41,8 +61,6 @@ type alias Model msg =
     , saveAsSelected : Maybe Page
     , internalPageSelected : Maybe Page
     , pageTreeUpdatedStatus : Status
-
-    --, contentUpdatedStatus : Status
     , externalMsg : Msg -> msg
     , pageTreeLoaded : Status
     , contentsLoaded : Status
@@ -61,6 +79,16 @@ type alias Model msg =
     , currentTime : Maybe Time.Posix
     , error : String
     }
+
+
+status : Model msg -> Status
+status model =
+    combineStatus
+        [ model.pageTreeLoaded
+        , model.contentsLoaded
+        , model.keywordsLoaded
+        , model.pageTreeUpdatedStatus
+        ]
 
 
 loadedContent : Model msg -> Maybe Content
@@ -321,6 +349,7 @@ update config msg model =
                                 "Chargement des pages réussi"
                                 Nothing
                                 False
+                                False
                             )
 
                         Err e ->
@@ -332,6 +361,7 @@ update config msg model =
                                 "Erreur décodage Json"
                                 (Just <| Decode.errorToString e)
                                 True
+                                True
                             )
 
                 Err e ->
@@ -340,6 +370,7 @@ update config msg model =
                         config.addLog
                         "Impossible de charger les pages"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     )
 
@@ -355,6 +386,7 @@ update config msg model =
                         "Chargement arborescence réussi"
                         Nothing
                         False
+                        False
                     )
 
                 Err e ->
@@ -363,6 +395,7 @@ update config msg model =
                         config.addLog
                         "Impossible de charger l'arborescence"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     )
 
@@ -378,6 +411,7 @@ update config msg model =
                         "Chargement mots clés réussi"
                         Nothing
                         False
+                        False
                     )
 
                 Err e ->
@@ -389,6 +423,7 @@ update config msg model =
                         config.addLog
                         "Impossible de charger les mots clés"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     )
 
@@ -406,6 +441,7 @@ update config msg model =
                         config.addLog
                         "Arborescence mise à jour"
                         Nothing
+                        False
                         False
                     )
 
@@ -431,6 +467,7 @@ update config msg model =
                                 config.addLog
                                 "Echec de la mise à jour de l'arborescence"
                                 (Just <| httpErrorToString e)
+                                True
                                 True
 
                         _ ->
@@ -521,10 +558,12 @@ update config msg model =
                             "Sauvegarde page..."
                             Nothing
                             False
+                            True
                         , newLog
                             config.addLog
                             "Sauvegarde arborescence..."
                             Nothing
+                            False
                             False
                         ]
                     )
@@ -549,6 +588,7 @@ update config msg model =
                         "Page sauvegardée"
                         Nothing
                         False
+                        True
                     )
 
                 Err e ->
@@ -568,6 +608,7 @@ update config msg model =
                         config.addLog
                         "Echec sauvegarde page"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     )
 
@@ -706,6 +747,7 @@ update config msg model =
                                         (getMbContentId (Page pageInfo xs))
                                         |> Maybe.withDefault model.lockedContents
                                 , selected = Nothing
+                                , fileIoSelected = Nothing
                               }
                             , Cmd.batch
                                 [ Maybe.map
@@ -1618,7 +1660,7 @@ view config model =
             [ spacing 15
             , Font.size 16
             , alignTop
-            , padding 15
+            , padding 10
             , width fill
             , height (maximum config.maxHeight fill)
             ]
@@ -1644,6 +1686,7 @@ fullView : { config | mode : Mode } -> Model msg -> Element.Element Msg
 fullView config model =
     row
         [ spacing 15
+        , padding 5
         , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
         , clip
         , width fill
@@ -1669,6 +1712,8 @@ fullView config model =
                 , right = 15
                 }
             , scrollbarY
+
+            --, Background.color blue5
             ]
             [ el
                 [ Font.bold
@@ -1692,7 +1737,7 @@ fullView config model =
                         Input.labelLeft [] Element.none
                     }
                 , Input.button
-                    (buttonStyle (model.selected /= Nothing))
+                    (saveButtonStyle (model.selected /= Nothing))
                     { onPress =
                         Maybe.map (\_ -> RenamePage) model.selected
                     , label =
@@ -1704,7 +1749,7 @@ fullView config model =
             , row
                 [ spacing 15 ]
                 [ Input.button
-                    (buttonStyle (model.selected /= Nothing))
+                    (saveButtonStyle (model.selected /= Nothing))
                     { onPress =
                         Maybe.map (\_ -> Swap True) model.selected
                     , label =
@@ -1714,7 +1759,7 @@ fullView config model =
                             ]
                     }
                 , Input.button
-                    (buttonStyle (model.selected /= Nothing))
+                    (saveButtonStyle (model.selected /= Nothing))
                     { onPress =
                         Maybe.map (\_ -> Swap False) model.selected
                     , label =
@@ -1740,7 +1785,7 @@ fullView config model =
                             ]
                     }
                 , Input.button
-                    (buttonStyle (model.selected /= Nothing && model.pastePageBuffer /= Nothing))
+                    (saveButtonStyle (model.selected /= Nothing && model.pastePageBuffer /= Nothing))
                     { onPress =
                         if model.pastePageBuffer /= Nothing then
                             Maybe.map (\_ -> PastePage) model.selected
@@ -1753,7 +1798,7 @@ fullView config model =
                             ]
                     }
                 , Input.button
-                    (buttonStyle (model.selected /= Nothing))
+                    (deleteButtonStyle (model.selected /= Nothing))
                     { onPress =
                         Maybe.map (\_ -> DeletePage) model.selected
                     , label =
@@ -1952,7 +1997,7 @@ keywordsAdminView config model =
         , row
             [ spacing 15 ]
             [ Input.button
-                (buttonStyle
+                (saveButtonStyle
                     ((Maybe.andThen getMbContentId model.selected
                         /= Nothing
                      )
@@ -1983,7 +2028,7 @@ keywordsAdminView config model =
                         [ text "Associer mot clé" ]
                 }
             , Input.button
-                (buttonStyle
+                (saveButtonStyle
                     ((Maybe.andThen getMbContentId model.selected
                         /= Nothing
                      )
@@ -2013,6 +2058,7 @@ saveView : { config | mode : Mode } -> Model msg -> Element.Element Msg
 saveView config model =
     column
         [ spacing 15
+        , padding 5
         , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
         , clip
         , width fill
@@ -2025,7 +2071,7 @@ saveView config model =
             (text "Enregistrer")
         , pageTreeView config model
         , Input.button
-            (buttonStyle (model.fileIoSelected /= Nothing))
+            (saveButtonStyle (model.fileIoSelected /= Nothing))
             { onPress =
                 Maybe.map SaveContent model.fileIoSelected
             , label =
@@ -2038,8 +2084,14 @@ saveView config model =
 
 saveAsView : { config | mode : Mode } -> Model msg -> Element.Element Msg
 saveAsView config model =
+    let
+        canSave =
+            (model.saveAsSelected /= Nothing)
+                && (model.newPageBuffer /= "")
+    in
     column
         [ spacing 15
+        , padding 5
         , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
         , clip
         , width fill
@@ -2061,9 +2113,13 @@ saveAsView config model =
                     Input.labelLeft [] Element.none
                 }
             , Input.button
-                (buttonStyle True)
+                (saveButtonStyle canSave)
                 { onPress =
-                    Just <| NewPage
+                    if canSave then
+                        Just NewPage
+
+                    else
+                        Nothing
                 , label =
                     row [ spacing 10 ]
                         [ text "Nouvelle page"
@@ -2072,7 +2128,7 @@ saveAsView config model =
             ]
         , pageTreeView config model
         , Input.button
-            (buttonStyle (model.saveAsSelected /= Nothing))
+            (saveButtonStyle (model.saveAsSelected /= Nothing))
             { onPress =
                 Maybe.map SaveContent model.saveAsSelected
             , label =
@@ -2185,7 +2241,13 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                     (if selectable then
                         [ Events.onClick (SelectPage (Page pageInfo children))
                         , pointer
-                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                        , mouseOver
+                            [ if selected == Just (Page pageInfo children) then
+                                Font.color (rgba 0 0 1 1)
+
+                              else
+                                Font.color (rgba 0 0 1 0.5)
+                            ]
                         ]
 
                      else
@@ -2223,7 +2285,13 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                     in
                     [ Events.onClick (SaveAsSelectPage (Page pageInfo children))
                     , pointer
-                    , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                    , mouseOver
+                        [ if selected == Just (Page pageInfo children) then
+                            Font.color (rgba 0 0 1 1)
+
+                          else
+                            Font.color (rgba 0 0 1 0.5)
+                        ]
                     ]
                         ++ [ if selected == Just (Page pageInfo children) then
                                 Font.color (rgba 0 0 1 1)
@@ -2255,7 +2323,13 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                     (if selectable then
                         [ Events.onClick (FileIOSelectPage (Page pageInfo children))
                         , pointer
-                        , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                        , mouseOver
+                            [ if selected == Just (Page pageInfo children) then
+                                Font.color (rgba 0 0 1 1)
+
+                              else
+                                Font.color (rgba 0 0 1 0.5)
+                            ]
                         ]
 
                      else
@@ -2271,7 +2345,13 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                 Select ->
                     [ Events.onClick (SelectInternalPage (Page pageInfo children))
                     , pointer
-                    , mouseOver [ Font.color (rgba 0 0 1 1) ]
+                    , mouseOver
+                        [ if selected == Just (Page pageInfo children) then
+                            Font.color (rgba 0 0 1 1)
+
+                          else
+                            Font.color (rgba 0 0 1 0.5)
+                        ]
                     , if selected == Just (Page pageInfo children) then
                         Font.color (rgba 0 0 1 1)
 

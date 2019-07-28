@@ -1469,7 +1469,7 @@ view config model =
                     model.externalMsg
             , case model.currentPlugin of
                 Nothing ->
-                    documentView { model | config = newConfig }
+                    documentView config { model | config = newConfig }
 
                 Just plugin ->
                     pluginView config { model | config = newConfig } plugin
@@ -1477,39 +1477,78 @@ view config model =
         ]
 
 
-documentView : Model msg -> Element msg
-documentView model =
+documentView : ViewConfig config msg -> Model msg -> Element msg
+documentView config model =
     column
-        [ scrollbarY
+        [ width fill
+        , alignTop
+
+        --NOTE: trick to make the columns scrollable
+        , clip
+        , htmlAttribute (HtmlAttr.style "flex-shrink" "1")
         , height fill
-
-        -- needed to be able to scroll
-        , width fill
-        , htmlAttribute <| HtmlAttr.id "documentContainer"
-        , case model.config.previewMode of
-            PreviewBigScreen ->
-                width fill
-
-            PreviewScreen ->
-                width (px 980)
-
-            PreviewTablet ->
-                width (px 800)
-
-            PreviewPhone ->
-                width (px 350)
-        , centerX
-
-        --, clipX
         ]
-        (model.document
-            |> addZipperHandlers
-            |> rewind
-            |> extractDoc
-            |> responsivePreFormat model.config
-            |> renderDoc model.config
-         --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
-        )
+        [ el
+            [ width fill
+            , height (px 35)
+            , Border.color (rgb 0.8 0.8 0.8)
+            , Border.widthEach { sides | bottom = 2 }
+            ]
+            (row
+                [ centerX
+                , centerY
+                , spacing 10
+                ]
+                [ el
+                    [ Font.bold
+                    , Font.size 16
+                    ]
+                    (text "Edition page:")
+                , el []
+                    (text <|
+                        case PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor of
+                            Just { name } ->
+                                name
+
+                            _ ->
+                                "nouvelle page"
+                    )
+                ]
+            )
+        , el
+            [ width fill
+            , scrollbarY
+            , height fill
+            , htmlAttribute <| HtmlAttr.id "documentContainer"
+            ]
+            (column
+                [ height fill
+                , case model.config.previewMode of
+                    PreviewBigScreen ->
+                        width fill
+
+                    PreviewScreen ->
+                        width (px 980)
+
+                    PreviewTablet ->
+                        width (px 800)
+
+                    PreviewPhone ->
+                        width (px 350)
+                , centerX
+
+                --, clipX
+                ]
+                (model.document
+                    |> addZipperHandlers
+                    |> rewind
+                    |> extractDoc
+                    |> responsivePreFormat model.config
+                    |> renderDoc model.config
+                 --, paragraph [] [ text <| Debug.toString (extractDoc model.document) ]
+                )
+            )
+        ]
 
 
 

@@ -1,4 +1,4 @@
-module Document.DocumentViews.DocumentView exposing (..)
+module Document.DocumentViews.DocumentView exposing (customHeading, idStyle, renderAttrs, renderBlockLinks, renderBlocksLinksMeta, renderBulletin, renderCalendar, renderCalendarSalleBeaune, renderCalendarSalleMurol, renderCalendarWidget, renderColumn, renderCustomElement, renderDelib, renderDoc, renderDronePanorama, renderEmptyCell, renderFiches, renderGallery, renderImage, renderLi, renderMurolInfo, renderNews, renderPictureLinks, renderResponsiveBloc, renderRow, renderTable, renderTextBlock, renderTextBlockElement, renderTextBlockPrimitive, renderTextColumn, renderVideo, renderWeatherWidget)
 
 import Array exposing (..)
 import Dict exposing (..)
@@ -156,12 +156,14 @@ renderBlocksLinksMeta nbrChunks config id attrs { image, label, targetBlank, url
         linkFun =
             if targetBlank then
                 newTabLink
+
             else
                 link
 
         url_ =
             if targetBlank then
                 url
+
             else
                 Dict.get url config.pageIndex
                     |> Maybe.withDefault ""
@@ -202,6 +204,7 @@ renderBlocksLinksMeta nbrChunks config id attrs { image, label, targetBlank, url
                        , if not config.editMode then
                             mouseOver
                                 [ Background.color (blockLinkGreyAlpha 0.5) ]
+
                          else
                             noAttr
                        ]
@@ -235,6 +238,7 @@ renderBlocksLinksMeta nbrChunks config id attrs { image, label, targetBlank, url
                                         , Font.color (rgb 1 1 1)
                                         ]
                                         (html <| externalLink 16)
+
                                   else
                                     Element.none
                                 ]
@@ -253,6 +257,7 @@ renderBlocksLinksMeta nbrChunks config id attrs { image, label, targetBlank, url
                 |> String.fromInt
             , block
             )
+
     else
         linkFun
             []
@@ -393,6 +398,7 @@ renderNews config id attrs =
                         (html <|
                             if Set.member (canonical uuid) config.openedNews then
                                 chevronsUp 18
+
                             else
                                 chevronsDown 18
                         )
@@ -515,6 +521,7 @@ renderNews config id attrs =
                                 content.tbElems
                             )
                         ]
+
             else
                 []
 
@@ -651,12 +658,14 @@ renderTextBlockPrimitive config tbAttrs p =
                 linkFun =
                     if targetBlank then
                         newTabLink
+
                     else
                         link
 
                 url_ =
                     if targetBlank then
                         url
+
                     else
                         Dict.get url config.pageIndex
                             |> Maybe.withDefault ""
@@ -668,6 +677,7 @@ renderTextBlockPrimitive config tbAttrs p =
                         ++ renderAttrs config attrs
                     )
                     (text label)
+
             else
                 linkFun
                     (styleSheet.linkStyle
@@ -702,6 +712,7 @@ renderColumn config id attrs children =
         (styleSheet.columnStyle
             ++ (if config.containersBkgColors then
                     [ Background.color (rgba 0 1 0 0.3) ]
+
                 else
                     []
                )
@@ -724,6 +735,7 @@ renderRow config id attrs children =
         (styleSheet.rowStyle
             ++ (if config.containersBkgColors then
                     [ Background.color (rgba 1 0 0 0.3) ]
+
                 else
                     []
                )
@@ -743,6 +755,7 @@ renderTextColumn config id attrs children =
         (styleSheet.textColumnStyle
             ++ (if config.containersBkgColors then
                     [ Background.color (rgba 0 0 1 0.3) ]
+
                 else
                     []
                )
@@ -788,14 +801,21 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
                     s
     in
     [ el attrs_
-        (html <|
-            Html.img
-                [ Attr.style "width" "100%"
-                , Attr.style "height" "auto"
-                , Attr.src src_
-                ]
-                []
+        (image [ width fill ]
+            { src = src_
+            , description = ""
+            }
         )
+
+    --el attrs_
+    --(html <|
+    --    Html.img
+    --        [ Attr.style "width" "100%"
+    --        , Attr.style "height" "auto"
+    --        , Attr.src src_
+    --        ]
+    --        []
+    --)
     ]
 
 
@@ -817,6 +837,7 @@ renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
                 , Attr.height vidMeta.size.videoHeight
                 , if vidMeta.frameBorder then
                     noHtmlAttr
+
                   else
                     Attr.attribute "frameborder" "0"
                 , Attr.attribute "allowfullscreen" "true"
@@ -963,6 +984,7 @@ renderCalendar config id attrs =
                         , Attr.style "border-width" "0"
                         ]
                         []
+
              else
                 html <|
                     Html.iframe
@@ -1006,6 +1028,7 @@ renderCalendarSalleMurol config id attrs =
                         , Attr.style "border-width" "0"
                         ]
                         []
+
              else
                 html <|
                     Html.iframe
@@ -1049,6 +1072,7 @@ renderCalendarSalleBeaune config id attrs =
                         , Attr.style "border-width" "0"
                         ]
                         []
+
              else
                 html <|
                     Html.iframe
@@ -1226,47 +1250,74 @@ renderPictureLinks config id attrs picLinks =
                         fillPortion
                             (floor <| 10000 * toFloat img.size.imgWidth / totalImgWidth)
                     ]
-                    (html <|
-                        Html.img
-                            [ Attr.style "width" "100%"
-                            , Attr.style "height" "auto"
-                            , case img.src of
+                    (image
+                        [ width fill
+                        , height fill
+                        ]
+                        { src =
+                            case img.src of
                                 UrlSrc urlSrc ->
-                                    Attr.src urlSrc
+                                    urlSrc
 
                                 _ ->
-                                    Attr.style "" ""
-                            ]
-                            []
+                                    ""
+                        , description = ""
+                        }
                     )
+                --(html <|
+                --    Html.img
+                --        [ Attr.style "width" "100%"
+                --        , Attr.style "height" "auto"
+                --        , case img.src of
+                --            UrlSrc urlSrc ->
+                --                Attr.src urlSrc
+                --            _ ->
+                --                Attr.style "" ""
+                --        ]
+                --        []
+                --)
+
             else
-                newTabLink
+                el
                     [ Element.width <|
                         fillPortion
                             (floor <| 10000 * toFloat img.size.imgWidth / totalImgWidth)
-                    , pointer
-                    , Border.width 2
-                    , Border.color (rgba255 255 255 255 0)
-                    , Border.rounded 2
-                    , mouseOver
-                        [ Border.color (rgb255 255 255 255)
-                        ]
                     ]
-                    { url = url
-                    , label =
-                        html <|
-                            Html.img
-                                [ Attr.style "width" "100%"
-                                , Attr.style "height" "auto"
-                                , case img.src of
-                                    UrlSrc urlSrc ->
-                                        Attr.src urlSrc
+                    (newTabLink
+                        [ pointer
+                        , Border.width 2
+                        , Border.color (rgba255 255 255 255 0)
+                        , Border.rounded 2
+                        , mouseOver
+                            [ Border.color (rgb255 255 255 255)
+                            ]
+                        ]
+                        { url = url
+                        , label =
+                            image [ width fill ]
+                                { src =
+                                    case img.src of
+                                        UrlSrc urlSrc ->
+                                            urlSrc
 
-                                    _ ->
-                                        Attr.style "" ""
-                                ]
-                                []
-                    }
+                                        _ ->
+                                            ""
+                                , description = ""
+                                }
+
+                        --html <|
+                        --    Html.img
+                        --        [ Attr.style "width" "100%"
+                        --        , Attr.style "height" "auto"
+                        --        , case img.src of
+                        --            UrlSrc urlSrc ->
+                        --                Attr.src urlSrc
+                        --            _ ->
+                        --                Attr.style "" ""
+                        --        ]
+                        --        []
+                        }
+                    )
     in
     case picLinks of
         [] ->
@@ -1276,7 +1327,8 @@ renderPictureLinks config id attrs picLinks =
             [ row
                 ([ spacing 10
                  , padding 10
-                 , clip
+
+                 --, clip
                  ]
                     ++ styleSheet.pictureLinksStyle
                     ++ idStyle styleSheet id
@@ -1340,6 +1392,7 @@ renderGallery config id attrs galleryMeta =
                         )
                     ]
                 ]
+
             else
                 []
 
@@ -1467,6 +1520,7 @@ renderAttrs config attrs =
                         --== Portrait
                     then
                         [ centerX ]
+
                     else
                         [ alignRight
                         , paddingEach
@@ -1478,6 +1532,7 @@ renderAttrs config attrs =
                         ]
                             ++ (if config.editMode then
                                     [ htmlAttribute <| Attr.style "z-index" "1" ]
+
                                 else
                                     []
                                )
@@ -1489,6 +1544,7 @@ renderAttrs config attrs =
                         --== Portrait
                     then
                         [ centerX ]
+
                     else
                         [ alignLeft
                         , paddingEach
@@ -1500,6 +1556,7 @@ renderAttrs config attrs =
                         ]
                             ++ (if config.editMode then
                                     [ htmlAttribute <| Attr.style "z-index" "1" ]
+
                                 else
                                     []
                                )

@@ -1,4 +1,4 @@
-module Document.DocumentViews.DocumentResponsive exposing (..)
+module Document.DocumentViews.DocumentResponsive exposing (flipTable, renderSameHeightImgRow, responsivePreFormat)
 
 import Array exposing (..)
 import Dict exposing (..)
@@ -84,8 +84,10 @@ responsivePreFormat config document =
                 DocRow ->
                     if device.class == Phone || device.class == Tablet then
                         responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
+
                     else if containsOnly isImage document then
                         renderSameHeightImgRow config.width document
+
                     else
                         Container nv (List.map (responsivePreFormat config) children)
 
@@ -93,6 +95,7 @@ responsivePreFormat config document =
                 TextColumn ->
                     if device.class == Phone || device.class == Tablet then
                         responsivePreFormat config <| Container { nv | containerLabel = DocColumn } children
+
                     else
                         Container nv (List.map (responsivePreFormat config) children)
 
@@ -131,6 +134,7 @@ responsivePreFormat config document =
                             , id = id
                             , attrs = attrs
                             }
+
                     else
                         l
 
@@ -173,6 +177,7 @@ flipTable { style, nbrRows, nbrCols, data } =
                         tails_ =
                             if List.member [] tails then
                                 []
+
                             else
                                 tails
                     in

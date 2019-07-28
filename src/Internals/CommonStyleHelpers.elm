@@ -1,4 +1,64 @@
-module Internals.CommonStyleHelpers exposing (aliceBlue, blockLinkGrey, blockLinkGreyAlpha, blue1, blue2, blue3, blue4, blue5, blue6, blue7, buttonStyle, green1, green2, green3, green4, green5, green6, green7, grey1, grey2, grey3, grey4, grey5, grey6, grey7, noAttr, noHtmlAttr, okMark, progressBar, property, red1, red2, red3, red4, red5, red6, red7, redStar, sides, strCons, teal1, teal2, teal3, teal4, teal5, teal6, teal7, textInputStyle, toogleButtonStyle, unselectable, yellow1, yellow2, yellow3, yellow4, yellow5, yellow6, yellow7)
+module Internals.CommonStyleHelpers exposing
+    ( aliceBlue
+    , blockLinkGrey
+    , blockLinkGreyAlpha
+    , blue1
+    , blue2
+    , blue3
+    , blue4
+    , blue5
+    , blue6
+    , blue7
+    , buttonStyle
+    , deleteButtonStyle
+    , green1
+    , green2
+    , green3
+    , green4
+    , green5
+    , green6
+    , green7
+    , grey1
+    , grey2
+    , grey3
+    , grey4
+    , grey5
+    , grey6
+    , grey7
+    , noAttr
+    , noHtmlAttr
+    , okMark
+    , progressBar
+    , property
+    , red1
+    , red2
+    , red3
+    , red4
+    , red5
+    , red6
+    , red7
+    , redStar
+    , saveButtonStyle
+    , sides
+    , strCons
+    , teal1
+    , teal2
+    , teal3
+    , teal4
+    , teal5
+    , teal6
+    , teal7
+    , textInputStyle
+    , toogleButtonStyle
+    , unselectable
+    , yellow1
+    , yellow2
+    , yellow3
+    , yellow4
+    , yellow5
+    , yellow6
+    , yellow7
+    )
 
 import Element exposing (..)
 import Element.Background as Background
@@ -95,7 +155,57 @@ buttonStyle isActive =
     ]
         ++ (if isActive then
                 [ Background.color (rgb 0.9 0.9 0.9)
-                , mouseOver [ Font.color (rgb 255 255 255) ]
+                , mouseOver [ Background.color (rgb 0.85 0.85 0.85) ]
+                , Border.width 1
+                , Border.color (rgb 0.9 0.9 0.9)
+                ]
+
+            else
+                [ Background.color (rgb 0.95 0.95 0.95)
+                , Font.color (rgb 0.7 0.7 0.7)
+                , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                , Border.width 1
+                , Border.color (rgb 0.95 0.95 0.95)
+                ]
+           )
+
+
+saveButtonStyle isActive =
+    [ Border.rounded 5
+    , Font.center
+    , Font.color (rgb 1 1 1)
+    , centerY
+    , padding 5
+    , focused [ Border.glow (rgb 1 1 1) 0 ]
+    ]
+        ++ (if isActive then
+                [ Background.color green4
+                , mouseOver [ Background.color green3 ]
+                , Border.width 1
+                , Border.color (rgb 0.9 0.9 0.9)
+                ]
+
+            else
+                [ Background.color (rgb 0.95 0.95 0.95)
+                , Font.color (rgb 0.7 0.7 0.7)
+                , htmlAttribute <| HtmlAttr.style "cursor" "default"
+                , Border.width 1
+                , Border.color (rgb 0.95 0.95 0.95)
+                ]
+           )
+
+
+deleteButtonStyle isActive =
+    [ Border.rounded 5
+    , Font.center
+    , Font.color (rgb 1 1 1)
+    , centerY
+    , padding 5
+    , focused [ Border.glow (rgb 1 1 1) 0 ]
+    ]
+        ++ (if isActive then
+                [ Background.color red5
+                , mouseOver [ Background.color red4 ]
                 , Border.width 1
                 , Border.color (rgb 0.9 0.9 0.9)
                 ]

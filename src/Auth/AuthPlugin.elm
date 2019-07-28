@@ -1,4 +1,16 @@
-module Auth.AuthPlugin exposing (LogInfo(..), Model, Msg, cmdIfLogged, getLogInfo, init, isLogged, subscriptions, update, view)
+module Auth.AuthPlugin exposing
+    ( LogInfo(..)
+    , Model
+    , Msg
+    , cmdIfLogged
+    , getLogInfo
+    , init
+    , isLogged
+    , status
+    , subscriptions
+    , update
+    , view
+    )
 
 import Element exposing (..)
 import Element.Background as Background
@@ -52,7 +64,6 @@ type alias Model msg =
     , confirmPassword : String
     , logInfo : LogInfo
     , pluginMode : PluginMode
-    , logs : List Log
     , externalMsg : Msg -> msg
     }
 
@@ -63,17 +74,32 @@ init externalMsg =
       , confirmPassword = ""
       , logInfo = LoggedOut
       , pluginMode = LoginMode Waiting
-      , logs = []
       , externalMsg = externalMsg
       }
     , Cmd.map externalMsg <| checkLogin
     )
 
 
+status model =
+    case model.pluginMode of
+        SignUpMode s ->
+            s
+
+        LoginMode s ->
+            s
+
+        LogoutMode s ->
+            s
+
+
 subscriptions model =
     Sub.map model.externalMsg <|
-        Sub.batch
-            [ Time.every (30 * 1000) (\_ -> Ping) ]
+        case model.pluginMode of
+            LoginMode _ ->
+                Time.every (30 * 1000) (\_ -> Ping)
+
+            _ ->
+                Sub.none
 
 
 reset model =
@@ -82,7 +108,6 @@ reset model =
         , password = ""
         , confirmPassword = ""
         , pluginMode = LoginMode Initial
-        , logs = []
       }
     , login model
     )
@@ -110,22 +135,13 @@ type Msg
     | Logout
     | ConfirmLogout (Result Http.Error Bool)
     | ChangePluginMode PluginMode
-    | AddLog Log
     | Ping
     | PingResult (Result Http.Error Bool)
     | Quit
     | NoOp
 
 
-update msg model =
-    let
-        ( newModel, cmds, mbToolResult ) =
-            internalUpdate msg model
-    in
-    ( newModel, Cmd.map model.externalMsg cmds, mbToolResult )
-
-
-internalUpdate msg model =
+update config msg model =
     case msg of
         SetUsername s ->
             ( { model | username = s }
@@ -150,6 +166,7 @@ internalUpdate msg model =
                 | pluginMode = LoginMode Waiting
               }
             , login model
+                |> Cmd.map model.externalMsg
             , Nothing
             )
 
@@ -181,9 +198,10 @@ internalUpdate msg model =
                         , pluginMode = LoginMode Failure
                       }
                     , newLog
-                        AddLog
+                        config.addLog
                         "Echec connexion"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     , Nothing
                     )
@@ -202,6 +220,7 @@ internalUpdate msg model =
                 | pluginMode = SignUpMode Waiting
               }
             , signUp model
+                |> Cmd.map model.externalMsg
             , Nothing
             )
 
@@ -210,9 +229,10 @@ internalUpdate msg model =
                 Err e ->
                     ( { model | pluginMode = SignUpMode Failure }
                     , newLog
-                        AddLog
+                        config.addLog
                         "Echec création compte"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     , Nothing
                     )
@@ -228,6 +248,7 @@ internalUpdate msg model =
                 | pluginMode = LogoutMode Waiting
               }
             , logout
+                |> Cmd.map model.externalMsg
             , Nothing
             )
 
@@ -236,9 +257,10 @@ internalUpdate msg model =
                 Err e ->
                     ( { model | pluginMode = LogoutMode Failure }
                     , newLog
-                        AddLog
+                        config.addLog
                         "Echec déconnexion"
                         (Just <| httpErrorToString e)
+                        True
                         True
                     , Nothing
                     )
@@ -260,16 +282,14 @@ internalUpdate msg model =
             , Nothing
             )
 
-        AddLog log ->
-            ( { model | logs = log :: model.logs }
-            , Cmd.none
-            , Nothing
-            )
-
         Ping ->
             case model.logInfo of
                 LoggedIn li ->
-                    ( model, ping li.sessionId, Nothing )
+                    ( { model | pluginMode = LoginMode Waiting }
+                    , ping li.sessionId
+                        |> Cmd.map model.externalMsg
+                    , Nothing
+                    )
 
                 _ ->
                     ( model, Cmd.none, Nothing )
@@ -277,10 +297,19 @@ internalUpdate msg model =
         PingResult res ->
             case res of
                 Ok True ->
-                    ( model, Cmd.none, Nothing )
+                    ( { model | pluginMode = LoginMode Success }
+                    , Cmd.none
+                    , Nothing
+                    )
 
                 _ ->
-                    ( { model | logInfo = LoggedOut }, Cmd.none, Nothing )
+                    ( { model
+                        | logInfo = LoggedOut
+                        , pluginMode = LoginMode Failure
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
 
         Quit ->
             ( model, Cmd.none, Just ToolQuit )
@@ -388,17 +417,17 @@ decodeLogoutResult =
 view config model =
     Element.map model.externalMsg <|
         case model.pluginMode of
-            SignUpMode status ->
-                signUpView config status model
+            SignUpMode status_ ->
+                signUpView config status_ model
 
-            LoginMode status ->
-                loginView config status model
+            LoginMode status_ ->
+                loginView config status_ model
 
-            LogoutMode status ->
-                logoutView config status model
+            LogoutMode status_ ->
+                logoutView config status_ model
 
 
-signUpView config status model =
+signUpView config status_ model =
     let
         initialView =
             column
@@ -463,11 +492,6 @@ signUpView config status model =
                             Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Connexion"
                         }
-
-                    --, Input.button (buttonStyle True)
-                    --    { onPress = Just Quit
-                    --    , label = text "Retour"
-                    --    }
                     ]
                 ]
 
@@ -475,19 +499,12 @@ signUpView config status model =
             column
                 [ spacing 15 ]
                 [ text "Echec inscription!"
-                , logsView model.logs config.zone
                 , row [ spacing 15 ]
                     [ Input.button (buttonStyle True)
                         { onPress =
                             Just <| ChangePluginMode (SignUpMode Initial)
                         , label = text "Réessayer"
                         }
-
-                    --, Input.button (buttonStyle True)
-                    --    { onPress =
-                    --        Just <| ChangePluginMode (LoginMode Initial)
-                    --    , label = text "Connexion"
-                    --    }
                     , Input.button (buttonStyle True)
                         { onPress = Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Retour"
@@ -502,7 +519,7 @@ signUpView config status model =
         , alignTop
         ]
         [ text "Nouvel utilisateur: "
-        , case status of
+        , case status_ of
             Initial ->
                 initialView
 
@@ -517,7 +534,7 @@ signUpView config status model =
         ]
 
 
-loginView config status model =
+loginView config status_ model =
     let
         initialView =
             column
@@ -569,11 +586,6 @@ loginView config status model =
                         { onPress = Just <| ChangePluginMode (LogoutMode Initial)
                         , label = text "Deconnexion"
                         }
-
-                    --, Input.button (buttonStyle True)
-                    --    { onPress = Just Quit
-                    --    , label = text "Retour"
-                    --    }
                     ]
                 ]
 
@@ -581,18 +593,12 @@ loginView config status model =
             column
                 [ spacing 15 ]
                 [ text "Echec Connexion!"
-                , logsView model.logs config.zone
                 , row [ spacing 15 ]
                     [ Input.button (buttonStyle True)
                         { onPress =
                             Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Réessayer"
                         }
-
-                    --, Input.button (buttonStyle True)
-                    --    { onPress = Just Quit
-                    --    , label = text "Retour"
-                    --    }
                     ]
                 ]
     in
@@ -603,7 +609,7 @@ loginView config status model =
         , alignTop
         ]
         [ text "Connexion: "
-        , case status of
+        , case status_ of
             Initial ->
                 initialView
 
@@ -618,7 +624,7 @@ loginView config status model =
         ]
 
 
-logoutView config status model =
+logoutView config status_ model =
     let
         initialView =
             column
@@ -643,11 +649,6 @@ logoutView config status model =
                         { onPress = Just <| ChangePluginMode (LoginMode Initial)
                         , label = text "Connexion"
                         }
-
-                    --, Input.button (buttonStyle True)
-                    --    { onPress = Just Quit
-                    --    , label = text "Retour"
-                    --    }
                     ]
                 ]
 
@@ -655,18 +656,12 @@ logoutView config status model =
             column
                 [ spacing 15 ]
                 [ text "Echec déconnexion!"
-                , logsView model.logs config.zone
                 , row [ spacing 15 ]
                     [ Input.button (buttonStyle True)
                         { onPress =
                             Just <| ChangePluginMode (LogoutMode Initial)
                         , label = text "Réessayer"
                         }
-
-                    --, Input.button (buttonStyle True)
-                    --    { onPress = Just Quit
-                    --    , label = text "Retour"
-                    --    }
                     ]
                 ]
     in
@@ -677,7 +672,7 @@ logoutView config status model =
         , alignTop
         ]
         [ text "Déconnexion: "
-        , case status of
+        , case status_ of
             Initial ->
                 initialView
 

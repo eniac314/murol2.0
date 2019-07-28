@@ -1,4 +1,4 @@
-module GeneralDirectoryEditor.FichePreview exposing (..)
+module GeneralDirectoryEditor.FichePreview exposing (activView, contactView, descriptionView, fichePreview, ficheView, linkedDocsView, refView, responsablesView, starsView, subBlockStyle, telPreview, visualPreview, wrapperStyle)
 
 import Dict exposing (..)
 import Element exposing (..)
@@ -51,6 +51,7 @@ ficheView handler currentTime maxWidth isOpen fiche =
                 , descriptionView fiche
                 , linkedDocsView currentTime fiche
                 ]
+
           else
             Element.none
         ]
@@ -213,25 +214,33 @@ refView maxWidth { refOt, label, rank } =
             List.foldr (\i n -> i.width + n) 0 imgsScaledToMinHeight
 
         logoView { url, width, height, link } =
-            newTabLink
+            el
                 [ if totalImgWidth < maxWidth then
                     Element.width (px (round width))
+
                   else
                     Element.width <| fillPortion (floor <| 10000 * width / totalImgWidth)
                 ]
-                { url = link
-                , label =
-                    if url == "stars" then
-                        starsView nbrStars
-                    else
-                        html <|
-                            Html.img
-                                [ HtmlAttr.style "width" "100%"
-                                , HtmlAttr.style "height" "auto"
-                                , HtmlAttr.src url
-                                ]
-                                []
-                }
+                (newTabLink
+                    []
+                    { url = link
+                    , label =
+                        if url == "stars" then
+                            starsView nbrStars
+
+                        else
+                            --el
+                            --    [ Background.color (rgb 1 1 1)
+                            --    , Element.height fill
+                            --    , Element.width fill
+                            --    ]
+                            --    Element.none
+                            image [ Element.width fill ]
+                                { src = url
+                                , description = ""
+                                }
+                    }
+                )
 
         logosView =
             case images of
@@ -241,7 +250,8 @@ refView maxWidth { refOt, label, rank } =
                 _ ->
                     row
                         [ spacing 10
-                        , clip
+
+                        --, clip
                         ]
                         (List.map logoView imgsScaledToMinHeight)
 
@@ -268,6 +278,7 @@ refView maxWidth { refOt, label, rank } =
             && (images == [])
     then
         Element.none
+
     else
         column
             (subBlockStyle
@@ -352,6 +363,7 @@ responsablesView responsables =
                     [ el [] (text poste)
                     , if poste == "" then
                         Element.none
+
                       else
                         text ", "
                     , el [] (text nom)
@@ -399,6 +411,7 @@ descriptionView { description, ouverture } =
                 column
                     subBlockStyle
                     [ ouvertureView ]
+
             else
                 Element.none
 
@@ -473,6 +486,7 @@ linkedDocsView currentTime { linkedDocs } =
                         Just ed ->
                             if posixToMillis ed < posixToMillis currentTime then
                                 Element.none
+
                             else
                                 resView
             in
@@ -506,6 +520,7 @@ telPreview tel =
             TelFixe s ->
                 if s == "" then
                     []
+
                 else
                     [ paragraph
                         []
@@ -519,6 +534,7 @@ telPreview tel =
             TelPortable s ->
                 if s == "" then
                     []
+
                 else
                     [ paragraph
                         []

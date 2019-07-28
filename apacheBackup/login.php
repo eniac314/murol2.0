@@ -51,7 +51,16 @@ if((getenv('REQUEST_METHOD') == 'POST')) {
   mysqli_close($db);
 
   $_SESSION['logInfo']['username'] = $php_data->username;
+  
+  // ini_set('session.use_cookies', '0');
+  // session_id($php_data->sessionId);
+  // session_start();
 
+  // if (!isset($_SESSION['logInfo']['username'])){
+  //   logError("wrong credentials");
+  //   exit();
+  // }
+  
   $result = array('username' => $php_data->username
                  ,'sessionId' => $id
                  );
