@@ -1,4 +1,4 @@
-module PageEditor.EditorPlugins.NewDocPlugin exposing (..)
+module PageEditor.EditorPlugins.NewDocPlugin exposing (cellContStrToCellContent, view)
 
 import Document.Document exposing (..)
 import Element exposing (..)
@@ -50,15 +50,19 @@ view config =
                             [ text "Créer ligne"
                             ]
                     }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.createNewContainer TextColumn
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Créer colonne de texte"
-                            ]
-                    }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.createNewContainer TextColumn
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Créer colonne de texte"
+                                ]
+                        }
                 ]
             ]
         , column
@@ -89,15 +93,19 @@ view config =
                             [ text "Zone blocs de liens"
                             ]
                     }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.createNewCell FichesPlugin
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Zone de fiches"
-                            ]
-                    }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.createNewCell FichesPlugin
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Zone de fiches"
+                                ]
+                        }
                 , Input.button (buttonStyle True)
                     { onPress =
                         Just <|
@@ -125,15 +133,19 @@ view config =
                             [ text "Tableau"
                             ]
                     }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.createNewCell PictureLinksPlugin
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Bandeau liens images"
-                            ]
-                    }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.createNewCell PictureLinksPlugin
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Bandeau liens images"
+                                ]
+                        }
                 , Input.button (buttonStyle True)
                     { onPress =
                         Just <|
@@ -143,106 +155,146 @@ view config =
                             [ text "Album photothèque"
                             ]
                     }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "NewsBlock"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Zone actualités"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "CalendarWidget"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Mini calendrier"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "Calendar"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Calendrier animation"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "CalendarSalleMurol"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Calendrier salle Murol"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "CalendarSalleBeaune"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Calendrier salle Beaune"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "WeatherWidget"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Météo"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "DronePanorama"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Panoramique aérien"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "MurolInfos"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Murol infos"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "Delibs"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Délibérations"
-                            ]
-                    }
-                , Input.button (buttonStyle True)
-                    { onPress =
-                        Just <|
-                            config.insertNewCell
-                                "Bulletins"
-                    , label =
-                        row [ spacing 10 ]
-                            [ text "Bulletins municipaux"
-                            ]
-                    }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "NewsBlock"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Zone actualités"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "CalendarWidget"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Mini calendrier"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "Calendar"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Calendrier animation"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "CalendarSalleMurol"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Calendrier salle Murol"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "CalendarSalleBeaune"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Calendrier salle Beaune"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "WeatherWidget"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Météo"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "DronePanorama"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Panoramique aérien"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "MurolInfos"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Murol infos"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "Delibs"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Délibérations"
+                                ]
+                        }
+                , if not config.showAdvancedControls then
+                    Element.none
+
+                  else
+                    Input.button (buttonStyle True)
+                        { onPress =
+                            Just <|
+                                config.insertNewCell
+                                    "Bulletins"
+                        , label =
+                            row [ spacing 10 ]
+                                [ text "Bulletins municipaux"
+                                ]
+                        }
                 ]
             ]
         , Input.button (buttonStyle True)

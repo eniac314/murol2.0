@@ -878,12 +878,26 @@ update config msg model =
                     ( model, Cmd.none )
 
         SelectKeyword s ->
-            ( { model | selectedKeyword = Just s }
+            ( { model
+                | selectedKeyword =
+                    if model.selectedKeyword == Just s then
+                        Nothing
+
+                    else
+                        Just s
+              }
             , Cmd.none
             )
 
         SelectPageKeyword s ->
-            ( { model | selectedPageKeyword = Just s }
+            ( { model
+                | selectedPageKeyword =
+                    if model.selectedPageKeyword == Just s then
+                        Nothing
+
+                    else
+                        Just s
+              }
             , Cmd.none
             )
 

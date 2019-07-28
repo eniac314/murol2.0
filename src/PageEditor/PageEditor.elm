@@ -156,6 +156,7 @@ type alias Model msg =
     , controlDown : Bool
     , menuClicked : Bool
     , menuFocused : String
+    , showAdvancedControls : Bool
     , funnelState : FunnelState
     , localStorageKey : String
     , localStorageValue : Maybe Value
@@ -222,6 +223,7 @@ type Msg
     | SetPreviewMode PreviewMode
     | SetSeason Season
     | ToogleCountainersColors
+    | ToogleShowAdvancedControls
     | SetEditorPlugin (Maybe EditorPlugin)
       -----------------------------
       -- Plugins messages routing--
@@ -320,6 +322,7 @@ reset mbDoc externalMsg =
       , controlDown = False
       , menuClicked = False
       , menuFocused = ""
+      , showAdvancedControls = False
       , funnelState = funnelState
       , localStorageKey = ""
       , localStorageValue = Nothing
@@ -818,6 +821,14 @@ internalUpdate config msg model =
                     }
             in
             ( { model | config = newConfig }, Cmd.none )
+
+        ToogleShowAdvancedControls ->
+            ( { model
+                | showAdvancedControls =
+                    not model.showAdvancedControls
+              }
+            , Cmd.none
+            )
 
         SetEditorPlugin mbPlugin ->
             ( { model | currentPlugin = mbPlugin }, Cmd.none )
@@ -1454,6 +1465,7 @@ view config model =
             , logInfo = config.logInfo
             , canSave = PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor /= Nothing
             , season = newConfig.season
+            , showAdvancedControls = model.showAdvancedControls
             }
             |> Element.map
                 model.externalMsg
@@ -1606,6 +1618,7 @@ pluginView config model plugin =
                 , createNewContainer = model.externalMsg << CreateNewContainer
                 , goBack = model.externalMsg <| SetEditorPlugin Nothing
                 , nextUid = model.nextUid
+                , showAdvancedControls = model.showAdvancedControls
                 }
 
         ContainerEditPlugin ->
@@ -1990,6 +2003,7 @@ type alias MenuConfig =
     , canSave : Bool
     , logInfo : LogInfo
     , season : Season
+    , showAdvancedControls : Bool
     }
 
 
@@ -2323,6 +2337,13 @@ mainMenu config =
                         | label = "Téléphone"
                         , msg = SetPreviewMode PreviewPhone
                         , isSelected = config.previewMode == PreviewPhone
+                        , isSelectable = True
+                    }
+                  ]
+                , [ { defEntry
+                        | label = "Afficher l'interface avancée"
+                        , msg = ToogleShowAdvancedControls
+                        , isSelected = config.showAdvancedControls
                         , isSelectable = True
                     }
                   ]

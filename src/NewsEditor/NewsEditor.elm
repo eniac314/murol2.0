@@ -564,6 +564,8 @@ newsSelectorView config model =
                 , scrollbars
                 ]
                 (Dict.toList model.news
+                    |> List.sortBy (posixToMillis << .date << Tuple.second)
+                    |> List.reverse
                     |> List.map
                         (\( id, n ) ->
                             checkView
@@ -576,14 +578,15 @@ newsSelectorView config model =
                                 config.zone
                                 n.date
                                 n.expiry
+                                model.currentTime
                         )
                 )
             ]
         ]
 
 
-checkView : Bool -> Bool -> String -> String -> Zone -> Posix -> Posix -> Element Msg
-checkView isChecked isBuffer newsId title zone date expiry =
+checkView : Bool -> Bool -> String -> String -> Zone -> Posix -> Posix -> Posix -> Element Msg
+checkView isChecked isBuffer newsId title zone date expiry currentTime =
     Keyed.row
         [ width fill
         , paddingXY 5 5
@@ -627,6 +630,11 @@ checkView isChecked isBuffer newsId title zone date expiry =
           , el
                 [ alignRight
                 , width (px 150)
+                , if posixToMillis expiry < posixToMillis currentTime then
+                    Font.color red4
+
+                  else
+                    noAttr
                 ]
                 (text <| dateToStr zone expiry)
           )

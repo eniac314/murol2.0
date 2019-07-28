@@ -2,9 +2,6 @@
 ---------------
 -- Todo list --
 ---------------
-- add new page
-
-- unselect keyword when clicked a second time
 
 - fix same height image row in new elm ui 
 	|-> Check if fix is good everywhere
@@ -12,8 +9,6 @@
 - labels in general dir: use a row!
 
 - make a cron task to backup data via ionos panel
-
-- display current page 
 
 - reverse news order in news editor
 
