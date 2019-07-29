@@ -93,19 +93,15 @@ view config =
                             [ text "Zone blocs de liens"
                             ]
                     }
-                , if not config.showAdvancedControls then
-                    Element.none
-
-                  else
-                    Input.button (buttonStyle True)
-                        { onPress =
-                            Just <|
-                                config.createNewCell FichesPlugin
-                        , label =
-                            row [ spacing 10 ]
-                                [ text "Zone de fiches"
-                                ]
-                        }
+                , Input.button (buttonStyle True)
+                    { onPress =
+                        Just <|
+                            config.createNewCell FichesPlugin
+                    , label =
+                        row [ spacing 10 ]
+                            [ text "Zone de fiches"
+                            ]
+                    }
                 , Input.button (buttonStyle True)
                     { onPress =
                         Just <|

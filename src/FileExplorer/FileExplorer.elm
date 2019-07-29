@@ -17,7 +17,7 @@ module FileExplorer.FileExplorer exposing
     , view
     )
 
-import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged, newLogIfLogged)
 import Dict exposing (..)
 import Element exposing (..)
 import Element.Background as Background
@@ -465,7 +465,8 @@ update config msg model =
                         (modeRoot mode model.root)
                     )
                     |> Cmd.map model.externalMsg
-                , newLog
+                , newLogIfLogged
+                    config.logInfo
                     config.addLog
                     ("Requête: Nouveau dossier "
                         ++ model.newFolderNameBuffer
@@ -490,7 +491,8 @@ update config msg model =
                     config.logInfo
                     (deleteFile fsItem (modeRoot mode model.root))
                     |> Cmd.map model.externalMsg
-                , newLog
+                , newLogIfLogged
+                    config.logInfo
                     config.addLog
                     ("Requête: Suppression " ++ getName fsItem)
                     Nothing
@@ -522,7 +524,8 @@ update config msg model =
                             config.logInfo
                             (pasteFile src dest (modeRoot mode model.root))
                             |> Cmd.map model.externalMsg
-                        , newLog
+                        , newLogIfLogged
+                            config.logInfo
                             config.addLog
                             ("Requête: Collage de"
                                 ++ getName src
@@ -553,7 +556,8 @@ update config msg model =
                     config.logInfo
                     (renameFile fsItem model.renameBuffer (modeRoot mode model.root))
                     |> Cmd.map model.externalMsg
-                , newLog
+                , newLogIfLogged
+                    config.logInfo
                     config.addLog
                     ("Requête: Renommage " ++ getName fsItem)
                     Nothing
@@ -1274,7 +1278,7 @@ sidePanelView config model =
                                 }
                             , if config.mode == Full then
                                 Input.button
-                                    ((buttonStyle <| model.cutBuffer /= Nothing)
+                                    ((saveButtonStyle <| model.cutBuffer /= Nothing)
                                         ++ [ Element.alignRight ]
                                     )
                                     { onPress =
@@ -1347,7 +1351,7 @@ sidePanelView config model =
                 , if config.mode == Full then
                     row
                         [ width fill ]
-                        [ Input.button ((buttonStyle <| True) ++ [ Element.alignLeft ])
+                        [ Input.button ((deleteButtonStyle <| True) ++ [ Element.alignLeft ])
                             { onPress =
                                 Maybe.map (Delete config.mode) model.selectedFsItem
                             , label =
@@ -1670,7 +1674,7 @@ uploadView config model =
                                                 ]
                                         }
                                     , Input.button
-                                        (buttonStyle <| True)
+                                        (saveButtonStyle <| True)
                                         { onPress =
                                             Just UploadFiles
                                         , label =
@@ -2023,7 +2027,7 @@ editView config model =
                         { onPress = Just ToogleUploadView
                         , label = text "Retour"
                         }
-                    , Input.button (buttonStyle True)
+                    , Input.button (saveButtonStyle True)
                         { onPress =
                             Maybe.map extractFsItem (getCurrentFilesys config.mode model)
                                 |> Maybe.map UploadImage
@@ -2078,7 +2082,7 @@ getFileList root toRefresh sessionId =
             Http.expectJson
                 (RefreshFilesys
                     Nothing
-                    "Téléchargement info fichiers"
+                    "Chargement info fichier réussi"
                     root
                 )
                 decodeFiles

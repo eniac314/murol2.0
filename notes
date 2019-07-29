@@ -2,6 +2,9 @@
 ---------------
 -- Todo list --
 ---------------
+- add swap album pictures
+
+- fix broken table
 
 - fix same height image row in new elm ui 
 	|-> Check if fix is good everywhere
@@ -10,17 +13,11 @@
 
 - make a cron task to backup data via ionos panel
 
-- reverse news order in news editor
-
 - fix folder names 
-
-- add ping and connection status
 
 - fix fiches label overflowing
 
 - add break to parser
-
-- filter .htaccess in file explorer
 
 - add 360 pics
 

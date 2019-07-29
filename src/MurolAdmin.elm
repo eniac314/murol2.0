@@ -283,6 +283,7 @@ update msg model =
                     GeneralDirectoryEditor.update
                         { logInfo = Auth.getLogInfo model.authTool
                         , zone = model.zone
+                        , addLog = AddLog
                         }
                         generalDirectoryMsg
                         model.generalDirectory
@@ -300,6 +301,7 @@ update msg model =
                         { logInfo = Auth.getLogInfo model.authTool
                         , zone = model.zone
                         , pageTreeEditor = model.pageTreeEditor
+                        , addLog = AddLog
                         }
                         newsEditorMsg
                         model.newsEditor
@@ -317,6 +319,7 @@ update msg model =
                         { logInfo = Auth.getLogInfo model.authTool
                         , zone = model.zone
                         , reloadFilesMsg = ReloadFiles
+                        , addLog = AddLog
                         }
                         publicationsMsg
                         model.publications
@@ -400,7 +403,15 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "MurolAdmin"
     , body =
-        [ Element.layout
+        [ Element.layoutWith
+            { options =
+                [ focusStyle
+                    { borderColor = Nothing
+                    , backgroundColor = Nothing
+                    , shadow = Nothing
+                    }
+                ]
+            }
             [ width fill
             , height (maximum model.winHeight fill)
             , Font.size 16
@@ -731,6 +742,7 @@ savingStatus model =
         [ Auth.status model.authTool
         , PageTreeEditor.status model.pageTreeEditor
         , FileExplorer.status model.fileExplorer
+        , NewsEditor.status model.newsEditor
         ]
 
 

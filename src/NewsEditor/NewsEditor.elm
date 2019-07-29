@@ -1,6 +1,17 @@
-module NewsEditor.NewsEditor exposing (Model, Msg(..), NewsEditorMode(..), ViewConfig, checkView, containerStyle, decodeNewsDict, decodeSuccess, getAllTheNews, getNews, getNewsDict, init, internalUpdate, itemStyle, load, loadingStatus, loadingView, newsEditorView, newsSelectorView, removeNews, renderConfig, setNews, setVisual, update, validNews, view, visualPickerView)
+module NewsEditor.NewsEditor exposing
+    ( Model
+    , Msg(..)
+    , getNewsDict
+    , init
+    , load
+    , loadingStatus
+    , loadingView
+    , status
+    , update
+    , view
+    )
 
-import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged, newLogIfLogged)
 import Derberos.Date.Core exposing (civilToPosix, newDateRecord)
 import Dict exposing (..)
 import Document.Document exposing (..)
@@ -49,6 +60,7 @@ type alias Model msg =
     , currentTime : Posix
     , newsEditorMode : NewsEditorMode
     , loadingStatus : ToolLoadingStatus
+    , status : Status
     , externalMsg : Msg -> msg
     }
 
@@ -75,6 +87,7 @@ init externalMsg =
       , currentTime = millisToPosix 0
       , newsEditorMode = NewsSelector
       , loadingStatus = ToolLoadingWaiting
+      , status = Initial
       , externalMsg = externalMsg
       }
     , textBlockPluginCmds
@@ -93,6 +106,10 @@ load model logInfo =
 
         LoggedOut ->
             Cmd.none
+
+
+status model =
+    model.status
 
 
 loadingStatus model =
@@ -133,6 +150,22 @@ getNewsDict model =
 ------------
 -- Update --
 ------------
+--update :
+--    { a
+--        | logInfo : LogInfo
+--        , zone : Zone
+--        , pageTreeEditor : PageTreeEditor.Model msg
+--        , addLog : Log -> msg
+--    }
+--    -> Msg
+--    -> Model msg
+--    -> ( Model msg, Cmd msg )
+--update config msg model =
+--    let
+--        ( newModel, cmds ) =
+--            internalUpdate config msg model
+--    in
+--    ( newModel, cmds )
 
 
 update :
@@ -140,28 +173,12 @@ update :
         | logInfo : LogInfo
         , zone : Zone
         , pageTreeEditor : PageTreeEditor.Model msg
+        , addLog : Log -> msg
     }
     -> Msg
     -> Model msg
     -> ( Model msg, Cmd msg )
 update config msg model =
-    let
-        ( newModel, cmds ) =
-            internalUpdate config msg model
-    in
-    ( newModel, cmds )
-
-
-internalUpdate :
-    { a
-        | logInfo : LogInfo
-        , zone : Zone
-        , pageTreeEditor : PageTreeEditor.Model msg
-    }
-    -> Msg
-    -> Model msg
-    -> ( Model msg, Cmd msg )
-internalUpdate config msg model =
     case msg of
         LoadNews res ->
             case res of
@@ -286,18 +303,27 @@ internalUpdate config msg model =
             )
 
         RemoveNews ->
-            ( model
-            , cmdIfLogged
-                config.logInfo
-                (removeNews
-                    (Set.toList model.checkedNews)
-                )
-                |> Cmd.map model.externalMsg
+            ( { model | status = Waiting }
+            , Cmd.batch
+                [ cmdIfLogged
+                    config.logInfo
+                    (removeNews
+                        (Set.toList model.checkedNews)
+                    )
+                    |> Cmd.map model.externalMsg
+                , newLogIfLogged
+                    config.logInfo
+                    config.addLog
+                    "Suppression actualité(s)..."
+                    Nothing
+                    False
+                    True
+                ]
             )
 
         NewsRemoved ids res ->
             case res of
-                Ok True ->
+                Ok _ ->
                     ( { model
                         | news =
                             List.foldr
@@ -310,12 +336,25 @@ internalUpdate config msg model =
                         , expiryBuffer = ""
                         , contentPreview = False
                         , picPickerOpen = False
+                        , status = Success
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Actualité(s) suprimée(s)"
+                        Nothing
+                        False
+                        True
                     )
 
-                _ ->
-                    ( model, Cmd.none )
+                Err e ->
+                    ( { model | status = Failure }
+                    , newLog
+                        config.addLog
+                        "Echec suppression actualité(s)"
+                        (Just <| httpErrorToString e)
+                        True
+                        True
+                    )
 
         OpenPicPicker ->
             ( { model | picPickerOpen = True }
@@ -369,18 +408,28 @@ internalUpdate config msg model =
                         | newsEditorMode = NewsSelector
                         , buffer = Just newBuffer
                         , seed = Just newSeed
+                        , status = Waiting
                       }
-                    , (Time.now
-                        |> Task.andThen
-                            (\t ->
-                                setNews
-                                    t
-                                    newBuffer
-                                    sessionId
-                            )
-                      )
-                        |> Task.attempt NewsSaved
-                        |> Cmd.map model.externalMsg
+                    , Cmd.batch
+                        [ (Time.now
+                            |> Task.andThen
+                                (\t ->
+                                    setNews
+                                        t
+                                        newBuffer
+                                        sessionId
+                                )
+                          )
+                            |> Task.attempt NewsSaved
+                            |> Cmd.map model.externalMsg
+                        , newLogIfLogged
+                            config.logInfo
+                            config.addLog
+                            "Création actualité..."
+                            Nothing
+                            False
+                            True
+                        ]
                     )
 
                 _ ->
@@ -388,7 +437,7 @@ internalUpdate config msg model =
 
         NewsSaved res ->
             case ( res, model.buffer ) of
-                ( Ok True, Just n ) ->
+                ( Ok _, Just n ) ->
                     ( { model
                         | news =
                             Dict.insert (canonical n.uuid) { n | date = model.currentTime } model.news
@@ -397,8 +446,24 @@ internalUpdate config msg model =
                         , contentPreview = False
                         , picPickerOpen = False
                         , checkedNews = Set.empty
+                        , status = Success
                       }
-                    , Cmd.none
+                    , newLog
+                        config.addLog
+                        "Actualité sauvegardée"
+                        Nothing
+                        False
+                        True
+                    )
+
+                ( Err e, _ ) ->
+                    ( { model | status = Failure }
+                    , newLog
+                        config.addLog
+                        "Echec création actualité(s)"
+                        (Just <| httpErrorToString e)
+                        True
+                        True
                     )
 
                 _ ->

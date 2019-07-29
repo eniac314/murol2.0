@@ -431,7 +431,7 @@ setCats config model =
                 , label = el [] (text "Supprimer catégorie")
                 }
              , Input.button
-                (buttonStyle canModify)
+                (saveButtonStyle canModify)
                 { onPress =
                     if canModify then
                         Just ModifyCat
@@ -579,7 +579,7 @@ setActivs config model =
                 , label = el [] (text "Supprimer activité")
                 }
              , Input.button
-                (buttonStyle canModify)
+                (saveButtonStyle canModify)
                 { onPress =
                     if canModify then
                         Just ModifyActiv
@@ -796,7 +796,7 @@ setLabels config model =
                     , label = el [] (text "Supprimer label")
                     }
                  , Input.button
-                    (buttonStyle canModify)
+                    (saveButtonStyle canModify)
                     { onPress =
                         if canModify then
                             Just ModifyLabel

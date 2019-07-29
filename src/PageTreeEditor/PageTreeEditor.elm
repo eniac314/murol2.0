@@ -3,6 +3,7 @@ module PageTreeEditor.PageTreeEditor exposing
     , Mode(..)
     , Model
     , Msg(..)
+    , Page(..)
     , decodeContent
     , decodeKeywords
     , decodePage
@@ -14,6 +15,7 @@ module PageTreeEditor.PageTreeEditor exposing
     , loadedContent
     , loadingStatus
     , loadingView
+    , prefix
     , resetFileIoSelected
     , setInternalPageSelection
     , status
@@ -21,7 +23,7 @@ module PageTreeEditor.PageTreeEditor exposing
     , view
     )
 
-import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged)
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged, newLogIfLogged)
 import Base64 exposing (..)
 import Dict exposing (..)
 import Document.Document exposing (..)
@@ -597,13 +599,15 @@ update config msg model =
                                 )
                             |> Maybe.withDefault Cmd.none
                             |> Cmd.map model.externalMsg
-                        , newLog
+                        , newLogIfLogged
+                            config.logInfo
                             config.addLog
                             "Sauvegarde page..."
                             Nothing
                             False
                             True
-                        , newLog
+                        , newLogIfLogged
+                            config.logInfo
                             config.addLog
                             "Sauvegarde arborescence..."
                             Nothing

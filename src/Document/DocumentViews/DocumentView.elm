@@ -850,6 +850,12 @@ renderVideo config ({ uid, docStyleId, classes } as id) attrs vidMeta =
 
 renderTable config id attrs { style, nbrRows, nbrCols, data } =
     let
+        containerWidth =
+            getContainerWidth config
+
+        maxWidth =
+            containerWidth - 40
+
         styleSheet =
             defaultStyleSheet config
 
@@ -897,7 +903,9 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
             |> Maybe.map .tableStyle
             |> Maybe.withDefault []
          )
-            ++ [ width fill
+            ++ [ width (maximum maxWidth fill)
+               , height fill
+               , clip
                , scrollbarX
                ]
             ++ idStyle styleSheet id

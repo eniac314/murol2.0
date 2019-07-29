@@ -1,4 +1,4 @@
-module PageEditor.EditorPlugins.TablePlugin exposing (..)
+module PageEditor.EditorPlugins.TablePlugin exposing (Data, Direction(..), DisplayMode(..), Model, Msg(..), displayOnlyView, editView, emptyDocTable, focusIsValid, init, makeDataGrid, maxCols, maxRows, styleSelector, textInputStyle, toTableMeta, update, view)
 
 import Array exposing (..)
 import Browser exposing (..)
@@ -118,6 +118,7 @@ init mbTableMeta externalMsg =
             if data == [] then
                 --New Table cell
                 emptyDocTable externalMsg
+
             else
                 -- Existing Table cell
                 { mode = Edit
@@ -190,6 +191,7 @@ update msg model =
                         |> (\n ->
                                 if n <= maxRows then
                                     n
+
                                 else
                                     model.nbrRows
                            )
@@ -200,6 +202,7 @@ update msg model =
                         |> (\n ->
                                 if n <= maxCols then
                                     n
+
                                 else
                                     model.nbrCols
                            )
@@ -441,6 +444,7 @@ update msg model =
                             == DisplayOnly
                     then
                         Edit
+
                     else
                         DisplayOnly
                 , currentFocusedCell = Nothing
@@ -473,6 +477,7 @@ view model =
              ]
                 ++ (if model.styleSelectorFocused then
                         [ Events.onClick StyleSelectorClickOff ]
+
                     else
                         []
                    )
@@ -533,10 +538,13 @@ displayOnlyView model =
                                            , height (minimum 30 fill)
                                            ]
                                     )
-                                    (text
-                                        (Array.get ci row
-                                            |> Maybe.withDefault ""
-                                        )
+                                    (paragraph
+                                        []
+                                        [ text
+                                            (Array.get ci row
+                                                |> Maybe.withDefault ""
+                                            )
+                                        ]
                                     )
                                 )
                     }
@@ -556,6 +564,7 @@ displayOnlyView model =
                     { data = dataForTable
                     , columns = columns
                     }
+
             else
                 Element.none
     in
@@ -589,6 +598,7 @@ editView model =
                             { onPress =
                                 if canRemove then
                                     Just RemoveSelectedRow
+
                                 else
                                     Nothing
                             , label = text "Supprimer ligne"
@@ -597,6 +607,7 @@ editView model =
                             { onPress =
                                 if canRemove then
                                     Just RemoveSelectedCol
+
                                 else
                                     Nothing
                             , label = text "Supprimer colonne"
@@ -626,6 +637,7 @@ editView model =
                             }
                         ]
                     ]
+
             else
                 column
                     []
@@ -686,19 +698,29 @@ editView model =
                                                 Just ( i, j ) ->
                                                     if i == ri && j == ci then
                                                         [ Background.color (rgba 0 0 1 0.2) ]
+
                                                     else
                                                         []
                                            )
+                                        ++ [ height fill ]
                                     )
                                     ( String.fromInt (ri * 100 + ci)
-                                    , Input.multiline
+                                    , Input.text
                                         [ Border.width 0
-                                        , centerY
                                         , Background.color (rgba 1 1 1 0)
                                         , Events.onClick (CellFocused <| Just ( ri, ci ))
-                                        , focused [ Border.glow (rgb 1 1 1) 0 ]
 
+                                        --, focused [ Border.glow (rgb 1 1 1) 1 ]
+                                        --, focused
+                                        --    [ Border.shadow
+                                        --        { offset = ( 0, 0 )
+                                        --        , size = 0
+                                        --        , blur = 0
+                                        --        , color = rgb 1 1 1
+                                        --        }
+                                        --    ]
                                         --, Events.onLoseFocus (CellFocused Nothing)
+                                        , centerY
                                         ]
                                         { onChange =
                                             DataInput ( ri, ci )
@@ -708,7 +730,8 @@ editView model =
                                         , placeholder = Nothing
                                         , label =
                                             Input.labelAbove [] Element.none
-                                        , spellcheck = False
+
+                                        --, spellcheck = False
                                         }
                                     )
                                 )
@@ -729,6 +752,7 @@ editView model =
                     { data = dataForTable
                     , columns = columns
                     }
+
             else
                 Element.none
     in
@@ -757,6 +781,7 @@ editView model =
                     , label = text "Valider et Quitter"
                     }
                 ]
+
           else
             Element.none
 
@@ -812,6 +837,7 @@ styleSelector model =
                             )
                             (Dict.keys tableStyles)
                         )
+
                 else
                     Element.none
             , spacing 15

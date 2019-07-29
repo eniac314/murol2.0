@@ -6,6 +6,7 @@ module Auth.AuthPlugin exposing
     , getLogInfo
     , init
     , isLogged
+    , newLogIfLogged
     , status
     , subscriptions
     , update
@@ -48,6 +49,20 @@ isLogged logInfo =
 
         _ ->
             False
+
+
+newLogIfLogged : LogInfo -> (Log -> msg) -> String -> Maybe String -> Bool -> Bool -> Cmd msg
+newLogIfLogged logInfo addLogMsg logMsg details isError isImportant =
+    if isLogged logInfo then
+        newLog addLogMsg logMsg details isError isImportant
+
+    else
+        newLog
+            addLogMsg
+            "Opération impossible: utilisateur déconnecté"
+            Nothing
+            True
+            True
 
 
 type LogInfo
