@@ -69,7 +69,6 @@ type alias Model msg =
 type Msg
     = ImagesRequested
     | ImagesSelected File (List File)
-    | TimeBuffer String File
     | Base64Img String String
     | ImageProcessed Decode.Value
     | GalleryTitlePrompt String
@@ -163,15 +162,6 @@ update config msg model =
             , Task.perform
                 (Base64Img (indexName 0))
                 (File.toUrl first)
-                |> Cmd.map model.externalMsg
-            , Nothing
-            )
-
-        TimeBuffer filename file ->
-            ( model
-            , Task.perform
-                (Base64Img filename)
-                (File.toUrl file)
                 |> Cmd.map model.externalMsg
             , Nothing
             )
@@ -579,6 +569,9 @@ processCmd model filename data =
             Encode.object
                 [ ( "imageData", Encode.string data )
                 , ( "filename", Encode.string filename )
+                , ( "maxHeight", Encode.int 600 )
+                , ( "maxWidth", Encode.int 800 )
+                , ( "needThumb", Encode.bool True )
                 ]
         )
 

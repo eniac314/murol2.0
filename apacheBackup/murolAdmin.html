@@ -368,15 +368,19 @@
    
    function processImage(data){
 
+      var maxWidth = data.maxWidth;
+      var maxHeight = data.maxHeight;
+      var needThumb = data.needThumb;
+
       var image = new Image();
       
       image.onload = function(){
         
         var canvas = document.createElement('canvas');
 
-        if(image.height > 600) {
-          var width = image.width * 600 / image.height;
-          var height = 600;
+        if(image.height > maxHeight) {
+          var width = image.width * maxHeight / image.height;
+          var height = maxHeight;
         } else {
           var width = image.width;
           var height = image.height;
@@ -402,17 +406,21 @@
           var sy = (Math.floor((image.height - image.width)/4));
         }
 
-        var thumbCanvas = document.createElement('canvas');
-        thumbCanvas.width = 200;
-        thumbCanvas.height = 200;
-        
-        var tCtx = thumbCanvas.getContext("2d");
-        tCtx.clearRect(0,0,200,200);
-        
+        var thumb;
 
-        tCtx.drawImage(image, sx, sy, thumbSize, thumbSize, 0, 0, 200, 200);
-        var thumb = thumbCanvas.toDataURL("image/jpeg",0.9);
+        if (needThumb){
+          var thumbCanvas = document.createElement('canvas');
+          thumbCanvas.width = 200;
+          thumbCanvas.height = 200;
+          
+          var tCtx = thumbCanvas.getContext("2d");
+          tCtx.clearRect(0,0,200,200);
+          
 
+          tCtx.drawImage(image, sx, sy, thumbSize, thumbSize, 0, 0, 200, 200);
+          thumb = thumbCanvas.toDataURL("image/jpeg",0.9);
+        }
+        
         var result = {          
                 filename:data.filename,
                 content: smallPic,

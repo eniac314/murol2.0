@@ -702,10 +702,10 @@ editView model =
                                                     else
                                                         []
                                            )
-                                        ++ [ height fill ]
+                                        ++ []
                                     )
                                     ( String.fromInt (ri * 100 + ci)
-                                    , Input.text
+                                    , Input.multiline
                                         [ Border.width 0
                                         , Background.color (rgba 1 1 1 0)
                                         , Events.onClick (CellFocused <| Just ( ri, ci ))
@@ -721,6 +721,8 @@ editView model =
                                         --    ]
                                         --, Events.onLoseFocus (CellFocused Nothing)
                                         , centerY
+
+                                        --, height (px 100)
                                         ]
                                         { onChange =
                                             DataInput ( ri, ci )
@@ -730,8 +732,7 @@ editView model =
                                         , placeholder = Nothing
                                         , label =
                                             Input.labelAbove [] Element.none
-
-                                        --, spellcheck = False
+                                        , spellcheck = False
                                         }
                                     )
                                 )

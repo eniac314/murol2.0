@@ -228,18 +228,32 @@ toogleButtonStyle isPressed isActive =
     , focused [ Border.glow (rgb 1 1 1) 0 ]
     ]
         ++ (if isActive then
-                [ Background.color (rgb 0.9 0.9 0.9)
-                , Border.width 1
-                , Border.color (rgb 0.9 0.9 0.9)
-                , mouseOver
+                [ mouseOver
                     [ Font.color (rgb 0.3 0.3 0.3)
                     ]
                 ]
                     ++ (if isPressed then
-                            []
+                            [ Background.color (rgb 0.9 0.9 0.9)
+                            , Border.width 1
+                            , Border.color (rgb 0.9 0.9 0.9)
+                            , Border.shadow
+                                { offset = ( 1, 1 )
+                                , size = 1
+                                , blur = 0.5
+                                , color = rgb 0.5 0.5 0.5
+                                }
+                            , focused
+                                [ Border.shadow
+                                    { offset = ( 1, 1 )
+                                    , size = 1
+                                    , blur = 0.5
+                                    , color = rgb 0.5 0.5 0.5
+                                    }
+                                ]
+                            ]
 
                         else
-                            [ Background.color (rgb 1 1 1)
+                            [ Background.color (rgb 0.9 0.9 0.9)
                             , Border.width 1
                             , Border.color (rgb 0.9 0.9 0.9)
                             ]
