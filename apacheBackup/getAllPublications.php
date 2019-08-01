@@ -39,18 +39,18 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   }
 
   $query = 
-    "SELECT date, topics FROM delibs";
+    "SELECT date, index_ FROM delibs";
 
   mysqli_stmt_prepare($stmt, $query);
   mysqli_stmt_execute($stmt);
 
-  mysqli_stmt_bind_result($stmt, $date, $topics);
+  mysqli_stmt_bind_result($stmt, $date, $index_);
   
   $delibs = [];
 
   while(mysqli_stmt_fetch($stmt)){
     array_push($delibs, ['date' => $date
-                        ,'topics' => unserialize($topics)
+                        ,'index' => unserialize($index_)
                         ]);
   }
 

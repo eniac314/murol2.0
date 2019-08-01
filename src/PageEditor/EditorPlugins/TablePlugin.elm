@@ -678,14 +678,16 @@ editView model =
                     { header = Element.none
                     , width = fill
                     , view =
-                        --Lazy.lazy2 <|
                         \ri row ->
-                            el
-                                (Dict.get model.currentStyle tableStyles
+                            Keyed.el
+                                ((Dict.get model.currentStyle tableStyles
                                     |> Maybe.map .containerStyle
                                     |> Maybe.withDefault []
+                                 )
+                                    ++ [ height fill ]
                                 )
-                                (Keyed.el
+                                ( String.fromInt (ri * 100 + ci)
+                                , Input.multiline
                                     ((Dict.get model.currentStyle tableStyles
                                         |> Maybe.map .cellStyle
                                         |> Maybe.withDefault (\_ -> [])
@@ -702,39 +704,21 @@ editView model =
                                                     else
                                                         []
                                            )
-                                        ++ []
+                                        ++ [ Events.onClick (CellFocused <| Just ( ri, ci ))
+                                           , centerY
+                                           , height fill
+                                           ]
                                     )
-                                    ( String.fromInt (ri * 100 + ci)
-                                    , Input.multiline
-                                        [ Border.width 0
-                                        , Background.color (rgba 1 1 1 0)
-                                        , Events.onClick (CellFocused <| Just ( ri, ci ))
-
-                                        --, focused [ Border.glow (rgb 1 1 1) 1 ]
-                                        --, focused
-                                        --    [ Border.shadow
-                                        --        { offset = ( 0, 0 )
-                                        --        , size = 0
-                                        --        , blur = 0
-                                        --        , color = rgb 1 1 1
-                                        --        }
-                                        --    ]
-                                        --, Events.onLoseFocus (CellFocused Nothing)
-                                        , centerY
-
-                                        --, height (px 100)
-                                        ]
-                                        { onChange =
-                                            DataInput ( ri, ci )
-                                        , text =
-                                            Array.get ci row
-                                                |> Maybe.withDefault ""
-                                        , placeholder = Nothing
-                                        , label =
-                                            Input.labelAbove [] Element.none
-                                        , spellcheck = False
-                                        }
-                                    )
+                                    { onChange =
+                                        DataInput ( ri, ci )
+                                    , text =
+                                        Array.get ci row
+                                            |> Maybe.withDefault ""
+                                    , placeholder = Nothing
+                                    , label =
+                                        Input.labelHidden ""
+                                    , spellcheck = False
+                                    }
                                 )
                     }
                 )

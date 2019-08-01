@@ -1,4 +1,4 @@
-module PageEditor.EditorPlugins.BlockLinksPlugin exposing (..)
+module PageEditor.EditorPlugins.BlockLinksPlugin exposing (Direction(..), LinkType(..), Model, Msg(..), Selector(..), blockLinksPreview, bottomInterfaceView, chooseDocView, chooseInternalPageView, dropDownView, iconSize, imagePickerView, init, topInterfaceView, update, view)
 
 import Auth.AuthPlugin exposing (LogInfo)
 import Dict exposing (..)
@@ -315,6 +315,7 @@ update msg model =
                                 (\i ->
                                     if dir == Left then
                                         swapAt i (i - 1) indexes
+
                                     else
                                         swapAt i (i + 1) indexes
                                 )
@@ -328,8 +329,10 @@ update msg model =
                         selection =
                             if model.blocks == newBlocks then
                                 Just n
+
                             else if dir == Left then
                                 Just <| n - 1
+
                             else
                                 Just <| n + 1
                     in
@@ -396,17 +399,26 @@ topInterfaceView config renderConfig model =
         , below <|
             if model.selector == Closed then
                 Element.none
+
             else
                 el
-                    [ Background.color (rgb 1 1 1)
-                    , width (minimum 850 (maximum 920 shrink))
-                    , Border.shadow
+                    ([ Background.color (rgb 1 1 1)
+                     , width (minimum 850 (maximum 920 shrink))
+                     , Border.shadow
                         { offset = ( 4, 4 )
                         , size = 5
                         , blur = 10
                         , color = rgba 0 0 0 0.45
                         }
-                    ]
+                     ]
+                     --++ (if renderConfig.height < 890 then
+                     --        [ height (maximum (renderConfig.height - 250) shrink)
+                     --        , scrollbarY
+                     --        ]
+                     --    else
+                     --        []
+                     --   )
+                    )
                     (dropDownView config renderConfig model)
         ]
         [ row
@@ -420,6 +432,7 @@ topInterfaceView config renderConfig model =
                         Maybe.andThen (\id -> Dict.get id model.blocks) model.selectedBlock
                             |> Maybe.map .label
                             |> Maybe.withDefault ""
+
                     else
                         model.labelPromptInput
                             |> Maybe.withDefault ""
@@ -551,10 +564,12 @@ dropDownView config renderConfig model =
                                                     (\block ->
                                                         if block.targetBlank then
                                                             block.url
+
                                                         else
                                                             ""
                                                     )
                                                 |> Maybe.withDefault ""
+
                                         else
                                             model.externalLinkInput
                                                 |> Maybe.withDefault ""
@@ -615,6 +630,7 @@ chooseDocView model renderConfig fileExplorer zone logInfo =
                         (\url ->
                             if String.startsWith "/baseDocumentaire" url then
                                 url
+
                             else
                                 ""
                         )
@@ -630,13 +646,10 @@ chooseDocView model renderConfig fileExplorer zone logInfo =
             ]
         , FileExplorer.view
             { maxHeight =
-                if renderConfig.height < 800 then
-                    400
-                else
-                    500
+                max 250 (renderConfig.height - 400)
             , zone = zone
             , logInfo = logInfo
-            , mode = FileExplorer.ReadOnly FileExplorer.DocsRoot
+            , mode = FileExplorer.ReadWrite FileExplorer.DocsRoot
             }
             fileExplorer
         , row
@@ -702,10 +715,12 @@ chooseInternalPageView model renderConfig pageTreeEditor zone logInfo =
             ]
         , PageTreeEditor.view
             { maxHeight =
-                if renderConfig.height < 800 then
-                    400
-                else
-                    500
+                max 250 (renderConfig.height - 400)
+
+            --if renderConfig.height < 890 then
+            --    400
+            --else
+            --    500
             , zone = zone
             , logInfo = logInfo
             , mode = PageTreeEditor.Select
@@ -758,10 +773,7 @@ imagePickerView config renderConfig model =
         ]
         [ FileExplorer.view
             { maxHeight =
-                if renderConfig.height < 800 then
-                    400
-                else
-                    500
+                max 250 (renderConfig.height - 400)
             , zone = config.zone
             , logInfo = config.logInfo
             , mode = FileExplorer.ReadWrite FileExplorer.ImagesRoot
@@ -804,6 +816,7 @@ blockLinksPreview config model =
                             , blur = 10
                             , color = rgba 0 0 0 0.45
                             }
+
                       else
                         noAttr
                     , padding 7

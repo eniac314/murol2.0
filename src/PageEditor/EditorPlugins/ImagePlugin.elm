@@ -129,7 +129,14 @@ update config msg model =
             )
 
         SetCaption caption ->
-            ( { model | mbCaption = Just caption }
+            ( { model
+                | mbCaption =
+                    if caption == "" then
+                        Nothing
+
+                    else
+                        Just caption
+              }
             , Cmd.none
             , Nothing
             )
@@ -172,7 +179,7 @@ update config msg model =
                     , Cmd.none
                     , Just <|
                         EditorPluginData
-                            ( imageMeta
+                            ( { imageMeta | caption = model.mbCaption }
                             , setAligment model.alignment model.imageAttrs
                             )
                     )

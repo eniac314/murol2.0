@@ -26,7 +26,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   }
 
   $date  = $php_data->delib->date;
-  $topics = serialize($php_data->delib->topics);
+  $index = serialize($php_data->delib->index);
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);
@@ -37,13 +37,13 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   }
 
   $query = 
-    "INSERT INTO delibs( date, topics) VALUES 
+    "INSERT INTO delibs( date, index_) VALUES 
     (?,?)
     ON DUPLICATE KEY UPDATE
-     topics = VALUES(topics)";
+     index_ = VALUES(index_)";
      
   mysqli_stmt_prepare($stmt, $query);
-  mysqli_stmt_bind_param($stmt,'is', $date, $topics);
+  mysqli_stmt_bind_param($stmt,'is', $date, $index);
   mysqli_stmt_execute($stmt);
 
   if (mysqli_stmt_affected_rows($stmt) == 0){

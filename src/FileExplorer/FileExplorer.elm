@@ -1,4 +1,4 @@
-module FileExplorer.FileExplorer exposing
+port module FileExplorer.FileExplorer exposing
     ( Mode(..)
     , Model
     , Msg(..)
@@ -27,6 +27,8 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Keyed as Keyed
 import Element.Lazy as Lazy
+import File exposing (..)
+import File.Select as Select exposing (..)
 import Filesize exposing (format)
 import Html as Html
 import Html.Attributes as HtmlAttr
@@ -43,6 +45,12 @@ import List.Extra exposing (remove)
 import String.Extra exposing (..)
 import Task exposing (..)
 import Time exposing (..)
+
+
+port toImageProcessor2 : Encode.Value -> Cmd msg
+
+
+port processedImages2 : (Decode.Value -> msg) -> Sub msg
 
 
 type alias Model msg =
@@ -80,12 +88,38 @@ type alias Model msg =
     , canResize : Bool
     , mbImageFromFile : Maybe ImageFromFile
     , imageControllerMode : ImageControllerMode
+    , fileSizes : Dict String Int
+    , processedPics : Dict String ProcessedImage
+    , processingQueue : List ( String, File )
+    , bulkImageUploaderState : BulkImageUploadState
+    , bulkImageUploadSize : BulkImageUploadSize
+    , uploadProgress : Dict String ( Int, Int, Maybe UploadStatus )
     }
+
+
+type BulkImageUploadSize
+    = News -- 266x200
+    | BlockLinks -- 300x225
+    | Fiches -- 440x320
+    | Regular -- 800x600
+
+
+type BulkImageUploadState
+    = Home
+    | ImageProcessing
+    | Upload
 
 
 subscriptions model =
     Sub.map model.externalMsg <|
-        Sub.batch []
+        Sub.batch
+            ([ processedImages2 ImageProcessed
+             ]
+                ++ Dict.foldr
+                    (\fn _ acc -> Http.track fn (GotProgress fn) :: acc)
+                    []
+                    model.uploadProgress
+            )
 
 
 type Root
@@ -183,6 +217,12 @@ init root externalMsg =
     , canResize = False
     , mbImageFromFile = Nothing
     , imageControllerMode = FileReader
+    , fileSizes = Dict.empty
+    , processedPics = Dict.empty
+    , processingQueue = []
+    , bulkImageUploaderState = Home
+    , bulkImageUploadSize = Regular
+    , uploadProgress = Dict.empty
     }
 
 
@@ -242,6 +282,21 @@ type Msg
     | ToogleUploadView
     | SetImageUploadType UploadType
     | UploadImage FsItem
+    | FilesRequested
+    | FilesSelected File (List File)
+      ------------------------
+      -- Image bulk uploads --
+      ------------------------
+    | ImagesRequested
+    | ImagesSelected File (List File)
+    | Base64Img String String
+    | ImageProcessed Decode.Value
+    | SetImageSize BulkImageUploadSize
+    | Reset
+    | ManualUpload String
+    | GoToUpload
+    | GotProgress String Http.Progress
+    | Uploaded String (Result Http.Error UploadStatus)
       ---------------------
       -- ImageController --
       ---------------------
@@ -254,11 +309,6 @@ type Msg
     | SetResize
     | SetFilename String
     | ResetImageController
-      ----------
-      -- Logs --
-      ----------
-      --| AddLog Log
-      --| ToogleLogsView
       ----------
       -- Misc --
       ----------
@@ -776,6 +826,299 @@ update config msg model =
                     , Nothing
                     )
 
+        FilesRequested ->
+            ( model
+            , Cmd.map model.externalMsg selectFiles
+            , Nothing
+            )
+
+        FilesSelected first remaining ->
+            let
+                files =
+                    first :: remaining
+            in
+            ( model
+            , Cmd.none
+            , Nothing
+            )
+
+        ------------------------
+        -- Image bulk uploads --
+        ------------------------
+        ImagesRequested ->
+            ( model
+            , Cmd.map model.externalMsg selectImages
+            , Nothing
+            )
+
+        ImagesSelected first remaining ->
+            let
+                files =
+                    first :: remaining
+
+                fileSizes =
+                    List.foldr
+                        (\( n, f ) acc ->
+                            Dict.insert
+                                (File.name f)
+                                (File.size f)
+                                acc
+                        )
+                        model.fileSizes
+                        (List.indexedMap (\n f -> ( n, f )) files)
+            in
+            ( { model
+                | fileSizes = fileSizes
+                , processingQueue =
+                    List.indexedMap
+                        (\n f -> ( File.name f, f ))
+                        remaining
+              }
+            , Task.perform
+                (Base64Img (File.name first))
+                (File.toUrl first)
+                |> Cmd.map model.externalMsg
+            , Nothing
+            )
+
+        Base64Img filename data ->
+            ( { model
+                | bulkImageUploaderState = ImageProcessing
+              }
+            , processCmd model filename data
+            , Nothing
+            )
+
+        ImageProcessed json ->
+            case Decode.decodeValue decodeProcessedData json of
+                Ok ({ content, filename } as pi) ->
+                    let
+                        ( cmd, processingQueue ) =
+                            case model.processingQueue of
+                                [] ->
+                                    ( Cmd.none, [] )
+
+                                ( filename_, file ) :: rest ->
+                                    ( Task.perform
+                                        (Base64Img filename_)
+                                        (File.toUrl file)
+                                        |> Cmd.map model.externalMsg
+                                    , rest
+                                    )
+                    in
+                    ( { model
+                        | processingQueue = processingQueue
+                        , processedPics =
+                            Dict.insert filename pi model.processedPics
+                      }
+                    , cmd
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        SetImageSize size ->
+            ( { model | bulkImageUploadSize = size }
+            , Cmd.none
+            , Nothing
+            )
+
+        Reset ->
+            ( { model
+                | processedPics = Dict.empty
+                , fileSizes = Dict.empty
+                , processingQueue = []
+                , bulkImageUploaderState = Home
+                , uploadProgress = Dict.empty
+              }
+            , Cmd.batch
+                (List.map Http.cancel (Dict.keys model.uploadProgress))
+                |> Cmd.map model.externalMsg
+            , Nothing
+            )
+
+        ManualUpload s ->
+            case Dict.get s model.processedPics of
+                Just p ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.insert s
+                                ( 0
+                                , p.size
+                                , Nothing
+                                )
+                                model.uploadProgress
+                      }
+                    , case ( config.logInfo, Maybe.map extractFsItem (getCurrentFilesys Full model) ) of
+                        ( LoggedIn info, Just fsItem ) ->
+                            Cmd.map model.externalMsg <|
+                                uploadImageAuto
+                                    fsItem
+                                    p.filename
+                                    p.content
+                                    info.sessionId
+
+                        _ ->
+                            Cmd.none
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        GoToUpload ->
+            ( { model
+                | bulkImageUploaderState = Upload
+                , uploadProgress =
+                    Dict.map
+                        (\_ p ->
+                            ( 0
+                            , p.size
+                            , Nothing
+                            )
+                        )
+                        model.processedPics
+              }
+            , case ( config.logInfo, Maybe.map extractFsItem (getCurrentFilesys Full model) ) of
+                ( LoggedIn info, Just fsItem ) ->
+                    Cmd.map model.externalMsg <|
+                        Cmd.batch
+                            (Dict.foldr
+                                (\k v acc ->
+                                    uploadImageAuto
+                                        fsItem
+                                        v.filename
+                                        v.content
+                                        info.sessionId
+                                        :: acc
+                                )
+                                []
+                                model.processedPics
+                                |> List.reverse
+                            )
+
+                _ ->
+                    Cmd.none
+            , Nothing
+            )
+
+        GotProgress filename progress ->
+            case progress of
+                Sending { sent, size } ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.update
+                                filename
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( _, _, us ) ->
+                                            Just ( sent, size, us )
+                                )
+                                model.uploadProgress
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Receiving { received, size } ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        Uploaded filename res ->
+            case res of
+                Ok UploadSuccessful ->
+                    let
+                        newUploadProgress =
+                            Dict.update
+                                filename
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( sent, size, _ ) ->
+                                            Just ( sent, size, Just UploadSuccessful )
+                                )
+                                model.uploadProgress
+
+                        uploadDone =
+                            Dict.values newUploadProgress
+                                |> List.filter (\( _, _, s ) -> s == Just UploadSuccessful)
+                                |> (\xs -> List.length xs == Dict.size newUploadProgress)
+                    in
+                    ( { model
+                        | uploadProgress =
+                            newUploadProgress
+                      }
+                      --, if canEdit then
+                      --    Task.perform (\_ -> config.reloadFilesMsg) (Task.succeed ())
+                      --  else
+                    , if uploadDone then
+                        cmdIfLogged
+                            config.logInfo
+                            (getFileList
+                                ImagesRoot
+                                (Dict.keys newUploadProgress)
+                             --(modeRoot mode model.root)
+                             --(List.map .filename files)
+                            )
+                            |> Cmd.map model.externalMsg
+
+                      else
+                        Cmd.none
+                    , Nothing
+                    )
+
+                Ok (UploadFailure e) ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.update
+                                filename
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( sent, size, _ ) ->
+                                            Just ( sent, size, Just <| UploadFailure e )
+                                )
+                                model.uploadProgress
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Err e ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.update
+                                filename
+                                (\mv ->
+                                    case mv of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just ( sent, size, _ ) ->
+                                            Just ( sent, size, Just <| UploadFailure (httpErrorToString e) )
+                                )
+                                model.uploadProgress
+                      }
+                    , Cmd.none
+                    , Nothing
+                    )
+
         ---------------------
         -- ImageController --
         ---------------------
@@ -913,6 +1256,7 @@ update config msg model =
                 , needToRotate = False
                 , canResize = False
                 , mbImageFromFile = Nothing
+                , bulkImageUploaderState = Home
               }
             , Cmd.none
             , Nothing
@@ -1617,6 +1961,157 @@ filesysView config model =
 --        [ Internals.CommonHelpers.logsView model.logs config.zone ]
 
 
+bulkImageUploadView_ :
+    { a
+        | logInfo : LogInfo
+    }
+    -> Model msg
+    -> Element Msg
+bulkImageUploadView_ config model =
+    let
+        canEdit =
+            model.uploadProgress
+                |> Dict.foldr
+                    (\_ ( _, _, us ) acc -> us :: acc)
+                    []
+                |> List.all (\us -> us == Just UploadSuccessful)
+
+        progress ( sent, size, us ) =
+            let
+                p =
+                    floor <| 100 * toFloat sent / toFloat size
+            in
+            if us == Just UploadSuccessful then
+                100
+
+            else
+                min 99 p
+
+        progressTotal =
+            Dict.foldr
+                (\k ( sent, size, _ ) ( totalSent, totalSize ) ->
+                    ( sent + totalSent, size + totalSize )
+                )
+                ( 0, 0 )
+                model.uploadProgress
+                |> (\( tsent, tsize ) -> 100 * toFloat tsent / toFloat tsize)
+                |> round
+                |> (\t ->
+                        if canEdit then
+                            100
+
+                        else
+                            min 99 t
+                   )
+    in
+    column
+        [ spacing 15 ]
+        [ column
+            (itemStyle
+                ++ [ width fill
+                   , spacing 15
+                   ]
+            )
+            ([ el
+                [ Font.bold
+                , Font.size 18
+                ]
+                (text "Mise en ligne")
+             , row
+                [ spacing 25 ]
+                [ el [ width (px 140) ]
+                    (text "Transfert image(s): ")
+                , progressBar progressTotal --(Debug.log "total" progressTotal)
+                ]
+             ]
+                ++ List.map
+                    (\p ->
+                        row
+                            [ spacing 15 ]
+                            [ el
+                                [ padding 5
+                                , Background.color grey6
+                                , Border.rounded 5
+                                ]
+                                (el
+                                    [ width (px 140)
+                                    , height (px 105)
+                                    , centerX
+                                    , Background.uncropped p.content
+                                    , Element.alignLeft
+                                    ]
+                                    Element.none
+                                )
+                            , column
+                                [ alignTop
+                                , spacing 10
+                                ]
+                                [ el [ Font.color teal1 ] (text p.filename)
+                                , text <|
+                                    "Taille originale: "
+                                        ++ (Dict.get p.filename model.fileSizes
+                                                |> Maybe.map Filesize.format
+                                                |> Maybe.withDefault "Erreur"
+                                           )
+                                , text <|
+                                    "Nouvelle taille: "
+                                        ++ Filesize.format p.size
+                                , row
+                                    [ spacing 15 ]
+                                    [ case Dict.get p.filename model.uploadProgress of
+                                        Just ( _, _, Just (UploadFailure e) ) ->
+                                            row
+                                                [ spacing 5 ]
+                                                [ text "Echec transfert: "
+                                                , el
+                                                    [ Font.color (rgb255 217 83 79) ]
+                                                    (text e)
+                                                ]
+
+                                        _ ->
+                                            text <|
+                                                "Transfert: "
+                                                    ++ (Dict.get p.filename model.uploadProgress
+                                                            |> Maybe.map progress
+                                                            |> Maybe.withDefault 0
+                                                            |> String.fromInt
+                                                            |> String.padLeft 2 '0'
+                                                            |> strCons "%"
+                                                       )
+                                    , case Dict.get p.filename model.uploadProgress of
+                                        Just ( _, _, Just (UploadFailure e) ) ->
+                                            Input.button
+                                                (buttonStyle True)
+                                                { onPress = Just (ManualUpload p.filename)
+                                                , label = text "Réessayer"
+                                                }
+
+                                        Just ( _, _, Just UploadSuccessful ) ->
+                                            okMark
+
+                                        _ ->
+                                            Element.none
+                                    ]
+                                ]
+                            ]
+                    )
+                    (Dict.values model.processedPics)
+            )
+        , row
+            (itemStyle
+                ++ [ spacing 15
+                   , width fill
+                   ]
+            )
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just Reset
+                , label = text "Retour"
+                }
+            ]
+        ]
+
+
 uploadView :
     { a | logInfo : Auth.AuthPlugin.LogInfo, mode : Mode }
     -> Model msg
@@ -1633,10 +2128,10 @@ uploadView config model =
                     , options =
                         [ Input.option
                             BulkUpload
-                            (text "Chargement simple")
+                            (text "Mise à l'échelle automatique")
                         , Input.option
                             RegUpload
-                            (text "Modifier et charger")
+                            (text "Mise à l'échelle manuelle")
                         ]
                     , selected =
                         Just model.imageUploadType
@@ -1647,11 +2142,63 @@ uploadView config model =
                         column
                             [ spacing 15 ]
                             [ text "Mettre des images en ligne"
-                            , bulkUploadView
+                            , bulkImageUploadView
                             ]
 
                     RegUpload ->
                         imageControllerView config model model.imageControllerMode
+                ]
+
+        bulkImageUploadView =
+            column
+                [ spacing 15 ]
+                [ case model.bulkImageUploaderState of
+                    Home ->
+                        column
+                            [ spacing 15 ]
+                            [ Input.radioRow
+                                [ spacing 15 ]
+                                { onChange =
+                                    SetImageSize
+                                , options =
+                                    [ Input.option
+                                        News
+                                        (text "image(s) actualités")
+                                    , Input.option
+                                        BlockLinks
+                                        (text "image(s) bloc de liens")
+                                    , Input.option
+                                        Fiches
+                                        (text "image(s) fiches")
+                                    , Input.option
+                                        Regular
+                                        (text "image(s) page")
+                                    ]
+                                , selected =
+                                    Just model.bulkImageUploadSize
+                                , label = Input.labelLeft [] Element.none
+                                }
+                            , row
+                                [ spacing 15 ]
+                                [ Input.button
+                                    (buttonStyle True)
+                                    { onPress = Just ToogleUploadView
+                                    , label = text "Retour"
+                                    }
+                                , Input.button
+                                    (buttonStyle True)
+                                    { onPress =
+                                        Just ImagesRequested
+                                    , label = text "Choix fichiers"
+                                    }
+                                ]
+                            ]
+
+                    Upload ->
+                        bulkImageUploadView_ config model
+
+                    ImageProcessing ->
+                        imageProcessingView config model
                 ]
 
         bulkUploadView =
@@ -1757,7 +2304,7 @@ uploadView config model =
                                         "ok"
 
                                     else
-                                        "erreur"
+                                        ""
                                    )
                             )
 
@@ -1806,6 +2353,84 @@ uploadController attributes =
                     []
                 ]
         )
+
+
+
+-------------------------------------------------------------------------------
+
+
+imageProcessingView :
+    { a
+        | logInfo : LogInfo
+    }
+    -> Model msg
+    -> Element Msg
+imageProcessingView config model =
+    let
+        canUpload =
+            Dict.size model.fileSizes
+                == Dict.size model.processedPics
+    in
+    column
+        [ spacing 15 ]
+        [ column
+            (itemStyle
+                ++ [ width fill
+                   , spacing 15
+                   ]
+            )
+            [ el
+                []
+                (text "Chargement et mise à  l'échelle des images...")
+            , row
+                [ spacing 15 ]
+                [ el []
+                    ((Dict.size model.processedPics
+                        |> String.fromInt
+                        |> String.padLeft 2 '0'
+                     )
+                        |> strCons " \\ "
+                        |> (Dict.size model.fileSizes
+                                |> String.fromInt
+                                |> String.padLeft 2 '0'
+                                |> strCons
+                           )
+                        |> text
+                    )
+                , if canUpload then
+                    okMark
+
+                  else
+                    Element.none
+                ]
+            ]
+        , row
+            (itemStyle
+                ++ [ spacing 15
+                   , width fill
+                   ]
+            )
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just Reset
+                , label = text "Annuler"
+                }
+            , Input.button
+                (buttonStyle canUpload)
+                { onPress =
+                    if canUpload then
+                        Just GoToUpload
+
+                    else
+                        Nothing
+                , label = text "Continuer"
+                }
+            ]
+        ]
+
+
+
+-------------------------------------------------------------------------------
 
 
 imageControllerView :
@@ -2302,6 +2927,50 @@ encodeRoot root =
 -- upload image
 
 
+uploadImageAuto : FsItem -> String -> String -> String -> Cmd Msg
+uploadImageAuto fsItem filename contents sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , ( "filename", Encode.string filename )
+                , ( "uploadPath"
+                  , getPath fsItem
+                        |> List.tail
+                        |> Maybe.map (String.join "/")
+                        |> Maybe.map
+                            (\p ->
+                                p ++ "/"
+                            )
+                        |> Maybe.withDefault ""
+                        |> Encode.string
+                  )
+                , ( "contents", Encode.string contents )
+                ]
+                |> Http.jsonBody
+    in
+    Http.request
+        { method = "POST"
+        , headers = []
+        , url = "uploadBase64PicAuto.php"
+        , body = body
+        , expect =
+            Http.expectJson (Uploaded filename) decodeUploadStatus
+        , timeout = Nothing --Just (120 * 1000)
+        , tracker = Just filename
+
+        --Http.expectJson
+        --    (RefreshFilesys
+        --        (Just fsItem)
+        --        ("Mise en ligne image base64: " ++ filename)
+        --        ImagesRoot
+        --    )
+        --    decodeFiles
+        }
+
+
 uploadImage : FsItem -> String -> String -> String -> Cmd Msg
 uploadImage fsItem filename contents sessionId =
     let
@@ -2338,6 +3007,77 @@ uploadImage fsItem filename contents sessionId =
                 )
                 decodeFiles
         }
+
+
+uploadFile : FsItem -> File -> String -> Cmd Msg
+uploadFile fsItem file sessionId =
+    let
+        uploadPath =
+            getPath fsItem
+                |> List.tail
+                |> Maybe.map (String.join "/")
+                |> Maybe.map
+                    (\p ->
+                        p ++ "/"
+                    )
+                |> Maybe.withDefault ""
+
+        filename =
+            File.name file
+
+        body =
+            Http.multipartBody
+                [ Http.filePart "file" file
+                , Http.stringPart "uploadPath" uploadPath
+                , Http.stringPart "sessionId" sessionId
+                ]
+    in
+    Http.request
+        { method = "POST"
+        , headers = []
+        , url = "uploadDoc.php"
+        , body = body
+        , expect =
+            Http.expectJson (Uploaded filename) decodeUploadStatus
+        , timeout = Nothing --Just (120 * 1000)
+        , tracker = Just filename
+
+        --Http.expectJson
+        --    (RefreshFilesys
+        --        (Just fsItem)
+        --        ("Mise en ligne image base64: " ++ filename)
+        --        ImagesRoot
+        --    )
+        --    decodeFiles
+        }
+
+
+
+--uploadFile file uploadPath sessionId =
+--    Http.request
+--        { method = "POST"
+--        , headers = []
+--        , url = "uploadFile.php"
+--        , body =
+--            Http.multipartBody
+--                [ Http.filePart "file" file
+--                , Http.stringPart "uploadPath" uploadPath
+--                , Http.stringPart "sessionId" sessionId
+--                ]
+--        , expect = Http.expectWhatever UploadResult
+--        , timeout = Nothing
+--        , tracker =
+--            hashString 0 uploadPath
+--                |> String.fromInt
+--                |> Just
+--        }
+--Maybe.map extractFsItem (getCurrentFilesys config.mode model)
+--                    |> Maybe.andThen (List.tail << getPath)
+--                    |> Maybe.map (String.join "/")
+--                    |> Maybe.withDefault ""
+--                    |> (\p ->
+--                            HtmlAttr.property "uploadPath"
+--                                (Encode.string (p ++ "/"))
 
 
 decodeFilesToUpload : (List FileToUpload -> Msg) -> Decode.Decoder Msg
@@ -2379,6 +3119,63 @@ decodeImageData msg =
             (Decode.field "height" Decode.int)
             (Decode.field "filesize" Decode.int)
             |> Decode.map msg
+        )
+
+
+type alias ProcessedImage =
+    { filename : String
+    , content : String
+    , size : Int
+    , width : Int
+    , height : Int
+    }
+
+
+decodeProcessedData : Decode.Decoder ProcessedImage
+decodeProcessedData =
+    Decode.map5 ProcessedImage
+        (Decode.field "filename" Decode.string)
+        (Decode.field "content" Decode.string)
+        (Decode.field "size" Decode.int)
+        (Decode.field "width" Decode.int)
+        (Decode.field "height" Decode.int)
+
+
+selectImages : Cmd Msg
+selectImages =
+    Select.files [ "image/png", "image/jpeg" ] ImagesSelected
+
+
+selectFiles : Cmd Msg
+selectFiles =
+    Select.files [] FilesSelected
+
+
+processCmd model filename data =
+    let
+        ( w, h ) =
+            case model.bulkImageUploadSize of
+                News ->
+                    ( 266, 200 )
+
+                BlockLinks ->
+                    ( 300, 225 )
+
+                Fiches ->
+                    ( 440, 320 )
+
+                Regular ->
+                    ( 800, 600 )
+    in
+    Cmd.map model.externalMsg
+        (toImageProcessor2 <|
+            Encode.object
+                [ ( "imageData", Encode.string data )
+                , ( "filename", Encode.string filename )
+                , ( "maxHeight", Encode.int h )
+                , ( "maxWidth", Encode.int w )
+                , ( "needThumb", Encode.bool False )
+                ]
         )
 
 
@@ -2988,3 +3785,11 @@ pickerView backMsg confirmMsg root config externalMsg =
                 }
             ]
         ]
+
+
+itemStyle : List (Attribute msg)
+itemStyle =
+    [ padding 15
+    , Background.color grey7
+    , Border.rounded 5
+    ]

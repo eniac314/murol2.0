@@ -1052,7 +1052,7 @@ interfaceView config isNewsView model =
                 , label =
                     row [ spacing 5 ]
                         [ el [] (html <| tag iconSize)
-                        , el [] (text "Tag")
+                        , el [] (text "Style")
                         ]
                 }
             ]
@@ -1127,6 +1127,8 @@ textBlockStyleView model =
                             (fontOptionView
                                 (List.filter isFontAttr model.wholeTextBlocAttr
                                     |> List.head
+                                    |> Maybe.withDefault (Font "Arial")
+                                    |> Just
                                 )
                             )
                             (List.sort fonts)
@@ -1142,6 +1144,8 @@ textBlockStyleView model =
                             (fontSizeOptionView
                                 (List.filter isFontSizeAttr model.wholeTextBlocAttr
                                     |> List.head
+                                    |> Maybe.withDefault (FontSize 16)
+                                    |> Just
                                 )
                             )
                             fontSizes
@@ -1268,7 +1272,16 @@ internalLinkView externalMsg config =
             )
             [ row [ spacing 5 ]
                 [ el [ Font.bold ] (text "Lien pour: ")
-                , el [] (text config.td.meta.value)
+                , el []
+                    (if String.length config.td.meta.value <= 13 then
+                        text config.td.meta.value
+
+                     else
+                        String.left 10
+                            config.td.meta.value
+                            |> (\s -> s ++ "...")
+                            |> text
+                    )
                 ]
             , Input.text
                 [ width (px 150)
@@ -1334,7 +1347,7 @@ chooseDocView externalMsg uid fileExplorer zone logInfo =
                 500
             , zone = zone
             , logInfo = logInfo
-            , mode = FileExplorer.ReadOnly FileExplorer.DocsRoot
+            , mode = FileExplorer.ReadWrite FileExplorer.DocsRoot
             }
             fileExplorer
         , el [ paddingXY 15 0 ]
@@ -1488,6 +1501,8 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                             (fontOptionView
                                 (List.filter isFontAttr attrs
                                     |> List.head
+                                    |> Maybe.withDefault (Font "Arial")
+                                    |> Just
                                 )
                             )
                             fonts
@@ -1503,6 +1518,8 @@ inlineStyleView model ({ meta, attrs, dataKind } as td) =
                             (fontSizeOptionView
                                 (List.filter isFontSizeAttr attrs
                                     |> List.head
+                                    |> Maybe.withDefault (FontSize 16)
+                                    |> Just
                                 )
                             )
                             fontSizes

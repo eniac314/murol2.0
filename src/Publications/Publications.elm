@@ -60,7 +60,7 @@ type alias Model msg =
     , dateInput : Maybe Posix
     , dateBuffer : String
     , topics : Dict Int (Maybe String)
-    , bulletinIndex : Dict Int ( Maybe String, Maybe Int )
+    , index : Dict Int ( Maybe String, Maybe Int )
     , bulletinCover : Maybe String
 
     --
@@ -170,7 +170,7 @@ init externalMsg =
     , dateBuffer = ""
     , topics = Dict.empty
     , bulletinCover = Nothing
-    , bulletinIndex = Dict.empty
+    , index = Dict.empty
     , lockedMurolInfos = Dict.empty
     , lockedDelibs = Dict.empty
     , lockedBulletins = Dict.empty
@@ -266,16 +266,16 @@ update config msg model =
 
         SelectDelib n ->
             case Dict.get n model.delibs of
-                Just { date, topics } ->
+                Just { date, index } ->
                     ( { model
                         | displayMode = Edit Delib
                         , modifyingExisting = True
                         , dateInput = Just date
                         , dateBuffer = dateToStr config.zone date
-                        , topics =
+                        , index =
                             List.indexedMap
-                                (\i t -> ( i, Just t ))
-                                topics
+                                (\i ( t, p ) -> ( i, ( Just t, Just p ) ))
+                                index
                                 |> Dict.fromList
                       }
                     , Cmd.none
@@ -293,7 +293,7 @@ update config msg model =
                         , issueInput = Just <| String.fromInt issue
                         , dateInput = Just date
                         , dateBuffer = dateToStr config.zone date
-                        , bulletinIndex =
+                        , index =
                             List.indexedMap
                                 (\i ( t, p ) -> ( i, ( Just t, Just p ) ))
                                 index
@@ -374,20 +374,20 @@ update config msg model =
         NewIndexEntry ->
             let
                 key =
-                    nextKey model.bulletinIndex
+                    nextKey model.index
             in
             ( { model
-                | bulletinIndex =
-                    Dict.insert key ( Nothing, Nothing ) model.bulletinIndex
+                | index =
+                    Dict.insert key ( Nothing, Nothing ) model.index
               }
             , Cmd.none
             )
 
         SetIndexEntryTopic key topic ->
-            case Dict.get key model.bulletinIndex of
+            case Dict.get key model.index of
                 Just ( _, pNbr ) ->
                     ( { model
-                        | bulletinIndex =
+                        | index =
                             Dict.insert key
                                 ( if topic == "" then
                                     Nothing
@@ -396,7 +396,7 @@ update config msg model =
                                     Just topic
                                 , pNbr
                                 )
-                                model.bulletinIndex
+                                model.index
                       }
                     , Cmd.none
                     )
@@ -405,11 +405,11 @@ update config msg model =
                     ( model, Cmd.none )
 
         SetIndexEntryPageNbr key pageNbr ->
-            case Dict.get key model.bulletinIndex of
+            case Dict.get key model.index of
                 Just ( topic, _ ) ->
                     ( { model
-                        | bulletinIndex =
-                            Dict.insert key ( topic, String.toInt pageNbr ) model.bulletinIndex
+                        | index =
+                            Dict.insert key ( topic, String.toInt pageNbr ) model.index
                       }
                     , Cmd.none
                     )
@@ -419,25 +419,15 @@ update config msg model =
 
         RemoveIndexEntry key ->
             ( { model
-                | bulletinIndex =
-                    Dict.remove key model.bulletinIndex
+                | index =
+                    Dict.remove key model.index
               }
             , Cmd.none
             )
 
         SwapUp i ->
             case extractPubType model of
-                Bulletin ->
-                    let
-                        newIndex =
-                            Dict.values model.bulletinIndex
-                                |> swapAt i (i - 1)
-                                |> List.indexedMap Tuple.pair
-                                |> Dict.fromList
-                    in
-                    ( { model | bulletinIndex = newIndex }, Cmd.none )
-
-                _ ->
+                MurolInfo ->
                     let
                         newTopics =
                             Dict.values model.topics
@@ -446,20 +436,20 @@ update config msg model =
                                 |> Dict.fromList
                     in
                     ( { model | topics = newTopics }, Cmd.none )
+
+                _ ->
+                    let
+                        newIndex =
+                            Dict.values model.index
+                                |> swapAt i (i - 1)
+                                |> List.indexedMap Tuple.pair
+                                |> Dict.fromList
+                    in
+                    ( { model | index = newIndex }, Cmd.none )
 
         SwapDown i ->
             case extractPubType model of
-                Bulletin ->
-                    let
-                        newIndex =
-                            Dict.values model.bulletinIndex
-                                |> swapAt i (i + 1)
-                                |> List.indexedMap Tuple.pair
-                                |> Dict.fromList
-                    in
-                    ( { model | bulletinIndex = newIndex }, Cmd.none )
-
-                _ ->
+                MurolInfo ->
                     let
                         newTopics =
                             Dict.values model.topics
@@ -468,6 +458,16 @@ update config msg model =
                                 |> Dict.fromList
                     in
                     ( { model | topics = newTopics }, Cmd.none )
+
+                _ ->
+                    let
+                        newIndex =
+                            Dict.values model.index
+                                |> swapAt i (i + 1)
+                                |> List.indexedMap Tuple.pair
+                                |> Dict.fromList
+                    in
+                    ( { model | index = newIndex }, Cmd.none )
 
         FileRequested ->
             ( model
@@ -662,16 +662,25 @@ update config msg model =
         SaveDelib ->
             case
                 ( model.dateInput
-                , Dict.values model.topics
-                    |> List.filterMap identity
+                , Dict.values model.index
+                    |> List.foldr
+                        (\v acc ->
+                            case v of
+                                ( Just topic, Just pageNbr ) ->
+                                    ( topic, pageNbr ) :: acc
+
+                                _ ->
+                                    acc
+                        )
+                        []
                 )
             of
-                ( Just date, t :: ts ) ->
+                ( Just date, x :: xs ) ->
                     let
                         saveMetaCmd =
                             saveDelibMeta
                                 { date = date
-                                , topics = t :: ts
+                                , index = x :: xs
                                 }
 
                         name =
@@ -775,7 +784,7 @@ update config msg model =
                 ( ( Maybe.andThen String.toInt model.issueInput
                   , model.dateInput
                   )
-                , Dict.values model.bulletinIndex
+                , Dict.values model.index
                     |> List.foldr
                         (\v acc ->
                             case v of
@@ -1200,17 +1209,26 @@ newDelibView config model =
         canUpload =
             case
                 ( model.dateInput
-                , Dict.values model.topics
-                    |> List.filterMap identity
+                , Dict.values model.index
+                    |> List.foldr
+                        (\v acc ->
+                            case v of
+                                ( Just topic, Just pageNbr ) ->
+                                    ( topic, pageNbr ) :: acc
+
+                                _ ->
+                                    acc
+                        )
+                        []
                 )
             of
-                ( Just date, t :: ts ) ->
+                ( Just date, x :: xs ) ->
                     (model.modifyingExisting
                         || (not <|
                                 Dict.member (posixToMillis date) model.delibs
                            )
                     )
-                        && (List.length (t :: ts) == Dict.size model.topics)
+                        && (List.length (x :: xs) == Dict.size model.index)
                         && (model.modifyingExisting
                                 || (model.fileToUpload /= Nothing)
                            )
@@ -1228,7 +1246,7 @@ newDelibView config model =
                 [ Font.bold
                 , Font.size 20
                 ]
-                (text "Nouvelle délibération: ")
+                (text "Nouvelle séance du conseil municipal:")
             , el
                 [ alignRight ]
                 (text
@@ -1245,7 +1263,7 @@ newDelibView config model =
             )
             [ dateInputView config model
             ]
-        , topicEditorView config model
+        , indexEditorView config model
         , row
             (itemStyle
                 ++ [ width (px 940)
@@ -1277,7 +1295,7 @@ newBulletinView config model =
             case
                 ( Maybe.andThen String.toInt model.issueInput
                 , model.dateInput
-                , Dict.values model.bulletinIndex
+                , Dict.values model.index
                     |> List.foldr
                         (\v acc ->
                             case v of
@@ -1294,7 +1312,7 @@ newBulletinView config model =
                     (model.modifyingExisting
                         || (not <| Dict.member issue model.bulletins)
                     )
-                        && (List.length (x :: xs) == Dict.size model.bulletinIndex)
+                        && (List.length (x :: xs) == Dict.size model.index)
                         && (model.modifyingExisting
                                 || (model.fileToUpload /= Nothing)
                            )
@@ -1719,7 +1737,7 @@ indexEditorView config model =
                 }
             ]
          ]
-            ++ (Dict.toList model.bulletinIndex
+            ++ (Dict.toList model.index
                     |> List.indexedMap Tuple.pair
                     |> List.map topicView
                )
@@ -1993,16 +2011,29 @@ encodeMurolInfo { issue, date, topics } =
 
 decodeDelib : D.Decoder DelibMeta
 decodeDelib =
+    let
+        decodeIndexEntry =
+            D.map2 Tuple.pair
+                (D.field "topic" D.string)
+                (D.field "page" D.int)
+    in
     D.map2 DelibMeta
         (D.field "date" (D.map millisToPosix D.int))
-        (D.field "topics" (D.list D.string))
+        (D.field "index" (D.list decodeIndexEntry))
 
 
 encodeDelib : DelibMeta -> E.Value
-encodeDelib { date, topics } =
+encodeDelib { date, index } =
+    let
+        encodeIndexEntry ( topic, page ) =
+            E.object
+                [ ( "topic", E.string topic )
+                , ( "page", E.int page )
+                ]
+    in
     E.object
         [ ( "date", E.int (posixToMillis date) )
-        , ( "topics", E.list E.string topics )
+        , ( "index", E.list encodeIndexEntry index )
         ]
 
 

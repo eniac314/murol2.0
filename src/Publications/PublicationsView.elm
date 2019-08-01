@@ -1,4 +1,4 @@
-module Publications.PublicationsView exposing (..)
+module Publications.PublicationsView exposing (Config, bulletinsView, delibTopicView, delibsView, indexView, maxWidth, murolInfosView, topicView, yearView)
 
 import Dict exposing (..)
 import Document.Document exposing (BulletinMeta, DelibMeta, ImageSrc(..), MurolInfoMeta, Publications, dummyPic)
@@ -116,7 +116,12 @@ murolInfosView config =
 delibsView : Config a -> Element msg
 delibsView config =
     let
-        delibView { date, topics } =
+        delibView { date, index } =
+            let
+                issue =
+                    dateToStr config.zone date
+                        |> String.replace "/" "-"
+            in
             column
                 [ spacing 10
                 , width fill
@@ -127,7 +132,7 @@ delibsView config =
                     ]
                     [ el
                         []
-                        (text <| String.dropLeft 3 (dateToStr config.zone date))
+                        (text <| dateToStr config.zone date)
                     , newTabLink
                         [ alignRight
                         , Background.color teal4
@@ -139,15 +144,14 @@ delibsView config =
                         ]
                         { url =
                             "/baseDocumentaire/publications/delibs/"
-                                ++ (dateToStr config.zone date
-                                        |> String.replace "/" "-"
+                                ++ (issue
                                         |> (\s -> s ++ ".pdf")
                                    )
                         , label = text "Télécharger"
                         }
                     ]
                  ]
-                    ++ List.indexedMap topicView topics
+                    ++ List.indexedMap (delibTopicView issue) index
                 )
     in
     case config.publications of
@@ -228,6 +232,7 @@ bulletinsView config =
                 , (if maxWidth config < 800 then
                     column
                         [ centerX ]
+
                    else
                     row
                         [ width fill
@@ -305,6 +310,7 @@ topicView n s =
     paragraph
         [ if modBy 2 n == 0 then
             Background.color grey6
+
           else
             Background.color (rgb255 221 221 221)
         , width fill
@@ -315,11 +321,12 @@ topicView n s =
         [ text s ]
 
 
-indexView : Int -> Int -> ( String, Int ) -> Element msg
-indexView issue n ( topic, page ) =
+delibTopicView : String -> Int -> ( String, Int ) -> Element msg
+delibTopicView issue n ( topic, page ) =
     paragraph
         [ if modBy 2 n == 0 then
-            Background.color grey7
+            Background.color grey6
+
           else
             Background.color (rgb255 221 221 221)
         , width fill
@@ -331,6 +338,48 @@ indexView issue n ( topic, page ) =
             [ mouseOver
                 [ if modBy 2 n == 0 then
                     Font.color grey5
+
+                  else
+                    Font.color (rgb 1 1 1)
+                ]
+            , width fill
+            , pointer
+            ]
+            { url =
+                "/baseDocumentaire/publications/delibs/"
+                    ++ (issue
+                            |> (\s ->
+                                    s
+                                        ++ ".pdf#page="
+                                        ++ String.fromInt page
+                               )
+                       )
+            , label =
+                paragraph
+                    []
+                    [ text topic ]
+            }
+        ]
+
+
+indexView : Int -> Int -> ( String, Int ) -> Element msg
+indexView issue n ( topic, page ) =
+    paragraph
+        [ if modBy 2 n == 0 then
+            Background.color grey7
+
+          else
+            Background.color (rgb255 221 221 221)
+        , width fill
+        , paddingXY 10 5
+        , Font.size 16
+        , Font.color grey1
+        ]
+        [ newTabLink
+            [ mouseOver
+                [ if modBy 2 n == 0 then
+                    Font.color grey5
+
                   else
                     Font.color (rgb 1 1 1)
                 ]

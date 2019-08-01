@@ -4,8 +4,6 @@
 ---------------
 - add swap album pictures
 
-- fix broken table
-
 - fix same height image row in new elm ui 
 	|-> Check if fix is good everywhere
 
@@ -78,6 +76,9 @@ pdftk affiche\ sancy\ snow\ jazz\ 2019.pdf cat 1south output out.pdf
 
 merge pdf 
 pdftk file1.pdf file2.pdf cat output mergedfile.pdf
+
+resize images
+mogrify -resize 266x200 *.JPG && mogrify -resize 266x200 *.jpg && mogrify -resize 266x200 *.png
 
 - disable directory listing: 
 

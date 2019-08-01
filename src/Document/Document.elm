@@ -1,4 +1,4 @@
-module Document.Document exposing (..)
+module Document.Document exposing (BlockLinkMeta, BulletinMeta, CellContent(..), CellValue, ContainerLabel(..), ContainerValue, DelibMeta, DocAttribute(..), DocColor(..), Document(..), GalleryMeta, Id, ImageMeta, ImageSrc(..), ImgSize, Li, LinkMeta, MurolInfoMeta, News, NewsContent, Pic, PictureLink, Publications, TableMeta, TextBlockElement(..), TextBlockPrimitive(..), VideoHost(..), VideoMeta, VideoSize, ZipperEventHandler(..), ZipperHandlers, addAttrs, addClass, containsOnly, dummyPic, emptyNews, gatherFichesIds, gatherGalleryMeta, getAttrs, getDocStyleId, getHtmlId, getId, getUid, hasClass, hasUid, isContainer, isImage, setDocStyleId, setDocStyleIdIfNone, setHtmlId, setHtmlIdIfNone, setUid, toSeColor, toogleClass)
 
 --import Document.DocumentViews.StyleSheets exposing (..)
 
@@ -12,6 +12,7 @@ import List.Extra exposing (unique)
 import Set exposing (..)
 import Time exposing (Posix, Zone, millisToPosix)
 import UUID exposing (UUID, nil)
+
 
 
 ----------------------------
@@ -187,7 +188,7 @@ type alias MurolInfoMeta =
 
 type alias DelibMeta =
     { date : Posix
-    , topics : List String
+    , index : List ( String, Int )
     }
 
 
@@ -496,6 +497,7 @@ toogleClass class document =
                 | classes =
                     if Set.member class id.classes then
                         Set.remove class id.classes
+
                     else
                         Set.insert class id.classes
             }

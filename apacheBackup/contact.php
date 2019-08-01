@@ -84,8 +84,13 @@ if((getenv('REQUEST_METHOD') == 'POST')) {
   
   $content = "Message: ".$message."\n\n"."Nom: ".$name."\n\n"."Email: ".$email."\n\n"."Société: ".$company."\n\n"."Tel: ".$phone;
 
-  mail("contactsite.murol@orange.fr","message Murol.fr: ". $topic, $content);
-  mail("florian.gillard@tutanota.com","message Murol.fr: ". $topic, $content);
+  $headerFields = array(
+    "MIME-Version: 1.0",
+    "Content-Type: text/html;charset=utf-8"
+  );
+
+  mail("contactsite.murol@orange.fr","message Murol.fr: ". $topic, $content, implode("\r\n", $headerFields));
+  mail("florian.gillard@tutanota.com","message Murol.fr: ". $topic, $content, implode("\r\n", $headerFields));
 
   logger("Votre message a bien été pris en compte.");
   // logger((string)(json_encode($captchaValidation)));

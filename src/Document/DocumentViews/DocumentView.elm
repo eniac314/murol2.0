@@ -801,10 +801,27 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
                     s
     in
     [ el attrs_
-        (image [ width fill ]
-            { src = src_
-            , description = ""
-            }
+        (column
+            []
+            [ image [ width fill ]
+                { src = src_
+                , description =
+                    Maybe.withDefault "" caption
+                }
+            , case caption of
+                Just c ->
+                    paragraph
+                        [ Font.italic
+                        , Font.size 14
+                        , width fill
+                        , Font.center
+                        , paddingXY 0 5
+                        ]
+                        [ text c ]
+
+                Nothing ->
+                    Element.none
+            ]
         )
 
     --el attrs_

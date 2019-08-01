@@ -1146,7 +1146,7 @@ captionEditorView { src, caption } =
 
 selectImages : Cmd Msg
 selectImages =
-    Select.files [ "image/png", "image/jpg" ] ImagesSelected
+    Select.files [ "image/png", "image/jpeg" ] ImagesSelected
 
 
 
