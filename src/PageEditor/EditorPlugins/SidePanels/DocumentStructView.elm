@@ -1,4 +1,4 @@
-module PageEditor.EditorPlugins.SidePanels.DocumentStructView exposing (..)
+module PageEditor.EditorPlugins.SidePanels.DocumentStructView exposing (Child(..), cellContentToString, containerLabelToColor, containerLabelToString, docTreeView, documentStructView, mainPanel, menuView, prefix)
 
 import Document.Document exposing (..)
 import Element exposing (..)
@@ -74,6 +74,7 @@ docTreeView config offsets ( sContainer, selection ) document =
         labelFontColor =
             if sel then
                 Font.color (rgba 0 0 0 1)
+
             else
                 Font.color (rgba 0.8 0.8 0.8 1)
     in
@@ -91,6 +92,7 @@ docTreeView config offsets ( sContainer, selection ) document =
                     ++ [ el
                             ([ if config.containersColors && sel then
                                 Font.color <| containerLabelToColor containerLabel
+
                                else
                                 labelFontColor
                              ]
@@ -99,6 +101,7 @@ docTreeView config offsets ( sContainer, selection ) document =
                                         , pointer
                                         , mouseOver [ Font.color (rgba 0 0 1 1) ]
                                         ]
+
                                     else
                                         []
                                    )
@@ -137,6 +140,7 @@ docTreeView config offsets ( sContainer, selection ) document =
                                         , pointer
                                         , mouseOver [ Font.color (rgba 0 0 1 1) ]
                                         ]
+
                                     else
                                         []
                                    )
@@ -155,6 +159,7 @@ prefix offsets =
         attrs sel =
             [ if sel then
                 Font.color (rgba 0 0 1 1)
+
               else
                 Font.color (rgba 0.8 0.8 0.8 1)
             ]
@@ -255,7 +260,7 @@ cellContentToString lc =
             "Zone actualités"
 
         TextBlock xs ->
-            "Zone de texte"
+            "Bloc de texte"
 
         CalendarWidget ->
             "Mini calendrier"

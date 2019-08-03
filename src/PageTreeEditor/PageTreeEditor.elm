@@ -8,6 +8,7 @@ module PageTreeEditor.PageTreeEditor exposing
     , decodeKeywords
     , decodePage
     , fileIoSelectedPageInfo
+    , getFileIoPath
     , getPathFromId
     , init
     , internalPageSelectedPageInfo
@@ -17,6 +18,7 @@ module PageTreeEditor.PageTreeEditor exposing
     , loadingView
     , prefix
     , resetFileIoSelected
+    , setFileIoSelection
     , setInternalPageSelection
     , status
     , update
@@ -130,10 +132,26 @@ internalPageSelectedPageInfo model =
             Just pageInfo
 
 
+setFileIoSelection : Model msg -> Path -> Cmd msg
+setFileIoSelection model path =
+    Task.perform SetFileIoPage (succeed path)
+        |> Cmd.map model.externalMsg
+
+
 setInternalPageSelection : Model msg -> String -> Cmd msg
 setInternalPageSelection model path =
     Task.perform SetInternalPage (succeed <| String.split "/" path)
         |> Cmd.map model.externalMsg
+
+
+getFileIoPath : Model msg -> Path
+getFileIoPath model =
+    case model.fileIoSelected of
+        Just (Page { path } _) ->
+            path
+
+        Nothing ->
+            []
 
 
 getPathFromId : Model msg -> String -> Maybe String
@@ -252,6 +270,7 @@ type Msg
       -- Cmds from outside --
       -----------------------
     | SetInternalPage Path
+    | SetFileIoPage Path
       --------------------------
       -- Initial Data loading --
       --------------------------
@@ -338,6 +357,15 @@ update config msg model =
         SetInternalPage path ->
             ( { model
                 | internalPageSelected =
+                    Maybe.andThen (zipTo path) model.pageTree
+                        |> Maybe.map extractPage
+              }
+            , Cmd.none
+            )
+
+        SetFileIoPage path ->
+            ( { model
+                | fileIoSelected =
                     Maybe.andThen (zipTo path) model.pageTree
                         |> Maybe.map extractPage
               }

@@ -1,6 +1,37 @@
-port module PageEditor.PageEditor exposing (AppFunnel, Funnel(..), FunnelState, MenuConfig, Model, Msg(..), ViewConfig, cmdPort, currentDocument, documentView, funnels, iconSize, init, internalUpdate, keyDecoder, mainInterface, mainMenu, openNewPlugin, openPlugin, pluginView, reset, scrollTo, storageAccessors, storageHandler, subPort, subscriptions, undoCacheDepth, update, view)
+port module PageEditor.PageEditor exposing
+    ( AppFunnel
+    , Funnel(..)
+    , FunnelState
+    , MenuConfig
+    , Model
+    , Msg(..)
+    , ViewConfig
+    , cmdPort
+    , currentDocument
+    , documentView
+    , funnels
+    , iconSize
+    , init
+    , internalUpdate
+    , keyDecoder
+    , mainInterface
+    , mainMenu
+    , openNewPlugin
+    , openPlugin
+    , pluginView
+    , reset
+    , scrollTo
+    , storageAccessors
+    , storageHandler
+    , subPort
+    , subscriptions
+    , undoCacheDepth
+    , update
+    , view
+    )
 
 import Auth.AuthPlugin as Auth exposing (LogInfo(..), getLogInfo)
+import Base64 exposing (..)
 import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Delay exposing (..)
@@ -11,6 +42,7 @@ import Document.DocumentViews.DocumentView exposing (..)
 import Document.DocumentViews.RenderConfig exposing (Config)
 import Document.DocumentViews.StyleSheets exposing (..)
 import Document.Json.DocumentDecoder exposing (..)
+import Document.Json.DocumentSerializer exposing (encodeDocument)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -18,14 +50,18 @@ import Element.Events exposing (..)
 import Element.Font as Font
 import Element.Input as Input
 import Element.Lazy exposing (lazy)
+import File exposing (..)
+import File.Download as Download
+import File.Select as Select
 import FileExplorer.FileExplorer as FileExplorer
 import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (Model, fichesData)
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
+import Internals.CommonHelpers exposing (timeToStr)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (..)
 import Json.Decode as Decode
-import Json.Encode exposing (Value, null)
+import Json.Encode as Encode exposing (Value, list, null, string)
 import List.Extra exposing (remove)
 import NewsEditor.NewsEditor as NewsEditor
 import PageEditor.EditorPlugins.BlockLinksPlugin as BlockLinksPlugin
@@ -241,14 +277,19 @@ type Msg
       -------------------
     | LoadLocalStorageDocument
     | SetLocalStorageKey String
-    | SetLocalStorageValue Json.Encode.Value
+    | SetLocalStorageValue Encode.Value
     | SetJsonBuffer String
     | GetFromLocalStorage
     | PutInLocalStorage
     | RemoveFromLocalStorage
     | ClearLocalStorage
     | ListKeys
-    | Process Json.Encode.Value
+    | Process Encode.Value
+    | RequestDownload
+    | DownloadCurrentPage Posix
+    | RequestLoad
+    | GotFile File
+    | LoadFileContent String
       ---------
       -- Misc--
       ---------
@@ -373,6 +414,7 @@ update :
         , genDirEditor : GeneralDirectoryEditor.Model msg
         , logInfo : Auth.LogInfo
         , reloadFilesMsg : msg
+        , zone : Time.Zone
     }
     -> Msg
     -> Model msg
@@ -391,6 +433,7 @@ internalUpdate :
         , genDirEditor : GeneralDirectoryEditor.Model msg
         , logInfo : Auth.LogInfo
         , reloadFilesMsg : msg
+        , zone : Time.Zone
     }
     -> Msg
     -> Model msg
@@ -1377,6 +1420,83 @@ internalUpdate config msg model =
                         _ ->
                             ( model, Cmd.none )
 
+        RequestDownload ->
+            ( model
+            , Task.perform (model.externalMsg << DownloadCurrentPage) Time.now
+            )
+
+        DownloadCurrentPage time ->
+            let
+                path =
+                    PageTreeEditor.getFileIoPath config.pageTreeEditor
+
+                pageName =
+                    case PageTreeEditor.fileIoSelectedPageInfo config.pageTreeEditor of
+                        Just { name } ->
+                            name
+
+                        _ ->
+                            "nouvelle page"
+
+                filename =
+                    pageName ++ " " ++ timeToStr config.zone time ++ ".json"
+
+                content =
+                    extractDoc (rewind model.document)
+                        |> encodeDocument
+                        |> (\doc ->
+                                Encode.object
+                                    [ ( "path", Encode.list Encode.string path )
+                                    , ( "document", doc )
+                                    ]
+                           )
+                        |> Yajson.fromValue
+                        |> (\res ->
+                                case res of
+                                    Ok json ->
+                                        pretty json
+
+                                    Err error ->
+                                        "page invalide"
+                           )
+            in
+            ( model
+            , Download.string filename "text/json" content
+            )
+
+        RequestLoad ->
+            ( model
+            , Cmd.map model.externalMsg <| Select.file [ "text/json" ] GotFile
+            )
+
+        GotFile file ->
+            ( model
+            , Task.perform (model.externalMsg << LoadFileContent) (File.toString file)
+            )
+
+        LoadFileContent content ->
+            let
+                pageDecoder =
+                    Decode.map2 Tuple.pair
+                        (Decode.field "path" (Decode.list Decode.string))
+                        (Decode.field "document" decodeDocument)
+            in
+            case Decode.decodeString pageDecoder content of
+                Ok ( path, newDoc ) ->
+                    let
+                        ( newModel, cmd ) =
+                            reset (Just newDoc) model.externalMsg
+                    in
+                    ( newModel
+                    , Cmd.batch
+                        [ cmd
+                        , PageTreeEditor.setFileIoSelection config.pageTreeEditor path
+                        ]
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         ---------
         -- Misc--
         ---------
@@ -2263,6 +2383,17 @@ mainMenu config =
                     }
                   ]
                 , [ { defEntry
+                        | label = "Ouvrir fichier"
+                        , isActive = not config.isInPlugin
+                        , msg = RequestLoad
+                    }
+                  , { defEntry
+                        | label = "Sauvegarde locale"
+                        , isActive = not config.isInPlugin
+                        , msg = RequestDownload
+                    }
+                  ]
+                , [ { defEntry
                         | label = "Administration avancée"
                         , isActive = not config.isInPlugin
                         , msg = SetEditorPlugin (Just PersistencePlugin)
@@ -2381,14 +2512,6 @@ mainMenu config =
                         , isSelected = config.season == Winter
                         , msg = SetSeason Winter
                         , isActive = True
-                    }
-                  ]
-                ]
-              )
-            , ( "Aide"
-              , [ [ { defEntry
-                        | label = "A propos"
-                        , isActive = False
                     }
                   ]
                 ]

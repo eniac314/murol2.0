@@ -72,7 +72,8 @@ type alias Model msg =
     , lockedFsItems : List FsItem
     , canUpload : Bool
     , needToUpload : Bool
-    , filesToUpload : List FileToUpload
+    , filesToUpload_ : List FileToUpload
+    , filesToUpload : Dict String File
     , imageUploadType : UploadType
     , debug : String
     , mbOriImageWidth : Maybe Int
@@ -92,6 +93,7 @@ type alias Model msg =
     , processedPics : Dict String ProcessedImage
     , processingQueue : List ( String, File )
     , bulkImageUploaderState : BulkImageUploadState
+    , bulkUploadState : BulkUploadState
     , bulkImageUploadSize : BulkImageUploadSize
     , uploadProgress : Dict String ( Int, Int, Maybe UploadStatus )
     }
@@ -108,6 +110,11 @@ type BulkImageUploadState
     = Home
     | ImageProcessing
     | Upload
+
+
+type BulkUploadState
+    = BUHome
+    | BUUpload
 
 
 subscriptions model =
@@ -201,7 +208,8 @@ init root externalMsg =
     , lockedFsItems = []
     , canUpload = False
     , needToUpload = False
-    , filesToUpload = []
+    , filesToUpload_ = []
+    , filesToUpload = Dict.empty
     , imageUploadType = RegUpload
     , debug = ""
     , mbOriImageWidth = Nothing
@@ -221,6 +229,7 @@ init root externalMsg =
     , processedPics = Dict.empty
     , processingQueue = []
     , bulkImageUploaderState = Home
+    , bulkUploadState = BUHome
     , bulkImageUploadSize = Regular
     , uploadProgress = Dict.empty
     }
@@ -282,8 +291,9 @@ type Msg
     | ToogleUploadView
     | SetImageUploadType UploadType
     | UploadImage FsItem
-    | FilesRequested
-    | FilesSelected File (List File)
+    | FilesRequested FsItem
+    | FilesSelected FsItem File (List File)
+    | ManualFileUpload String
       ------------------------
       -- Image bulk uploads --
       ------------------------
@@ -731,7 +741,7 @@ update config msg model =
                     List.all identity (List.map .success files)
             in
             ( { model
-                | filesToUpload = files
+                | filesToUpload_ = files
                 , canUpload = True
                 , needToUpload =
                     if uploadDone then
@@ -826,21 +836,62 @@ update config msg model =
                     , Nothing
                     )
 
-        FilesRequested ->
+        FilesRequested fsItem ->
             ( model
-            , Cmd.map model.externalMsg selectFiles
+            , Cmd.map model.externalMsg (selectFiles fsItem)
             , Nothing
             )
 
-        FilesSelected first remaining ->
+        FilesSelected fsItem first remaining ->
             let
                 files =
                     first :: remaining
             in
-            ( model
-            , Cmd.none
+            ( { model
+                | filesToUpload =
+                    List.map (\f -> ( File.name f, f )) files
+                        |> Dict.fromList
+                , uploadProgress =
+                    List.map (\f -> ( File.name f, ( 0, File.size f, Nothing ) )) files
+                        |> Dict.fromList
+                , bulkUploadState = BUUpload
+              }
+            , Cmd.map model.externalMsg <|
+                Cmd.batch
+                    (List.map (\f -> cmdIfLogged config.logInfo (uploadFile fsItem f)) files)
             , Nothing
             )
+
+        ManualFileUpload s ->
+            case Dict.get s model.filesToUpload of
+                Just f ->
+                    ( { model
+                        | uploadProgress =
+                            Dict.insert s
+                                ( 0
+                                , File.size f
+                                , Nothing
+                                )
+                                model.uploadProgress
+                      }
+                    , case ( config.logInfo, Maybe.map extractFsItem (getCurrentFilesys Full model) ) of
+                        ( LoggedIn info, Just fsItem ) ->
+                            Cmd.map model.externalMsg <|
+                                uploadFile
+                                    fsItem
+                                    f
+                                    info.sessionId
+
+                        _ ->
+                            Cmd.none
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
 
         ------------------------
         -- Image bulk uploads --
@@ -933,6 +984,7 @@ update config msg model =
                 , fileSizes = Dict.empty
                 , processingQueue = []
                 , bulkImageUploaderState = Home
+                , bulkUploadState = BUHome
                 , uploadProgress = Dict.empty
               }
             , Cmd.batch
@@ -1069,7 +1121,7 @@ update config msg model =
                         cmdIfLogged
                             config.logInfo
                             (getFileList
-                                ImagesRoot
+                                model.root
                                 (Dict.keys newUploadProgress)
                              --(modeRoot mode model.root)
                              --(List.map .filename files)
@@ -1961,6 +2013,134 @@ filesysView config model =
 --        [ Internals.CommonHelpers.logsView model.logs config.zone ]
 
 
+bulkUploadView_ :
+    { a
+        | logInfo : LogInfo
+    }
+    -> Model msg
+    -> Element Msg
+bulkUploadView_ config model =
+    let
+        canEdit =
+            model.uploadProgress
+                |> Dict.foldr
+                    (\_ ( _, _, us ) acc -> us :: acc)
+                    []
+                |> List.all (\us -> us == Just UploadSuccessful)
+
+        progress ( sent, size, us ) =
+            let
+                p =
+                    floor <| 100 * toFloat sent / toFloat size
+            in
+            if us == Just UploadSuccessful then
+                100
+
+            else
+                min 99 p
+
+        progressTotal =
+            Dict.foldr
+                (\k ( sent, size, _ ) ( totalSent, totalSize ) ->
+                    ( sent + totalSent, size + totalSize )
+                )
+                ( 0, 0 )
+                model.uploadProgress
+                |> (\( tsent, tsize ) -> 100 * toFloat tsent / toFloat tsize)
+                |> round
+                |> (\t ->
+                        if canEdit then
+                            100
+
+                        else
+                            min 99 t
+                   )
+    in
+    column
+        [ spacing 15 ]
+        [ column
+            (itemStyle
+                ++ [ width fill
+                   , spacing 15
+                   ]
+            )
+            ([ el
+                [ Font.bold
+                , Font.size 18
+                ]
+                (text "Mise en ligne")
+             , row
+                [ spacing 25 ]
+                [ el [ width (px 140) ]
+                    (text "Transfert fichier(s): ")
+                , progressBar progressTotal --(Debug.log "total" progressTotal)
+                ]
+             ]
+                ++ (Dict.map
+                        (\filename ( sent, size, uploadStatus ) ->
+                            row
+                                [ spacing 15 ]
+                                [ column
+                                    [ alignTop
+                                    , spacing 10
+                                    ]
+                                    [ el [ Font.color teal1 ] (text filename)
+                                    , row
+                                        [ spacing 15 ]
+                                        [ case uploadStatus of
+                                            Just (UploadFailure e) ->
+                                                row
+                                                    [ spacing 5 ]
+                                                    [ text "Echec transfert: "
+                                                    , el
+                                                        [ Font.color (rgb255 217 83 79) ]
+                                                        (text e)
+                                                    ]
+
+                                            _ ->
+                                                text <|
+                                                    "Transfert: "
+                                                        ++ (progress ( sent, size, uploadStatus )
+                                                                |> String.fromInt
+                                                                |> String.padLeft 2 '0'
+                                                                |> strCons "%"
+                                                           )
+                                        , case uploadStatus of
+                                            Just (UploadFailure e) ->
+                                                Input.button
+                                                    (buttonStyle True)
+                                                    { onPress = Just (ManualFileUpload filename)
+                                                    , label = text "Réessayer"
+                                                    }
+
+                                            Just UploadSuccessful ->
+                                                okMark
+
+                                            _ ->
+                                                Element.none
+                                        ]
+                                    ]
+                                ]
+                        )
+                        model.uploadProgress
+                        |> Dict.values
+                   )
+            )
+        , row
+            (itemStyle
+                ++ [ spacing 15
+                   , width fill
+                   ]
+            )
+            [ Input.button
+                (buttonStyle True)
+                { onPress = Just Reset
+                , label = text "Retour"
+                }
+            ]
+        ]
+
+
 bulkImageUploadView_ :
     { a
         | logInfo : LogInfo
@@ -2204,47 +2384,72 @@ uploadView config model =
         bulkUploadView =
             column
                 [ spacing 15 ]
-                [ uploadControllerView
-                , if model.canUpload then
-                    column
-                        [ spacing 10 ]
-                        (List.map fileUploadStatusView model.filesToUpload
-                            ++ [ row
-                                    [ spacing 10 ]
-                                    [ Input.button
-                                        (buttonStyle <| True)
-                                        { onPress =
-                                            Just ToogleUploadView
-                                        , label =
-                                            row [ spacing 10 ]
-                                                [ text "Retour"
-                                                ]
-                                        }
-                                    , Input.button
-                                        (saveButtonStyle <| True)
-                                        { onPress =
-                                            Just UploadFiles
-                                        , label =
-                                            row [ spacing 10 ]
-                                                [ text "Envoyer"
-                                                ]
-                                        }
-                                    ]
-                               ]
-                        )
-
-                  else
-                    Input.button
-                        (buttonStyle <| True)
-                        { onPress =
-                            Just ToogleUploadView
-                        , label =
-                            row [ spacing 10 ]
-                                [ text "Retour"
+                [ case model.bulkUploadState of
+                    BUHome ->
+                        column
+                            [ spacing 15 ]
+                            [ row
+                                [ spacing 15 ]
+                                [ Input.button
+                                    (buttonStyle True)
+                                    { onPress = Just ToogleUploadView
+                                    , label = text "Retour"
+                                    }
+                                , Input.button
+                                    (buttonStyle True)
+                                    { onPress =
+                                        Maybe.map extractFsItem (getCurrentFilesys config.mode model)
+                                            |> Maybe.map FilesRequested
+                                    , label = text "Choix fichiers"
+                                    }
                                 ]
-                        }
+                            ]
+
+                    BUUpload ->
+                        bulkUploadView_ config model
                 ]
 
+        --column
+        --    [ spacing 15 ]
+        --    [ uploadControllerView
+        --    , if model.canUpload then
+        --        column
+        --            [ spacing 10 ]
+        --            (List.map fileUploadStatusView model.filesToUpload_
+        --                ++ [ row
+        --                        [ spacing 10 ]
+        --                        [ Input.button
+        --                            (buttonStyle <| True)
+        --                            { onPress =
+        --                                Just ToogleUploadView
+        --                            , label =
+        --                                row [ spacing 10 ]
+        --                                    [ text "Retour"
+        --                                    ]
+        --                            }
+        --                        , Input.button
+        --                            (saveButtonStyle <| True)
+        --                            { onPress =
+        --                                Just UploadFiles
+        --                            , label =
+        --                                row [ spacing 10 ]
+        --                                    [ text "Envoyer"
+        --                                    ]
+        --                            }
+        --                        ]
+        --                   ]
+        --            )
+        --      else
+        --        Input.button
+        --            (buttonStyle <| True)
+        --            { onPress =
+        --                Just ToogleUploadView
+        --            , label =
+        --                row [ spacing 10 ]
+        --                    [ text "Retour"
+        --                    ]
+        --            }
+        --    ]
         uploadControllerView =
             uploadController
                 ([ HtmlEvents.on
@@ -3146,9 +3351,9 @@ selectImages =
     Select.files [ "image/png", "image/jpeg" ] ImagesSelected
 
 
-selectFiles : Cmd Msg
-selectFiles =
-    Select.files [] FilesSelected
+selectFiles : FsItem -> Cmd Msg
+selectFiles fsItem =
+    Select.files [] (FilesSelected fsItem)
 
 
 processCmd model filename data =

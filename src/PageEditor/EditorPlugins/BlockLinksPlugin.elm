@@ -802,7 +802,7 @@ blockLinksPreview : Config msg -> Model msg -> Element msg
 blockLinksPreview config model =
     wrappedRow
         [ width fill
-        , height (maximum 600 fill)
+        , height (maximum (config.height - 300) fill)
         , scrollbarY
         ]
         (Dict.foldr

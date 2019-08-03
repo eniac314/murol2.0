@@ -1,4 +1,29 @@
-module Internals.CommonHelpers exposing (Log, PickerResult(..), Status(..), UploadStatus(..), break, chunks, combineStatus, dateToFrench, dateToStr, dateToW3c, decodeUploadStatus, hashLog, hdSrc, httpErrorToString, jsonResolver, logTitleView, logsDictView, logsView, newLog, outsideTargetHandler, parseDate, safeInsert, thumbSrc)
+module Internals.CommonHelpers exposing
+    ( Log
+    , PickerResult(..)
+    , Status(..)
+    , UploadStatus(..)
+    , break
+    , chunks
+    , combineStatus
+    , dateToFrench
+    , dateToStr
+    , dateToW3c
+    , decodeUploadStatus
+    , hashLog
+    , hdSrc
+    , httpErrorToString
+    , jsonResolver
+    , logTitleView
+    , logsDictView
+    , logsView
+    , newLog
+    , outsideTargetHandler
+    , parseDate
+    , safeInsert
+    , thumbSrc
+    , timeToStr
+    )
 
 import Derberos.Date.Core exposing (addTimezoneMilliseconds, civilToPosix, newDateRecord, posixToCivil)
 import Derberos.Date.Utils exposing (monthToNumber1, numberOfDaysInMonth, numberToMonth)
@@ -300,6 +325,31 @@ parseDate currentTime zone s =
 
         _ ->
             Nothing
+
+
+timeToStr : Time.Zone -> Time.Posix -> String
+timeToStr zone t =
+    let
+        dateRec =
+            posixToCivil (addTimezoneMilliseconds zone t)
+    in
+    (String.fromInt dateRec.day
+        |> String.padLeft 2 '0'
+    )
+        ++ "-"
+        ++ (String.fromInt dateRec.month
+                |> String.padLeft 2 '0'
+           )
+        ++ "-"
+        ++ String.fromInt dateRec.year
+        ++ " "
+        ++ (String.fromInt dateRec.hour
+                |> String.padLeft 2 '0'
+           )
+        ++ "H"
+        ++ (String.fromInt dateRec.minute
+                |> String.padLeft 2 '0'
+           )
 
 
 dateToStr : Time.Zone -> Time.Posix -> String

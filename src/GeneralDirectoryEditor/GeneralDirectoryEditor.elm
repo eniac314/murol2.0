@@ -1032,6 +1032,7 @@ internalUpdate config msg model =
                     ( { model
                         | ficheBuffer = newFb
                         , selectedResp = Nothing
+                        , respBuffer = Nothing
                       }
                     , Cmd.none
                     )
@@ -1750,6 +1751,10 @@ internalUpdate config msg model =
                         , selectedFiche = Just <| canonical newFb.uuid
                         , ficheBuffer = newFb
                         , seed = Just newSeed
+                        , nameFilter = Nothing
+                        , catFilter = Nothing
+                        , activFilter = Nothing
+                        , labelFilter = Nothing
                       }
                     , case config.logInfo of
                         LoggedIn { sessionId } ->
@@ -1829,6 +1834,10 @@ internalUpdate config msg model =
                 , selectedLinkedDoc = Nothing
                 , linkedDocBuffer = Nothing
                 , expiryDateBuffer = Nothing
+                , nameFilter = Nothing
+                , catFilter = Nothing
+                , activFilter = Nothing
+                , labelFilter = Nothing
               }
             , Cmd.none
             )

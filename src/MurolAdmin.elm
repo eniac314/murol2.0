@@ -253,6 +253,7 @@ update msg model =
                         , genDirEditor = model.generalDirectory
                         , logInfo = Auth.getLogInfo model.authTool
                         , reloadFilesMsg = ReloadFiles
+                        , zone = model.zone
                         }
                         pageEditorMsg
                         model.pageEditor

@@ -999,11 +999,11 @@ initialView config model =
                 (case extractPubType model of
                     MurolInfo ->
                         Dict.foldl
-                            (\n { issue, date } acc ->
-                                row
+                            (\n { issue, date } ( acc, flag ) ->
+                                ( row
                                     [ spacing 15
                                     , width fill
-                                    , if modBy 2 n == 0 then
+                                    , if flag then
                                         Background.color teal7
 
                                       else
@@ -1037,18 +1037,21 @@ initialView config model =
                                         ]
                                     ]
                                     :: acc
+                                , not flag
+                                )
                             )
-                            []
+                            ( [], True )
                             model.murolInfos
+                            |> Tuple.first
 
                     Delib ->
                         Dict.foldl
-                            (\n { date } acc ->
-                                row
+                            (\n { date } ( acc, flag ) ->
+                                ( row
                                     [ spacing 15
                                     , width fill
-                                    , if modBy 2 n == 0 then
-                                        Background.color blue6
+                                    , if flag then
+                                        Background.color teal7
 
                                       else
                                         Background.color blue7
@@ -1069,24 +1072,27 @@ initialView config model =
                                             , label = text "Modifier"
                                             }
                                         , Input.button
-                                            (buttonStyle True)
+                                            (deleteButtonStyle True)
                                             { onPress = Just <| DeleteDelib n
                                             , label = text "Supprimer"
                                             }
                                         ]
                                     ]
                                     :: acc
+                                , not flag
+                                )
                             )
-                            []
+                            ( [], True )
                             model.delibs
+                            |> Tuple.first
 
                     Bulletin ->
                         Dict.foldl
-                            (\n { issue, date } acc ->
-                                row
+                            (\n { issue, date } ( acc, flag ) ->
+                                ( row
                                     [ spacing 15
                                     , width fill
-                                    , if modBy 2 n == 0 then
+                                    , if flag then
                                         Background.color blue6
 
                                       else
@@ -1113,16 +1119,19 @@ initialView config model =
                                             , label = text "Modifier"
                                             }
                                         , Input.button
-                                            (buttonStyle True)
+                                            (deleteButtonStyle True)
                                             { onPress = Just <| DeleteBulletin n
                                             , label = text "Supprimer"
                                             }
                                         ]
                                     ]
                                     :: acc
+                                , not flag
+                                )
                             )
-                            []
+                            ( [], True )
                             model.bulletins
+                            |> Tuple.first
                 )
             ]
         ]
@@ -1639,23 +1648,24 @@ topicEditorView config model =
             [ el
                 [ Font.bold ]
                 (text "Sujets: ")
-            , Input.button
-                (buttonStyle True)
-                { onPress = Just NewTopic
-                , label =
-                    case extractPubType model of
-                        Delib ->
-                            text "Nouvel article de l'ordre du jour"
-
-                        _ ->
-                            text "Nouveau sujet"
-                }
             ]
          ]
             ++ (Dict.toList model.topics
                     |> List.indexedMap Tuple.pair
                     |> List.map topicView
                )
+            ++ [ Input.button
+                    (buttonStyle True)
+                    { onPress = Just NewTopic
+                    , label =
+                        case extractPubType model of
+                            Delib ->
+                                text "Nouvel article de l'ordre du jour"
+
+                            _ ->
+                                text "Nouveau sujet"
+                    }
+               ]
         )
 
 
@@ -1729,18 +1739,19 @@ indexEditorView config model =
             [ el
                 [ Font.bold ]
                 (text "Sujets: ")
-            , Input.button
-                (buttonStyle True)
-                { onPress = Just NewIndexEntry
-                , label =
-                    text "Nouveau sujet"
-                }
             ]
          ]
             ++ (Dict.toList model.index
                     |> List.indexedMap Tuple.pair
                     |> List.map topicView
                )
+            ++ [ Input.button
+                    (buttonStyle True)
+                    { onPress = Just NewIndexEntry
+                    , label =
+                        text "Nouveau sujet"
+                    }
+               ]
         )
 
 
