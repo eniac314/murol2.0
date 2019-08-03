@@ -47,10 +47,10 @@ import Task exposing (..)
 import Time exposing (..)
 
 
-port toImageProcessor2 : Encode.Value -> Cmd msg
+port toFileExplorerImageProcessor : Encode.Value -> Cmd msg
 
 
-port processedImages2 : (Decode.Value -> msg) -> Sub msg
+port fileExplorerProcessedImages : (Decode.Value -> msg) -> Sub msg
 
 
 type alias Model msg =
@@ -72,7 +72,8 @@ type alias Model msg =
     , lockedFsItems : List FsItem
     , canUpload : Bool
     , needToUpload : Bool
-    , filesToUpload_ : List FileToUpload
+
+    --, filesToUpload_ : List FileToUpload
     , filesToUpload : Dict String File
     , imageUploadType : UploadType
     , debug : String
@@ -120,7 +121,7 @@ type BulkUploadState
 subscriptions model =
     Sub.map model.externalMsg <|
         Sub.batch
-            ([ processedImages2 ImageProcessed
+            ([ fileExplorerProcessedImages ImageProcessed
              ]
                 ++ Dict.foldr
                     (\fn _ acc -> Http.track fn (GotProgress fn) :: acc)
@@ -170,14 +171,6 @@ type alias ImageFromFile =
     }
 
 
-type alias FileToUpload =
-    { filename : String
-    , loaded : Float
-    , total : Float
-    , success : Bool
-    }
-
-
 type UploadType
     = BulkUpload
     | RegUpload
@@ -200,15 +193,12 @@ init root externalMsg =
     , lastLocation = Nothing
     , selectedFsItem = Nothing
     , cutBuffer = Nothing
-
-    --, logs = []
     , imageFiles = Nothing
     , docFiles = Nothing
     , loadingStatus = ToolLoadingWaiting
     , lockedFsItems = []
     , canUpload = False
     , needToUpload = False
-    , filesToUpload_ = []
     , filesToUpload = Dict.empty
     , imageUploadType = RegUpload
     , debug = ""
@@ -286,8 +276,6 @@ type Msg
       -- Bulk Uploads --
       ------------------
     | RefreshFilesys (Maybe FsItem) String Root (Result Http.Error (List FsItem))
-    | FilesToUpload Mode (List FileToUpload)
-    | UploadFiles
     | ToogleUploadView
     | SetImageUploadType UploadType
     | UploadImage FsItem
@@ -735,41 +723,6 @@ update config msg model =
                     , Nothing
                     )
 
-        FilesToUpload mode files ->
-            let
-                uploadDone =
-                    List.all identity (List.map .success files)
-            in
-            ( { model
-                | filesToUpload_ = files
-                , canUpload = True
-                , needToUpload =
-                    if uploadDone then
-                        False
-
-                    else
-                        model.needToUpload
-              }
-            , if uploadDone then
-                cmdIfLogged
-                    config.logInfo
-                    (getFileList
-                        (modeRoot mode model.root)
-                        (List.map .filename files)
-                    )
-                    |> Cmd.map model.externalMsg
-
-              else
-                Cmd.none
-            , Nothing
-            )
-
-        UploadFiles ->
-            ( { model | needToUpload = True }
-            , Cmd.none
-            , Nothing
-            )
-
         ToogleUploadView ->
             let
                 mainPanelDisplay =
@@ -779,9 +732,6 @@ update config msg model =
 
                         FilesysDisplay ->
                             UploadDisplay
-
-                --LogsDisplay ->
-                --    FilesysDisplay
             in
             ( { model
                 | mainPanelDisplay = mainPanelDisplay
@@ -1114,17 +1064,12 @@ update config msg model =
                         | uploadProgress =
                             newUploadProgress
                       }
-                      --, if canEdit then
-                      --    Task.perform (\_ -> config.reloadFilesMsg) (Task.succeed ())
-                      --  else
                     , if uploadDone then
                         cmdIfLogged
                             config.logInfo
                             (getFileList
                                 model.root
                                 (Dict.keys newUploadProgress)
-                             --(modeRoot mode model.root)
-                             --(List.map .filename files)
                             )
                             |> Cmd.map model.externalMsg
 
@@ -1315,31 +1260,6 @@ update config msg model =
             )
 
         ----------
-        -- Logs --
-        ----------
-        --AddLog log ->
-        --    ( { model | logs = log :: model.logs }
-        --    , Cmd.none
-        --    , Nothing
-        --    )
-        --ToogleLogsView ->
-        --    let
-        --        mainPanelDisplay =
-        --            case model.mainPanelDisplay of
-        --                UploadDisplay ->
-        --                    UploadDisplay
-        --                FilesysDisplay ->
-        --                    LogsDisplay
-        --                LogsDisplay ->
-        --                    FilesysDisplay
-        --    in
-        --    ( { model
-        --        | mainPanelDisplay = mainPanelDisplay
-        --      }
-        --    , Cmd.none
-        --    , Nothing
-        --    )
-        ----------
         -- Misc --
         ----------
         SetRoot root ->
@@ -1392,8 +1312,6 @@ view config model =
                     FilesysDisplay ->
                         filesysView config model
 
-                    --LogsDisplay ->
-                    --    logsView config model
                     UploadDisplay ->
                         uploadView config model
                 ]
@@ -1467,23 +1385,6 @@ mainInterface config model =
                     ]
             }
         , clickablePath config model
-
-        --, case config.mode of
-        --ReadOnly _ ->
-        --    Element.none
-        --_ ->
-        --    Input.button
-        --        (toogleButtonStyle
-        --            (model.mainPanelDisplay == LogsDisplay)
-        --            (model.mainPanelDisplay /= UploadDisplay)
-        --        )
-        --        { onPress =
-        --            Just <| ToogleLogsView
-        --        , label =
-        --            row [ spacing 10 ]
-        --                [ html <| Icons.list iconSize
-        --                ]
-        --        }
         ]
 
 
@@ -2000,19 +1901,6 @@ filesysView config model =
                         ]
 
 
-
---logsView : { a | mode : Mode, zone : Zone } -> Model msg -> Element Msg
---logsView config model =
---    column
---        [ scrollbarY
---        , height fill
---        , width fill
---        , alignTop
---        , padding 15
---        ]
---        [ Internals.CommonHelpers.logsView model.logs config.zone ]
-
-
 bulkUploadView_ :
     { a
         | logInfo : LogInfo
@@ -2201,7 +2089,7 @@ bulkImageUploadView_ config model =
                 [ spacing 25 ]
                 [ el [ width (px 140) ]
                     (text "Transfert image(s): ")
-                , progressBar progressTotal --(Debug.log "total" progressTotal)
+                , progressBar progressTotal
                 ]
              ]
                 ++ List.map
@@ -2408,117 +2296,6 @@ uploadView config model =
                     BUUpload ->
                         bulkUploadView_ config model
                 ]
-
-        --column
-        --    [ spacing 15 ]
-        --    [ uploadControllerView
-        --    , if model.canUpload then
-        --        column
-        --            [ spacing 10 ]
-        --            (List.map fileUploadStatusView model.filesToUpload_
-        --                ++ [ row
-        --                        [ spacing 10 ]
-        --                        [ Input.button
-        --                            (buttonStyle <| True)
-        --                            { onPress =
-        --                                Just ToogleUploadView
-        --                            , label =
-        --                                row [ spacing 10 ]
-        --                                    [ text "Retour"
-        --                                    ]
-        --                            }
-        --                        , Input.button
-        --                            (saveButtonStyle <| True)
-        --                            { onPress =
-        --                                Just UploadFiles
-        --                            , label =
-        --                                row [ spacing 10 ]
-        --                                    [ text "Envoyer"
-        --                                    ]
-        --                            }
-        --                        ]
-        --                   ]
-        --            )
-        --      else
-        --        Input.button
-        --            (buttonStyle <| True)
-        --            { onPress =
-        --                Just ToogleUploadView
-        --            , label =
-        --                row [ spacing 10 ]
-        --                    [ text "Retour"
-        --                    ]
-        --            }
-        --    ]
-        uploadControllerView =
-            uploadController
-                ([ HtmlEvents.on
-                    "filesInput"
-                    (decodeFilesToUpload (FilesToUpload config.mode))
-                 , HtmlEvents.on
-                    "uploadProgress"
-                    (decodeFilesToUpload (FilesToUpload config.mode))
-                 , if model.canUpload then
-                    HtmlAttr.hidden True
-
-                   else
-                    noHtmlAttr
-                 , Maybe.map extractFsItem (getCurrentFilesys config.mode model)
-                    |> Maybe.andThen (List.tail << getPath)
-                    |> Maybe.map (String.join "/")
-                    |> Maybe.withDefault ""
-                    |> (\p ->
-                            HtmlAttr.property "uploadPath"
-                                (Encode.string (p ++ "/"))
-                       )
-                 , case modeRoot config.mode model.root of
-                    ImagesRoot ->
-                        HtmlAttr.property "uploadScript"
-                            (Encode.string "uploadPic.php")
-
-                    DocsRoot ->
-                        HtmlAttr.property "uploadScript"
-                            (Encode.string "uploadDoc.php")
-                 ]
-                    ++ [ if model.needToUpload then
-                            case config.logInfo of
-                                LoggedOut ->
-                                    noHtmlAttr
-
-                                LoggedIn { sessionId } ->
-                                    HtmlAttr.property "sendFiles"
-                                        (Encode.string sessionId)
-
-                         else
-                            noHtmlAttr
-                       ]
-                )
-
-        fileUploadStatusView { filename, loaded, total, success } =
-            row
-                [ spacing 15 ]
-                [ el [] (text filename)
-                , el []
-                    (if total /= 0 then
-                        text <|
-                            (String.fromInt
-                                (round <| 100 * loaded / total)
-                                ++ "%"
-                                ++ " "
-                                ++ (if success then
-                                        "ok"
-
-                                    else
-                                        ""
-                                   )
-                            )
-
-                     else
-                        text "pret"
-                    )
-
-                --, el [] (text <| String.fromFloat total)
-                ]
     in
     column
         [ scrollbarY
@@ -2540,24 +2317,6 @@ uploadView config model =
                     , bulkUploadView
                     ]
         ]
-
-
-uploadController : List (Html.Attribute msg) -> Element msg
-uploadController attributes =
-    -- NOTE : Custom element qui permet de mettre plusieurs fichiers
-    -- en ligne d'un coup. Fonctionne pour les images, ou les docs
-    el
-        []
-        (html <|
-            Html.node "uploads-controller"
-                attributes
-                [ Html.input
-                    [ HtmlAttr.type_ "file"
-                    , HtmlAttr.attribute "multiple" "multiple"
-                    ]
-                    []
-                ]
-        )
 
 
 
@@ -2762,9 +2521,6 @@ editView config model =
                         { onPress = Just RotateRight
                         , label = el [] (html <| rotateCw iconSize)
                         }
-
-                    -- text "Nom de fichier: "
-                    --, text f.filename
                     ]
                 , row
                     [ spacing 15 ]
@@ -3165,14 +2921,6 @@ uploadImageAuto fsItem filename contents sessionId =
             Http.expectJson (Uploaded filename) decodeUploadStatus
         , timeout = Nothing --Just (120 * 1000)
         , tracker = Just filename
-
-        --Http.expectJson
-        --    (RefreshFilesys
-        --        (Just fsItem)
-        --        ("Mise en ligne image base64: " ++ filename)
-        --        ImagesRoot
-        --    )
-        --    decodeFiles
         }
 
 
@@ -3246,66 +2994,7 @@ uploadFile fsItem file sessionId =
             Http.expectJson (Uploaded filename) decodeUploadStatus
         , timeout = Nothing --Just (120 * 1000)
         , tracker = Just filename
-
-        --Http.expectJson
-        --    (RefreshFilesys
-        --        (Just fsItem)
-        --        ("Mise en ligne image base64: " ++ filename)
-        --        ImagesRoot
-        --    )
-        --    decodeFiles
         }
-
-
-
---uploadFile file uploadPath sessionId =
---    Http.request
---        { method = "POST"
---        , headers = []
---        , url = "uploadFile.php"
---        , body =
---            Http.multipartBody
---                [ Http.filePart "file" file
---                , Http.stringPart "uploadPath" uploadPath
---                , Http.stringPart "sessionId" sessionId
---                ]
---        , expect = Http.expectWhatever UploadResult
---        , timeout = Nothing
---        , tracker =
---            hashString 0 uploadPath
---                |> String.fromInt
---                |> Just
---        }
---Maybe.map extractFsItem (getCurrentFilesys config.mode model)
---                    |> Maybe.andThen (List.tail << getPath)
---                    |> Maybe.map (String.join "/")
---                    |> Maybe.withDefault ""
---                    |> (\p ->
---                            HtmlAttr.property "uploadPath"
---                                (Encode.string (p ++ "/"))
-
-
-decodeFilesToUpload : (List FileToUpload -> Msg) -> Decode.Decoder Msg
-decodeFilesToUpload msg =
-    Decode.at [ "target", "fileDict" ]
-        (Decode.dict
-            (Decode.succeed FileToUpload
-                |> Pipeline.required "filename" Decode.string
-                |> Pipeline.optional "loaded" Decode.float 0
-                |> Pipeline.optional "total" Decode.float 0
-                |> Pipeline.optional "success"
-                    (Decode.oneOf
-                        [ Decode.field "message" Decode.string
-                            |> Decode.map (\_ -> True)
-                        , Decode.field "serverError" Decode.string
-                            |> Decode.map (\_ -> False)
-                        ]
-                    )
-                    False
-            )
-            |> Decode.map Dict.values
-            |> Decode.map msg
-        )
 
 
 decodeDebug : Decode.Decoder Msg
@@ -3373,7 +3062,7 @@ processCmd model filename data =
                     ( 800, 600 )
     in
     Cmd.map model.externalMsg
-        (toImageProcessor2 <|
+        (toFileExplorerImageProcessor <|
             Encode.object
                 [ ( "imageData", Encode.string data )
                 , ( "filename", Encode.string filename )
