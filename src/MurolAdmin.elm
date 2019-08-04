@@ -14,7 +14,7 @@ import Element.Input as Input
 import Element.Lazy exposing (lazy)
 import FileExplorer.FileExplorer as FileExplorer
 import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (..)
-import Help.Help exposing (..)
+import Help.Help as Help exposing (..)
 import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Internals.CommonHelpers exposing (..)
@@ -53,6 +53,7 @@ type alias Model =
     , newsEditor : NewsEditor.Model Msg
     , publications : Publications.Model Msg
     , authTool : Auth.Model Msg
+    , help : Help.Model Msg
     , loadingStatus : LoadingStatus
     , currentTool : Tool
     , winWidth : Int
@@ -71,6 +72,7 @@ subscriptions model =
         , PageEditor.subscriptions model.pageEditor
         , Publications.subscriptions model.publications
         , Auth.subscriptions model.authTool
+        , Help.subscriptions model.help
         , onResize WinResize
 
         --, if model.logsOpen then
@@ -106,6 +108,9 @@ init flags =
 
         ( newAuthTool, authToolCmds ) =
             Auth.init AuthMsg
+
+        ( help, helpCmd ) =
+            Help.init HelpMsg
     in
     ( { pageEditor = newPageEditor
       , pageTreeEditor = newPageTreeEditor
@@ -114,6 +119,7 @@ init flags =
       , newsEditor = newNewsEditor
       , publications = publications
       , authTool = newAuthTool
+      , help = help
       , loadingStatus = WaitingForLogin
       , currentTool = AuthTool
       , winWidth = 1920
@@ -127,6 +133,7 @@ init flags =
         [ pageEditorCmds
         , generalDirectoryCmds
         , authToolCmds
+        , helpCmd
         , Task.perform CurrentViewport Dom.getViewport
         , Task.perform SetZone Time.here
         ]
@@ -149,6 +156,8 @@ type Msg
     | GeneralDirectoryMsg GeneralDirectoryEditor.Msg
     | NewsEditorMsg NewsEditor.Msg
     | PublicationsMsg Publications.Msg
+    | HelpMsg Help.Msg
+    | GoToHelp ( Int, String )
     | SetCurrentTool Tool
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
@@ -329,6 +338,27 @@ update msg model =
                 | publications = newPublications
               }
             , newPubCmds
+            )
+
+        HelpMsg helpMsg ->
+            let
+                ( newHelp, helpCmd ) =
+                    Help.update () helpMsg model.help
+            in
+            ( { model
+                | help = newHelp
+                , currentTool = HelpTool
+              }
+            , helpCmd
+            )
+
+        GoToHelp id ->
+            let
+                ( newHelp, helpCmd ) =
+                    Help.externalUpdate id model.help
+            in
+            ( { model | help = newHelp }
+            , helpCmd
             )
 
         SetCurrentTool t ->
@@ -615,7 +645,13 @@ view model =
                                     model.publications
 
                             HelpTool ->
-                                Element.none
+                                Help.view
+                                    { maxHeight =
+                                        model.winHeight - 70
+                                    , maxWidth =
+                                        model.winWidth
+                                    }
+                                    model.help
                         , notificationsPanelView model
                         ]
             )
