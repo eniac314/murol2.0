@@ -61,6 +61,7 @@ changeContainerTypeView config =
                     if containerLabel /= DocColumn then
                         Just <|
                             config.swapContainerType DocColumn
+
                     else
                         Nothing
                 , label =
@@ -74,6 +75,7 @@ changeContainerTypeView config =
                     if containerLabel /= DocRow then
                         Just <|
                             config.swapContainerType DocRow
+
                     else
                         Nothing
                 , label =
@@ -87,6 +89,7 @@ changeContainerTypeView config =
                     if containerLabel /= TextColumn then
                         Just <|
                             config.swapContainerType TextColumn
+
                     else
                         Nothing
                 , label =
@@ -118,6 +121,7 @@ changeContainerWidthView config =
             , selected =
                 if List.member WidthShrink attrs then
                     Just ( Just WidthFill, Just WidthShrink )
+
                 else
                     Just ( Just WidthShrink, Just WidthFill )
             , label = Input.labelHidden ""
