@@ -263,6 +263,7 @@ update msg model =
                         , logInfo = Auth.getLogInfo model.authTool
                         , reloadFilesMsg = ReloadFiles
                         , zone = model.zone
+                        , addLog = AddLog
                         }
                         pageEditorMsg
                         model.pageEditor

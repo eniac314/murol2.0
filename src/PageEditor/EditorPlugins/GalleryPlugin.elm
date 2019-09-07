@@ -1,6 +1,13 @@
-port module PageEditor.EditorPlugins.GalleryPlugin exposing (Model, Msg(..), PluginState(..), ProcessedImage, captionEditorView, containerStyle, decodeGalleryMeta, decodeProcessedData, galleryEditorView, galleryPickerView, homeView, imageProcessingView, indexName, init, itemStyle, makeGalleryMeta, processCmd, processedImages, selectImages, subscription, toImageProcessor, update, uploadImage, uploadView, view)
+port module PageEditor.EditorPlugins.GalleryPlugin exposing
+    ( Model
+    , Msg(..)
+    , init
+    , subscription
+    , update
+    , view
+    )
 
-import Auth.AuthPlugin exposing (LogInfo(..))
+import Auth.AuthPlugin exposing (LogInfo(..), cmdIfLogged, newLogIfLogged)
 import Delay exposing (..)
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
@@ -21,10 +28,10 @@ import Html exposing (Html)
 import Http exposing (..)
 import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
-import Internals.Icons exposing (checkSquare, square)
+import Internals.Icons exposing (checkSquare, chevronsDown, chevronsUp, square, xSquare)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import List.Extra exposing (remove)
+import List.Extra exposing (remove, swapAt)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import Random exposing (..)
 import String.Extra exposing (toSentenceCase)
@@ -53,6 +60,7 @@ subscription model =
 
 type alias Model msg =
     { pluginState : PluginState
+    , startState : PluginState
     , fileSizes : Dict String Int
     , base64Pics : Dict String String
     , processedPics : Dict String ProcessedImage
@@ -62,6 +70,8 @@ type alias Model msg =
     , output : Maybe GalleryMeta
     , seed : Maybe Random.Seed
     , uploadProgress : Dict String ( Int, Int, Maybe UploadStatus )
+    , lockedPic : Maybe ImageMeta
+    , lockedFilespath : List String
     , externalMsg : Msg -> msg
     }
 
@@ -73,6 +83,10 @@ type Msg
     | ImageProcessed Decode.Value
     | GalleryTitlePrompt String
     | CaptionPrompt String String
+    | SwapUp Int
+    | SwapDown Int
+    | DeletePic Int
+    | PicDeleted String (Result Http.Error ())
     | ToogleKeepHqAssets Bool
     | PickGallery Bool String (List ( String, String ))
     | SetInitialSeed Posix
@@ -96,21 +110,27 @@ type PluginState
 
 init : Maybe GalleryMeta -> (Msg -> msg) -> ( Model msg, Cmd msg )
 init mbGalleryMeta externalMsg =
-    ( { pluginState =
+    let
+        initState =
             if mbGalleryMeta == Nothing then
                 Home
 
             else
                 GalleryEditor
+    in
+    ( { pluginState = initState
+      , startState = initState
       , fileSizes = Dict.empty
       , base64Pics = Dict.empty
       , processedPics = Dict.empty
       , processingQueue = []
-      , galleryTitleInput = Nothing
+      , galleryTitleInput = Maybe.map .title mbGalleryMeta
       , keepHQAssets = False
       , output = mbGalleryMeta
       , seed = Nothing
       , uploadProgress = Dict.empty
+      , lockedPic = Nothing
+      , lockedFilespath = []
       , externalMsg = externalMsg
       }
     , Cmd.map externalMsg <|
@@ -124,6 +144,7 @@ update :
     { a
         | logInfo : LogInfo
         , reloadFilesMsg : msg
+        , addLog : Log -> msg
     }
     -> Msg
     -> Model msg
@@ -138,6 +159,11 @@ update config msg model =
 
         ImagesSelected first remaining ->
             let
+                indexStart =
+                    Maybe.map .images model.output
+                        |> Maybe.map List.length
+                        |> Maybe.withDefault 0
+
                 files =
                     first :: remaining
 
@@ -150,17 +176,17 @@ update config msg model =
                                 acc
                         )
                         model.fileSizes
-                        (List.indexedMap (\n f -> ( n, f )) files)
+                        (List.indexedMap (\n f -> ( indexStart + n, f )) files)
             in
             ( { model
                 | fileSizes = fileSizes
                 , processingQueue =
                     List.indexedMap
-                        (\n f -> ( indexName (n + 1), f ))
+                        (\n f -> ( indexName (indexStart + n + 1), f ))
                         remaining
               }
             , Task.perform
-                (Base64Img (indexName 0))
+                (Base64Img (indexName indexStart))
                 (File.toUrl first)
                 |> Cmd.map model.externalMsg
             , Nothing
@@ -229,6 +255,7 @@ update config msg model =
                     in
                     ( { model
                         | seed = Just newSeed
+                        , galleryTitleInput = Just title
                         , output = Just galleryMeta
                         , pluginState = GalleryEditor
                       }
@@ -471,8 +498,16 @@ update config msg model =
                                 )
                                 (Dict.keys model.processedPics)
 
-                        ( newSeed, galleryMeta ) =
+                        ( newSeed, newGalleryMeta ) =
                             makeGalleryMeta title model.keepHQAssets pics seed
+
+                        galleryMeta =
+                            case model.output of
+                                Just { images } ->
+                                    { newGalleryMeta | images = images ++ newGalleryMeta.images }
+
+                                Nothing ->
+                                    newGalleryMeta
                     in
                     ( { model
                         | base64Pics = Dict.empty
@@ -547,6 +582,148 @@ update config msg model =
                     in
                     ( { model | output = Just newOutput }
                     , Cmd.none
+                    , Nothing
+                    )
+
+        SwapUp id ->
+            case model.output of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Just output ->
+                    let
+                        newOutput =
+                            { output
+                                | images =
+                                    output.images
+                                        |> swapAt id (id - 1)
+                            }
+                    in
+                    ( { model | output = Just newOutput }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        SwapDown id ->
+            case model.output of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+                Just output ->
+                    let
+                        newOutput =
+                            { output
+                                | images =
+                                    output.images
+                                        |> swapAt id (id + 1)
+                            }
+                    in
+                    ( { model | output = Just newOutput }
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        DeletePic id ->
+            case
+                Maybe.map .images model.output
+                    |> Maybe.andThen (List.Extra.getAt id)
+                    |> Maybe.map .src
+            of
+                Just (UrlSrc src) ->
+                    ( { model
+                        | lockedFilespath =
+                            [ src
+                            , thumbSrc src
+                            ]
+                                ++ (if Maybe.map .hq model.output == Just True then
+                                        [ hdSrc src ]
+
+                                    else
+                                        []
+                                   )
+                        , lockedPic =
+                            Maybe.map .images model.output
+                                |> Maybe.andThen (List.Extra.getAt id)
+                      }
+                    , Cmd.map model.externalMsg <|
+                        Cmd.batch
+                            [ cmdIfLogged config.logInfo (deleteImage src)
+                            , cmdIfLogged config.logInfo (deleteImage (thumbSrc src))
+                            , if Maybe.map .hq model.output == Just True then
+                                cmdIfLogged config.logInfo (deleteImage (hdSrc src))
+
+                              else
+                                Cmd.none
+                            ]
+                    , Nothing
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    , Nothing
+                    )
+
+        PicDeleted src res ->
+            case res of
+                Ok () ->
+                    let
+                        lockedFilespath =
+                            List.Extra.remove src model.lockedFilespath
+
+                        allDone =
+                            lockedFilespath == []
+                    in
+                    ( { model
+                        | lockedFilespath = lockedFilespath
+                        , lockedPic =
+                            if allDone then
+                                Nothing
+
+                            else
+                                model.lockedPic
+                        , output =
+                            case ( model.output, model.lockedPic, allDone ) of
+                                ( Just ({ images } as o), Just pic, True ) ->
+                                    Just { o | images = List.Extra.remove pic images }
+
+                                _ ->
+                                    model.output
+                      }
+                    , if allDone then
+                        Cmd.batch
+                            [ newLogIfLogged
+                                config.logInfo
+                                config.addLog
+                                (src ++ " supprimée")
+                                Nothing
+                                False
+                                False
+                            , Task.perform (\_ -> config.reloadFilesMsg) (Task.succeed ())
+                            ]
+
+                      else
+                        Cmd.none
+                    , Nothing
+                    )
+
+                Err e ->
+                    ( model
+                    , newLogIfLogged
+                        config.logInfo
+                        config.addLog
+                        ("Impossible de supprimer  "
+                            ++ src
+                        )
+                        (Just <| httpErrorToString e)
+                        True
+                        True
                     , Nothing
                     )
 
@@ -1062,13 +1239,22 @@ galleryEditorView config model =
                        , width fill
                        ]
                 )
-                ([ el
-                    [ Font.bold
-                    , Font.size 18
+                ([ row
+                    [ width fill ]
+                    [ el
+                        [ Font.bold
+                        , Font.size 18
+                        ]
+                        (text "Ajout / modification album")
+                    , Input.button
+                        (buttonStyle True ++ [ alignRight ])
+                        { onPress =
+                            Just ImagesRequested
+                        , label = text "Ajouter images"
+                        }
                     ]
-                    (text "Ajout / modification légendes")
                  ]
-                    ++ List.map captionEditorView output.images
+                    ++ List.indexedMap (captionEditorView model.lockedPic) output.images
                 )
             , row
                 (itemStyle
@@ -1076,11 +1262,15 @@ galleryEditorView config model =
                        , width fill
                        ]
                 )
-                [ Input.button
-                    (buttonStyle True)
-                    { onPress = Just Reset
-                    , label = text "Retour"
-                    }
+                [ if model.startState == Home then
+                    Input.button
+                        (buttonStyle True)
+                        { onPress = Just Reset
+                        , label = text "Retour"
+                        }
+
+                  else
+                    Element.none
                 , Input.button
                     (buttonStyle True)
                     { onPress = Just Quit
@@ -1095,16 +1285,25 @@ galleryEditorView config model =
             ]
 
 
-captionEditorView : ImageMeta -> Element Msg
-captionEditorView { src, caption } =
+captionEditorView : Maybe ImageMeta -> Int -> ImageMeta -> Element Msg
+captionEditorView lockedPic id ({ src, caption } as imgMeta) =
     case src of
         UrlSrc src_ ->
+            let
+                isLocked =
+                    Just imgMeta == lockedPic
+            in
             row
                 [ width fill
                 , Background.color grey5
                 , Border.rounded 5
                 , padding 5
                 , spacing 15
+                , if isLocked then
+                    alpha 0.7
+
+                  else
+                    noAttr
                 ]
                 [ el
                     [ padding 5
@@ -1122,7 +1321,12 @@ captionEditorView { src, caption } =
                     )
                 , Input.text
                     (textInputStyle ++ [ alignLeft ])
-                    { onChange = CaptionPrompt src_
+                    { onChange =
+                        if isLocked then
+                            always NoOp
+
+                        else
+                            CaptionPrompt src_
                     , text =
                         caption
                             |> Maybe.withDefault ""
@@ -1131,6 +1335,45 @@ captionEditorView { src, caption } =
                     , label =
                         Input.labelHidden ""
                     }
+                , column
+                    [ spacing 15
+                    , paddingXY 15 0
+                    , alignRight
+                    ]
+                    [ Input.button
+                        (buttonStyle True)
+                        { onPress =
+                            if isLocked then
+                                Nothing
+
+                            else
+                                Just (SwapUp id)
+                        , label =
+                            el [] (html <| chevronsUp 18)
+                        }
+                    , Input.button
+                        (buttonStyle True)
+                        { onPress =
+                            if isLocked then
+                                Nothing
+
+                            else
+                                Just (SwapDown id)
+                        , label =
+                            el [] (html <| chevronsDown 18)
+                        }
+                    , Input.button
+                        (deleteButtonStyle True)
+                        { onPress =
+                            if isLocked then
+                                Nothing
+
+                            else
+                                Just (DeletePic id)
+                        , label =
+                            el [] (html <| xSquare 18)
+                        }
+                    ]
                 ]
 
         _ ->
@@ -1183,6 +1426,29 @@ uploadImage title filename contents thumb mbHdef sessionId =
         , expect = Http.expectJson (Uploaded filename) decodeUploadStatus
         , timeout = Nothing --Just (120 * 1000)
         , tracker = Just filename
+        }
+
+
+deleteImage : String -> String -> Cmd Msg
+deleteImage path sessionId =
+    let
+        body =
+            Encode.object
+                [ ( "sessionId"
+                  , Encode.string sessionId
+                  )
+                , ( "root"
+                  , Encode.string "images"
+                  )
+                , ( "path", Encode.string (String.dropLeft 1 path) )
+                ]
+                |> Http.jsonBody
+    in
+    Http.post
+        { url = "deleteFile.php"
+        , body = body
+        , expect =
+            Http.expectWhatever (PicDeleted path)
         }
 
 

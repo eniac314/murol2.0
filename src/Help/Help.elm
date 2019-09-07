@@ -254,6 +254,8 @@ indexView model offset zipper =
         []
         [ row
             [ spacing 7
+            , Font.size 15
+            , paddingXY 0 6
             ]
             [ if not (Zipper.isEmpty zipper) then
                 el
@@ -271,7 +273,7 @@ indexView model offset zipper =
 
               else
                 text " "
-            , el
+            , paragraph
                 [ pointer
                 , Events.onClick <| SetCurrentPage False entry.id
                 , if entry.id == model.currentPage then
@@ -280,7 +282,7 @@ indexView model offset zipper =
                   else
                     noAttr
                 ]
-                (text <| entry.title)
+                [ text <| entry.title ]
             ]
         , column
             [ paddingXY 10 0 ]
@@ -297,20 +299,37 @@ indexView model offset zipper =
 mainView config model =
     let
         contentView ( anchor, url ) =
-            --el
-            --    [ htmlAttribute <| HtmlAttr.id (currentId ++ " " ++ String.fromInt anchor)
-            --    , centerX
-            --    , width (px 800)
-            --    , height (px 600)
-            --    ]
-            --    (text url)
             column
-                []
+                ([ centerX ]
+                    ++ (if Set.member url model.loaded then
+                            [ height (px 600)
+                            , width (px 800)
+                            ]
+
+                        else
+                            []
+                       )
+                )
                 [ image
-                    [ htmlAttribute <| HtmlAttr.id (currentId ++ " " ++ String.fromInt anchor)
-                    , centerX
-                    ]
-                    { src = url
+                    ([ htmlAttribute <| HtmlAttr.id (currentId ++ " " ++ String.fromInt anchor)
+                     , centerX
+                     ]
+                        ++ (if Set.member url model.loaded then
+                                [ centerX
+                                , centerY
+                                , clip
+                                ]
+
+                            else
+                                [ width (maximum 800 fill) ]
+                           )
+                    )
+                    { src =
+                        if Set.member url model.loaded then
+                            "/assets/images/loading.gif"
+
+                        else
+                            url
                     , description = ""
                     }
                 , html <|
@@ -330,11 +349,18 @@ mainView config model =
         , height fill
         , scrollbarY
         , htmlAttribute <| HtmlAttr.id "MainPanel"
+        , if not <| Set.isEmpty model.loaded then
+            alpha 0.7
+
+          else
+            noAttr
         ]
         [ el
             [ centerX
             , padding 15
-            , htmlAttribute <| HtmlAttr.id currentId
+            , htmlAttribute <| HtmlAttr.id (currentId ++ " 0")
+            , Font.size 22
+            , Font.bold
             ]
             (Dict.get currentId model.pages
                 |> Maybe.map .title
@@ -343,6 +369,7 @@ mainView config model =
             )
         , column
             [ spacing 15
+            , width fill
             , htmlAttribute <| HtmlAttr.id "MainContent"
             ]
             (Dict.get currentId model.pages
@@ -361,19 +388,6 @@ mainView config model =
 
 scrollTo : String -> Cmd Msg
 scrollTo destId =
-    --Dom.getElement
-    --    destId
-    --    |> Task.andThen
-    --        (\el ->
-    --            let
-    --                r =
-    --                    Debug.log "" el
-    --            in
-    --            Dom.setViewportOf "MainPanel"
-    --                0
-    --                (el.element.y - 50)
-    --        )
-    --    |> Task.attempt (\_ -> NoOp)
     Dom.getElement "MainContent"
         |> Task.andThen
             (\mainContInfo ->
@@ -409,6 +423,69 @@ helpPagesData =
             [ ( 1, "images/notice/Diapositive2.JPG" )
             , ( 2, "images/notice/Diapositive3.JPG" )
             , ( 3, "images/notice/Diapositive4.JPG" )
+            , ( 4, "images/notice/Diapositive5.JPG" )
+            ]
+      }
+    , { id = "7f766d94-79ec-4856-8e2e-19216dbe0c91"
+      , title = "Actualités"
+      , content =
+            [ ( 1, "images/notice/Diapositive6.JPG" )
+            , ( 2, "images/notice/Diapositive7.JPG" )
+            ]
+      }
+    , { id = "51edfc29-3bfa-4205-ae65-f1ac667fedc8"
+      , title = "Blocs de texte"
+      , content =
+            [ ( 1, "images/notice/Diapositive8.JPG" )
+            , ( 2, "images/notice/Diapositive9.JPG" )
+            , ( 3, "images/notice/Diapositive10.JPG" )
+            ]
+      }
+    , { id = "a4393746-a12b-467c-b6a5-2e66a6bfdbf7"
+      , title = "Liens"
+      , content =
+            [ ( 1, "images/notice/Diapositive11.JPG" )
+            , ( 2, "images/notice/Diapositive12.JPG" )
+            , ( 3, "images/notice/Diapositive13.JPG" )
+            ]
+      }
+    , { id = "c75dccc8-43bc-44df-afd7-13fd68f23e23"
+      , title = "Explorateur de fichiers"
+      , content =
+            [ ( 1, "images/notice/Diapositive14.JPG" )
+            , ( 2, "images/notice/Diapositive15.JPG" )
+            ]
+      }
+    , { id = "e8b32207-6cc8-4ec4-860c-adf9a078eb9c"
+      , title = "Editeur de page"
+      , content =
+            [ ( 1, "images/notice/Diapositive16.JPG" )
+            , ( 2, "images/notice/Diapositive17.JPG" )
+            , ( 3, "images/notice/Diapositive18.JPG" )
+            , ( 4, "images/notice/Diapositive18.JPG" )
+            , ( 5, "images/notice/Diapositive18.JPG" )
+            , ( 6, "images/notice/Diapositive18.JPG" )
+            ]
+      }
+    , { id = "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9"
+      , title = "Nouvelle cellule"
+      , content =
+            [ ( 1, "images/notice/Diapositive18.JPG" )
+            , ( 2, "images/notice/Diapositive18.JPG" )
+            , ( 3, "images/notice/Diapositive18.JPG" )
+            , ( 4, "images/notice/Diapositive18.JPG" )
+            , ( 5, "images/notice/Diapositive18.JPG" )
+            , ( 6, "images/notice/Diapositive18.JPG" )
+            , ( 7, "images/notice/Diapositive18.JPG" )
+            , ( 8, "images/notice/Diapositive18.JPG" )
+            ]
+      }
+    , { id = "b75e18b9-b962-4c18-91c3-c5134aae0bbd"
+      , title = "Repertoire géneral"
+      , content =
+            [ ( 1, "images/notice/Diapositive18.JPG" )
+            , ( 2, "images/notice/Diapositive18.JPG" )
+            , ( 3, "images/notice/Diapositive18.JPG" )
             ]
       }
     ]
@@ -419,6 +496,8 @@ indexEntriesData =
       , title = "Notice éditeur murol.fr"
       , parent = Nothing
       }
+
+    -------------
     , { id = ( 0, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
       , title = "Introduction"
       , parent = Nothing
@@ -434,5 +513,159 @@ indexEntriesData =
     , { id = ( 3, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
       , title = "Chargement"
       , parent = Just ( 0, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
+      }
+    , { id = ( 4, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
+      , title = "Les differents onglets"
+      , parent = Just ( 0, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
+      }
+
+    ------------
+    , { id = ( 0, "7f766d94-79ec-4856-8e2e-19216dbe0c91" )
+      , title = "Actualités"
+      , parent = Nothing
+      }
+    , { id = ( 1, "7f766d94-79ec-4856-8e2e-19216dbe0c91" )
+      , title = "Editeur d’actualités - écran d’accueil"
+      , parent = Just ( 0, "7f766d94-79ec-4856-8e2e-19216dbe0c91" )
+      }
+    , { id = ( 2, "7f766d94-79ec-4856-8e2e-19216dbe0c91" )
+      , title = "Créer une actualité"
+      , parent = Just ( 0, "7f766d94-79ec-4856-8e2e-19216dbe0c91" )
+      }
+
+    ------------
+    , { id = ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+      , title = "Blocs de texte"
+      , parent = Nothing
+      }
+    , { id = ( 1, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+      , title = "Ecrire un texte pour une actualité ou une page"
+      , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+      }
+    , { id = ( 2, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+      , title = "Changer le style du texte couleur du texte, du fond…"
+      , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+      }
+    , { id = ( 3, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+      , title = "Créer ou modifier un titre"
+      , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+      }
+
+    ------------
+    , { id = ( 0, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
+      , title = "Liens"
+      , parent = Nothing
+      }
+    , { id = ( 1, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
+      , title = "Inserer un lien vers une page du site"
+      , parent = Just ( 0, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
+      }
+    , { id = ( 2, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
+      , title = "Inserer un lien vers une page externe"
+      , parent = Just ( 0, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
+      }
+    , { id = ( 3, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
+      , title = "Inserer un lien vers un document"
+      , parent = Just ( 0, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
+      }
+
+    ------------
+    , { id = ( 0, "c75dccc8-43bc-44df-afd7-13fd68f23e23" )
+      , title = "Explorateur de fichiers"
+      , parent = Nothing
+      }
+    , { id = ( 1, "c75dccc8-43bc-44df-afd7-13fd68f23e23" )
+      , title = "Mettre en ligne une image dans l’explorateur de fichiers"
+      , parent = Just ( 0, "c75dccc8-43bc-44df-afd7-13fd68f23e23" )
+      }
+    , { id = ( 2, "c75dccc8-43bc-44df-afd7-13fd68f23e23" )
+      , title = "mettre en ligne un document dans l’explorateur de fichiers"
+      , parent = Just ( 0, "c75dccc8-43bc-44df-afd7-13fd68f23e23" )
+      }
+
+    ------------
+    , { id = ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Editeur de page"
+      , parent = Nothing
+      }
+    , { id = ( 1, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Créer ou modifier une page"
+      , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      }
+    , { id = ( 2, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Menu déroulant de l’onglet fichier"
+      , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      }
+    , { id = ( 3, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Menu déroulant de l’onglet mise en page"
+      , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      }
+    , { id = ( 4, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Menu déroulant de l’onglet affichage"
+      , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      }
+    , { id = ( 5, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Gestion des cellules"
+      , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      }
+    , { id = ( 6, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Gestion des conteneurs"
+      , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      }
+
+    ------------
+    , { id = ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Nouvelle cellule"
+      , parent = Nothing
+      }
+    , { id = ( 1, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Bloc de texte"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+    , { id = ( 2, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Zone de blocs de lien"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+    , { id = ( 3, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Zone de fiches"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+    , { id = ( 4, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Image"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+    , { id = ( 5, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Vidéo"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+    , { id = ( 6, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Tableau"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+    , { id = ( 7, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Album phototheque existant"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+    , { id = ( 8, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      , title = "Album phototheque création"
+      , parent = Just ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
+      }
+
+    ------------
+    , { id = ( 0, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      , title = "Repertoire géneral"
+      , parent = Nothing
+      }
+    , { id = ( 1, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      , title = "Retrouver une fiche"
+      , parent = Just ( 0, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      }
+    , { id = ( 2, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      , title = "Modifier une fiche"
+      , parent = Just ( 0, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      }
+    , { id = ( 3, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      , title = "Créer une fiche"
+      , parent = Just ( 0, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
       }
     ]

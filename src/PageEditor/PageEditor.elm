@@ -1,31 +1,9 @@
 port module PageEditor.PageEditor exposing
-    ( AppFunnel
-    , Funnel(..)
-    , FunnelState
-    , MenuConfig
-    , Model
+    ( Model
     , Msg(..)
-    , ViewConfig
-    , cmdPort
     , currentDocument
-    , documentView
-    , funnels
-    , iconSize
     , init
-    , internalUpdate
-    , keyDecoder
-    , mainInterface
-    , mainMenu
-    , openNewPlugin
-    , openPlugin
-    , pluginView
-    , reset
-    , scrollTo
-    , storageAccessors
-    , storageHandler
-    , subPort
     , subscriptions
-    , undoCacheDepth
     , update
     , view
     )
@@ -57,7 +35,7 @@ import FileExplorer.FileExplorer as FileExplorer
 import GeneralDirectoryEditor.GeneralDirectoryEditor as GeneralDirectoryEditor exposing (Model, fichesData)
 import Html exposing (map)
 import Html.Attributes as HtmlAttr
-import Internals.CommonHelpers exposing (timeToStr)
+import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (..)
 import Json.Decode as Decode
@@ -415,6 +393,7 @@ update :
         , logInfo : Auth.LogInfo
         , reloadFilesMsg : msg
         , zone : Time.Zone
+        , addLog : Log -> msg
     }
     -> Msg
     -> Model msg
@@ -434,6 +413,7 @@ internalUpdate :
         , logInfo : Auth.LogInfo
         , reloadFilesMsg : msg
         , zone : Time.Zone
+        , addLog : Log -> msg
     }
     -> Msg
     -> Model msg
@@ -1200,6 +1180,7 @@ internalUpdate config msg model =
                     GalleryPlugin.update
                         { logInfo = config.logInfo
                         , reloadFilesMsg = config.reloadFilesMsg
+                        , addLog = config.addLog
                         }
                         galleryPluginMsg
                         model.galleryPlugin
