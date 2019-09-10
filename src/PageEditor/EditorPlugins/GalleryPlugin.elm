@@ -161,8 +161,22 @@ update config msg model =
             let
                 indexStart =
                     Maybe.map .images model.output
-                        |> Maybe.map List.length
-                        |> Maybe.withDefault 0
+                        |> Maybe.withDefault []
+                        |> List.map .src
+                        |> List.map
+                            (\s ->
+                                case s of
+                                    UrlSrc s_ ->
+                                        String.Extra.rightOfBack "/" s_
+                                            |> String.dropRight 4
+                                            |> String.toInt
+
+                                    _ ->
+                                        Nothing
+                            )
+                        |> List.filterMap identity
+                        |> List.foldr max 0
+                        |> (\n -> n + 1)
 
                 files =
                     first :: remaining
