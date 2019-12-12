@@ -50,7 +50,7 @@ import UUID exposing (..)
 
 type alias Model msg =
     { news : Dict String News
-    , buffer : Maybe News
+    , buffer : Maybe NewsBuffer
     , expiryBuffer : String
     , contentPreview : Bool
     , checkedNews : Set String
@@ -62,6 +62,37 @@ type alias Model msg =
     , loadingStatus : ToolLoadingStatus
     , status : Status
     , externalMsg : Msg -> msg
+    }
+
+
+type alias NewsBuffer =
+    { title : String
+    , date : Posix
+    , content : Maybe NewsContent
+    , pic : Maybe Pic
+    , expiry : Posix
+    , uuid : Maybe UUID
+    }
+
+
+emptyNews : NewsBuffer
+emptyNews =
+    { title = ""
+    , date = millisToPosix 0
+    , content = Nothing
+    , pic = Nothing
+    , expiry = millisToPosix 0
+    , uuid = Nothing
+    }
+
+
+bufferFromNews news =
+    { title = news.title
+    , date = news.date
+    , content = news.content
+    , pic = news.pic
+    , expiry = news.expiry
+    , uuid = Just news.uuid
     }
 
 
@@ -135,7 +166,7 @@ type Msg
     | ClosePicPicker
     | ConfirmPic PickerResult
     | SaveNews
-    | NewsSaved (Result Http.Error Bool)
+    | NewsSaved News (Result Http.Error Bool)
     | TextBlockPluginMsg TextBlockPlugin.Msg
     | SetTimeAndInitSeed Time.Posix
     | NoOp
@@ -205,6 +236,7 @@ update config msg model =
 
                     else
                         Dict.get id model.news
+                            |> Maybe.map bufferFromNews
                 , checkedNews =
                     if Set.member id model.checkedNews then
                         Set.remove id model.checkedNews
@@ -395,18 +427,19 @@ update config msg model =
                 ( Just news, LoggedIn { sessionId }, Just seed ) ->
                     let
                         ( uuid, newSeed ) =
-                            if news.uuid == UUID.nil then
-                                Random.step UUID.generator seed
+                            Random.step UUID.generator seed
 
-                            else
-                                ( news.uuid, seed )
-
-                        newBuffer =
-                            { news | uuid = uuid }
+                        toSave =
+                            { title = news.title
+                            , date = news.date
+                            , content = news.content
+                            , pic = news.pic
+                            , expiry = news.expiry
+                            , uuid = uuid
+                            }
                     in
                     ( { model
                         | newsEditorMode = NewsSelector
-                        , buffer = Just newBuffer
                         , seed = Just newSeed
                         , status = Waiting
                       }
@@ -416,11 +449,11 @@ update config msg model =
                                 (\t ->
                                     setNews
                                         t
-                                        newBuffer
+                                        toSave
                                         sessionId
                                 )
                           )
-                            |> Task.attempt NewsSaved
+                            |> Task.attempt (NewsSaved toSave)
                             |> Cmd.map model.externalMsg
                         , newLogIfLogged
                             config.logInfo
@@ -435,12 +468,12 @@ update config msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        NewsSaved res ->
-            case ( res, model.buffer ) of
-                ( Ok _, Just n ) ->
+        NewsSaved toSave res ->
+            case res of
+                Ok _ ->
                     ( { model
                         | news =
-                            Dict.insert (canonical n.uuid) { n | date = model.currentTime } model.news
+                            Dict.insert (UUID.toString toSave.uuid) { toSave | date = model.currentTime } model.news
                         , buffer = Nothing
                         , expiryBuffer = ""
                         , contentPreview = False
@@ -456,7 +489,7 @@ update config msg model =
                         True
                     )
 
-                ( Err e, _ ) ->
+                Err e ->
                     ( { model | status = Failure }
                     , newLog
                         config.addLog
@@ -465,9 +498,6 @@ update config msg model =
                         True
                         True
                     )
-
-                _ ->
-                    ( model, Cmd.none )
 
         TextBlockPluginMsg textBlockMsg ->
             let
@@ -635,7 +665,7 @@ newsSelectorView config model =
                         (\( id, n ) ->
                             checkView
                                 (Set.member id model.checkedNews)
-                                (Maybe.map (\b -> canonical b.uuid == id) model.buffer
+                                (Maybe.map (\b -> Maybe.map UUID.toString b.uuid == Just id) model.buffer
                                     == Just True
                                 )
                                 id
@@ -1034,7 +1064,7 @@ decodeNewsDict =
     D.list decodeNews
         |> D.map
             (\newsList ->
-                List.map (\news -> ( canonical news.uuid, news ))
+                List.map (\news -> ( UUID.toString news.uuid, news ))
                     newsList
             )
         |> D.map Dict.fromList

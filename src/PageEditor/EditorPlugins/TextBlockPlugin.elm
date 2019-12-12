@@ -32,7 +32,7 @@ import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Parser exposing (..)
 import Set exposing (..)
 import Time exposing (Zone)
-import UUID exposing (canonical)
+import UUID exposing (toString)
 
 
 type alias Model msg =
@@ -1398,7 +1398,7 @@ chooseInternalPageView externalMsg uid pageTreeEditor zone logInfo =
                 { onPress =
                     PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor
                         |> Maybe.andThen .mbContentId
-                        |> Maybe.map canonical
+                        |> Maybe.map UUID.toString
                         |> Maybe.map (externalMsg << ConfirmInternalPageUrl uid)
                 , label =
                     row [ spacing 5 ]

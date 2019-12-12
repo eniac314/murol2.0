@@ -21,7 +21,7 @@ import Murmur3 exposing (hashString)
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Time exposing (..)
-import UUID exposing (canonical)
+import UUID exposing (toString)
 
 
 fichePreview : (String -> msg) -> Time.Posix -> Fiche -> Element msg
@@ -71,7 +71,7 @@ visualPreview handler maxWidth { uuid, nomEntite, visuel } =
         , Background.color blockLinkGrey
         , mouseOver
             [ Background.color (blockLinkGreyAlpha 0.5) ]
-        , Events.onClick (handler (canonical uuid))
+        , Events.onClick (handler (UUID.toString uuid))
         , pointer
         ]
         (el

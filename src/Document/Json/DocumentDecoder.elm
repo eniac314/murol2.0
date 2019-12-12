@@ -197,7 +197,10 @@ decodeUUID : Decoder UUID
 decodeUUID =
     string
         |> andThen
-            (Json.Decode.Extra.fromResult << UUID.fromString)
+            (UUID.fromString
+                >> Result.mapError (always "UUID error")
+                >> Json.Decode.Extra.fromResult
+            )
 
 
 decodeTextBlockElement : Decoder TextBlockElement

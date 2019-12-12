@@ -39,7 +39,7 @@ import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Task exposing (attempt, perform)
 import Time exposing (Month(..), Posix, here, millisToPosix, now, posixToMillis, utc)
-import UUID exposing (UUID, canonical)
+import UUID exposing (UUID, toString)
 import Url exposing (..)
 
 
@@ -398,12 +398,12 @@ update msg model =
                                     List.foldr
                                         (\gm acc ->
                                             Dict.insert
-                                                (UUID.canonical gm.uuid)
+                                                (UUID.toString gm.uuid)
                                                 (Gallery.init
                                                     gm.title
                                                     gm.hq
                                                     gm.images
-                                                    (GalleryMsg (UUID.canonical gm.uuid))
+                                                    (GalleryMsg (UUID.toString gm.uuid))
                                                 )
                                                 acc
                                         )
@@ -445,7 +445,7 @@ update msg model =
                         newFiches =
                             List.foldr
                                 (\f acc ->
-                                    Dict.insert (canonical f.uuid) f acc
+                                    Dict.insert (UUID.toString f.uuid) f acc
                                 )
                                 config.fiches
                                 fiches
@@ -468,7 +468,7 @@ update msg model =
                         newsDict =
                             List.foldr
                                 (\n acc ->
-                                    Dict.insert (canonical n.uuid) n acc
+                                    Dict.insert (UUID.toString n.uuid) n acc
                                 )
                                 Dict.empty
                                 news
@@ -1810,7 +1810,7 @@ pageToPages page =
                                 --String.join "/" path
                                 |> (\p -> "/" ++ p)
                     in
-                    ( strPath pageInfo.path, pageInfo.name, canonical contentId ) :: List.concatMap toList xs
+                    ( strPath pageInfo.path, pageInfo.name, UUID.toString contentId ) :: List.concatMap toList xs
     in
     toList page
         |> List.map (\( p, n, cId ) -> ( p, ( cId, n, NotLoaded ) ))

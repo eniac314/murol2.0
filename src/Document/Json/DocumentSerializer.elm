@@ -5,7 +5,7 @@ import Document.Document exposing (..)
 import Json.Encode exposing (..)
 import Set exposing (toList)
 import Time exposing (posixToMillis)
-import UUID exposing (canonical)
+import UUID exposing (toString)
 
 
 encodeDocument : Document -> Value
@@ -100,7 +100,10 @@ encodeCellContent cellContent =
             object
                 [ ( "Gallery"
                   , object
-                        [ ( "uuid", string (UUID.canonical gallery.uuid) )
+                        [ ( "uuid"
+                          , string
+                                (UUID.toString gallery.uuid)
+                          )
                         , ( "title", string gallery.title )
                         , ( "images", list encodeImageMeta gallery.images )
                         , ( "hq", bool gallery.hq )
@@ -183,7 +186,7 @@ encodeNews { title, date, content, pic, uuid, expiry } =
                 pic
                 |> Maybe.withDefault null
           )
-        , ( "uuid", string (UUID.canonical uuid) )
+        , ( "uuid", string (UUID.toString uuid) )
         , ( "expiry", int <| posixToMillis expiry )
         ]
 

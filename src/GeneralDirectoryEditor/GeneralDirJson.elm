@@ -3,14 +3,15 @@ module GeneralDirectoryEditor.GeneralDirJson exposing (..)
 import Dict exposing (..)
 import GeneralDirectoryEditor.GeneralDirCommonTypes as Types exposing (..)
 import Http exposing (..)
+import Internals.CommonHelpers exposing (jsonResolver)
 import Json.Decode as D
 import Json.Decode.Extra
 import Json.Decode.Pipeline as P exposing (..)
 import Json.Encode as E
 import Set exposing (..)
 import Time exposing (..)
-import Internals.CommonHelpers exposing (jsonResolver)
 import UUID exposing (..)
+
 
 
 -------------------------------------------------------------------------------
@@ -22,7 +23,7 @@ import UUID exposing (..)
 encodeFiche : Fiche -> E.Value
 encodeFiche f =
     E.object
-        [ ( "uuid", E.string (UUID.canonical f.uuid) )
+        [ ( "uuid", E.string (UUID.toString f.uuid) )
         , ( "categories", E.list E.string f.categories )
         , ( "natureActiv", E.list E.string f.natureActiv )
         , ( "refOt"
@@ -188,7 +189,7 @@ decodeGenDirData =
             (D.list decodeFiche
                 |> D.map
                     (List.map
-                        (\f -> ( canonical f.uuid, f ))
+                        (\f -> ( UUID.toString f.uuid, f ))
                     )
                 |> D.map Dict.fromList
             )
@@ -222,7 +223,10 @@ decodeUUID : D.Decoder UUID
 decodeUUID =
     D.string
         |> D.andThen
-            (Json.Decode.Extra.fromResult << UUID.fromString)
+            (UUID.fromString
+                >> Result.mapError (always "UUID error")
+                >> Json.Decode.Extra.fromResult
+            )
 
 
 decodeRefOt =
@@ -334,11 +338,11 @@ getGeneralDirectory sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "getGeneralDirectory.php"
-            , body = body
-            , expect = Http.expectJson LoadGeneralDirectory decodeGenDirData
-            }
+    Http.post
+        { url = "getGeneralDirectory.php"
+        , body = body
+        , expect = Http.expectJson LoadGeneralDirectory decodeGenDirData
+        }
 
 
 removeFiche : Fiche -> String -> Cmd Msg
@@ -350,16 +354,16 @@ removeFiche fiche sessionId =
                   , E.string sessionId
                   )
                 , ( "uuid"
-                  , E.string (UUID.canonical fiche.uuid)
+                  , E.string (UUID.toString fiche.uuid)
                   )
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "removeFiche.php"
-            , body = body
-            , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
-            }
+    Http.post
+        { url = "removeFiche.php"
+        , body = body
+        , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
+        }
 
 
 updateFiche : Fiche -> String -> Cmd Msg
@@ -377,11 +381,11 @@ updateFiche fiche sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.post
-            { url = "updateFiche.php"
-            , body = body
-            , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
-            }
+    Http.post
+        { url = "updateFiche.php"
+        , body = body
+        , expect = Http.expectJson (FicheUpdated fiche) decodeSuccess
+        }
 
 
 updateFicheTask fiche sessionId =
@@ -398,14 +402,14 @@ updateFicheTask fiche sessionId =
                 ]
                 |> Http.jsonBody
     in
-        Http.task
-            { method = "Post"
-            , headers = []
-            , url = "updateFiche.php"
-            , body = body
-            , resolver = jsonResolver decodeSuccess
-            , timeout = Nothing
-            }
+    Http.task
+        { method = "Post"
+        , headers = []
+        , url = "updateFiche.php"
+        , body = body
+        , resolver = jsonResolver decodeSuccess
+        , timeout = Nothing
+        }
 
 
 decodeSuccess : D.Decoder Bool

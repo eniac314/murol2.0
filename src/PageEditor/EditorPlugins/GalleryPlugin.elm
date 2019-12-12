@@ -37,7 +37,7 @@ import Random exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Task exposing (..)
 import Time exposing (Posix, Zone, now, posixToMillis)
-import UUID exposing (canonical)
+import UUID exposing (toString)
 
 
 port toImageProcessor : Encode.Value -> Cmd msg

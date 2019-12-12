@@ -1,4 +1,4 @@
-module Document.Document exposing (BlockLinkMeta, BulletinMeta, CellContent(..), CellValue, ContainerLabel(..), ContainerValue, DelibMeta, DocAttribute(..), DocColor(..), Document(..), GalleryMeta, Id, ImageMeta, ImageSrc(..), ImgSize, Li, LinkMeta, MurolInfoMeta, News, NewsContent, Pic, PictureLink, Publications, TableMeta, TextBlockElement(..), TextBlockPrimitive(..), VideoHost(..), VideoMeta, VideoSize, ZipperEventHandler(..), ZipperHandlers, addAttrs, addClass, containsOnly, dummyPic, emptyNews, gatherFichesIds, gatherGalleryMeta, getAttrs, getDocStyleId, getHtmlId, getId, getUid, hasClass, hasUid, isContainer, isImage, setDocStyleId, setDocStyleIdIfNone, setHtmlId, setHtmlIdIfNone, setUid, toSeColor, toogleClass)
+module Document.Document exposing (BlockLinkMeta, BulletinMeta, CellContent(..), CellValue, ContainerLabel(..), ContainerValue, DelibMeta, DocAttribute(..), DocColor(..), Document(..), GalleryMeta, Id, ImageMeta, ImageSrc(..), ImgSize, Li, LinkMeta, MurolInfoMeta, News, NewsContent, Pic, PictureLink, Publications, TableMeta, TextBlockElement(..), TextBlockPrimitive(..), VideoHost(..), VideoMeta, VideoSize, ZipperEventHandler(..), ZipperHandlers, addAttrs, addClass, containsOnly, dummyPic, gatherFichesIds, gatherGalleryMeta, getAttrs, getDocStyleId, getHtmlId, getId, getUid, hasClass, hasUid, isContainer, isImage, setDocStyleId, setDocStyleIdIfNone, setHtmlId, setHtmlIdIfNone, setUid, toSeColor, toogleClass)
 
 --import Document.DocumentViews.StyleSheets exposing (..)
 
@@ -11,13 +11,7 @@ import Json.Decode as Decode
 import List.Extra exposing (unique)
 import Set exposing (..)
 import Time exposing (Posix, Zone, millisToPosix)
-import UUID exposing (UUID, nil)
-
-
-
-----------------------------
--- Document specification --
-----------------------------
+import UUID exposing (UUID, fromBytes, nilBytes, toString)
 
 
 type Document
@@ -159,16 +153,6 @@ type alias Pic =
     { url : String
     , width : Int
     , height : Int
-    }
-
-
-emptyNews =
-    { title = ""
-    , date = millisToPosix 0
-    , content = Nothing
-    , pic = Nothing
-    , uuid = UUID.nil
-    , expiry = millisToPosix 0
     }
 
 
@@ -575,7 +559,7 @@ gatherGalleryMeta document =
                     List.concatMap helper children
     in
     helper document
-        |> List.Extra.uniqueBy (UUID.canonical << .uuid)
+        |> List.Extra.uniqueBy (UUID.toString << .uuid)
 
 
 

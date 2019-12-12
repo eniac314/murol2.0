@@ -54,7 +54,7 @@ import Random
 import Set as Set
 import Task exposing (..)
 import Time exposing (Zone, now, posixToMillis)
-import UUID exposing (UUID, canonical)
+import UUID exposing (UUID, toString)
 import Url as Url
 
 
@@ -99,7 +99,7 @@ status model =
 loadedContent : Model msg -> Maybe Content
 loadedContent model =
     Maybe.andThen getMbContentId model.fileIoSelected
-        |> Maybe.andThen (\k -> Dict.get (canonical k) model.contents)
+        |> Maybe.andThen (\k -> Dict.get (toString k) model.contents)
 
 
 selectedPageInfo : Model msg -> Maybe PageInfo
@@ -563,7 +563,7 @@ update config msg model =
                                 |> Maybe.map extractPage
 
                         mbBackupContent =
-                            Dict.get (canonical contentId) model.contents
+                            Dict.get (toString contentId) model.contents
 
                         newPage =
                             Page
@@ -587,7 +587,7 @@ update config msg model =
                             }
 
                         newContents =
-                            Dict.insert (canonical contentId) newContent model.contents
+                            Dict.insert (toString contentId) newContent model.contents
                     in
                     ( { model
                         | --,
@@ -605,7 +605,7 @@ update config msg model =
                                     xs
                         , lockedPages = newPage :: model.lockedPages
                         , lockedContents =
-                            Dict.insert (canonical contentId)
+                            Dict.insert (toString contentId)
                                 mbBackupContent
                                 model.lockedContents
                       }
@@ -653,7 +653,7 @@ update config msg model =
                     ( { model
                         | pageTreeUpdatedStatus = Success
                         , lockedContents =
-                            Dict.remove (canonical uuid)
+                            Dict.remove (toString uuid)
                                 model.lockedContents
                         , keywords =
                             Set.filter (\( k, cId ) -> Dict.member cId model.contents)
@@ -671,14 +671,14 @@ update config msg model =
                     ( { model
                         | pageTreeUpdatedStatus = Failure
                         , lockedContents =
-                            Dict.remove (canonical uuid) model.lockedContents
+                            Dict.remove (toString uuid) model.lockedContents
                         , contents =
-                            case Dict.get (canonical uuid) model.lockedContents of
+                            case Dict.get (toString uuid) model.lockedContents of
                                 Just (Just backup) ->
-                                    Dict.insert (canonical uuid) backup model.contents
+                                    Dict.insert (toString uuid) backup model.contents
 
                                 _ ->
-                                    Dict.remove (canonical uuid) model.contents
+                                    Dict.remove (toString uuid) model.contents
                       }
                     , newLog
                         config.addLog
@@ -768,7 +768,7 @@ update config msg model =
                                 , lockedPages = backup :: model.lockedPages
                                 , lockedContents =
                                     Maybe.map
-                                        (\cId -> Dict.insert (canonical cId) Nothing model.lockedContents)
+                                        (\cId -> Dict.insert (toString cId) Nothing model.lockedContents)
                                         (getMbContentId (Page pageInfo xs))
                                         |> Maybe.withDefault model.lockedContents
                                 , selected = Nothing
@@ -950,7 +950,7 @@ update config msg model =
                                 ( Maybe.withDefault
                                     ""
                                     model.keywordsPromptInput
-                                , canonical contentId
+                                , toString contentId
                                 )
                         in
                         ( { model
@@ -983,7 +983,7 @@ update config msg model =
                     let
                         newEntry =
                             ( keyword
-                            , canonical contentId
+                            , toString contentId
                             )
                     in
                     ( { model
@@ -1014,7 +1014,7 @@ update config msg model =
                     let
                         newEntry =
                             ( keyword
-                            , canonical contentId
+                            , toString contentId
                             )
                     in
                     ( { model
@@ -1177,7 +1177,7 @@ saveContent contentId doc sessionId =
                   , Encode.string sessionId
                   )
                 , ( "contentId"
-                  , Encode.string (canonical contentId)
+                  , Encode.string (toString contentId)
                   )
                 , ( "content"
                   , encodeDocument doc
@@ -1258,7 +1258,7 @@ deleteContent contentId sessionId =
                   , Encode.string sessionId
                   )
                 , ( "contentId"
-                  , Encode.string (canonical contentId)
+                  , Encode.string (toString contentId)
                   )
                 ]
                 |> Http.jsonBody
@@ -1297,7 +1297,7 @@ decodeKeyword =
 decodeContents : Decode.Decoder Contents
 decodeContents =
     Decode.list decodeContent
-        |> Decode.map (List.map (\c -> ( canonical c.contentId, c )))
+        |> Decode.map (List.map (\c -> ( toString c.contentId, c )))
         |> Decode.map Dict.fromList
 
 
@@ -1345,7 +1345,10 @@ decodeUUID : Decode.Decoder UUID
 decodeUUID =
     Decode.string
         |> Decode.andThen
-            (Json.Decode.Extra.fromResult << UUID.fromString)
+            (UUID.fromString
+                >> Result.mapError (always "UUID error")
+                >> Json.Decode.Extra.fromResult
+            )
 
 
 decodeSuccess : Decode.Decoder Bool
@@ -1378,7 +1381,7 @@ encodePageInfo { name, path, mbContentId } =
                 |> Encode.string
           )
         , ( "mbContentId"
-          , Maybe.map canonical mbContentId
+          , Maybe.map toString mbContentId
                 |> Maybe.map Encode.string
                 |> Maybe.withDefault Encode.null
           )
@@ -1913,7 +1916,7 @@ keywordsAdminView config model =
                     model.keywords
                         |> Set.filter
                             (\( c, cId ) ->
-                                cId == canonical contentId
+                                cId == toString contentId
                             )
                         |> Set.map Tuple.first
                         |> Set.toList
@@ -2322,7 +2325,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                                     Font.color (rgba 0.8 0.8 0.8 1)
 
                                 Just contentId ->
-                                    case Dict.get (canonical contentId) contents of
+                                    case Dict.get (toString contentId) contents of
                                         Just _ ->
                                             noAttr
 
@@ -2350,7 +2353,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                     let
                         selectable =
                             pageInfo.mbContentId
-                                |> Maybe.map (\k -> Dict.get (canonical k) contents)
+                                |> Maybe.map (\k -> Dict.get (toString k) contents)
                                 |> (\res -> res /= Nothing)
 
                         fontColor =
@@ -2359,7 +2362,7 @@ pageTreeView_ config offsets selected contents locked (Page pageInfo children) =
                                     Font.color (rgba 0.8 0.8 0.8 1)
 
                                 Just contentId ->
-                                    case Dict.get (canonical contentId) contents of
+                                    case Dict.get (toString contentId) contents of
                                         Just _ ->
                                             noAttr
 

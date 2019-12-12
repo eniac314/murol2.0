@@ -151,6 +151,7 @@ filterAndUpdate model getter setter original new =
                 ( Dict.insert k newFiche newDict
                 , newFiche :: toUpdate
                 )
+
             else
                 ( Dict.insert k f newDict, toUpdate )
         )
@@ -170,7 +171,7 @@ setFicheActiv fiche val =
     { fiche | natureActiv = val }
 
 
-isValidFiche : Fiche -> Bool
+isValidFiche : FicheBuffer -> Bool
 isValidFiche f =
     (List.length f.categories >= 1)
         && (List.length f.natureActiv >= 1)

@@ -44,6 +44,7 @@ import Random exposing (Seed, int, step)
 import String.Extra exposing (insertAt)
 import Task exposing (perform)
 import Time exposing (Month(..), Posix, Weekday(..), Zone, now, posixToMillis)
+import UUID exposing (..)
 
 
 type Status
@@ -562,3 +563,7 @@ combineStatus xs =
 
     else
         Success
+
+
+
+-------------------------------------------------------------------------------

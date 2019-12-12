@@ -135,12 +135,13 @@ update msg model =
                         newBuffer =
                             List.map
                                 (\pl ->
-                                    if canonical pl.uuid == uuid then
+                                    if UUID.toString pl.uuid == uuid then
                                         let
                                             picLink =
                                                 pl.picLink
                                         in
                                         { pl | picLink = { picLink | url = url } }
+
                                     else
                                         pl
                                 )
@@ -161,7 +162,7 @@ update msg model =
                 model.selectedPic
                     |> Maybe.andThen
                         (\s ->
-                            findIndex (\p -> canonical p.uuid == s) model.buffer
+                            findIndex (\p -> UUID.toString p.uuid == s) model.buffer
                         )
             of
                 Nothing ->
@@ -177,7 +178,7 @@ update msg model =
                 model.selectedPic
                     |> Maybe.andThen
                         (\s ->
-                            findIndex (\p -> canonical p.uuid == s) model.buffer
+                            findIndex (\p -> UUID.toString p.uuid == s) model.buffer
                         )
             of
                 Nothing ->
@@ -194,7 +195,7 @@ update msg model =
                     ( model, Nothing )
 
                 Just s ->
-                    ( { model | buffer = List.filter (\p -> canonical p.uuid /= s) model.buffer }
+                    ( { model | buffer = List.filter (\p -> UUID.toString p.uuid /= s) model.buffer }
                     , Nothing
                     )
 
@@ -203,13 +204,15 @@ update msg model =
                 | selectedPic =
                     if model.selectedPic == Just s then
                         Nothing
+
                     else
                         Just s
                 , urlBuffer =
                     if model.selectedPic == Just s then
                         Nothing
+
                     else
-                        List.filter (\p -> canonical p.uuid == s) model.buffer
+                        List.filter (\p -> UUID.toString p.uuid == s) model.buffer
                             |> List.head
                             |> Maybe.map (.url << .picLink)
               }
@@ -255,6 +258,7 @@ view config model =
                        , below <|
                             if not model.imagePickerOpen then
                                 Element.none
+
                             else
                                 el
                                     [ Background.color (rgb 1 1 1)
@@ -324,6 +328,7 @@ view config model =
                     { onPress =
                         if model.urlBuffer /= Nothing && model.selectedPic /= Nothing then
                             Just <| model.externalMsg SetUrl
+
                         else
                             Nothing
                     , label =
@@ -360,6 +365,7 @@ view config model =
                 { onPress =
                     if model.buffer /= [] then
                         Just <| model.externalMsg SaveAndQuit
+
                     else
                         Nothing
                 , label =
@@ -379,13 +385,14 @@ picLinkListView mbSelected xs =
                 , pointer
                 , padding 7
                 , Border.rounded 5
-                , if Just (canonical uuid) == mbSelected then
+                , if Just (UUID.toString uuid) == mbSelected then
                     Background.color grey5
+
                   else
                     noAttr
                 , mouseOver
                     [ Background.color grey6 ]
-                , Events.onClick <| SelectPic (canonical uuid)
+                , Events.onClick <| SelectPic (UUID.toString uuid)
                 ]
                 [ el
                     [ width (px 100)
@@ -405,6 +412,7 @@ picLinkListView mbSelected xs =
                     [ text
                         (if picLink.url == "" then
                             "pas de lien associé"
+
                          else
                             picLink.url
                         )

@@ -20,7 +20,7 @@ type alias Model msg =
     , activFilter : Maybe String
     , labelFilter : Maybe String
     , selectedFiche : Maybe String
-    , ficheBuffer : Fiche
+    , ficheBuffer : FicheBuffer
     , rightPanelDisplay : RightPanelDisplay
     , lockedFiches : List Fiche
     , debug : List String
@@ -193,8 +193,32 @@ type alias Fiche =
     }
 
 
+type alias FicheBuffer =
+    { uuid : Maybe UUID
+    , categories : List String
+    , natureActiv : List String
+    , refOt : Maybe ( Int, String )
+    , label : List Label
+    , rank : Rank
+    , nomEntite : String
+    , responsables : List Responsable
+    , adresse : String
+    , telNumber : Maybe TelNumber
+    , fax : Maybe String
+    , email : List String
+    , site : Maybe ( String, String )
+    , pjaun : Maybe String
+    , visuel : String
+    , description : List String
+    , linkedDocs : List LinkedDoc
+    , ouverture : Maybe Ouverture
+    , lastEdit : Time.Posix
+    }
+
+
+emptyFiche : FicheBuffer
 emptyFiche =
-    { uuid = UUID.nil
+    { uuid = Nothing
     , categories = []
     , natureActiv = []
     , refOt = Nothing
@@ -213,6 +237,29 @@ emptyFiche =
     , linkedDocs = []
     , ouverture = Nothing
     , lastEdit = Time.millisToPosix 0
+    }
+
+
+ficheToBuffer fiche =
+    { uuid = Just fiche.uuid
+    , categories = fiche.categories
+    , natureActiv = fiche.natureActiv
+    , refOt = fiche.refOt
+    , label = fiche.label
+    , rank = fiche.rank
+    , nomEntite = fiche.nomEntite
+    , responsables = fiche.responsables
+    , adresse = fiche.adresse
+    , telNumber = fiche.telNumber
+    , fax = fiche.fax
+    , email = fiche.email
+    , site = fiche.site
+    , pjaun = fiche.pjaun
+    , visuel = fiche.visuel
+    , description = fiche.description
+    , linkedDocs = fiche.linkedDocs
+    , ouverture = fiche.ouverture
+    , lastEdit = fiche.lastEdit
     }
 
 

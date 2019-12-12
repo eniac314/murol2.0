@@ -201,6 +201,7 @@ internalUpdate config msg model =
 
                     else
                         Dict.get s model.fiches
+                            |> Maybe.map ficheToBuffer
                             |> Maybe.withDefault emptyFiche
               }
             , Cmd.none
@@ -259,7 +260,7 @@ internalUpdate config msg model =
                             List.Extra.remove fiche model.lockedFiches
                         , fiches =
                             Dict.insert
-                                (canonical fiche.uuid)
+                                (UUID.toString fiche.uuid)
                                 fiche
                                 model.fiches
                         , debug = fiche.nomEntite :: model.debug
@@ -1729,27 +1730,46 @@ internalUpdate config msg model =
                             model.ficheBuffer
 
                         ( uuid, newSeed ) =
-                            if fb.uuid == UUID.nil then
-                                Random.step UUID.generator seed
+                            Random.step UUID.generator seed
 
-                            else
-                                ( fb.uuid, seed )
-
-                        newFb =
-                            { fb | uuid = uuid }
+                        --if UUID.toString fb.uuid == UUID.nilString then
+                        --    Random.step UUID.generator seed
+                        --else
+                        --    ( fb.uuid, seed )
+                        toSave =
+                            { uuid = uuid
+                            , categories = fb.categories
+                            , natureActiv = fb.natureActiv
+                            , refOt = fb.refOt
+                            , label = fb.label
+                            , rank = fb.rank
+                            , nomEntite = fb.nomEntite
+                            , responsables = fb.responsables
+                            , adresse = fb.adresse
+                            , telNumber = fb.telNumber
+                            , fax = fb.fax
+                            , email = fb.email
+                            , site = fb.site
+                            , pjaun = fb.pjaun
+                            , visuel = fb.visuel
+                            , description = fb.description
+                            , linkedDocs = fb.linkedDocs
+                            , ouverture = fb.ouverture
+                            , lastEdit = fb.lastEdit
+                            }
 
                         newFiches =
                             Dict.insert
-                                (canonical uuid)
-                                newFb
+                                (UUID.toString uuid)
+                                toSave
                                 model.fiches
                     in
                     ( { model
                         | fiches = newFiches
                         , rightPanelDisplay = PreviewFiche
-                        , lockedFiches = newFb :: model.lockedFiches
-                        , selectedFiche = Just <| canonical newFb.uuid
-                        , ficheBuffer = newFb
+                        , lockedFiches = toSave :: model.lockedFiches
+                        , selectedFiche = Just <| UUID.toString uuid
+                        , ficheBuffer = { fb | uuid = Just uuid }
                         , seed = Just newSeed
                         , nameFilter = Nothing
                         , catFilter = Nothing
@@ -1758,13 +1778,13 @@ internalUpdate config msg model =
                       }
                     , case config.logInfo of
                         LoggedIn { sessionId } ->
-                            Task.attempt (FicheUpdated newFb) <|
+                            Task.attempt (FicheUpdated toSave) <|
                                 (Time.now
                                     |> Task.andThen
                                         (\t ->
                                             let
                                                 datedFb =
-                                                    { newFb | lastEdit = t }
+                                                    { toSave | lastEdit = t }
                                             in
                                             updateFicheTask
                                                 datedFb
@@ -1780,22 +1800,23 @@ internalUpdate config msg model =
                     ( model, Cmd.none )
 
         RemoveFiche ->
-            if model.ficheBuffer == emptyFiche then
-                ( model, Cmd.none )
+            case
+                model.ficheBuffer.uuid
+                    |> Maybe.andThen (\id -> Dict.get (UUID.toString id) model.fiches)
+            of
+                Just f ->
+                    let
+                        newFiches =
+                            Dict.remove (UUID.toString f.uuid) model.fiches
+                    in
+                    ( { model | fiches = newFiches }
+                    , cmdIfLogged
+                        config.logInfo
+                        (removeFiche f)
+                    )
 
-            else
-                let
-                    f =
-                        model.ficheBuffer
-
-                    newFiches =
-                        Dict.remove (canonical f.uuid) model.fiches
-                in
-                ( { model | fiches = newFiches }
-                , cmdIfLogged
-                    config.logInfo
-                    (removeFiche f)
-                )
+                Nothing ->
+                    ( model, Cmd.none )
 
         SetRightPanelDisplay d ->
             ( { model

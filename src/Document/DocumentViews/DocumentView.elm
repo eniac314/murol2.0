@@ -30,7 +30,7 @@ import Publications.PublicationsView as PublicationsView
 import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Time exposing (Posix, Zone, millisToPosix)
-import UUID exposing (canonical)
+import UUID exposing (toString)
 
 
 renderDoc : Config msg -> Document -> List (Element msg)
@@ -315,7 +315,7 @@ renderFiches config id attrs fichesId =
                 config.openFicheMsg
                 config.currentTime
                 maxWidth
-                (config.editMode || Set.member (canonical f.uuid) config.openedFiches)
+                (config.editMode || Set.member (UUID.toString f.uuid) config.openedFiches)
                 f
 
         cols =
@@ -351,7 +351,7 @@ renderNews config id attrs =
                 headerAttr =
                     [ spacing 15
                     , width fill
-                    , Events.onClick (config.openNewsMsg (canonical uuid))
+                    , Events.onClick (config.openNewsMsg (UUID.toString uuid))
                     , pointer
                     , paddingEach
                         { bottom = 5
@@ -396,7 +396,7 @@ renderNews config id attrs =
                         , Font.color grey3
                         ]
                         (html <|
-                            if Set.member (canonical uuid) config.openedNews then
+                            if Set.member (UUID.toString uuid) config.openedNews then
                                 chevronsUp 18
 
                             else
@@ -476,7 +476,7 @@ renderNews config id attrs =
                         }
                     ]
             in
-            if Set.member (canonical uuid) config.openedNews then
+            if Set.member (UUID.toString uuid) config.openedNews then
                 case ( pic, device.class ) of
                     ( Just { url }, Phone ) ->
                         [ column
@@ -1364,7 +1364,7 @@ renderPictureLinks config id attrs picLinks =
 
 
 renderGallery config id attrs galleryMeta =
-    case Dict.get (canonical galleryMeta.uuid) config.galleries of
+    case Dict.get (UUID.toString galleryMeta.uuid) config.galleries of
         Just gallery ->
             [ Gallery.view config gallery ]
 
