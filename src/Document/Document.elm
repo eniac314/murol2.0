@@ -189,6 +189,7 @@ type TextBlockElement
     | UList (List DocAttribute) (List Li)
     | Heading (List DocAttribute) ( Int, String )
     | TBPrimitive TextBlockPrimitive
+    | TrixHtml String
 
 
 type alias Li =
@@ -258,6 +259,7 @@ type DocAttribute
     | Justify
     | Bold
     | Italic
+    | Other ( String, String )
     | ZipperAttr Int ZipperEventHandler
 
 

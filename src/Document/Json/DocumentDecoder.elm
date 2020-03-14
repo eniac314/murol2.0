@@ -1,4 +1,4 @@
-module Document.Json.DocumentDecoder exposing (..)
+module Document.Json.DocumentDecoder exposing (decodeBlockLink, decodeCellContent, decodeCellValue, decodeContainerLabel, decodeContainerValue, decodeDocAttribute, decodeDocAttributes, decodeDocColor, decodeDocument, decodeGalleryMeta, decodeId, decodeImageMeta, decodeImageSize, decodeImgSource, decodeLinkMeta, decodeNews, decodeNewsContent, decodeTableMeta, decodeTextBlockElement, decodeTextBlockPrimitive, decodeUUID, decodeVideoHost, decodeVideoMeta, decodeVideoSize)
 
 import Array exposing (fromList)
 import Document.Document exposing (..)
@@ -228,6 +228,8 @@ decodeTextBlockElement =
                 )
         , succeed TBPrimitive
             |> required "TBPrimitive" decodeTextBlockPrimitive
+        , succeed TrixHtml
+            |> required "TrixHtml" string
         ]
 
 
@@ -427,6 +429,14 @@ decodeDocAttribute =
 
                         "Italic" ->
                             succeed Italic
+
+                        "Other" ->
+                            succeed
+                                (\value attribute ->
+                                    Other ( value, attribute )
+                                )
+                                |> requiredAt [ "Other", "attribute" ] string
+                                |> requiredAt [ "Other", "value" ] string
 
                         somethingElse ->
                             fail <|

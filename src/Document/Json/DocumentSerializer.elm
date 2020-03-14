@@ -1,4 +1,4 @@
-module Document.Json.DocumentSerializer exposing (..)
+module Document.Json.DocumentSerializer exposing (encodeBlockLink, encodeCellContent, encodeCellValue, encodeContainerLabel, encodeContainerValue, encodeDocAttribute, encodeDocAttributes, encodeDocColor, encodeDocument, encodeId, encodeImageMeta, encodeImageSize, encodeImgSource, encodeLinkMeta, encodeNews, encodeNewsContent, encodePictureLink, encodeTableMeta, encodeTextBlockElement, encodeTextBlockPrimitive, encodeVideoHost, encodeVideoMeta, encodeVideoSize)
 
 import Array exposing (toList)
 import Document.Document exposing (..)
@@ -245,6 +245,10 @@ encodeTextBlockElement tbElem =
         TBPrimitive prim ->
             object
                 [ ( "TBPrimitive", encodeTextBlockPrimitive prim ) ]
+
+        TrixHtml html ->
+            object
+                [ ( "TrixHtml", string html ) ]
 
 
 encodeTextBlockPrimitive : TextBlockPrimitive -> Value
@@ -519,6 +523,17 @@ encodeDocAttribute docAttr =
         Italic ->
             Just <|
                 string "Italic"
+
+        Other ( attribute, value ) ->
+            Just <|
+                object
+                    [ ( "Other"
+                      , object
+                            [ ( "attribute", string attribute )
+                            , ( "value", string value )
+                            ]
+                      )
+                    ]
 
         ZipperAttr _ _ ->
             Nothing

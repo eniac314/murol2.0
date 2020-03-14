@@ -29,7 +29,6 @@ import Internals.ToolHelpers exposing (..)
 import Json.Decode as D
 import Json.Encode as E
 import List.Extra exposing (swapAt)
-import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (Model)
 import Random exposing (..)

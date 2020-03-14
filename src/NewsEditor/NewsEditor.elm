@@ -7,6 +7,7 @@ module NewsEditor.NewsEditor exposing
     , loadingStatus
     , loadingView
     , status
+    , subscriptions
     , update
     , view
     )
@@ -37,7 +38,7 @@ import Internals.Icons as Icons exposing (checkSquare, square)
 import Internals.ToolHelpers exposing (..)
 import Json.Decode as D
 import Json.Encode as E
-import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
+import PageEditor.EditorPlugins.TrixTextBlockPlugin as TextBlockPlugin
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (Model)
 import Random exposing (..)
@@ -99,6 +100,14 @@ bufferFromNews news =
 type NewsEditorMode
     = NewsSelector
     | NewsEditor
+
+
+subscriptions : Model msg -> Sub msg
+subscriptions model =
+    Sub.map model.externalMsg <|
+        Sub.batch
+            [ Sub.map TextBlockPluginMsg <| TextBlockPlugin.subscriptions model.textBlockPlugin
+            ]
 
 
 init : (Msg -> msg) -> ( Model msg, Cmd msg )

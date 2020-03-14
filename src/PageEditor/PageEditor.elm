@@ -51,7 +51,7 @@ import PageEditor.EditorPlugins.NewDocPlugin as NewDocPlugin
 import PageEditor.EditorPlugins.PictureLinksPlugin as PictureLinksPlugin
 import PageEditor.EditorPlugins.SidePanels.DocumentStructView exposing (..)
 import PageEditor.EditorPlugins.TablePlugin as TablePlugin
-import PageEditor.EditorPlugins.TextBlockPlugin as TextBlockPlugin
+import PageEditor.EditorPlugins.TrixTextBlockPlugin as TextBlockPlugin
 import PageEditor.EditorPlugins.VideoPlugin as VideoPlugin
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageEditor.Internals.DocumentZipper exposing (..)
@@ -74,6 +74,7 @@ subscriptions model =
             , onResize WinResize
             , Sub.map GalleryPluginMsg <|
                 GalleryPlugin.subscription model.galleryPlugin
+            , Sub.map TextBlockPluginMsg <| TextBlockPlugin.subscriptions model.textBlockPlugin
             ]
 
 

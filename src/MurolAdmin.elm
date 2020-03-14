@@ -71,6 +71,7 @@ subscriptions model =
         [ FileExplorer.subscriptions model.fileExplorer
         , PageEditor.subscriptions model.pageEditor
         , Publications.subscriptions model.publications
+        , NewsEditor.subscriptions model.newsEditor
         , Auth.subscriptions model.authTool
         , Help.subscriptions model.help
         , onResize WinResize

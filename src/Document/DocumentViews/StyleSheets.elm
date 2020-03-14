@@ -1,4 +1,4 @@
-module Document.DocumentViews.StyleSheets exposing (..)
+module Document.DocumentViews.StyleSheets exposing (PreviewMode(..), Season(..), StyleSheet, TableStyle, backgroundImage, chunkBy, defaultStyleSheet, defaultStyleSheetCss, docMaxWidth, getContainerWidth, getDevice, headingStyles, seasonToStr, tableStyles, timeToSeason)
 
 import Dict exposing (..)
 import Element exposing (..)
@@ -10,6 +10,7 @@ import Element.Input as Input
 import Element.Region as Region
 import Html.Attributes as Attr
 import Time exposing (Month(..), Posix, Zone, toDay, toMonth)
+
 
 
 -------------------------------------------------------------------------------
@@ -40,8 +41,10 @@ docMaxWidth ( winWidth, winHeight ) editMode previewMode =
 
             _ ->
                 950
+
     else if device.class == BigDesktop then
         1000
+
     else
         1000
 
@@ -60,6 +63,7 @@ getContainerWidth config =
 
             _ ->
                 config.width
+
     else
         config.width
 
@@ -105,6 +109,7 @@ getDevice config =
                 { class = Phone
                 , orientation = Portrait
                 }
+
     else
         Element.classifyDevice
             { height = config.height
@@ -117,6 +122,132 @@ getDevice config =
 ---------------------
 -- Main stylesheet --
 ---------------------
+
+
+defaultStyleSheetCss config =
+    let
+        headings =
+            let
+                commonAttr =
+                    Dict.fromList
+                        [ ( "h1"
+                          , [ ( "font-size", "18" )
+                            , ( "text-align", "center" )
+                            , ( "font-weight", "bold" )
+                            , ( "padding", "10px 0px" )
+                            , ( "width", "100%" )
+                            ]
+                          )
+                        , ( "h2"
+                          , [ ( "font-size", "16" )
+                            , ( "text-align", "center" )
+                            , ( "font-weight", "bold" )
+                            , ( "padding", "2px 0px" )
+                            , ( "width", "100%" )
+                            ]
+                          )
+                        , ( "h3"
+                          , [ ( "font-size", "16" )
+                            , ( "color", "rgb(0 127 0)" )
+                            , ( "font-weight", "bold" )
+                            ]
+                          )
+                        ]
+
+                seasonAttr =
+                    case config.season of
+                        Spring ->
+                            Dict.fromList
+                                [ ( "h1"
+                                  , [ ( "background-color", "rgb(102 153 140)" )
+                                    , ( "color", "rgb(240 248 255)" )
+                                    ]
+                                  )
+                                , ( "h2"
+                                  , [ ( "background-color", "rgb(102 153 140)" )
+                                    , ( "color", "rgb(240 248 255)" )
+                                    ]
+                                  )
+                                , ( "h3"
+                                  , []
+                                  )
+                                ]
+
+                        Summer ->
+                            Dict.fromList
+                                [ ( "h1"
+                                  , [ ( "background-color", "rgb(186 172 145)" )
+                                    , ( "color", "rgb(0 0 0)" )
+                                    ]
+                                  )
+                                , ( "h2"
+                                  , [ ( "background-color", "rgb(255 193 58)" )
+                                    , ( "color", "rgb(0 0 0)" )
+                                    ]
+                                  )
+                                , ( "h3"
+                                  , []
+                                  )
+                                ]
+
+                        Autumn ->
+                            Dict.fromList
+                                [ ( "h1"
+                                  , [ ( "background-color", "rgb(205 133 63)" )
+                                    , ( "color", "rgb(67 46 42)" )
+                                    ]
+                                  )
+                                , ( "h2"
+                                  , [ ( "background-color", "rgb(205 133 63)" )
+                                    , ( "color", "rgb(67 46 42)" )
+                                    ]
+                                  )
+                                , ( "h3"
+                                  , []
+                                  )
+                                ]
+
+                        Winter ->
+                            Dict.fromList
+                                [ ( "h1"
+                                  , [ ( "background-color", "rgb(51 51 102)" )
+                                    , ( "color", "rgb(240 248 255)" )
+                                    ]
+                                  )
+                                , ( "h2"
+                                  , [ ( "background-color", "rgb(51 51 102)" )
+                                    , ( "color", "rgb(240 248 255)" )
+                                    ]
+                                  )
+                                , ( "h3"
+                                  , []
+                                  )
+                                ]
+            in
+            Dict.foldr
+                (\k v acc ->
+                    Dict.update
+                        k
+                        (\mbSeasonAttr ->
+                            case mbSeasonAttr of
+                                Just attrs ->
+                                    Just (v ++ attrs)
+
+                                _ ->
+                                    Just v
+                        )
+                        acc
+                )
+                commonAttr
+                seasonAttr
+
+        tags =
+            Dict.fromList
+                [ ( "p", [ ( "width", "100%" ) ] )
+                , ( "a", [ ( "color", "rgb(0,127,127)" ) ] )
+                ]
+    in
+    List.foldr Dict.union Dict.empty [ headings, tags ]
 
 
 type alias StyleSheet msg =
@@ -384,6 +515,7 @@ tableStyles =
                     , Background.color
                         (if modBy 2 ri == 0 then
                             rgb 0.8 0.8 0.8
+
                          else
                             rgb 1 1 1
                         )
@@ -425,6 +557,7 @@ tableStyles =
                     , Background.color
                         (if modBy 2 ri == 0 then
                             rgb 0.83 0.83 0.83
+
                          else
                             rgb 0.58 0.93 0.58
                         )
@@ -450,6 +583,7 @@ tableStyles =
                     , Background.color
                         (if modBy 2 ri == 0 then
                             rgb 0.53 0.81 0.92
+
                          else
                             rgb 0.92 0.92 0.84
                         )
@@ -511,6 +645,7 @@ timeToSeason zone time =
         Mar ->
             if day < 21 then
                 Winter
+
             else
                 Spring
 
@@ -523,6 +658,7 @@ timeToSeason zone time =
         Jun ->
             if day < 21 then
                 Spring
+
             else
                 Summer
 
@@ -535,6 +671,7 @@ timeToSeason zone time =
         Sep ->
             if day < 21 then
                 Summer
+
             else
                 Autumn
 
@@ -547,6 +684,7 @@ timeToSeason zone time =
         Dec ->
             if day < 21 then
                 Autumn
+
             else
                 Winter
 

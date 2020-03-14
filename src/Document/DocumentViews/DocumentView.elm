@@ -2,7 +2,7 @@ module Document.DocumentViews.DocumentView exposing (customHeading, idStyle, ren
 
 import Array exposing (..)
 import Dict exposing (..)
-import Document.Document exposing (..)
+import Document.Document as Document exposing (..)
 import Document.DocumentViews.RenderConfig exposing (Config)
 import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (..)
@@ -19,6 +19,8 @@ import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
 import Html as Html
 import Html.Attributes as Attr
 import Html.Events exposing (on, onMouseOut, onMouseOver)
+import Html.Parser exposing (..)
+import Html.Parser.Util exposing (toVirtualDom)
 import Internals.CommonHelpers exposing (chunks, dateToFrench, dateToStr)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (chevronsDown, chevronsUp, externalLink)
@@ -625,6 +627,284 @@ renderTextBlockElement config id tbAttrs tbe =
                 (idStyle styleSheet id)
                 (renderTextBlockPrimitive config tbAttrs p)
 
+        TrixHtml html ->
+            Html.Parser.run html
+                |> Result.withDefault []
+                |> List.map processLinks
+                |> List.map (toHtml config 0)
+                |> Html.div [ Attr.class "trix-content", Attr.style "width" "100%" ]
+                |> (\r ->
+                        paragraph
+                            ([ width fill
+                             ]
+                                ++ idStyle styleSheet id
+                            )
+                            [ Element.html <| r ]
+                   )
+
+
+processLinks node =
+    let
+        processLinkAttrs processed toProcess =
+            case toProcess of
+                ( "href", url ) :: xs ->
+                    if String.startsWith "internal:" url then
+                        ( "href", String.dropLeft (String.length "internal:") url )
+                            :: (List.reverse processed ++ xs)
+
+                    else
+                        ( "href", url )
+                            :: ( "target", "blank" )
+                            :: (List.reverse processed ++ xs)
+
+                other :: xs ->
+                    processLinkAttrs (other :: processed) xs
+
+                [] ->
+                    processed
+    in
+    case node of
+        Element "a" attrs nodes ->
+            Element "a" (processLinkAttrs [] attrs) (List.map processLinks nodes)
+
+        Element tag attrs nodes ->
+            Element tag attrs (List.map processLinks nodes)
+
+        Html.Parser.Text value ->
+            Html.Parser.Text value
+
+        Comment value ->
+            Comment value
+
+
+toHtml config level node =
+    case node of
+        Element tag attrs nodes ->
+            let
+                templateTagAttr =
+                    Dict.get tag (defaultStyleSheetCss config)
+                        |> Maybe.withDefault []
+                        |> List.map (\( a, v ) -> a ++ ":" ++ v ++ ";")
+                        |> String.join " "
+                        |> (\s -> Attr.attribute "style" s)
+
+                attrs_ =
+                    templateTagAttr
+                        :: List.map (\( a, v ) -> Attr.attribute a v)
+                            attrs
+            in
+            Html.node tag attrs_ (List.map (toHtml config level) nodes)
+
+        Html.Parser.Text value ->
+            Html.text value
+
+        Comment value ->
+            Html.span [] []
+
+
+toElements config level node =
+    case node of
+        Element "p" attrs nodes ->
+            paragraph
+                ([ width fill ] ++ List.concatMap cssToElmUiAttribute attrs)
+                (List.map (toElements config level) nodes)
+
+        Element "ul" attrs nodes ->
+            let
+                processNestedUl n =
+                    case n of
+                        Element "ul" a ns ->
+                            Element "li" [] [ Element "ul" a (List.map processNestedUl ns) ]
+
+                        Element tag a ns ->
+                            Element tag a (List.map processNestedUl ns)
+
+                        other ->
+                            other
+
+                bullet =
+                    if level == 0 then
+                        "•"
+
+                    else if level == 1 then
+                        "◦"
+
+                    else
+                        "▪"
+
+                liView n =
+                    case n of
+                        --Element "ul" _ nodes_ ->
+                        --    let
+                        --        t =
+                        --            Debug.log "ul" ()
+                        --    in
+                        --    [ toElements config (level + 1) n ]
+                        Element "li" attrs_ nodes_ ->
+                            [ row
+                                ([ width fill
+                                 , spacing 5
+                                 , Background.color (rgba 1 1 0.3 1)
+
+                                 --, Debug.log "row" noAttr
+                                 --, Element.explain Debug.todo
+                                 ]
+                                    ++ List.concatMap cssToElmUiAttribute attrs_
+                                )
+                                [ el [ alignTop ] (text <| bullet)
+                                , paragraph
+                                    []
+                                    (List.map (toElements config (level + 1)) nodes_)
+                                ]
+                            ]
+
+                        _ ->
+                            []
+            in
+            column
+                ([ spacing 10
+                 , paddingXY 0 10
+                 , Background.color (rgba 1 0.5 0.3 1)
+
+                 --, Debug.log "column" noAttr
+                 --, width fill
+                 --, Element.explain Debug.todo
+                 ]
+                    ++ List.concatMap cssToElmUiAttribute attrs
+                )
+                (List.concatMap liView nodes)
+
+        --Element "li" attrs nodes ->
+        --    let
+        --        bullet =
+        --            if level == 0 then
+        --                "•"
+        --            else if level == 1 then
+        --                "◦"
+        --            else
+        --                "▪"
+        --    in
+        --    row
+        --        ([ width fill
+        --         , spacing 5
+        --         , Background.color (rgba 1 1 0.3 0.5)
+        --         ]
+        --            ++ List.concatMap cssToElmUiAttribute attrs
+        --        )
+        --        [ el [ alignTop ] (text <| bullet)
+        --        , paragraph [] (List.map (toElements config (level + 1)) nodes)
+        --        ]
+        Element "h1" attrs nodes ->
+            paragraph
+                ([ Region.heading 1 ]
+                    ++ List.concatMap cssToElmUiAttribute attrs
+                )
+                (List.map (toElements config level) nodes)
+
+        Element "strong" attrs nodes ->
+            paragraph
+                ([ Font.bold ]
+                    ++ List.concatMap cssToElmUiAttribute attrs
+                )
+                (List.map (toElements config level) nodes)
+
+        Element "em" attrs nodes ->
+            paragraph
+                ([ Font.italic ]
+                    ++ List.concatMap cssToElmUiAttribute attrs
+                )
+                (List.map (toElements config level) nodes)
+
+        Element "br" _ _ ->
+            el [] (html <| Html.br [] [])
+
+        Html.Parser.Text value ->
+            paragraph [] [ text value ]
+
+        Comment value ->
+            Element.none
+
+        _ ->
+            Element.none
+
+
+cssToElmUiAttribute : ( String, String ) -> List (Element.Attribute msg)
+cssToElmUiAttribute attr =
+    let
+        parseRgb s =
+            let
+                extractColValue color =
+                    String.toFloat color
+                        |> Maybe.withDefault 0
+                        |> (\f -> f / 255)
+            in
+            case
+                String.dropLeft 4 s
+                    |> String.dropRight 1
+                    |> String.split ","
+            of
+                r :: g :: b :: [] ->
+                    rgb (extractColValue r) (extractColValue g) (extractColValue b)
+
+                _ ->
+                    rgb 0 0 0
+
+        parsePxLength s =
+            String.dropRight 2 s
+                |> String.toInt
+                |> Maybe.withDefault 0
+    in
+    case attr of
+        ( "float", "right" ) ->
+            [ Element.alignRight ]
+
+        ( "float", "left" ) ->
+            [ Element.alignLeft ]
+
+        ( "background-color", color ) ->
+            [ Background.color (parseRgb color) ]
+
+        ( "width", "100%" ) ->
+            [ width fill ]
+
+        ( "width", n ) ->
+            [ width (px <| parsePxLength n) ]
+
+        ( "height", n ) ->
+            [ height (px <| parsePxLength n) ]
+
+        ( "font-family", font ) ->
+            [ Font.family
+                [ Font.typeface font ]
+            ]
+
+        ( "color", color ) ->
+            [ Font.color (parseRgb color) ]
+
+        ( "font-size", n ) ->
+            [ Font.size (parsePxLength n) ]
+
+        ( "text-align", "left" ) ->
+            [ Font.alignLeft ]
+
+        ( "text-align", "right" ) ->
+            [ Font.alignRight ]
+
+        ( "text-align", "center" ) ->
+            [ Font.center ]
+
+        ( "text-align", "justify" ) ->
+            [ Font.justify ]
+
+        ( "font-weight", "bold" ) ->
+            [ Font.bold ]
+
+        ( "font-weight", "italic" ) ->
+            [ Font.italic ]
+
+        _ ->
+            []
+
 
 customHeading config level attrs title =
     renderTextBlockElement
@@ -645,7 +925,7 @@ renderTextBlockPrimitive config tbAttrs p =
             defaultStyleSheet config
     in
     case p of
-        Text attrs s ->
+        Document.Text attrs s ->
             el
                 (styleSheet.textStyle
                     ++ renderAttrs config tbAttrs
@@ -1524,7 +1804,7 @@ idStyle { customStyles } { uid, docStyleId, htmlId, classes } =
 -------------------------------------------------------------------------------
 
 
-renderAttrs : Config msg -> List DocAttribute -> List (Attribute msg)
+renderAttrs : Config msg -> List DocAttribute -> List (Element.Attribute msg)
 renderAttrs config attrs =
     let
         device =
@@ -1648,6 +1928,9 @@ renderAttrs config attrs =
 
                 Italic ->
                     [ Font.italic ]
+
+                Other _ ->
+                    []
 
                 ZipperAttr uid zipperEventHandler ->
                     case config.zipperHandlers of
