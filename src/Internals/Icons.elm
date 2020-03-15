@@ -1,4 +1,4 @@
-module Internals.Icons exposing (alignCenter, alignJustify, alignLeft, alignRight, bold, checkSquare, chevronDown, chevronLeft, chevronRight, chevronUp, chevronsDown, chevronsLeft, chevronsRight, chevronsUp, customSvgFeatherIcon, download, edit, externalLink, file, fileText, folder, folderMinus, folderPlus, grid, home, imageIcon, italic, layout, link2, list, menu, messageSquare, minusSquare, moreHorizontal, moreVertical, plusSquare, refreshCw, rotateCcw, rotateCw, save, scissors, settings, square, tag, type_, upload, wifi, wifiOff, xSquare, youtube)
+module Internals.Icons exposing (alignCenter, alignJustify, alignLeft, alignRight, bold, checkSquare, chevronDown, chevronLeft, chevronRight, chevronUp, chevronsDown, chevronsLeft, chevronsRight, chevronsUp, customSvgFeatherIcon, download, droplet, edit, externalLink, file, fileText, folder, folderMinus, folderPlus, grid, home, imageIcon, italic, layout, link2, list, menu, messageSquare, minusSquare, moreHorizontal, moreVertical, penTool, plusSquare, refreshCw, rotateCcw, rotateCw, save, scissors, settings, square, tag, type_, upload, wifi, wifiOff, xSquare, youtube)
 
 import Html exposing (Html)
 import Svg exposing (Svg, svg)
@@ -580,4 +580,23 @@ messageSquare size =
     customSvgFeatherIcon size
         "message-square"
         [ Svg.path [ d "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" ] []
+        ]
+
+
+droplet : Int -> Html msg
+droplet size =
+    customSvgFeatherIcon size
+        "droplet"
+        [ Svg.path [ d "M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" ] []
+        ]
+
+
+penTool : Int -> Html msg
+penTool size =
+    customSvgFeatherIcon size
+        "pen-tool"
+        [ Svg.path [ d "M12 19l7-7 3 3-7 7-3-3z" ] []
+        , Svg.path [ d "M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" ] []
+        , Svg.path [ d "M2 2l7.586 7.586" ] []
+        , Svg.circle [ cx "11", cy "11", r "2" ] []
         ]

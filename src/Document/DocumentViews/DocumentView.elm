@@ -630,7 +630,7 @@ renderTextBlockElement config id tbAttrs tbe =
         TrixHtml html ->
             Html.Parser.run html
                 |> Result.withDefault []
-                |> List.map processLinks
+                |> List.map (processLinks config)
                 |> List.map (toHtml config 0)
                 |> Html.div [ Attr.class "trix-content", Attr.style "width" "100%" ]
                 |> (\r ->
@@ -638,18 +638,23 @@ renderTextBlockElement config id tbAttrs tbe =
                             ([ width fill
                              ]
                                 ++ idStyle styleSheet id
+                                ++ renderAttrs config tbAttrs
                             )
                             [ Element.html <| r ]
                    )
 
 
-processLinks node =
+processLinks config node =
     let
         processLinkAttrs processed toProcess =
             case toProcess of
                 ( "href", url ) :: xs ->
                     if String.startsWith "internal:" url then
                         ( "href", String.dropLeft (String.length "internal:") url )
+                            :: (List.reverse processed ++ xs)
+
+                    else if Dict.member url config.pageIndex then
+                        ( "href", Dict.get url config.pageIndex |> Maybe.withDefault "" )
                             :: (List.reverse processed ++ xs)
 
                     else
@@ -665,10 +670,10 @@ processLinks node =
     in
     case node of
         Element "a" attrs nodes ->
-            Element "a" (processLinkAttrs [] attrs) (List.map processLinks nodes)
+            Element "a" (processLinkAttrs [] attrs) (List.map (processLinks config) nodes)
 
         Element tag attrs nodes ->
-            Element tag attrs (List.map processLinks nodes)
+            Element tag attrs (List.map (processLinks config) nodes)
 
         Html.Parser.Text value ->
             Html.Parser.Text value
@@ -700,210 +705,6 @@ toHtml config level node =
 
         Comment value ->
             Html.span [] []
-
-
-toElements config level node =
-    case node of
-        Element "p" attrs nodes ->
-            paragraph
-                ([ width fill ] ++ List.concatMap cssToElmUiAttribute attrs)
-                (List.map (toElements config level) nodes)
-
-        Element "ul" attrs nodes ->
-            let
-                processNestedUl n =
-                    case n of
-                        Element "ul" a ns ->
-                            Element "li" [] [ Element "ul" a (List.map processNestedUl ns) ]
-
-                        Element tag a ns ->
-                            Element tag a (List.map processNestedUl ns)
-
-                        other ->
-                            other
-
-                bullet =
-                    if level == 0 then
-                        "•"
-
-                    else if level == 1 then
-                        "◦"
-
-                    else
-                        "▪"
-
-                liView n =
-                    case n of
-                        --Element "ul" _ nodes_ ->
-                        --    let
-                        --        t =
-                        --            Debug.log "ul" ()
-                        --    in
-                        --    [ toElements config (level + 1) n ]
-                        Element "li" attrs_ nodes_ ->
-                            [ row
-                                ([ width fill
-                                 , spacing 5
-                                 , Background.color (rgba 1 1 0.3 1)
-
-                                 --, Debug.log "row" noAttr
-                                 --, Element.explain Debug.todo
-                                 ]
-                                    ++ List.concatMap cssToElmUiAttribute attrs_
-                                )
-                                [ el [ alignTop ] (text <| bullet)
-                                , paragraph
-                                    []
-                                    (List.map (toElements config (level + 1)) nodes_)
-                                ]
-                            ]
-
-                        _ ->
-                            []
-            in
-            column
-                ([ spacing 10
-                 , paddingXY 0 10
-                 , Background.color (rgba 1 0.5 0.3 1)
-
-                 --, Debug.log "column" noAttr
-                 --, width fill
-                 --, Element.explain Debug.todo
-                 ]
-                    ++ List.concatMap cssToElmUiAttribute attrs
-                )
-                (List.concatMap liView nodes)
-
-        --Element "li" attrs nodes ->
-        --    let
-        --        bullet =
-        --            if level == 0 then
-        --                "•"
-        --            else if level == 1 then
-        --                "◦"
-        --            else
-        --                "▪"
-        --    in
-        --    row
-        --        ([ width fill
-        --         , spacing 5
-        --         , Background.color (rgba 1 1 0.3 0.5)
-        --         ]
-        --            ++ List.concatMap cssToElmUiAttribute attrs
-        --        )
-        --        [ el [ alignTop ] (text <| bullet)
-        --        , paragraph [] (List.map (toElements config (level + 1)) nodes)
-        --        ]
-        Element "h1" attrs nodes ->
-            paragraph
-                ([ Region.heading 1 ]
-                    ++ List.concatMap cssToElmUiAttribute attrs
-                )
-                (List.map (toElements config level) nodes)
-
-        Element "strong" attrs nodes ->
-            paragraph
-                ([ Font.bold ]
-                    ++ List.concatMap cssToElmUiAttribute attrs
-                )
-                (List.map (toElements config level) nodes)
-
-        Element "em" attrs nodes ->
-            paragraph
-                ([ Font.italic ]
-                    ++ List.concatMap cssToElmUiAttribute attrs
-                )
-                (List.map (toElements config level) nodes)
-
-        Element "br" _ _ ->
-            el [] (html <| Html.br [] [])
-
-        Html.Parser.Text value ->
-            paragraph [] [ text value ]
-
-        Comment value ->
-            Element.none
-
-        _ ->
-            Element.none
-
-
-cssToElmUiAttribute : ( String, String ) -> List (Element.Attribute msg)
-cssToElmUiAttribute attr =
-    let
-        parseRgb s =
-            let
-                extractColValue color =
-                    String.toFloat color
-                        |> Maybe.withDefault 0
-                        |> (\f -> f / 255)
-            in
-            case
-                String.dropLeft 4 s
-                    |> String.dropRight 1
-                    |> String.split ","
-            of
-                r :: g :: b :: [] ->
-                    rgb (extractColValue r) (extractColValue g) (extractColValue b)
-
-                _ ->
-                    rgb 0 0 0
-
-        parsePxLength s =
-            String.dropRight 2 s
-                |> String.toInt
-                |> Maybe.withDefault 0
-    in
-    case attr of
-        ( "float", "right" ) ->
-            [ Element.alignRight ]
-
-        ( "float", "left" ) ->
-            [ Element.alignLeft ]
-
-        ( "background-color", color ) ->
-            [ Background.color (parseRgb color) ]
-
-        ( "width", "100%" ) ->
-            [ width fill ]
-
-        ( "width", n ) ->
-            [ width (px <| parsePxLength n) ]
-
-        ( "height", n ) ->
-            [ height (px <| parsePxLength n) ]
-
-        ( "font-family", font ) ->
-            [ Font.family
-                [ Font.typeface font ]
-            ]
-
-        ( "color", color ) ->
-            [ Font.color (parseRgb color) ]
-
-        ( "font-size", n ) ->
-            [ Font.size (parsePxLength n) ]
-
-        ( "text-align", "left" ) ->
-            [ Font.alignLeft ]
-
-        ( "text-align", "right" ) ->
-            [ Font.alignRight ]
-
-        ( "text-align", "center" ) ->
-            [ Font.center ]
-
-        ( "text-align", "justify" ) ->
-            [ Font.justify ]
-
-        ( "font-weight", "bold" ) ->
-            [ Font.bold ]
-
-        ( "font-weight", "italic" ) ->
-            [ Font.italic ]
-
-        _ ->
-            []
 
 
 customHeading config level attrs title =

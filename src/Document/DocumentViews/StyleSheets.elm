@@ -244,7 +244,11 @@ defaultStyleSheetCss config =
         tags =
             Dict.fromList
                 [ ( "p", [ ( "width", "100%" ) ] )
-                , ( "a", [ ( "color", "rgb(0,127,127)" ) ] )
+                , ( "a"
+                  , [ ( "color", "rgb(0,127,127)" )
+                    , ( "text-decoration", "none" )
+                    ]
+                  )
                 ]
     in
     List.foldr Dict.union Dict.empty [ headings, tags ]
