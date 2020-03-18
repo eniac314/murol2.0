@@ -16,8 +16,10 @@ module PageTreeEditor.PageTreeEditor exposing
     , loadedContent
     , loadingStatus
     , loadingView
+    , pageIndex
     , prefix
     , resetFileIoSelected
+    , reversePageIndex
     , setFileIoSelection
     , setInternalPageSelection
     , status
@@ -1599,6 +1601,67 @@ swapRight { current, contexts } =
                             }
                                 :: cs
                         }
+
+
+
+-------------------------------------------------------------------------------
+--pageToPages : PageTreeEditor.Page -> Pages
+
+
+pageIndex : Model msg -> Dict String { path : String, name : String }
+pageIndex model =
+    let
+        toList (Page pageInfo xs) =
+            case pageInfo.mbContentId of
+                Nothing ->
+                    List.concatMap toList xs
+
+                Just contentId ->
+                    let
+                        strPath path =
+                            List.map Url.percentEncode path
+                                |> String.join "/"
+                                --String.join "/" path
+                                |> (\p -> "/" ++ p)
+                    in
+                    ( strPath pageInfo.path, pageInfo.name, UUID.toString contentId ) :: List.concatMap toList xs
+    in
+    case model.pageTree of
+        Just pt ->
+            toList (extractPage <| rewind pt)
+                |> List.map (\( p, n, cId ) -> ( cId, { path = p, name = n } ))
+                |> Dict.fromList
+
+        Nothing ->
+            Dict.empty
+
+
+reversePageIndex : Model msg -> Dict String { contentId : String, name : String }
+reversePageIndex model =
+    let
+        toList (Page pageInfo xs) =
+            case pageInfo.mbContentId of
+                Nothing ->
+                    List.concatMap toList xs
+
+                Just contentId ->
+                    let
+                        strPath path =
+                            List.map Url.percentEncode path
+                                |> String.join "/"
+                                --String.join "/" path
+                                |> (\p -> "/" ++ p)
+                    in
+                    ( strPath pageInfo.path, pageInfo.name, UUID.toString contentId ) :: List.concatMap toList xs
+    in
+    case model.pageTree of
+        Just pt ->
+            toList (extractPage <| rewind pt)
+                |> List.map (\( p, n, cId ) -> ( p, { contentId = cId, name = n } ))
+                |> Dict.fromList
+
+        Nothing ->
+            Dict.empty
 
 
 

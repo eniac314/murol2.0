@@ -131,7 +131,7 @@ defaultStyleSheetCss config =
                 commonAttr =
                     Dict.fromList
                         [ ( "h1"
-                          , [ ( "font-size", "18" )
+                          , [ ( "font-size", "18px" )
                             , ( "text-align", "center" )
                             , ( "font-weight", "bold" )
                             , ( "padding", "10px 0px" )
@@ -139,7 +139,7 @@ defaultStyleSheetCss config =
                             ]
                           )
                         , ( "h2"
-                          , [ ( "font-size", "16" )
+                          , [ ( "font-size", "16px" )
                             , ( "text-align", "center" )
                             , ( "font-weight", "bold" )
                             , ( "padding", "2px 0px" )
@@ -147,7 +147,7 @@ defaultStyleSheetCss config =
                             ]
                           )
                         , ( "h3"
-                          , [ ( "font-size", "16" )
+                          , [ ( "font-size", "16px" )
                             , ( "color", "rgb(0 127 0)" )
                             , ( "font-weight", "bold" )
                             ]

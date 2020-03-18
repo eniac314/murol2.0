@@ -67,7 +67,8 @@ type alias Model msg =
     , output : List TextBlockElement
     , nextUid : Int
     , wholeTextBlocAttr : List DocAttribute
-    , globalAttributes : Dict String String
+
+    --, globalAttributes : Dict String String
     , headingLevel : Maybe Int
     , openedWidget : Maybe Widget
     , externalMsg : Msg -> msg
@@ -107,6 +108,9 @@ subscriptions model =
             Just InternalLinks ->
                 Browser.Events.onMouseDown (outsideTargetHandler "internalLinkPicker" Close)
 
+            Just DocPicker ->
+                Browser.Events.onMouseDown (outsideTargetHandler "docPicker" Close)
+
             _ ->
                 Sub.none
         , selection GotSelection
@@ -121,10 +125,14 @@ type Msg
     | LoadContentInTrix
     | OpenFontColorPicker
     | OpenBackgroundColorPicker
-    | SetTextColor String
-    | SetBackgroundColor String
-    | SetFont String
-    | SetFontSize Int
+    | OpenInternalLinks
+    | InsertInternalLink String
+    | OpenDocPicker
+    | InsertDocLink String
+    | SetTextColor Bool String
+    | SetBackgroundColor Bool String
+    | SetFont Bool String
+    | SetFontSize Bool Int
     | SetGlobalAttribute Bool ( String, String )
     | UndoStyle
     | Close
@@ -146,7 +154,8 @@ init attrs mbInput externalMsg =
                 |> Maybe.withDefault []
       , nextUid = 0
       , wholeTextBlocAttr = attrs
-      , globalAttributes = Dict.empty
+
+      --, globalAttributes = Dict.empty
       , headingLevel = Nothing
       , openedWidget = Nothing
       , externalMsg = externalMsg
@@ -206,7 +215,7 @@ update config msg model =
         LoadContentInTrix ->
             ( model
             , model.output
-                |> List.concatMap textBlockElementToNode
+                |> List.concatMap (textBlockElementToNode config)
                 |> List.map Html.Parser.nodeToString
                 |> String.join ""
                 |> (\html ->
@@ -247,67 +256,200 @@ update config msg model =
             , Nothing
             )
 
-        SetTextColor color ->
+        OpenInternalLinks ->
+            ( { model
+                | openedWidget =
+                    if model.openedWidget == Just InternalLinks then
+                        Nothing
+
+                    else
+                        Just InternalLinks
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        InsertInternalLink url ->
             case model.selection of
                 Just { start, end, attrs } ->
-                    let
-                        data =
-                            E.object
-                                [ ( "selectionStart", E.int start )
-                                , ( "selectionEnd", E.int end )
-                                , ( "attribute", E.string "foregroundColor" )
-                                , ( "value", E.string ("#" ++ (Dict.get color webColors |> Maybe.withDefault "000000")) )
-                                ]
-                    in
-                    ( { model | openedWidget = Nothing }
-                    , activateAttribute data
-                    , Nothing
-                    )
+                    if start /= end then
+                        let
+                            selected =
+                                String.slice start end model.htmlContent.text
 
-                _ ->
+                            link =
+                                "<a href=internal:" ++ url ++ ">" ++ selected ++ "</>"
+
+                            data =
+                                E.object
+                                    [ ( "selectionStart", E.int start )
+                                    , ( "selectionEnd", E.int end )
+                                    , ( "tagName", E.string "internal link" )
+                                    , ( "html", E.string link )
+                                    ]
+                        in
+                        ( { model | openedWidget = Nothing }
+                        , insertHtml data
+                        , Nothing
+                        )
+
+                    else
+                        ( model, Cmd.none, Nothing )
+
+                Nothing ->
                     ( model, Cmd.none, Nothing )
 
-        SetBackgroundColor color ->
+        OpenDocPicker ->
+            ( { model
+                | openedWidget =
+                    if model.openedWidget == Just DocPicker then
+                        Nothing
+
+                    else
+                        Just DocPicker
+              }
+            , Cmd.none
+            , Nothing
+            )
+
+        InsertDocLink url ->
             case model.selection of
                 Just { start, end, attrs } ->
-                    let
-                        data =
-                            E.object
-                                [ ( "selectionStart", E.int start )
-                                , ( "selectionEnd", E.int end )
-                                , ( "attribute", E.string "backgroundColor" )
-                                , ( "value", E.string ("#" ++ (Dict.get color webColors |> Maybe.withDefault "000000")) )
-                                ]
-                    in
-                    ( { model | openedWidget = Nothing }
-                    , activateAttribute data
-                    , Nothing
-                    )
+                    if start /= end then
+                        let
+                            selected =
+                                String.slice start end model.htmlContent.text
 
-                _ ->
+                            link =
+                                "<a href=doc:" ++ url ++ ">" ++ selected ++ "</>"
+
+                            data =
+                                E.object
+                                    [ ( "selectionStart", E.int start )
+                                    , ( "selectionEnd", E.int end )
+                                    , ( "tagName", E.string "document link" )
+                                    , ( "html", E.string link )
+                                    ]
+                        in
+                        ( { model | openedWidget = Nothing }
+                        , insertHtml data
+                        , Nothing
+                        )
+
+                    else
+                        ( model, Cmd.none, Nothing )
+
+                Nothing ->
                     ( model, Cmd.none, Nothing )
 
-        SetFont font ->
-            case model.selection of
-                Just { start, end, attrs } ->
-                    let
-                        data =
-                            E.object
-                                [ ( "selectionStart", E.int start )
-                                , ( "selectionEnd", E.int end )
-                                , ( "attribute", E.string "textFont" )
-                                , ( "value", E.string font )
-                                ]
-                    in
-                    ( { model | openedWidget = Nothing }
-                    , activateAttribute data
-                    , Nothing
-                    )
+        SetTextColor isWholeTextAttr color ->
+            if isWholeTextAttr then
+                let
+                    color_ =
+                        Dict.get color webColors
+                            |> Maybe.withDefault "000000"
+                            |> hexToDocColor
+                in
+                ( { model
+                    | wholeTextBlocAttr =
+                        updateAttrs isFontColorAttr FontColor color_ model.wholeTextBlocAttr
+                    , openedWidget = Nothing
+                  }
+                , Cmd.batch
+                    []
+                , Nothing
+                )
 
-                _ ->
-                    ( model, Cmd.none, Nothing )
+            else
+                case model.selection of
+                    Just { start, end, attrs } ->
+                        let
+                            data =
+                                E.object
+                                    [ ( "selectionStart", E.int start )
+                                    , ( "selectionEnd", E.int end )
+                                    , ( "attribute", E.string "foregroundColor" )
+                                    , ( "value", E.string ("#" ++ (Dict.get color webColors |> Maybe.withDefault "000000")) )
+                                    ]
+                        in
+                        ( { model | openedWidget = Nothing }
+                        , activateAttribute data
+                        , Nothing
+                        )
 
-        SetFontSize n ->
+                    _ ->
+                        ( model, Cmd.none, Nothing )
+
+        SetBackgroundColor isWholeTextAttr color ->
+            if isWholeTextAttr then
+                let
+                    color_ =
+                        Dict.get color webColors
+                            |> Maybe.withDefault "000000"
+                            |> hexToDocColor
+                in
+                ( { model
+                    | wholeTextBlocAttr =
+                        updateAttrs isBackgroundColorAttr BackgroundColor color_ model.wholeTextBlocAttr
+                    , openedWidget = Nothing
+                  }
+                , Cmd.batch
+                    []
+                , Nothing
+                )
+
+            else
+                case model.selection of
+                    Just { start, end, attrs } ->
+                        let
+                            data =
+                                E.object
+                                    [ ( "selectionStart", E.int start )
+                                    , ( "selectionEnd", E.int end )
+                                    , ( "attribute", E.string "backgroundColor" )
+                                    , ( "value", E.string ("#" ++ (Dict.get color webColors |> Maybe.withDefault "000000")) )
+                                    ]
+                        in
+                        ( { model | openedWidget = Nothing }
+                        , activateAttribute data
+                        , Nothing
+                        )
+
+                    _ ->
+                        ( model, Cmd.none, Nothing )
+
+        SetFont isWholeTextAttr font ->
+            if isWholeTextAttr then
+                ( { model
+                    | wholeTextBlocAttr =
+                        updateAttrs isFontAttr Font font model.wholeTextBlocAttr
+                  }
+                , Cmd.batch
+                    []
+                , Nothing
+                )
+
+            else
+                case model.selection of
+                    Just { start, end, attrs } ->
+                        let
+                            data =
+                                E.object
+                                    [ ( "selectionStart", E.int start )
+                                    , ( "selectionEnd", E.int end )
+                                    , ( "attribute", E.string "textFont" )
+                                    , ( "value", E.string font )
+                                    ]
+                        in
+                        ( { model | openedWidget = Nothing }
+                        , activateAttribute data
+                        , Nothing
+                        )
+
+                    _ ->
+                        ( model, Cmd.none, Nothing )
+
+        SetFontSize isWholeTextAttr n ->
             ( model, Cmd.none, Nothing )
 
         SetGlobalAttribute toogle attr ->
@@ -392,7 +534,7 @@ view config renderConfig model =
             , height fill
             , width fill
             ]
-            [ editor model
+            [ editor config model
             , textBlockPreview model renderConfig
             , row
                 [ spacing 15
@@ -439,7 +581,7 @@ embeddedStyleSheet config renderConfig model =
                     [ Html.text <|
                         templateStylesheet
                             ++ " .trix-content{"
-                            ++ stringifyAttributes model.globalAttributes
+                            ++ stringifyAttributes (List.concatMap docAttrToCss model.wholeTextBlocAttr)
                             ++ """ 
                         
                         }
@@ -470,28 +612,45 @@ embeddedStyleSheet config renderConfig model =
         (html <| styleSheet)
 
 
-stringifyAttributes : Dict String String -> String
+stringifyAttributes : List ( String, String ) -> String
 stringifyAttributes attributes =
-    Dict.toList attributes
-        |> List.map (\( attr, value ) -> attr ++ ": " ++ value ++ ";")
+    List.map (\( attr, value ) -> attr ++ ": " ++ value ++ ";") attributes
         |> String.join " "
 
 
-editor model =
+editor :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , pageTreeEditor : PageTreeEditor.Model msg
+        , logInfo : Auth.AuthPlugin.LogInfo
+        , zone : Time.Zone
+    }
+    -> Model msg
+    -> Element.Element msg
+editor config model =
     column
         [ spacing 10
         ]
-        [ trixEditor model
+        [ trixEditor config model
         , paragraph [] [ text <| model.htmlContent.html ]
         ]
 
 
-trixEditor model =
-    Element.map model.externalMsg <|
-        column
-            [ spacing 10 ]
-            [ customToolbar model
-            , paragraph
+trixEditor :
+    { a
+        | fileExplorer : FileExplorer.Model msg
+        , pageTreeEditor : PageTreeEditor.Model msg
+        , logInfo : Auth.AuthPlugin.LogInfo
+        , zone : Time.Zone
+    }
+    -> Model msg
+    -> Element.Element msg
+trixEditor config model =
+    column
+        [ spacing 10 ]
+        [ customToolbar config model
+        , Element.map model.externalMsg <|
+            paragraph
                 [ Font.family [ Font.typeface "Arial" ]
                 , Font.size 16
                 , width (px 700)
@@ -512,10 +671,14 @@ trixEditor model =
                             []
                         ]
                 ]
-            ]
+        ]
 
 
-customToolbar model =
+iconSize =
+    18
+
+
+customToolbar config model =
     let
         selectionCollapsed =
             case model.selection of
@@ -549,122 +712,132 @@ customToolbar model =
         textFont =
             Maybe.andThen (Dict.get "textFont") selectionAttrs
 
+        href =
+            Maybe.andThen (Dict.get "href") selectionAttrs
+
         fontOptionView selectedFont f =
             Html.option
                 [ HtmlAttr.value f
                 , HtmlAttr.selected (selectedFont == (Just <| f))
                 ]
                 [ Html.text f ]
-
-        iconSize =
-            18
     in
     row
         [ spacing 10
         , width fill
         ]
-        [ colorPicker
-            "fontColorPicker"
-            True
-            (model.openedWidget == Just FontColorPicker)
-            fontColor
-            OpenFontColorPicker
-            SetTextColor
-            (el [] (html <| Icons.penTool iconSize))
-        , colorPicker
-            "backgroundColorPicker"
-            True
-            (model.openedWidget == Just BackgroundColorPicker)
-            backgroundColor
-            OpenBackgroundColorPicker
-            SetBackgroundColor
-            (el [] (html <| Icons.droplet iconSize))
-        , el
-            []
-            (html <|
-                Html.select
-                    [ HtmlEvents.onInput SetFont
-                    , HtmlAttr.disabled (selectionCollapsed == Just True || selectionCollapsed == Nothing)
-                    ]
-                    (List.map
-                        (fontOptionView
-                            textFont
+        [ linkPicker config
+            model.externalMsg
+            "internalLinkPicker"
+            (selectionCollapsed == Just False)
+            (model.openedWidget == Just InternalLinks)
+            href
+            OpenInternalLinks
+            InsertInternalLink
+        , docPicker config
+            model.externalMsg
+            "docPicker"
+            (selectionCollapsed == Just False)
+            (model.openedWidget == Just DocPicker)
+            href
+            OpenDocPicker
+            InsertDocLink
+        , Element.map model.externalMsg <|
+            colorPicker
+                "fontColorPicker"
+                True
+                (model.openedWidget == Just FontColorPicker)
+                fontColor
+                OpenFontColorPicker
+                (SetTextColor (selectionCollapsed == Just True || selectionCollapsed == Nothing))
+                (el [] (html <| Icons.penTool iconSize))
+        , Element.map model.externalMsg <|
+            colorPicker
+                "backgroundColorPicker"
+                True
+                (model.openedWidget == Just BackgroundColorPicker)
+                backgroundColor
+                OpenBackgroundColorPicker
+                (SetBackgroundColor (selectionCollapsed == Just True || selectionCollapsed == Nothing))
+                (el [] (html <| Icons.droplet iconSize))
+        , Element.map model.externalMsg <|
+            el
+                []
+                (html <|
+                    Html.select
+                        [ HtmlEvents.onInput (SetFont (selectionCollapsed == Just True || selectionCollapsed == Nothing))
+                        ]
+                        (List.map
+                            (fontOptionView
+                                textFont
+                            )
+                            (List.sort fonts)
                         )
-                        (List.sort fonts)
-                    )
-            )
+                )
+        , Element.map model.externalMsg <|
+            row
+                [ spacing 10 ]
+                [ Input.button
+                    (buttonStyle canUpdateGlobalAttr)
+                    { onPress =
+                        if canUpdateGlobalAttr then
+                            Just (SetGlobalAttribute True ( "text-align", "left" ))
 
-        --, linkPicker
-        --    "internalLinkPicker"
-        --    True
-        --    --(canStyleSelection model)
-        --    (model.openedWidget == Just InternalLinks)
-        --    Nothing
-        --    OpenInternalLinks
-        --    InsertInternalLink
-        --    [ "home", "contact" ]
-        , row
-            [ spacing 10 ]
-            [ Input.button
-                (buttonStyle canUpdateGlobalAttr)
+                        else
+                            Nothing
+                    , label =
+                        el [] (html <| Icons.alignLeft iconSize)
+                    }
+                , Input.button
+                    (buttonStyle canUpdateGlobalAttr)
+                    { onPress =
+                        if canUpdateGlobalAttr then
+                            Just (SetGlobalAttribute True ( "text-align", "center" ))
+
+                        else
+                            Nothing
+                    , label =
+                        el [] (html <| alignCenter iconSize)
+                    }
+                , Input.button
+                    (buttonStyle canUpdateGlobalAttr)
+                    { onPress =
+                        if canUpdateGlobalAttr then
+                            Just (SetGlobalAttribute True ( "text-align", "right" ))
+
+                        else
+                            Nothing
+                    , label =
+                        el [] (html <| Icons.alignRight iconSize)
+                    }
+                , Input.button
+                    (buttonStyle canUpdateGlobalAttr)
+                    { onPress =
+                        if canUpdateGlobalAttr then
+                            Just (SetGlobalAttribute True ( "text-align", "justify" ))
+
+                        else
+                            Nothing
+                    , label =
+                        el [] (html <| alignJustify iconSize)
+                    }
+                ]
+        , Element.map model.externalMsg <|
+            let
+                canUndoStyle =
+                    selectionAttrs /= Just Dict.empty
+            in
+            Input.button
+                (Element.alignRight :: buttonStyle canUndoStyle)
                 { onPress =
-                    if canUpdateGlobalAttr then
-                        Just (SetGlobalAttribute True ( "text-align", "left" ))
+                    if canUndoStyle then
+                        Just UndoStyle
 
                     else
                         Nothing
                 , label =
-                    el [] (html <| Icons.alignLeft iconSize)
+                    text "undo style"
                 }
-            , Input.button
-                (buttonStyle canUpdateGlobalAttr)
-                { onPress =
-                    if canUpdateGlobalAttr then
-                        Just (SetGlobalAttribute True ( "text-align", "center" ))
-
-                    else
-                        Nothing
-                , label =
-                    el [] (html <| alignCenter iconSize)
-                }
-            , Input.button
-                (buttonStyle canUpdateGlobalAttr)
-                { onPress =
-                    if canUpdateGlobalAttr then
-                        Just (SetGlobalAttribute True ( "text-align", "right" ))
-
-                    else
-                        Nothing
-                , label =
-                    el [] (html <| Icons.alignRight iconSize)
-                }
-            , Input.button
-                (buttonStyle canUpdateGlobalAttr)
-                { onPress =
-                    if canUpdateGlobalAttr then
-                        Just (SetGlobalAttribute True ( "text-align", "justify" ))
-
-                    else
-                        Nothing
-                , label =
-                    el [] (html <| alignJustify iconSize)
-                }
-            ]
-        , let
-            canUndoStyle =
-                selectionAttrs /= Just Dict.empty
-          in
-          Input.button
-            (Element.alignRight :: buttonStyle canUndoStyle)
-            { onPress =
-                if canUndoStyle then
-                    Just UndoStyle
-
-                else
-                    Nothing
-            , label =
-                text "undo style"
-            }
 
         --config.pageList
         ]
@@ -768,16 +941,16 @@ extractValue attribute attrs =
             Nothing
 
 
-textBlockElementToNode : TextBlockElement -> List Html.Parser.Node
-textBlockElementToNode tbe =
+textBlockElementToNode : { config | pageTreeEditor : PageTreeEditor.Model msg } -> TextBlockElement -> List Html.Parser.Node
+textBlockElementToNode config tbe =
     case tbe of
         Paragraph attrs prims ->
-            [ Element "p" (List.concatMap docAttrToCss attrs) (List.map textBlockPrimToNode prims) ]
+            [ Element "p" (List.concatMap docAttrToCss attrs) (List.map (textBlockPrimToNode config) prims) ]
 
         UList attrs lis ->
             [ Element "ul"
                 (List.concatMap docAttrToCss attrs)
-                (List.map (\li -> Element "li" [] (List.map textBlockPrimToNode li)) lis)
+                (List.map (\li -> Element "li" [] (List.map (textBlockPrimToNode config) li)) lis)
             ]
 
         Heading attrs ( 1, s ) ->
@@ -790,7 +963,7 @@ textBlockElementToNode tbe =
             [ Element "h3" (List.concatMap docAttrToCss attrs) [ Html.Parser.Text s ] ]
 
         TBPrimitive prim ->
-            [ textBlockPrimToNode prim ]
+            [ textBlockPrimToNode config prim ]
 
         TrixHtml html ->
             Html.Parser.run html
@@ -800,8 +973,8 @@ textBlockElementToNode tbe =
             []
 
 
-textBlockPrimToNode : TextBlockPrimitive -> Html.Parser.Node
-textBlockPrimToNode tbp =
+textBlockPrimToNode : { config | pageTreeEditor : PageTreeEditor.Model msg } -> TextBlockPrimitive -> Html.Parser.Node
+textBlockPrimToNode config tbp =
     case tbp of
         Document.Text [] s ->
             Html.Parser.Text s
@@ -810,9 +983,18 @@ textBlockPrimToNode tbp =
             Element "span" (List.concatMap docAttrToCss attrs) [ Html.Parser.Text s ]
 
         Link attrs { targetBlank, url, label } ->
+            let
+                pageIndex =
+                    PageTreeEditor.pageIndex config.pageTreeEditor
+
+                url_ =
+                    Dict.get url pageIndex
+                        |> Maybe.map .path
+                        |> Maybe.withDefault url
+            in
             Element "a"
                 (List.concatMap docAttrToCss attrs
-                    ++ [ ( "href", url )
+                    ++ [ ( "href", url_ )
                        ]
                     ++ (if targetBlank then
                             [ ( "target", "blank" ) ]
@@ -827,24 +1009,6 @@ textBlockPrimToNode tbp =
 cssToDocAttr : ( String, String ) -> Document.DocAttribute
 cssToDocAttr attr =
     let
-        parseRgb s =
-            let
-                extractColValue color =
-                    String.toFloat color
-                        |> Maybe.withDefault 0
-                        |> (\f -> f / 255)
-            in
-            case
-                String.dropLeft 4 s
-                    |> String.dropRight 1
-                    |> String.split ","
-            of
-                r :: g :: b :: [] ->
-                    DocColor (extractColValue r) (extractColValue g) (extractColValue b)
-
-                _ ->
-                    DocColor 0 0 0
-
         parsePxLength s =
             String.dropRight 2 s
                 |> String.toInt
@@ -921,9 +1085,9 @@ docAttrToCss attr =
         BackgroundColor (DocColor r g b) ->
             let
                 ( r_, g_, b_ ) =
-                    ( String.fromInt (round r * 255)
-                    , String.fromInt (round g * 255)
-                    , String.fromInt (round b * 255)
+                    ( String.fromInt (round <| r * 255)
+                    , String.fromInt (round <| g * 255)
+                    , String.fromInt (round <| b * 255)
                     )
             in
             [ ( "background-color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" ) ]
@@ -955,9 +1119,9 @@ docAttrToCss attr =
         FontColor (DocColor r g b) ->
             let
                 ( r_, g_, b_ ) =
-                    ( String.fromInt (round r * 255)
-                    , String.fromInt (round g * 255)
-                    , String.fromInt (round b * 255)
+                    ( String.fromInt (round <| r * 255)
+                    , String.fromInt (round <| g * 255)
+                    , String.fromInt (round <| b * 255)
                     )
             in
             [ ( "color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" ) ]
@@ -1027,6 +1191,215 @@ isOutsideTarget targetId =
 
         -- fallback if all previous decoders failed
         , D.succeed True
+        ]
+
+
+
+-------------------------------------------------------------------------------
+----------------------------------------
+-- Internal page and documents picker --
+----------------------------------------
+
+
+linkPicker :
+    { c
+        | pageTreeEditor : PageTreeEditor.Model msg
+        , logInfo : Auth.AuthPlugin.LogInfo
+        , zone : Time.Zone
+    }
+    -> (Msg -> msg)
+    -> String
+    -> Bool
+    -> Bool
+    -> Maybe String
+    -> Msg
+    -> (String -> Msg)
+    -> Element msg
+linkPicker config externalMsg id isActive linkPickerOpen currentLink openMsg handler =
+    el
+        [ below <|
+            el
+                [ Background.color (rgb 0.95 0.95 0.95) ]
+                (if linkPickerOpen then
+                    column
+                        [ Background.color
+                            (rgb 1 1 1)
+                        , width (px 850)
+                        , Border.shadow
+                            { offset = ( 4, 4 )
+                            , size = 5
+                            , blur = 10
+                            , color = rgba 0 0 0 0.45
+                            }
+                        ]
+                        [ chooseInternalPageView externalMsg config.pageTreeEditor config.zone config.logInfo
+                        ]
+
+                 else
+                    Element.none
+                )
+        , htmlAttribute <| HtmlAttr.id id
+        ]
+        (Input.button
+            (buttonStyle isActive)
+            { onPress =
+                if isActive then
+                    Just (externalMsg openMsg)
+
+                else
+                    Nothing
+            , label =
+                row
+                    [ spacing 5 ]
+                    [ el [] (html <| Icons.link2 iconSize)
+
+                    --, Icons.link
+                    --    (Icons.defOptions
+                    --        |> Icons.color black
+                    --        |> Icons.size 20
+                    --    )
+                    ]
+            }
+        )
+
+
+docPicker :
+    { c
+        | fileExplorer : FileExplorer.Model msg
+        , logInfo : Auth.AuthPlugin.LogInfo
+        , zone : Time.Zone
+    }
+    -> (Msg -> msg)
+    -> String
+    -> Bool
+    -> Bool
+    -> Maybe String
+    -> Msg
+    -> (String -> Msg)
+    -> Element msg
+docPicker config externalMsg id isActive docPickerOpen currentLink openMsg handler =
+    el
+        [ below <|
+            el
+                [ Background.color (rgb 0.95 0.95 0.95) ]
+                (if docPickerOpen then
+                    column
+                        [ Background.color
+                            (rgb 1 1 1)
+                        , width (px 850)
+                        , Border.shadow
+                            { offset = ( 4, 4 )
+                            , size = 5
+                            , blur = 10
+                            , color = rgba 0 0 0 0.45
+                            }
+                        ]
+                        [ chooseDocView externalMsg config.fileExplorer config.zone config.logInfo
+                        ]
+
+                 else
+                    Element.none
+                )
+        , htmlAttribute <| HtmlAttr.id id
+        ]
+        (Input.button
+            (buttonStyle isActive)
+            { onPress =
+                if isActive then
+                    Just (externalMsg openMsg)
+
+                else
+                    Nothing
+            , label =
+                row
+                    [ spacing 5 ]
+                    [ el [] (html <| Icons.fileText iconSize)
+                    ]
+            }
+        )
+
+
+chooseDocView :
+    (Msg -> msg)
+    ---> Int
+    -> FileExplorer.Model msg
+    -> Time.Zone
+    -> LogInfo
+    -> Element.Element msg
+chooseDocView externalMsg fileExplorer zone logInfo =
+    column
+        [ paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
+            }
+        , spacing 15
+        ]
+        [ FileExplorer.view
+            { maxHeight =
+                500
+            , zone = zone
+            , logInfo = logInfo
+            , mode = FileExplorer.ReadWrite FileExplorer.DocsRoot
+            }
+            fileExplorer
+        , el [ paddingXY 15 0 ]
+            (Input.button
+                (buttonStyle (FileExplorer.getSelectedDoc fileExplorer /= Nothing) ++ [ alignTop ])
+                { onPress =
+                    Maybe.map (externalMsg << InsertDocLink)
+                        (FileExplorer.getSelectedDoc fileExplorer)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| Icons.externalLink iconSize)
+                        , el [] (text "Valider")
+                        ]
+                }
+            )
+        ]
+
+
+chooseInternalPageView :
+    (Msg -> msg)
+    -> PageTreeEditor.Model msg
+    -> Time.Zone
+    -> LogInfo
+    -> Element.Element msg
+chooseInternalPageView externalMsg pageTreeEditor zone logInfo =
+    column
+        [ paddingEach
+            { top = 0
+            , bottom = 15
+            , left = 0
+            , right = 0
+            }
+        , spacing 15
+        , width fill
+        ]
+        [ PageTreeEditor.view
+            { maxHeight =
+                500
+            , zone = zone
+            , logInfo = logInfo
+            , mode = PageTreeEditor.Select
+            }
+            pageTreeEditor
+        , el [ paddingXY 15 0 ]
+            (Input.button
+                (buttonStyle (PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor /= Nothing) ++ [ alignTop ])
+                { onPress =
+                    PageTreeEditor.internalPageSelectedPageInfo pageTreeEditor
+                        |> Maybe.andThen .mbContentId
+                        |> Maybe.map UUID.toString
+                        |> Maybe.map (externalMsg << InsertInternalLink)
+                , label =
+                    row [ spacing 5 ]
+                        [ el [] (html <| Icons.externalLink iconSize)
+                        , el [] (text "Valider")
+                        ]
+                }
+            )
         ]
 
 
@@ -1143,6 +1516,38 @@ hexToColor hexColor =
                 |> toFloat
     in
     rgb (red / 255) (green / 255) (blue / 255)
+
+
+hexToDocColor hexColor =
+    let
+        hexColor_ =
+            String.toLower hexColor
+
+        red =
+            String.left 2 hexColor_
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+
+        green =
+            String.dropLeft 2 hexColor_
+                |> String.left 2
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+
+        blue =
+            String.dropLeft 4 hexColor_
+                |> String.left 2
+                |> Hex.fromString
+                |> Result.withDefault 0
+                |> toFloat
+    in
+    DocColor (red / 255) (green / 255) (blue / 255)
+
+
+
+--DocColor ((toFloat << truncate) (100 * (red / 255)) / 100) ((toFloat << truncate) (100 * (green / 255)) / 100) ((toFloat << truncate) (100 * (blue / 255)) / 100)
 
 
 webColorsReversed =
@@ -1295,6 +1700,25 @@ webColors =
         ]
 
 
+parseRgb s =
+    let
+        extractColValue color =
+            String.toFloat color
+                |> Maybe.withDefault 0
+                |> (\f -> f / 255)
+    in
+    case
+        String.dropLeft 4 s
+            |> String.dropRight 1
+            |> String.split ","
+    of
+        r :: g :: b :: [] ->
+            DocColor (extractColValue r) (extractColValue g) (extractColValue b)
+
+        _ ->
+            DocColor 0 0 0
+
+
 
 -------------------------------------------------------------------------------
 
@@ -1400,3 +1824,69 @@ textInputStyle =
 
 noAttr =
     htmlAttribute <| HtmlAttr.class ""
+
+
+updateAttrs :
+    (Document.DocAttribute -> Bool)
+    -> (a -> Document.DocAttribute)
+    -> a
+    -> List Document.DocAttribute
+    -> List Document.DocAttribute
+updateAttrs p attrWrapper val attrs =
+    let
+        helper acc xs =
+            case xs of
+                [] ->
+                    List.reverse (attrWrapper val :: acc)
+
+                x :: xs_ ->
+                    if attrWrapper val == x then
+                        List.reverse acc ++ xs_
+
+                    else if p x then
+                        List.reverse (attrWrapper val :: acc) ++ xs_
+
+                    else
+                        helper (x :: acc) xs_
+    in
+    helper [] attrs
+
+
+isFontAttr : Document.DocAttribute -> Bool
+isFontAttr a =
+    case a of
+        Font _ ->
+            True
+
+        _ ->
+            False
+
+
+isFontColorAttr : Document.DocAttribute -> Bool
+isFontColorAttr a =
+    case a of
+        FontColor _ ->
+            True
+
+        _ ->
+            False
+
+
+isBackgroundColorAttr : Document.DocAttribute -> Bool
+isBackgroundColorAttr a =
+    case a of
+        BackgroundColor _ ->
+            True
+
+        _ ->
+            False
+
+
+isFontSizeAttr : Document.DocAttribute -> Bool
+isFontSizeAttr a =
+    case a of
+        FontSize _ ->
+            True
+
+        _ ->
+            False
