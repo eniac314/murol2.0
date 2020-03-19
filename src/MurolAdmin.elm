@@ -21,6 +21,8 @@ import Internals.CommonHelpers exposing (..)
 import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (chevronsDown, chevronsUp, messageSquare, save, wifi, wifiOff)
 import Internals.ToolHelpers exposing (..)
+import Json.Decode as D
+import Json.Encode as E
 import NewsEditor.NewsEditor as NewsEditor exposing (..)
 import PageEditor.PageEditor as PageEditor
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (..)
@@ -28,6 +30,13 @@ import Publications.Publications as Publications
 import Random exposing (Seed, initialSeed)
 import Task exposing (perform)
 import Time exposing (Posix, Zone, here, millisToPosix, posixToMillis, utc)
+
+
+
+--port clearTrixEditor : () -> Cmd msg
+--port swapTrixState : E.Value -> Cmd msg
+--port loadTrixState : String -> Cmd msg
+--port trixState : (D.Value -> msg) -> Sub msg
 
 
 main : Program Flags Model Msg
@@ -62,6 +71,7 @@ type alias Model =
     , logs : Dict.Dict Int ( Log, Bool )
     , logsOpen : Bool
     , seed : Random.Seed
+    , trixStates : Dict String String
     }
 
 
@@ -69,13 +79,22 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ FileExplorer.subscriptions model.fileExplorer
-        , PageEditor.subscriptions model.pageEditor
+        , if model.currentTool == PageEditorTool then
+            PageEditor.subscriptions model.pageEditor
+
+          else
+            Sub.none
         , Publications.subscriptions model.publications
-        , NewsEditor.subscriptions model.newsEditor
+        , if model.currentTool == NewsEditorTool then
+            NewsEditor.subscriptions model.newsEditor
+
+          else
+            Sub.none
         , Auth.subscriptions model.authTool
         , Help.subscriptions model.help
         , onResize WinResize
 
+        --, trixState GotTrixState
         --, if model.logsOpen then
         --    Browser.Events.onMouseDown (outsideTargetHandler "logsPanel" CloseLogs)
         --  else
@@ -129,6 +148,7 @@ init flags =
       , logs = Dict.empty
       , logsOpen = False
       , seed = initialSeed flags.currentTime
+      , trixStates = Dict.empty
       }
     , Cmd.batch
         [ pageEditorCmds
@@ -159,6 +179,7 @@ type Msg
     | PublicationsMsg Publications.Msg
     | HelpMsg Help.Msg
     | GoToHelp ( Int, String )
+    | GotTrixState D.Value
     | SetCurrentTool Tool
     | CurrentViewport Dom.Viewport
     | WinResize Int Int
@@ -178,6 +199,63 @@ type Tool
     | NewsEditorTool
     | PublicationsTool
     | HelpTool
+
+
+toolToString t =
+    case t of
+        PageEditorTool ->
+            "PageEditorTool"
+
+        FileExplorerTool ->
+            "FileExplorerTool"
+
+        AuthTool ->
+            "AuthTool"
+
+        PageTreeTool ->
+            "PageTreeTool"
+
+        GeneralDirectoryTool ->
+            "GeneralDirectoryTool"
+
+        NewsEditorTool ->
+            "NewsEditorTool"
+
+        PublicationsTool ->
+            "PublicationsTool"
+
+        HelpTool ->
+            "HelpTool"
+
+
+toolFromString s =
+    case s of
+        "PageEditorTool" ->
+            PageEditorTool
+
+        "FileExplorerTool" ->
+            FileExplorerTool
+
+        "AuthTool" ->
+            AuthTool
+
+        "PageTreeTool" ->
+            PageTreeTool
+
+        "GeneralDirectoryTool" ->
+            GeneralDirectoryTool
+
+        "NewsEditorTool" ->
+            NewsEditorTool
+
+        "PublicationsTool" ->
+            PublicationsTool
+
+        "HelpTool" ->
+            HelpTool
+
+        _ ->
+            PageEditorTool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -363,9 +441,38 @@ update msg model =
             , helpCmd
             )
 
+        GotTrixState value ->
+            let
+                decodeTrixState =
+                    D.map2 Tuple.pair
+                        (D.field "tool" D.string)
+                        (D.field "state" D.string)
+            in
+            case D.decodeValue decodeTrixState value of
+                Ok ( tool, state ) ->
+                    ( { model | trixStates = Dict.insert tool state model.trixStates }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         SetCurrentTool t ->
             ( { model | currentTool = t }
-            , Cmd.none
+            , Cmd.batch
+                --[ swapTrixState
+                --    (E.object
+                --        [ ( "toSave", E.string (toolToString model.currentTool) )
+                --        , ( "toLoad"
+                --          , E.string
+                --                (Dict.get (toolToString t) model.trixStates
+                --                    |> Maybe.withDefault ""
+                --                )
+                --          )
+                --        ]
+                --    )
+                --]
+                []
             )
 
         CurrentViewport vp ->

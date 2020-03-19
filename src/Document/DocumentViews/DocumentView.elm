@@ -649,8 +649,12 @@ processLinks config node =
         processLinkAttrs processed toProcess =
             case toProcess of
                 ( "href", url ) :: xs ->
-                    if String.startsWith "internal:" url then
-                        ( "href", String.dropLeft (String.length "internal:") url )
+                    if String.startsWith "lien-interne:" url then
+                        ( "href"
+                        , String.dropLeft (String.length "lien-interne:") url
+                            |> (\cId -> Dict.get cId config.pageIndex)
+                            |> Maybe.withDefault url
+                        )
                             :: (List.reverse processed ++ xs)
 
                     else if Dict.member url config.pageIndex then

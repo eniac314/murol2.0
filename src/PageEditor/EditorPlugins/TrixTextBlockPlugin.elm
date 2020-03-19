@@ -67,8 +67,6 @@ type alias Model msg =
     , output : List TextBlockElement
     , nextUid : Int
     , wholeTextBlocAttr : List DocAttribute
-
-    --, globalAttributes : Dict String String
     , headingLevel : Maybe Int
     , openedWidget : Maybe Widget
     , externalMsg : Msg -> msg
@@ -269,7 +267,7 @@ update config msg model =
             , Nothing
             )
 
-        InsertInternalLink url ->
+        InsertInternalLink cId ->
             case model.selection of
                 Just { start, end, attrs } ->
                     if start /= end then
@@ -277,8 +275,13 @@ update config msg model =
                             selected =
                                 String.slice start end model.htmlContent.text
 
+                            path =
+                                PageTreeEditor.getPathFromId config.pageTreeEditor cId
+                                    |> Maybe.withDefault ""
+                                    |> String.replace " " "_"
+
                             link =
-                                "<a href=internal:" ++ url ++ ">" ++ selected ++ "</>"
+                                "<a href=lien-interne:" ++ cId ++ ">" ++ selected ++ "</>"
 
                             data =
                                 E.object
@@ -661,12 +664,19 @@ trixEditor config model =
                         [ Html.node "trix-toolbar"
                             [ HtmlAttr.id "trix-toolbar" ]
                             []
+                        , Html.node "input"
+                            [ HtmlAttr.type_ "hidden"
+                            , HtmlAttr.id "reset"
+                            , HtmlAttr.value ""
+                            ]
+                            []
                         , Html.node "trix-editor"
                             [ on "trix-change" (D.map GetHtmlContent decodeEditorMarkup)
                             , on "trix-selection-change" (D.map (always GetSelection) (D.succeed ()))
                             , HtmlAttr.class "trix-content"
                             , HtmlAttr.class "trix-content-editor"
                             , HtmlAttr.attribute "toolbar" "trix-toolbar"
+                            , HtmlAttr.attribute "input" "reset"
                             ]
                             []
                         ]
@@ -874,21 +884,26 @@ textBlockPreview model config =
 
 
 newsEditorView config model =
-    Element.none
+    column
+        []
+        [ --embeddedStyleSheet config renderConfig model
+          editor config model
+        ]
 
 
-interfaceView :
-    { a
-        | fileExplorer : FileExplorer.Model msg
-        , logInfo : Auth.AuthPlugin.LogInfo
-        , pageTreeEditor : PageTreeEditor.Model msg
-        , zone : Time.Zone
-    }
-    -> Bool
-    -> Model msg
-    -> Element.Element msg
-interfaceView config isNewsView model =
-    Element.none
+
+--interfaceView :
+--    { a
+--        | fileExplorer : FileExplorer.Model msg
+--        , logInfo : Auth.AuthPlugin.LogInfo
+--        , pageTreeEditor : PageTreeEditor.Model msg
+--        , zone : Time.Zone
+--    }
+--    -> Bool
+--    -> Model msg
+--    -> Element.Element msg
+--interfaceView config isNewsView model =
+--    Element.none
 
 
 decodeEditorMarkup : D.Decoder HtmlContent
@@ -988,9 +1003,12 @@ textBlockPrimToNode config tbp =
                     PageTreeEditor.pageIndex config.pageTreeEditor
 
                 url_ =
-                    Dict.get url pageIndex
-                        |> Maybe.map .path
-                        |> Maybe.withDefault url
+                    case Dict.get url pageIndex of
+                        Just _ ->
+                            "lien-interne:" ++ url
+
+                        Nothing ->
+                            url
             in
             Element "a"
                 (List.concatMap docAttrToCss attrs
@@ -1231,8 +1249,21 @@ linkPicker config externalMsg id isActive linkPickerOpen currentLink openMsg han
                             , blur = 10
                             , color = rgba 0 0 0 0.45
                             }
+                        , spacing 15
                         ]
-                        [ chooseInternalPageView externalMsg config.pageTreeEditor config.zone config.logInfo
+                        [ case Maybe.andThen (PageTreeEditor.getPathFromId config.pageTreeEditor) (Maybe.map (String.dropLeft (String.length "lien-interne:")) currentLink) of
+                            Just path ->
+                                row
+                                    [ spacing 10
+                                    , padding 15
+                                    ]
+                                    [ el [ Font.bold ] (text "Lien pour:")
+                                    , text path
+                                    ]
+
+                            Nothing ->
+                                Element.none
+                        , chooseInternalPageView externalMsg config.pageTreeEditor config.zone config.logInfo
                         ]
 
                  else
