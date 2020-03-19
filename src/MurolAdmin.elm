@@ -32,13 +32,6 @@ import Task exposing (perform)
 import Time exposing (Posix, Zone, here, millisToPosix, posixToMillis, utc)
 
 
-
---port clearTrixEditor : () -> Cmd msg
---port swapTrixState : E.Value -> Cmd msg
---port loadTrixState : String -> Cmd msg
---port trixState : (D.Value -> msg) -> Sub msg
-
-
 main : Program Flags Model Msg
 main =
     Browser.document
@@ -93,12 +86,6 @@ subscriptions model =
         , Auth.subscriptions model.authTool
         , Help.subscriptions model.help
         , onResize WinResize
-
-        --, trixState GotTrixState
-        --, if model.logsOpen then
-        --    Browser.Events.onMouseDown (outsideTargetHandler "logsPanel" CloseLogs)
-        --  else
-        --    Sub.none
         ]
 
 
@@ -199,63 +186,6 @@ type Tool
     | NewsEditorTool
     | PublicationsTool
     | HelpTool
-
-
-toolToString t =
-    case t of
-        PageEditorTool ->
-            "PageEditorTool"
-
-        FileExplorerTool ->
-            "FileExplorerTool"
-
-        AuthTool ->
-            "AuthTool"
-
-        PageTreeTool ->
-            "PageTreeTool"
-
-        GeneralDirectoryTool ->
-            "GeneralDirectoryTool"
-
-        NewsEditorTool ->
-            "NewsEditorTool"
-
-        PublicationsTool ->
-            "PublicationsTool"
-
-        HelpTool ->
-            "HelpTool"
-
-
-toolFromString s =
-    case s of
-        "PageEditorTool" ->
-            PageEditorTool
-
-        "FileExplorerTool" ->
-            FileExplorerTool
-
-        "AuthTool" ->
-            AuthTool
-
-        "PageTreeTool" ->
-            PageTreeTool
-
-        "GeneralDirectoryTool" ->
-            GeneralDirectoryTool
-
-        "NewsEditorTool" ->
-            NewsEditorTool
-
-        "PublicationsTool" ->
-            PublicationsTool
-
-        "HelpTool" ->
-            HelpTool
-
-        _ ->
-            PageEditorTool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -460,18 +390,6 @@ update msg model =
         SetCurrentTool t ->
             ( { model | currentTool = t }
             , Cmd.batch
-                --[ swapTrixState
-                --    (E.object
-                --        [ ( "toSave", E.string (toolToString model.currentTool) )
-                --        , ( "toLoad"
-                --          , E.string
-                --                (Dict.get (toolToString t) model.trixStates
-                --                    |> Maybe.withDefault ""
-                --                )
-                --          )
-                --        ]
-                --    )
-                --]
                 []
             )
 

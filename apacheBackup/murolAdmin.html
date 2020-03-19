@@ -5,12 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   
+  <link rel="stylesheet" type="text/css" href="css/trix.css">
+  <link rel="stylesheet" type="text/css" href="css/reset.css">
+
   <script src="js/pdf_js/build/pdf.js"></script>
   <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-bundle.js" type="text/javascript"></script>
   <script type="text/javascript" src="js/MurolAdmin.js"></script>
   <script type='text/javascript' src='js/PortFunnel.js'></script>
   <script type='text/javascript' src='js/PortFunnel/LocalStorage.js'></script>
+  <script type="text/javascript" src="js/trix.js"></script>
+  <style type="text/css">
+    trix-editor .attachment__metadata {
+      display: none;
+    }
+    trix-toolbar .trix-button-group--file-tools{
+      display: none;
+    }
+    
+    /*trix-toolbar .trix-button--icon-attach {
+      display: none;
+    }*/
 
+    trix-toolbar .trix-button--icon-heading-1{
+      display: none;
+    }
+    
+    trix-toolbar [data-trix-attribute='quote'],
+    trix-toolbar [data-trix-attribute='code']{
+      display: none;
+    }
+
+    trix-toolbar .trix-button--icon-link::before {
+  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItZXh0ZXJuYWwtbGluayI+PHBhdGggZD0iTTE4IDEzdjZhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJWOGEyIDIgMCAwIDEgMi0yaDYiPjwvcGF0aD48cG9seWxpbmUgcG9pbnRzPSIxNSAzIDIxIDMgMjEgOSI+PC9wb2x5bGluZT48bGluZSB4MT0iMTAiIHkxPSIxNCIgeDI9IjIxIiB5Mj0iMyI+PC9saW5lPjwvc3ZnPg==); }
+
+  </style>
 
 </head>
 
@@ -407,6 +435,196 @@ function extractCover(dataString){
       a.onload = function(e) {return (e.target.result);}
       a.readAsDataURL(blob);
   }
+
+///////////////////////////////////////////////////////////////////////////////
+  //** Trix config and ports
+
+Trix.config.textAttributes.foregroundColor = {
+  styleProperty: "color",
+  inheritable: 1
+}
+
+Trix.config.textAttributes.backgroundColor = {
+  styleProperty: "background-color",
+  inheritable: 1
+}
+
+Trix.config.textAttributes.textFont = {
+  styleProperty: "font-family",
+  inheritable: 1
+}
+
+Trix.config.textAttributes.span = { tagName: "span" };
+
+Trix.config.blockAttributes.heading1 = {
+  tagName: 'h1',
+  terminal: true,
+  breakOnReturn: true,
+  group: false
+}
+
+Trix.config.blockAttributes.heading2 = {
+  tagName: 'h2',
+  terminal: true,
+  breakOnReturn: true,
+  group: false
+}
+
+Trix.config.blockAttributes.heading3 = {
+  tagName: 'h3',
+  terminal: true,
+  breakOnReturn: true,
+  group: false
+}
+
+
+addEventListener("trix-initialize", function(event) { 
+
+  Trix.config.blockAttributes.default.tagName = 'p';
+
+  var H1buttonHTML = '<button class="trix-button headingButton1" type="button" data-trix-attribute="heading1">T1</button>'
+  var H2buttonHTML = '<button class="trix-button headingButton2" type="button" data-trix-attribute="heading2">T2</button>'
+  var H3buttonHTML = '<button class="trix-button headingButton3" type="button" data-trix-attribute="heading3">T3</button>'
+
+  var headings = "<span>" + H1buttonHTML + H2buttonHTML + H3buttonHTML + "</span>";
+  document.querySelector(".trix-button--icon-bullet-list").insertAdjacentHTML("beforebegin",H3buttonHTML);
+  document.querySelector(".headingButton3").insertAdjacentHTML("beforebegin",H2buttonHTML);
+  document.querySelector(".headingButton2").insertAdjacentHTML("beforebegin",H1buttonHTML);
+  
+  // https://stackoverflow.com/questions/507138/how-do-i-add-a-class-to-a-given-element
+
+  document.querySelector(".trix-button--icon-link").setAttribute("disabled", "");
+  
+  // var element = document.querySelector("trix-editor");
+  // element.editor.setSelectedRange([0, element.editor.getDocument().getLength()]);
+  // element.editor.insertHTML('test');
+  // element.editor.loadHTML('<p>test</p>');
+  
+  // console.log("trix ready");
+
+  app.ports.trixReady.send();
+
+});
+
+app.ports.activateAttribute.subscribe(function(data){
+  var element = document.querySelector("trix-editor");
+  // console.log(data);
+  if(element){
+    element.editor.recordUndoEntry("activate custom attribute: " + data.attribute);
+    element.editor.setSelectedRange([data.selectionStart, data.selectionEnd]);
+    // element.editor.setAttribute("id", "right");
+    
+    // var attachment = element.editor.composition.getAttachmentAtRange(element.editor.getSelectedRange());
+    // if(attachment){
+    //   attachment.setAttribute("id","test");
+    // }
+
+    element.editor.activateAttribute(data.attribute, data.value);
+    sendSelection();
+  }
+});
+
+app.ports.deactivateAttributes.subscribe(function(data){
+  var element = document.querySelector("trix-editor");
+  
+  if(element){
+    element.editor.recordUndoEntry("deactivate attribute");
+    element.editor.setSelectedRange([data.selectionStart, data.selectionEnd]);
+    for (attr of data.attributes) {
+      element.editor.deactivateAttribute(attr);
+    }
+    sendSelection();
+  }
+});
+
+app.ports.insertHtml.subscribe(function(data){
+  var element = document.querySelector("trix-editor");
+  
+  if(element){
+    element.editor.recordUndoEntry("inserting custom html: " + data.tagName);
+    element.editor.setSelectedRange([data.selectionStart, data.selectionEnd]);
+    element.editor.insertHTML(data.html);
+
+    sendSelection();
+  }
+});
+
+app.ports.getSelection.subscribe(function(){
+  sendSelection();
+});
+
+// app.ports.clearTrixEditor.subscribe(function(){
+//   var element = document.querySelector("trix-editor");
+//   if(element){
+//     element.editor.loadHTML('');
+//     console.log("clearing");
+//   }
+// });
+
+// app.ports.saveTrixState.subscribe(function(tool){
+//   var element = document.querySelector("trix-editor");
+//   if(element){
+//     app.ports.trixState.send(
+//       { tool: tool
+//       , state: JSON.stringify(element.editor)
+//       });
+//   }
+// });
+
+// app.ports.loadTrixState.subscribe(function(state){
+//   var element = document.querySelector("trix-editor");
+//   if(element){
+//     element.editor.loadJSON(JSON.parse(state))
+//   }
+// });
+
+// app.ports.swapTrixState.subscribe(function(data){
+//   var element = document.querySelector("trix-editor");
+//   if(element){
+//     app.ports.trixState.send(
+//       { tool: data.toSave
+//       , state: JSON.stringify(element.editor)
+//       });
+//     if (data.toLoad){
+//       element.editor.loadHTML('');
+//       element.editor.loadJSON(JSON.parse(data.toLoad));
+//     } else {
+//       element.editor.loadHTML('');
+//     }
+//   }
+// });
+
+function sendSelection(){
+  var element = document.querySelector("trix-editor");
+  if(element){
+    var selectedRange = element.editor.getSelectedRange(); 
+
+    var attachments = element.editor.getDocument().getAttachments();
+
+    var ids = [];
+
+    for (i in attachments){
+      ids[i] = attachments[i]["id"];
+    } 
+
+    var selection = 
+      { start : selectedRange[0]
+      , end : selectedRange[1]
+      , attrs : getAttachmentId(element.editor, selectedRange) || element.editor.getDocument().getCommonAttributesAtRange(selectedRange)
+      , attachmentsIds: ids
+      };
+    app.ports.selection.send(selection);
+  }
+};
+
+function getAttachmentId(editor, range){
+  var attachment = editor.composition.getAttachmentAtRange(range);
+  if (attachment){
+    return {id : attachment["id"]};
+  }
+}
+
+
 
 
   </script>
