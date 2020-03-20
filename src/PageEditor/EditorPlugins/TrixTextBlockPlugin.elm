@@ -67,7 +67,6 @@ type alias Model msg =
     , output : List TextBlockElement
     , nextUid : Int
     , wholeTextBlocAttr : List DocAttribute
-    , headingLevel : Maybe Int
     , openedWidget : Maybe Widget
     , externalMsg : Msg -> msg
     }
@@ -131,7 +130,8 @@ type Msg
     | SetBackgroundColor Bool String
     | SetFont Bool String
     | SetFontSize Bool Int
-    | SetGlobalAttribute Bool ( String, String )
+    | SetAlignMent Document.DocAttribute
+      --| SetGlobalAttribute Bool ( String, String )
     | UndoStyle
     | Close
     | SaveAndQuit
@@ -151,10 +151,14 @@ init attrs mbInput externalMsg =
             mbInput
                 |> Maybe.withDefault []
       , nextUid = 0
-      , wholeTextBlocAttr = attrs
+      , wholeTextBlocAttr =
+            if attrs == [] then
+                [ Font "Arial"
+                , FontSize 16
+                ]
 
-      --, globalAttributes = Dict.empty
-      , headingLevel = Nothing
+            else
+                attrs
       , openedWidget = Nothing
       , externalMsg = externalMsg
       }
@@ -453,12 +457,42 @@ update config msg model =
                         ( model, Cmd.none, Nothing )
 
         SetFontSize isWholeTextAttr n ->
-            ( model, Cmd.none, Nothing )
+            if isWholeTextAttr then
+                ( { model
+                    | wholeTextBlocAttr =
+                        updateAttrs isFontAttr FontSize n model.wholeTextBlocAttr
+                  }
+                , Cmd.batch
+                    []
+                , Nothing
+                )
 
-        SetGlobalAttribute toogle attr ->
-            ( model, Cmd.none, Nothing )
+            else
+                case model.selection of
+                    Just { start, end, attrs } ->
+                        let
+                            data =
+                                E.object
+                                    [ ( "selectionStart", E.int start )
+                                    , ( "selectionEnd", E.int end )
+                                    , ( "attribute", E.string "fontSize" )
+                                    , ( "value", E.string <| String.fromInt n ++ "px" )
+                                    ]
+                        in
+                        ( { model | openedWidget = Nothing }
+                        , activateAttribute data
+                        , Nothing
+                        )
 
-        --( { model | globalAttributes = updateAttribute toogle attr model.globalAttributes }, Cmd.none )
+                    _ ->
+                        ( model, Cmd.none, Nothing )
+
+        SetAlignMent a ->
+            ( { model | wholeTextBlocAttr = setAlignMent model.wholeTextBlocAttr a }
+            , Cmd.none
+            , Nothing
+            )
+
         UndoStyle ->
             case model.selection of
                 Just { start, end, attrs } ->
@@ -654,9 +688,7 @@ trixEditor config model =
         [ customToolbar config model
         , Element.map model.externalMsg <|
             paragraph
-                [ Font.family [ Font.typeface "Arial" ]
-                , Font.size 16
-                , width (px 700)
+                [ width (px 700)
                 ]
                 [ html <|
                     Html.div
@@ -722,6 +754,10 @@ customToolbar config model =
         textFont =
             Maybe.andThen (Dict.get "textFont") selectionAttrs
 
+        fontSize =
+            Maybe.andThen (Dict.get "fontSize") selectionAttrs
+                |> Maybe.andThen String.toInt
+
         href =
             Maybe.andThen (Dict.get "href") selectionAttrs
 
@@ -731,6 +767,19 @@ customToolbar config model =
                 , HtmlAttr.selected (selectedFont == (Just <| f))
                 ]
                 [ Html.text f ]
+
+        fontSizeOptionView selectedSize fs =
+            let
+                selected =
+                    String.toInt fs
+                        |> Maybe.map (\fs_ -> selectedSize == (Just <| fs_))
+                        |> Maybe.withDefault False
+            in
+            Html.option
+                [ HtmlAttr.value fs
+                , HtmlAttr.selected selected
+                ]
+                [ Html.text fs ]
     in
     row
         [ spacing 10
@@ -785,13 +834,35 @@ customToolbar config model =
                         )
                 )
         , Element.map model.externalMsg <|
+            el
+                []
+                (html <|
+                    Html.select
+                        [ HtmlEvents.onInput
+                            (\n ->
+                                String.toInt n
+                                    |> Maybe.withDefault 16
+                                    |> SetFontSize (selectionCollapsed == Just True || selectionCollapsed == Nothing)
+                            )
+
+                        --, HtmlAttr.disabled (not <| canCustomStyleSelection model)
+                        ]
+                        (List.map
+                            (fontSizeOptionView
+                                fontSize
+                            )
+                            fontSizes
+                        )
+                )
+        , Element.map model.externalMsg <|
             row
                 [ spacing 10 ]
                 [ Input.button
                     (buttonStyle canUpdateGlobalAttr)
                     { onPress =
                         if canUpdateGlobalAttr then
-                            Just (SetGlobalAttribute True ( "text-align", "left" ))
+                            Just (SetAlignMent FontAlignLeft)
+                            --Just (SetGlobalAttribute True ( "text-align", "left" ))
 
                         else
                             Nothing
@@ -802,7 +873,8 @@ customToolbar config model =
                     (buttonStyle canUpdateGlobalAttr)
                     { onPress =
                         if canUpdateGlobalAttr then
-                            Just (SetGlobalAttribute True ( "text-align", "center" ))
+                            Just (SetAlignMent Center)
+                            --Just (SetGlobalAttribute True ( "text-align", "center" ))
 
                         else
                             Nothing
@@ -813,7 +885,8 @@ customToolbar config model =
                     (buttonStyle canUpdateGlobalAttr)
                     { onPress =
                         if canUpdateGlobalAttr then
-                            Just (SetGlobalAttribute True ( "text-align", "right" ))
+                            Just (SetAlignMent FontAlignRight)
+                            --Just (SetGlobalAttribute True ( "text-align", "right" ))
 
                         else
                             Nothing
@@ -824,7 +897,8 @@ customToolbar config model =
                     (buttonStyle canUpdateGlobalAttr)
                     { onPress =
                         if canUpdateGlobalAttr then
-                            Just (SetGlobalAttribute True ( "text-align", "justify" ))
+                            Just (SetAlignMent Justify)
+                            --Just (SetGlobalAttribute True ( "text-align", "justify" ))
 
                         else
                             Nothing
@@ -883,11 +957,15 @@ textBlockPreview model config =
         )
 
 
-newsEditorView config model =
+newsEditorView config renderConfig model =
     column
         []
-        [ --embeddedStyleSheet config renderConfig model
-          editor config model
+        [ embeddedStyleSheet config
+            renderConfig
+            model
+        , editor
+            config
+            model
         ]
 
 
@@ -960,22 +1038,22 @@ textBlockElementToNode : { config | pageTreeEditor : PageTreeEditor.Model msg } 
 textBlockElementToNode config tbe =
     case tbe of
         Paragraph attrs prims ->
-            [ Element "p" (List.concatMap docAttrToCss attrs) (List.map (textBlockPrimToNode config) prims) ]
+            [ Element "p" (styleAttr attrs) (List.map (textBlockPrimToNode config) prims) ]
 
         UList attrs lis ->
             [ Element "ul"
-                (List.concatMap docAttrToCss attrs)
+                (styleAttr attrs)
                 (List.map (\li -> Element "li" [] (List.map (textBlockPrimToNode config) li)) lis)
             ]
 
         Heading attrs ( 1, s ) ->
-            [ Element "h1" (List.concatMap docAttrToCss attrs) [ Html.Parser.Text s ] ]
+            [ Element "h1" (styleAttr attrs) [ Html.Parser.Text s ] ]
 
         Heading attrs ( 2, s ) ->
-            [ Element "h2" (List.concatMap docAttrToCss attrs) [ Html.Parser.Text s ] ]
+            [ Element "h2" (styleAttr attrs) [ Html.Parser.Text s ] ]
 
         Heading attrs ( 3, s ) ->
-            [ Element "h3" (List.concatMap docAttrToCss attrs) [ Html.Parser.Text s ] ]
+            [ Element "h3" (styleAttr attrs) [ Html.Parser.Text s ] ]
 
         TBPrimitive prim ->
             [ textBlockPrimToNode config prim ]
@@ -995,7 +1073,7 @@ textBlockPrimToNode config tbp =
             Html.Parser.Text s
 
         Document.Text attrs s ->
-            Element "span" (List.concatMap docAttrToCss attrs) [ Html.Parser.Text s ]
+            Element "span" (styleAttr attrs) [ Html.Parser.Text s ]
 
         Link attrs { targetBlank, url, label } ->
             let
@@ -1011,7 +1089,7 @@ textBlockPrimToNode config tbp =
                             url
             in
             Element "a"
-                (List.concatMap docAttrToCss attrs
+                (styleAttr attrs
                     ++ [ ( "href", url_ )
                        ]
                     ++ (if targetBlank then
@@ -1080,6 +1158,14 @@ cssToDocAttr attr =
 
         ( attribute, value ) ->
             Other ( attribute, value )
+
+
+styleAttr : List Document.DocAttribute -> List ( String, String )
+styleAttr attrs =
+    List.concatMap docAttrToCss attrs
+        |> List.map (\( a, v ) -> a ++ ":" ++ v ++ ";")
+        |> String.join " "
+        |> (\r -> [ ( "style", r ) ])
 
 
 docAttrToCss : Document.DocAttribute -> List ( String, String )
@@ -1921,3 +2007,15 @@ isFontSizeAttr a =
 
         _ ->
             False
+
+
+setAlignMent : List Document.DocAttribute -> Document.DocAttribute -> List Document.DocAttribute
+setAlignMent attrs alignment =
+    let
+        alignments =
+            [ FontAlignRight, FontAlignLeft, Center, Justify ]
+
+        attrs_ =
+            List.filter (\attr -> not <| List.member attr alignments) attrs
+    in
+    alignment :: attrs_

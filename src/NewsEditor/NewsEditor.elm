@@ -861,7 +861,7 @@ newsEditorView config model =
                         )
 
                   else
-                    TextBlockPlugin.newsEditorView textBlockConfig model.textBlockPlugin
+                    TextBlockPlugin.newsEditorView textBlockConfig (renderConfig model.externalMsg) model.textBlockPlugin
                 ]
             ]
         , column
