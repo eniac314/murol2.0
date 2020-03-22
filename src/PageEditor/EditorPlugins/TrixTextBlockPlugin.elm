@@ -251,7 +251,7 @@ update config msg model =
                             [ ( "selectionStart", E.int 0 )
                             , ( "selectionEnd", E.int 0 )
                             , ( "tagName", E.string "initial load" )
-                            , ( "html", E.string html ) --(Debug.log "" html) )
+                            , ( "html", E.string html )
                             ]
                    )
                 |> insertHtml
@@ -486,7 +486,7 @@ update config msg model =
             if isWholeTextAttr then
                 ( { model
                     | wholeTextBlocAttr =
-                        updateAttrs isFontAttr FontSize n model.wholeTextBlocAttr
+                        updateAttrs isFontSizeAttr FontSize n model.wholeTextBlocAttr
                   }
                 , Cmd.batch
                     []
@@ -721,22 +721,57 @@ customToolbar config model =
         selectionAttrs =
             Maybe.map .attrs model.selection
 
+        wholeTextBlocAttrs =
+            List.concatMap docAttrToCss model.wholeTextBlocAttr
+                |> Dict.fromList
+
         fontColor =
-            Maybe.andThen (Dict.get "foregroundColor") selectionAttrs
-                |> Maybe.map (String.dropLeft 1)
-                |> Maybe.andThen (\hex -> Dict.get hex webColorsReversed)
+            case
+                Maybe.andThen (Dict.get "foregroundColor") selectionAttrs
+                    |> Maybe.andThen parseColor
+            of
+                Just c ->
+                    Just c
+
+                Nothing ->
+                    case
+                        Dict.get "color" wholeTextBlocAttrs
+                            |> Maybe.andThen parseColor
+                    of
+                        Just c ->
+                            Just c
+
+                        Nothing ->
+                            Just "black"
 
         backgroundColor =
-            Maybe.andThen (Dict.get "backgroundColor") selectionAttrs
-                |> Maybe.map (String.dropLeft 1)
-                |> Maybe.andThen (\hex -> Dict.get hex webColorsReversed)
+            case
+                Maybe.andThen (Dict.get "backgroundColor") selectionAttrs
+                    |> Maybe.andThen parseColor
+            of
+                Just c ->
+                    Just c
+
+                Nothing ->
+                    case
+                        Dict.get "background-color" wholeTextBlocAttrs
+                            |> Maybe.andThen parseColor
+                    of
+                        Just c ->
+                            Just c
+
+                        Nothing ->
+                            Just "white"
 
         textFont =
             Maybe.andThen (Dict.get "textFont") selectionAttrs
+                |> Maybe.withDefault "Arial"
 
         fontSize =
             Maybe.andThen (Dict.get "fontSize") selectionAttrs
+                |> Maybe.map (String.replace "px" "")
                 |> Maybe.andThen String.toInt
+                |> Maybe.withDefault 16
 
         href =
             Maybe.andThen (Dict.get "href") selectionAttrs
@@ -744,7 +779,7 @@ customToolbar config model =
         fontOptionView selectedFont f =
             Html.option
                 [ HtmlAttr.value f
-                , HtmlAttr.selected (selectedFont == (Just <| f))
+                , HtmlAttr.selected (selectedFont == f)
                 ]
                 [ Html.text f ]
 
@@ -752,7 +787,7 @@ customToolbar config model =
             let
                 selected =
                     String.toInt fs
-                        |> Maybe.map (\fs_ -> selectedSize == (Just <| fs_))
+                        |> Maybe.map (\fs_ -> selectedSize == fs_)
                         |> Maybe.withDefault False
             in
             Html.option
@@ -1488,14 +1523,18 @@ colorPicker id isActive colorPickerOpen currentColor openMsg handler label =
             , label =
                 row [ spacing 10 ]
                     [ label
-                    , el
+                    , Keyed.el
                         [ width (px 14)
                         , height (px 14)
                         , Background.color currentColor_
                         , Border.width 1
                         , Border.color (rgb 0 0 0)
                         ]
-                        Element.none
+                        ( Maybe.withDefault "" currentColor
+                        , Element.none
+                        )
+
+                    --, text <| Maybe.withDefault "" currentColor
                     ]
             }
         )
@@ -1722,6 +1761,7 @@ parseRgb s =
     case
         String.dropLeft 4 s
             |> String.dropRight 1
+            |> String.replace " " ""
             |> String.split ","
     of
         r :: g :: b :: [] ->
@@ -1729,6 +1769,42 @@ parseRgb s =
 
         _ ->
             DocColor 0 0 0
+
+
+rgbToHex s =
+    case
+        String.dropLeft 4 s
+            |> String.dropRight 1
+            |> String.replace " " ""
+            |> String.split ","
+            |> List.filterMap String.toInt
+    of
+        r :: g :: b :: [] ->
+            ((String.padLeft 2 '0' <| Hex.toString r)
+                ++ (String.padLeft 2 '0' <| Hex.toString g)
+                ++ (String.padLeft 2 '0' <| Hex.toString b)
+            )
+                |> String.toUpper
+
+        _ ->
+            "000000"
+
+
+parseColor s =
+    case
+        (if String.startsWith "#" s then
+            String.dropLeft 1 s
+
+         else
+            s
+        )
+            |> (\hex -> Dict.get hex webColorsReversed)
+    of
+        Just c ->
+            Just c
+
+        Nothing ->
+            Dict.get (rgbToHex s) webColorsReversed
 
 
 
