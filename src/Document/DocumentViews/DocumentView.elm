@@ -640,7 +640,9 @@ renderTextBlockElement config id tbAttrs tbe =
                                 ++ idStyle styleSheet id
                                 ++ renderAttrs config tbAttrs
                             )
-                            [ Element.html <| r ]
+                            [ embeddedStyleSheet config tbAttrs
+                            , Element.html <| r
+                            ]
                    )
 
 

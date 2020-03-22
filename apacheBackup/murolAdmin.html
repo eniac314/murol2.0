@@ -6,7 +6,7 @@
   
   
   <link rel="stylesheet" type="text/css" href="css/trix.css">
-  <link rel="stylesheet" type="text/css" href="css/reset.css">
+  <!-- <link rel="stylesheet" type="text/css" href="css/reset.css"> -->
 
   <script src="js/pdf_js/build/pdf.js"></script>
   <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-bundle.js" type="text/javascript"></script>
@@ -15,6 +15,15 @@
   <script type='text/javascript' src='js/PortFunnel/LocalStorage.js'></script>
   <script type="text/javascript" src="js/trix.js"></script>
   <style type="text/css">
+    h1, h2, h3{
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+    }
+
     trix-editor .attachment__metadata {
       display: none;
     }
@@ -439,22 +448,54 @@ function extractCover(dataString){
 ///////////////////////////////////////////////////////////////////////////////
   //** Trix config and ports
 
+// Trix.config.textAttributes.style = {
+//   inheritable: 1
+// }
+
+createValueParser = function() {
+  return function(element) {
+    var value;
+    while (element && element.tagName !== "TRIX-EDITOR") {
+      if (value = element.style[this.styleProperty]) {
+        return value;
+      }
+      element = element.parentElement;
+    }
+  };
+};
+
+
 Trix.config.textAttributes.foregroundColor = {
   styleProperty: "color",
-  inheritable: 1
+  inheritable: 1,
+  parser: createValueParser()
 }
 
 Trix.config.textAttributes.backgroundColor = {
   styleProperty: "background-color",
-  inheritable: 1
+  inheritable: 1,
+  parser: createValueParser()
 }
 
 Trix.config.textAttributes.textFont = {
   styleProperty: "font-family",
-  inheritable: 1
+  inheritable: 1,
+  parser: createValueParser()
 }
 
-Trix.config.textAttributes.span = { tagName: "span" };
+Trix.config.textAttributes.fontSize = {
+  styleProperty: "font-size",
+  inheritable: 1,
+  parser: createValueParser()
+}
+
+Trix.config.textAttributes.span = 
+  { tagName: "span" 
+  // , parser: (element) => {
+  //     element.allowedAttributes = 'style';
+  //   }
+  };
+
 
 Trix.config.blockAttributes.heading1 = {
   tagName: 'h1',
@@ -553,47 +594,6 @@ app.ports.getSelection.subscribe(function(){
   sendSelection();
 });
 
-// app.ports.clearTrixEditor.subscribe(function(){
-//   var element = document.querySelector("trix-editor");
-//   if(element){
-//     element.editor.loadHTML('');
-//     console.log("clearing");
-//   }
-// });
-
-// app.ports.saveTrixState.subscribe(function(tool){
-//   var element = document.querySelector("trix-editor");
-//   if(element){
-//     app.ports.trixState.send(
-//       { tool: tool
-//       , state: JSON.stringify(element.editor)
-//       });
-//   }
-// });
-
-// app.ports.loadTrixState.subscribe(function(state){
-//   var element = document.querySelector("trix-editor");
-//   if(element){
-//     element.editor.loadJSON(JSON.parse(state))
-//   }
-// });
-
-// app.ports.swapTrixState.subscribe(function(data){
-//   var element = document.querySelector("trix-editor");
-//   if(element){
-//     app.ports.trixState.send(
-//       { tool: data.toSave
-//       , state: JSON.stringify(element.editor)
-//       });
-//     if (data.toLoad){
-//       element.editor.loadHTML('');
-//       element.editor.loadJSON(JSON.parse(data.toLoad));
-//     } else {
-//       element.editor.loadHTML('');
-//     }
-//   }
-// });
-
 function sendSelection(){
   var element = document.querySelector("trix-editor");
   if(element){
@@ -627,7 +627,7 @@ function getAttachmentId(editor, range){
 
 
 
-  </script>
+</script>
   
 
   

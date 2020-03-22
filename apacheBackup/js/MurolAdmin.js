@@ -519,11 +519,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.bL.dB === region.by.dB)
+	if (region.bo.dB === region.a4.dB)
 	{
-		return 'on line ' + region.bL.dB;
+		return 'on line ' + region.bo.dB;
 	}
-	return 'on lines ' + region.bL.dB + ' through ' + region.by.dB;
+	return 'on lines ' + region.bo.dB + ' through ' + region.a4.dB;
 }
 
 
@@ -1857,9 +1857,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.jP,
-		impl.ml,
-		impl.lU,
+		impl.jO,
+		impl.mk,
+		impl.lT,
 		function() { return function() {} }
 	);
 });
@@ -2705,8 +2705,8 @@ var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
 		dH: func(record.dH),
-		fN: record.fN,
-		fA: record.fA
+		fM: record.fM,
+		fz: record.fz
 	}
 });
 
@@ -2975,10 +2975,10 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 
 		var value = result.a;
 		var message = !tag ? value : tag < 3 ? value.a : value.dH;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.fN;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.fM;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.fA) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.fz) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3928,11 +3928,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.jP,
-		impl.ml,
-		impl.lU,
+		impl.jO,
+		impl.mk,
+		impl.lT,
 		function(sendToApp, initialModel) {
-			var view = impl.mq;
+			var view = impl.mp;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3964,12 +3964,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.jP,
-		impl.ml,
-		impl.lU,
+		impl.jO,
+		impl.mk,
+		impl.lT,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.fI && impl.fI(sendToApp)
-			var view = impl.mq;
+			var divertHrefToApp = impl.fH && impl.fH(sendToApp)
+			var view = impl.mp;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -3982,7 +3982,7 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.fQ) && (_VirtualDom_doc.title = title = doc.fQ);
+				(title !== doc.fP) && (_VirtualDom_doc.title = title = doc.fP);
 			});
 		}
 	);
@@ -4038,12 +4038,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.kI;
-	var onUrlRequest = impl.kJ;
+	var onUrlChange = impl.kH;
+	var onUrlRequest = impl.kI;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		fI: function(sendToApp)
+		fH: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4059,9 +4059,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.hc === next.hc
-							&& curr.gA === next.gA
-							&& curr.g8.a === next.g8.a
+							&& curr.hb === next.hb
+							&& curr.gy === next.gy
+							&& curr.g7.a === next.g7.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4069,13 +4069,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		jP: function(flags)
+		jO: function(flags)
 		{
-			return A3(impl.jP, flags, _Browser_getUrl(), key);
+			return A3(impl.jO, flags, _Browser_getUrl(), key);
 		},
-		mq: impl.mq,
-		ml: impl.ml,
-		lU: impl.lU
+		mp: impl.mp,
+		mk: impl.mk,
+		lT: impl.lT
 	});
 }
 
@@ -4141,17 +4141,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { jz: 'hidden', is: 'visibilitychange' }
+		? { jy: 'hidden', ir: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { jz: 'mozHidden', is: 'mozvisibilitychange' }
+		? { jy: 'mozHidden', ir: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { jz: 'msHidden', is: 'msvisibilitychange' }
+		? { jy: 'msHidden', ir: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { jz: 'webkitHidden', is: 'webkitvisibilitychange' }
-		: { jz: 'hidden', is: 'visibilitychange' };
+		? { jy: 'webkitHidden', ir: 'webkitvisibilitychange' }
+		: { jy: 'hidden', ir: 'visibilitychange' };
 }
 
 
@@ -4232,12 +4232,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		hm: _Browser_getScene(),
-		hK: {
-			aj: _Browser_window.pageXOffset,
-			mw: _Browser_window.pageYOffset,
-			mu: _Browser_doc.documentElement.clientWidth,
-			jy: _Browser_doc.documentElement.clientHeight
+		hl: _Browser_getScene(),
+		hJ: {
+			ak: _Browser_window.pageXOffset,
+			mv: _Browser_window.pageYOffset,
+			mt: _Browser_doc.documentElement.clientWidth,
+			jx: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4247,8 +4247,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		mu: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		jy: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		mt: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		jx: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4271,15 +4271,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			hm: {
-				mu: node.scrollWidth,
-				jy: node.scrollHeight
+			hl: {
+				mt: node.scrollWidth,
+				jx: node.scrollHeight
 			},
-			hK: {
-				aj: node.scrollLeft,
-				mw: node.scrollTop,
-				mu: node.clientWidth,
-				jy: node.clientHeight
+			hJ: {
+				ak: node.scrollLeft,
+				mv: node.scrollTop,
+				mt: node.clientWidth,
+				jx: node.clientHeight
 			}
 		};
 	});
@@ -4309,18 +4309,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			hm: _Browser_getScene(),
-			hK: {
-				aj: x,
-				mw: y,
-				mu: _Browser_doc.documentElement.clientWidth,
-				jy: _Browser_doc.documentElement.clientHeight
+			hl: _Browser_getScene(),
+			hJ: {
+				ak: x,
+				mv: y,
+				mt: _Browser_doc.documentElement.clientWidth,
+				jx: _Browser_doc.documentElement.clientHeight
 			},
-			gh: {
-				aj: x + rect.left,
-				mw: y + rect.top,
-				mu: rect.width,
-				jy: rect.height
+			gg: {
+				ak: x + rect.left,
+				mv: y + rect.top,
+				mt: rect.width,
+				jx: rect.height
 			}
 		};
 	});
@@ -4411,17 +4411,17 @@ var _Http_toTask = F3(function(router, toTask, request)
 	return _Scheduler_binding(function(callback)
 	{
 		function done(response) {
-			callback(toTask(request.dv.a(response)));
+			callback(toTask(request.du.a(response)));
 		}
 
 		var xhr = new XMLHttpRequest();
 		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
 		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
-		xhr.addEventListener('load', function() { done(_Http_toResponse(request.dv.b, xhr)); });
-		$elm$core$Maybe$isJust(request.hD) && _Http_track(router, xhr, request.hD.a);
+		xhr.addEventListener('load', function() { done(_Http_toResponse(request.du.b, xhr)); });
+		$elm$core$Maybe$isJust(request.hC) && _Http_track(router, xhr, request.hC.a);
 
 		try {
-			xhr.open(request.gP, request.d0, true);
+			xhr.open(request.gO, request.d0, true);
 		} catch (e) {
 			return done($elm$http$Http$BadUrl_(request.d0));
 		}
@@ -4440,13 +4440,13 @@ var _Http_toTask = F3(function(router, toTask, request)
 
 function _Http_configureRequest(xhr, request)
 {
-	for (var headers = request.gv; headers.b; headers = headers.b) // WHILE_CONS
+	for (var headers = request.gu; headers.b; headers = headers.b) // WHILE_CONS
 	{
 		xhr.setRequestHeader(headers.a.a, headers.a.b);
 	}
-	xhr.timeout = request.hA.a || 0;
-	xhr.responseType = request.dv.d;
-	xhr.withCredentials = request.h1;
+	xhr.timeout = request.hz.a || 0;
+	xhr.responseType = request.du.d;
+	xhr.withCredentials = request.h0;
 }
 
 
@@ -4468,9 +4468,9 @@ function _Http_toMetadata(xhr)
 {
 	return {
 		d0: xhr.responseURL,
-		lN: xhr.status,
-		lO: xhr.statusText,
-		gv: _Http_parseHeaders(xhr.getAllResponseHeaders())
+		lM: xhr.status,
+		lN: xhr.statusText,
+		gu: _Http_parseHeaders(xhr.getAllResponseHeaders())
 	};
 }
 
@@ -4565,15 +4565,15 @@ function _Http_track(router, xhr, tracker)
 	xhr.upload.addEventListener('progress', function(event) {
 		if (xhr.c) { return; }
 		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
-			ly: event.loaded,
-			fK: event.total
+			lx: event.loaded,
+			fJ: event.total
 		}))));
 	});
 	xhr.addEventListener('progress', function(event) {
 		if (xhr.c) { return; }
 		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
-			k2: event.loaded,
-			fK: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
+			k1: event.loaded,
+			fJ: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
 		}))));
 	});
 }
@@ -4622,8 +4622,8 @@ var _Regex_never = /.^/;
 var _Regex_fromStringWith = F2(function(options, string)
 {
 	var flags = 'g';
-	if (options.kl) { flags += 'm'; }
-	if (options.$9) { flags += 'i'; }
+	if (options.kk) { flags += 'm'; }
+	if (options.im) { flags += 'i'; }
 
 	try
 	{
@@ -4894,6 +4894,23 @@ function _File_toUrl(blob)
 
 
 
+function _Url_percentEncode(string)
+{
+	return encodeURIComponent(string);
+}
+
+function _Url_percentDecode(string)
+{
+	try
+	{
+		return $elm$core$Maybe$Just(decodeURIComponent(string));
+	}
+	catch (e)
+	{
+		return $elm$core$Maybe$Nothing;
+	}
+}
+
 
 
 // STRINGS
@@ -5022,24 +5039,7 @@ var _Parser_findSubString = F5(function(smallString, offset, row, col, bigString
 
 	return _Utils_Tuple3(newOffset, row, col);
 });
-
-
-function _Url_percentEncode(string)
-{
-	return encodeURIComponent(string);
-}
-
-function _Url_percentDecode(string)
-{
-	try
-	{
-		return $elm$core$Maybe$Just(decodeURIComponent(string));
-	}
-	catch (e)
-	{
-		return $elm$core$Maybe$Nothing;
-	}
-}var $elm$core$List$cons = _List_cons;
+var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
 	function (func, baseCase, _v0) {
@@ -5544,7 +5544,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {go: fragment, gA: host, J: path, g8: port_, hc: protocol, hd: query};
+		return {gn: fragment, gy: host, J: path, g7: port_, hb: protocol, hc: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5890,7 +5890,7 @@ var $author$project$Auth$AuthPlugin$decodeLoginResult = A3(
 	F2(
 		function (a, b) {
 			return $author$project$Auth$AuthPlugin$LoggedIn(
-				{fG: b, bP: a});
+				{fF: b, bP: a});
 		}),
 	A2($elm$json$Json$Decode$field, 'username', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'sessionId', $elm$json$Json$Decode$string));
@@ -6484,7 +6484,7 @@ var $elm$http$Http$resolve = F2(
 			case 3:
 				var metadata = response.a;
 				return $elm$core$Result$Err(
-					$elm$http$Http$BadStatus(metadata.lN));
+					$elm$http$Http$BadStatus(metadata.lM));
 			default:
 				var body = response.b;
 				return A2(
@@ -6512,7 +6512,7 @@ var $elm$http$Http$Request = function (a) {
 };
 var $elm$http$Http$State = F2(
 	function (reqs, subs) {
-		return {hg: reqs, hw: subs};
+		return {hf: reqs, hv: subs};
 	});
 var $elm$http$Http$init = $elm$core$Task$succeed(
 	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
@@ -6556,7 +6556,7 @@ var $elm$http$Http$updateReqs = F3(
 					return A2(
 						$elm$core$Task$andThen,
 						function (pid) {
-							var _v4 = req.hD;
+							var _v4 = req.hC;
 							if (_v4.$ === 1) {
 								return A3($elm$http$Http$updateReqs, router, otherCmds, reqs);
 							} else {
@@ -6586,7 +6586,7 @@ var $elm$http$Http$onEffects = F4(
 				return $elm$core$Task$succeed(
 					A2($elm$http$Http$State, reqs, subs));
 			},
-			A3($elm$http$Http$updateReqs, router, cmds, state.hg));
+			A3($elm$http$Http$updateReqs, router, cmds, state.hf));
 	});
 var $elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
@@ -6629,7 +6629,7 @@ var $elm$http$Http$onSelfMsg = F3(
 				A2(
 					$elm$core$List$filterMap,
 					A3($elm$http$Http$maybeSend, router, tracker, progress),
-					state.hw)));
+					state.hv)));
 	});
 var $elm$http$Http$Cancel = function (a) {
 	return {$: 0, a: a};
@@ -6643,13 +6643,13 @@ var $elm$http$Http$cmdMap = F2(
 			var r = cmd.a;
 			return $elm$http$Http$Request(
 				{
-					h1: r.h1,
+					h0: r.h0,
 					eY: r.eY,
-					dv: A2(_Http_mapExpect, func, r.dv),
-					gv: r.gv,
-					gP: r.gP,
-					hA: r.hA,
-					hD: r.hD,
+					du: A2(_Http_mapExpect, func, r.du),
+					gu: r.gu,
+					gO: r.gO,
+					hz: r.hz,
+					hC: r.hC,
 					d0: r.d0
 				});
 		}
@@ -6673,24 +6673,24 @@ var $elm$http$Http$subscription = _Platform_leaf('Http');
 var $elm$http$Http$request = function (r) {
 	return $elm$http$Http$command(
 		$elm$http$Http$Request(
-			{h1: false, eY: r.eY, dv: r.dv, gv: r.gv, gP: r.gP, hA: r.hA, hD: r.hD, d0: r.d0}));
+			{h0: false, eY: r.eY, du: r.du, gu: r.gu, gO: r.gO, hz: r.hz, hC: r.hC, d0: r.d0}));
 };
 var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
-		{eY: $elm$http$Http$emptyBody, dv: r.dv, gv: _List_Nil, gP: 'GET', hA: $elm$core$Maybe$Nothing, hD: $elm$core$Maybe$Nothing, d0: r.d0});
+		{eY: $elm$http$Http$emptyBody, du: r.du, gu: _List_Nil, gO: 'GET', hz: $elm$core$Maybe$Nothing, hC: $elm$core$Maybe$Nothing, d0: r.d0});
 };
 var $author$project$Auth$AuthPlugin$checkLogin = $elm$http$Http$get(
 	{
-		dv: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$LoginChecked, $author$project$Auth$AuthPlugin$decodeLoginResult),
+		du: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$LoginChecked, $author$project$Auth$AuthPlugin$decodeLoginResult),
 		d0: 'login.php'
 	});
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $author$project$Auth$AuthPlugin$init = function (externalMsg) {
 	return _Utils_Tuple2(
 		{
-			dt: '',
+			ds: '',
 			bY: externalMsg,
-			bd: $author$project$Auth$AuthPlugin$LoggedOut,
+			be: $author$project$Auth$AuthPlugin$LoggedOut,
 			cd: '',
 			z: $author$project$Auth$AuthPlugin$LoginMode(1),
 			bP: ''
@@ -6706,7 +6706,7 @@ var $author$project$FileExplorer$FileExplorer$Regular = 3;
 var $author$project$Internals$ToolHelpers$ToolLoadingWaiting = {$: 0};
 var $author$project$FileExplorer$FileExplorer$init = F2(
 	function (root, externalMsg) {
-		return {dr: 3, ct: 0, ds: 0, bT: false, eZ: false, bt: $elm$core$Maybe$Nothing, e6: '', c1: $elm$core$Maybe$Nothing, aN: $elm$core$Maybe$Nothing, aO: 0, aP: $elm$core$Maybe$Nothing, ej: $elm$core$Maybe$Nothing, bY: externalMsg, b0: $elm$core$Dict$empty, em: $elm$core$Dict$empty, cE: 0, eo: $elm$core$Maybe$Nothing, dw: 1, bE: $elm$core$Maybe$Nothing, b4: $author$project$Internals$ToolHelpers$ToolLoadingWaiting, F: _List_Nil, b5: 0, aV: $elm$core$Maybe$Nothing, aW: $elm$core$Maybe$Nothing, bF: $elm$core$Maybe$Nothing, db: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, b8: false, b9: false, fw: false, be: '', a_: $elm$core$Dict$empty, df: _List_Nil, bI: '', Y: root, n: $elm$core$Maybe$Nothing, dj: 100, i: $elm$core$Dict$empty};
+		return {dq: 3, ct: 0, dr: 0, bT: false, eZ: false, bv: $elm$core$Maybe$Nothing, e6: '', c1: $elm$core$Maybe$Nothing, aN: $elm$core$Maybe$Nothing, aO: 0, aP: $elm$core$Maybe$Nothing, ej: $elm$core$Maybe$Nothing, bY: externalMsg, b0: $elm$core$Dict$empty, em: $elm$core$Dict$empty, cE: 0, eo: $elm$core$Maybe$Nothing, dw: 1, bF: $elm$core$Maybe$Nothing, b4: $author$project$Internals$ToolHelpers$ToolLoadingWaiting, F: _List_Nil, b5: 0, aV: $elm$core$Maybe$Nothing, aW: $elm$core$Maybe$Nothing, bG: $elm$core$Maybe$Nothing, da: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, b8: false, b9: false, fv: false, bf: '', a_: $elm$core$Dict$empty, de: _List_Nil, bJ: '', Z: root, o: $elm$core$Maybe$Nothing, di: 100, i: $elm$core$Dict$empty};
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$PreviewFiche = 0;
 var $elm$core$Set$Set_elm_builtin = $elm$core$Basics$identity;
@@ -6714,56 +6714,57 @@ var $elm$core$Set$empty = $elm$core$Dict$empty;
 var $elm$time$Time$Posix = $elm$core$Basics$identity;
 var $elm$time$Time$millisToPosix = $elm$core$Basics$identity;
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyFiche = {
-	hU: '',
+	hT: '',
 	cZ: _List_Nil,
 	fa: _List_Nil,
-	i5: _List_Nil,
-	jf: $elm$core$Maybe$Nothing,
+	i4: _List_Nil,
+	je: $elm$core$Maybe$Nothing,
 	N: _List_Nil,
 	dz: $elm$time$Time$millisToPosix(0),
-	j5: _List_Nil,
-	kp: _List_Nil,
-	kC: '',
-	kO: $elm$core$Maybe$Nothing,
+	j4: _List_Nil,
+	ko: _List_Nil,
+	kB: '',
+	kN: $elm$core$Maybe$Nothing,
 	dO: $elm$core$Maybe$Nothing,
-	k1: {gi: $elm$core$Maybe$Nothing, lL: $elm$core$Maybe$Nothing},
-	k4: $elm$core$Maybe$Nothing,
-	la: _List_Nil,
-	lF: $elm$core$Maybe$Nothing,
-	l0: $elm$core$Maybe$Nothing,
-	fT: $elm$core$Maybe$Nothing,
-	ms: ''
+	k0: {gh: $elm$core$Maybe$Nothing, lK: $elm$core$Maybe$Nothing},
+	k3: $elm$core$Maybe$Nothing,
+	k9: _List_Nil,
+	lE: $elm$core$Maybe$Nothing,
+	l$: $elm$core$Maybe$Nothing,
+	fS: $elm$core$Maybe$Nothing,
+	mr: ''
 };
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$init = function (externalMsg) {
 	return _Utils_Tuple2(
 		{
+			hO: $elm$core$Maybe$Nothing,
 			hP: $elm$core$Maybe$Nothing,
-			hQ: $elm$core$Maybe$Nothing,
-			hR: $elm$core$Set$empty,
+			hQ: $elm$core$Set$empty,
+			$9: $elm$core$Maybe$Nothing,
 			io: $elm$core$Maybe$Nothing,
-			ip: $elm$core$Maybe$Nothing,
 			cZ: $elm$core$Set$empty,
-			iQ: $elm$time$Time$millisToPosix(0),
+			iP: $elm$time$Time$millisToPosix(0),
 			e6: _List_Nil,
-			i0: $elm$core$Maybe$Nothing,
-			i2: false,
-			i6: $elm$core$Maybe$Nothing,
-			jb: $elm$core$Maybe$Nothing,
+			i$: $elm$core$Maybe$Nothing,
+			i1: false,
+			i5: $elm$core$Maybe$Nothing,
+			ja: $elm$core$Maybe$Nothing,
 			bY: externalMsg,
-			jg: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyFiche,
-			jh: $elm$core$Dict$empty,
+			jf: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyFiche,
+			jg: $elm$core$Dict$empty,
+			jZ: $elm$core$Maybe$Nothing,
 			j_: $elm$core$Maybe$Nothing,
-			j$: $elm$core$Maybe$Nothing,
+			j$: false,
 			j0: false,
-			j1: false,
-			j2: _List_Nil,
-			j4: $elm$core$Maybe$Nothing,
+			j1: _List_Nil,
+			j3: $elm$core$Maybe$Nothing,
 			b4: $author$project$Internals$ToolHelpers$ToolLoadingWaiting,
-			j9: _List_Nil,
-			kn: $elm$core$Maybe$Nothing,
-			k9: $elm$core$Maybe$Nothing,
-			lc: 0,
+			j8: _List_Nil,
+			km: $elm$core$Maybe$Nothing,
+			k8: $elm$core$Maybe$Nothing,
+			lb: 0,
+			ll: $elm$core$Maybe$Nothing,
 			lm: $elm$core$Maybe$Nothing,
 			ln: $elm$core$Maybe$Nothing,
 			lo: $elm$core$Maybe$Nothing,
@@ -6775,8 +6776,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$init = functio
 			lu: $elm$core$Maybe$Nothing,
 			lv: $elm$core$Maybe$Nothing,
 			lw: $elm$core$Maybe$Nothing,
-			lx: $elm$core$Maybe$Nothing,
-			mr: false
+			mq: false
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -6786,15 +6786,15 @@ var $author$project$Help$Help$GotPages = function (a) {
 var $author$project$Help$Help$helpPagesData = _List_fromArray(
 	[
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(0, 'images/notice/Diapositive1.JPG')
 			]),
 		a: 'root',
-		fQ: 'Notice éditeur murol.fr'
+		fP: 'Notice éditeur murol.fr'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive2.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive3.JPG'),
@@ -6802,48 +6802,48 @@ var $author$project$Help$Help$helpPagesData = _List_fromArray(
 				_Utils_Tuple2(4, 'images/notice/Diapositive5.JPG')
 			]),
 		a: 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c',
-		fQ: 'Introduction'
+		fP: 'Introduction'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive6.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive7.JPG')
 			]),
 		a: '7f766d94-79ec-4856-8e2e-19216dbe0c91',
-		fQ: 'Actualités'
+		fP: 'Actualités'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive8.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive9.JPG'),
 				_Utils_Tuple2(3, 'images/notice/Diapositive10.JPG')
 			]),
 		a: '51edfc29-3bfa-4205-ae65-f1ac667fedc8',
-		fQ: 'Blocs de texte'
+		fP: 'Blocs de texte'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive11.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive12.JPG'),
 				_Utils_Tuple2(3, 'images/notice/Diapositive13.JPG')
 			]),
 		a: 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7',
-		fQ: 'Liens'
+		fP: 'Liens'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive14.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive15.JPG')
 			]),
 		a: 'c75dccc8-43bc-44df-afd7-13fd68f23e23',
-		fQ: 'Explorateur de fichiers'
+		fP: 'Explorateur de fichiers'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive16.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive17.JPG'),
@@ -6853,10 +6853,10 @@ var $author$project$Help$Help$helpPagesData = _List_fromArray(
 				_Utils_Tuple2(6, 'images/notice/Diapositive18.JPG')
 			]),
 		a: 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c',
-		fQ: 'Editeur de page'
+		fP: 'Editeur de page'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive18.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive18.JPG'),
@@ -6868,17 +6868,17 @@ var $author$project$Help$Help$helpPagesData = _List_fromArray(
 				_Utils_Tuple2(8, 'images/notice/Diapositive18.JPG')
 			]),
 		a: '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9',
-		fQ: 'Nouvelle cellule'
+		fP: 'Nouvelle cellule'
 	},
 		{
-		iJ: _List_fromArray(
+		iI: _List_fromArray(
 			[
 				_Utils_Tuple2(1, 'images/notice/Diapositive18.JPG'),
 				_Utils_Tuple2(2, 'images/notice/Diapositive18.JPG'),
 				_Utils_Tuple2(3, 'images/notice/Diapositive18.JPG')
 			]),
 		a: 'b75e18b9-b962-4c18-91c3-c5134aae0bbd',
-		fQ: 'Repertoire géneral'
+		fP: 'Repertoire géneral'
 	}
 	]);
 var $author$project$Help$Help$indexEntriesData = _List_fromArray(
@@ -6886,233 +6886,233 @@ var $author$project$Help$Help$indexEntriesData = _List_fromArray(
 		{
 		a: _Utils_Tuple2(0, 'root'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Notice éditeur murol.fr'
+		fP: 'Notice éditeur murol.fr'
 	},
 		{
 		a: _Utils_Tuple2(0, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Introduction'
+		fP: 'Introduction'
 	},
 		{
 		a: _Utils_Tuple2(1, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c')),
-		fQ: 'Adresse d\'accès à l\'éditeur'
+		fP: 'Adresse d\'accès à l\'éditeur'
 	},
 		{
 		a: _Utils_Tuple2(2, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c')),
-		fQ: 'Identification'
+		fP: 'Identification'
 	},
 		{
 		a: _Utils_Tuple2(3, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c')),
-		fQ: 'Chargement'
+		fP: 'Chargement'
 	},
 		{
 		a: _Utils_Tuple2(4, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'ae7aa3c8-b706-4cb7-948b-7038313b2f0c')),
-		fQ: 'Les differents onglets'
+		fP: 'Les differents onglets'
 	},
 		{
 		a: _Utils_Tuple2(0, '7f766d94-79ec-4856-8e2e-19216dbe0c91'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Actualités'
+		fP: 'Actualités'
 	},
 		{
 		a: _Utils_Tuple2(1, '7f766d94-79ec-4856-8e2e-19216dbe0c91'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '7f766d94-79ec-4856-8e2e-19216dbe0c91')),
-		fQ: 'Editeur d’actualités - écran d’accueil'
+		fP: 'Editeur d’actualités - écran d’accueil'
 	},
 		{
 		a: _Utils_Tuple2(2, '7f766d94-79ec-4856-8e2e-19216dbe0c91'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '7f766d94-79ec-4856-8e2e-19216dbe0c91')),
-		fQ: 'Créer une actualité'
+		fP: 'Créer une actualité'
 	},
 		{
 		a: _Utils_Tuple2(0, '51edfc29-3bfa-4205-ae65-f1ac667fedc8'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Blocs de texte'
+		fP: 'Blocs de texte'
 	},
 		{
 		a: _Utils_Tuple2(1, '51edfc29-3bfa-4205-ae65-f1ac667fedc8'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '51edfc29-3bfa-4205-ae65-f1ac667fedc8')),
-		fQ: 'Ecrire un texte pour une actualité ou une page'
+		fP: 'Ecrire un texte pour une actualité ou une page'
 	},
 		{
 		a: _Utils_Tuple2(2, '51edfc29-3bfa-4205-ae65-f1ac667fedc8'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '51edfc29-3bfa-4205-ae65-f1ac667fedc8')),
-		fQ: 'Changer le style du texte couleur du texte, du fond…'
+		fP: 'Changer le style du texte couleur du texte, du fond…'
 	},
 		{
 		a: _Utils_Tuple2(3, '51edfc29-3bfa-4205-ae65-f1ac667fedc8'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '51edfc29-3bfa-4205-ae65-f1ac667fedc8')),
-		fQ: 'Créer ou modifier un titre'
+		fP: 'Créer ou modifier un titre'
 	},
 		{
 		a: _Utils_Tuple2(0, 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Liens'
+		fP: 'Liens'
 	},
 		{
 		a: _Utils_Tuple2(1, 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7')),
-		fQ: 'Inserer un lien vers une page du site'
+		fP: 'Inserer un lien vers une page du site'
 	},
 		{
 		a: _Utils_Tuple2(2, 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7')),
-		fQ: 'Inserer un lien vers une page externe'
+		fP: 'Inserer un lien vers une page externe'
 	},
 		{
 		a: _Utils_Tuple2(3, 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'a4393746-a12b-467c-b6a5-2e66a6bfdbf7')),
-		fQ: 'Inserer un lien vers un document'
+		fP: 'Inserer un lien vers un document'
 	},
 		{
 		a: _Utils_Tuple2(0, 'c75dccc8-43bc-44df-afd7-13fd68f23e23'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Explorateur de fichiers'
+		fP: 'Explorateur de fichiers'
 	},
 		{
 		a: _Utils_Tuple2(1, 'c75dccc8-43bc-44df-afd7-13fd68f23e23'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'c75dccc8-43bc-44df-afd7-13fd68f23e23')),
-		fQ: 'Mettre en ligne une image dans l’explorateur de fichiers'
+		fP: 'Mettre en ligne une image dans l’explorateur de fichiers'
 	},
 		{
 		a: _Utils_Tuple2(2, 'c75dccc8-43bc-44df-afd7-13fd68f23e23'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'c75dccc8-43bc-44df-afd7-13fd68f23e23')),
-		fQ: 'mettre en ligne un document dans l’explorateur de fichiers'
+		fP: 'mettre en ligne un document dans l’explorateur de fichiers'
 	},
 		{
 		a: _Utils_Tuple2(0, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Editeur de page'
+		fP: 'Editeur de page'
 	},
 		{
 		a: _Utils_Tuple2(1, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c')),
-		fQ: 'Créer ou modifier une page'
+		fP: 'Créer ou modifier une page'
 	},
 		{
 		a: _Utils_Tuple2(2, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c')),
-		fQ: 'Menu déroulant de l’onglet fichier'
+		fP: 'Menu déroulant de l’onglet fichier'
 	},
 		{
 		a: _Utils_Tuple2(3, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c')),
-		fQ: 'Menu déroulant de l’onglet mise en page'
+		fP: 'Menu déroulant de l’onglet mise en page'
 	},
 		{
 		a: _Utils_Tuple2(4, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c')),
-		fQ: 'Menu déroulant de l’onglet affichage'
+		fP: 'Menu déroulant de l’onglet affichage'
 	},
 		{
 		a: _Utils_Tuple2(5, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c')),
-		fQ: 'Gestion des cellules'
+		fP: 'Gestion des cellules'
 	},
 		{
 		a: _Utils_Tuple2(6, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'e8b32207-6cc8-4ec4-860c-adf9a078eb9c')),
-		fQ: 'Gestion des conteneurs'
+		fP: 'Gestion des conteneurs'
 	},
 		{
 		a: _Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Nouvelle cellule'
+		fP: 'Nouvelle cellule'
 	},
 		{
 		a: _Utils_Tuple2(1, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Bloc de texte'
+		fP: 'Bloc de texte'
 	},
 		{
 		a: _Utils_Tuple2(2, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Zone de blocs de lien'
+		fP: 'Zone de blocs de lien'
 	},
 		{
 		a: _Utils_Tuple2(3, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Zone de fiches'
+		fP: 'Zone de fiches'
 	},
 		{
 		a: _Utils_Tuple2(4, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Image'
+		fP: 'Image'
 	},
 		{
 		a: _Utils_Tuple2(5, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Vidéo'
+		fP: 'Vidéo'
 	},
 		{
 		a: _Utils_Tuple2(6, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Tableau'
+		fP: 'Tableau'
 	},
 		{
 		a: _Utils_Tuple2(7, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Album phototheque existant'
+		fP: 'Album phototheque existant'
 	},
 		{
 		a: _Utils_Tuple2(8, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, '1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9')),
-		fQ: 'Album phototheque création'
+		fP: 'Album phototheque création'
 	},
 		{
 		a: _Utils_Tuple2(0, 'b75e18b9-b962-4c18-91c3-c5134aae0bbd'),
 		eF: $elm$core$Maybe$Nothing,
-		fQ: 'Repertoire géneral'
+		fP: 'Repertoire géneral'
 	},
 		{
 		a: _Utils_Tuple2(1, 'b75e18b9-b962-4c18-91c3-c5134aae0bbd'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'b75e18b9-b962-4c18-91c3-c5134aae0bbd')),
-		fQ: 'Retrouver une fiche'
+		fP: 'Retrouver une fiche'
 	},
 		{
 		a: _Utils_Tuple2(2, 'b75e18b9-b962-4c18-91c3-c5134aae0bbd'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'b75e18b9-b962-4c18-91c3-c5134aae0bbd')),
-		fQ: 'Modifier une fiche'
+		fP: 'Modifier une fiche'
 	},
 		{
 		a: _Utils_Tuple2(3, 'b75e18b9-b962-4c18-91c3-c5134aae0bbd'),
 		eF: $elm$core$Maybe$Just(
 			_Utils_Tuple2(0, 'b75e18b9-b962-4c18-91c3-c5134aae0bbd')),
-		fQ: 'Créer une fiche'
+		fP: 'Créer une fiche'
 	}
 	]);
 var $turboMaCk$lazy_tree_with_zipper$Lazy$Tree$Tree = F2(
@@ -7260,7 +7260,7 @@ var $author$project$Help$Help$scrollTo = function (destId) {
 				return A2(
 					$elm$core$Task$andThen,
 					function (el) {
-						return A3($elm$browser$Browser$Dom$setViewportOf, 'MainPanel', 0, (el.gh.mw - mainContInfo.gh.mw) - 50);
+						return A3($elm$browser$Browser$Dom$setViewportOf, 'MainPanel', 0, (el.gg.mv - mainContInfo.gg.mv) - 50);
 					},
 					$elm$browser$Browser$Dom$getElement(destId));
 			},
@@ -7309,7 +7309,7 @@ var $author$project$Help$Help$update = F3(
 					_Utils_update(
 						model,
 						{
-							gC: $elm$core$Maybe$Just(
+							gB: $elm$core$Maybe$Just(
 								A2(
 									$turboMaCk$lazy_tree_with_zipper$Lazy$Tree$Zipper$updateItem,
 									function (_v1) {
@@ -7329,9 +7329,9 @@ var $author$project$Help$Help$update = F3(
 					A2(
 						$elm$core$Maybe$map,
 						function ($) {
-							return $.iJ;
+							return $.iI;
 						},
-						A2($elm$core$Dict$get, id.b, model.de)));
+						A2($elm$core$Dict$get, id.b, model.dd)));
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -7424,7 +7424,7 @@ var $author$project$Help$Help$update = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{gC: index, de: pages}),
+							{gB: index, dd: pages}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					var e = res.a;
@@ -7453,9 +7453,9 @@ var $author$project$Help$Help$init = function (externalMsg) {
 		{
 			cx: _Utils_Tuple2(0, 'root'),
 			bY: externalMsg,
-			gC: $elm$core$Maybe$Nothing,
+			gB: $elm$core$Maybe$Nothing,
 			dE: $elm$core$Set$empty,
-			de: $elm$core$Dict$empty,
+			dd: $elm$core$Dict$empty,
 			dR: false
 		});
 };
@@ -7464,22 +7464,31 @@ var $author$project$NewsEditor$NewsEditor$NewsSelector = 0;
 var $author$project$NewsEditor$NewsEditor$TextBlockPluginMsg = function (a) {
 	return {$: 14, a: a};
 };
+var $author$project$Document$Document$Font = function (a) {
+	return {$: 12, a: a};
+};
+var $author$project$Document$Document$FontSize = function (a) {
+	return {$: 14, a: a};
+};
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$HtmlContent = F2(
 	function (html, text) {
-		return {fl: html, dW: text};
+		return {gA: html, dW: text};
 	});
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$init = F3(
 	function (attrs, mbInput, externalMsg) {
 		return _Utils_Tuple2(
 			{
 				bY: externalMsg,
-				gw: $elm$core$Maybe$Nothing,
-				c5: A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$HtmlContent, '', ''),
-				gV: 0,
-				o: $elm$core$Maybe$Nothing,
+				dv: A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$HtmlContent, '', ''),
+				gU: 0,
+				n: $elm$core$Maybe$Nothing,
 				q: A2($elm$core$Maybe$withDefault, _List_Nil, mbInput),
-				aJ: $elm$core$Maybe$Nothing,
-				aL: attrs
+				ap: $elm$core$Maybe$Nothing,
+				R: _Utils_eq(attrs, _List_Nil) ? _List_fromArray(
+					[
+						$author$project$Document$Document$Font('Arial'),
+						$author$project$Document$Document$FontSize(16)
+					]) : attrs
 			},
 			$elm$core$Platform$Cmd$none);
 	});
@@ -7494,16 +7503,16 @@ var $author$project$NewsEditor$NewsEditor$init = function (externalMsg) {
 	return _Utils_Tuple2(
 		{
 			e: $elm$core$Maybe$Nothing,
-			Z: $elm$core$Set$empty,
-			br: false,
-			iQ: $elm$time$Time$millisToPosix(0),
-			bz: '',
+			_: $elm$core$Set$empty,
+			bt: false,
+			iP: $elm$time$Time$millisToPosix(0),
+			bA: '',
 			bY: externalMsg,
 			b4: $author$project$Internals$ToolHelpers$ToolLoadingWaiting,
-			gU: $elm$core$Dict$empty,
+			gT: $elm$core$Dict$empty,
 			cN: 0,
-			bH: false,
-			lm: $elm$core$Maybe$Nothing,
+			bI: false,
+			ll: $elm$core$Maybe$Nothing,
 			bM: 0,
 			co: newTextBlockPlugin
 		},
@@ -7568,11 +7577,11 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$emptyDoc = A2(
 	$author$project$Document$Document$Container,
 	{
 		x: _List_Nil,
-		bq: 0,
+		bs: 0,
 		a: {
-			bp: $elm$core$Set$fromList(_List_Nil),
-			bv: $elm$core$Maybe$Just('root'),
-			bD: $elm$core$Maybe$Just('mainContainer'),
+			br: $elm$core$Set$fromList(_List_Nil),
+			bx: $elm$core$Maybe$Just('root'),
+			bE: $elm$core$Maybe$Just('mainContainer'),
 			cW: 0
 		}
 	},
@@ -7581,11 +7590,11 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$emptyDoc = A2(
 			$author$project$Document$Document$Cell(
 			{
 				x: _List_Nil,
-				aq: $author$project$Document$Document$EmptyCell,
+				as: $author$project$Document$Document$EmptyCell,
 				a: {
-					bp: $elm$core$Set$fromList(_List_Nil),
-					bv: $elm$core$Maybe$Nothing,
-					bD: $elm$core$Maybe$Nothing,
+					br: $elm$core$Set$fromList(_List_Nil),
+					bx: $elm$core$Maybe$Nothing,
+					bE: $elm$core$Maybe$Nothing,
 					cW: 1
 				}
 			})
@@ -7619,7 +7628,7 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$fixUids = F2(
 							a: _Utils_update(
 								id,
 								{
-									bD: $elm$core$Maybe$Just(
+									bE: $elm$core$Maybe$Just(
 										'defaultHtmlId' + $elm$core$String$fromInt(nextUid)),
 									cW: nextUid
 								})
@@ -7637,7 +7646,7 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$fixUids = F2(
 							a: _Utils_update(
 								id,
 								{
-									bD: $elm$core$Maybe$Just(
+									bE: $elm$core$Maybe$Just(
 										'defaultHtmlId' + $elm$core$String$fromInt(nextUid)),
 									cW: nextUid
 								})
@@ -7668,7 +7677,7 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$fixUids = F2(
 						a: _Utils_update(
 							id,
 							{
-								bD: $elm$core$Maybe$Just(
+								bE: $elm$core$Maybe$Just(
 									'defaultHtmlId' + $elm$core$String$fromInt(nextUid)),
 								cW: nextUid
 							})
@@ -7695,7 +7704,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$init = F2(
 						$elm$core$Maybe$map,
 						$elm$core$List$indexedMap($elm$core$Tuple$pair),
 						mbInput))),
-			bA: $elm$core$Maybe$Nothing,
+			bB: $elm$core$Maybe$Nothing,
 			bY: externalMsg,
 			b3: $elm$core$Maybe$Nothing,
 			dD: 0,
@@ -7706,14 +7715,14 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$init = F2(
 var $author$project$PageEditor$EditorPlugins$FichesPlugin$init = F2(
 	function (selectedFiches, externalMsg) {
 		return {
-			hQ: $elm$core$Maybe$Nothing,
-			ip: $elm$core$Maybe$Nothing,
+			hP: $elm$core$Maybe$Nothing,
+			io: $elm$core$Maybe$Nothing,
 			bY: externalMsg,
-			a6: $elm$core$Maybe$Nothing,
-			j$: $elm$core$Maybe$Nothing,
-			kn: $elm$core$Maybe$Nothing,
-			lu: $elm$core$Maybe$Nothing,
-			ah: $elm$core$Set$fromList(selectedFiches)
+			a7: $elm$core$Maybe$Nothing,
+			j_: $elm$core$Maybe$Nothing,
+			km: $elm$core$Maybe$Nothing,
+			lt: $elm$core$Maybe$Nothing,
+			ai: $elm$core$Set$fromList(selectedFiches)
 		};
 	});
 var $author$project$PageEditor$EditorPlugins$GalleryPlugin$GalleryEditor = 3;
@@ -7730,21 +7739,21 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$init = F2(
 				a1: $elm$core$Dict$empty,
 				bY: externalMsg,
 				b0: $elm$core$Dict$empty,
-				a4: A2(
+				a5: A2(
 					$elm$core$Maybe$map,
 					function ($) {
-						return $.fQ;
+						return $.fP;
 					},
 					mbGalleryMeta),
-				a9: false,
+				ba: false,
 				dG: _List_Nil,
 				cH: $elm$core$Maybe$Nothing,
 				q: mbGalleryMeta,
 				cg: initState,
 				a_: $elm$core$Dict$empty,
-				df: _List_Nil,
-				lm: $elm$core$Maybe$Nothing,
-				fM: initState,
+				de: _List_Nil,
+				ll: $elm$core$Maybe$Nothing,
+				fL: initState,
 				i: $elm$core$Dict$empty
 			},
 			A2(
@@ -7816,7 +7825,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$init = F2(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.f8;
+							return $.f7;
 						},
 						$elm$core$Tuple$first),
 					mbInput),
@@ -7986,7 +7995,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$init = F2(
 					return _Utils_Tuple2(
 						A2(
 							$elm$core$List$cons,
-							{ce: pl, fT: uuid},
+							{ce: pl, fS: uuid},
 							acc),
 						ns);
 				}),
@@ -7996,11 +8005,11 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$init = F2(
 			input);
 		var newBuffer = _v0.a;
 		var newSeed = _v0.b;
-		return {e: newBuffer, bY: externalMsg, c6: false, lm: newSeed, K: $elm$core$Maybe$Nothing, bO: $elm$core$Maybe$Nothing};
+		return {e: newBuffer, bY: externalMsg, c5: false, ll: newSeed, K: $elm$core$Maybe$Nothing, bO: $elm$core$Maybe$Nothing};
 	});
 var $author$project$PageEditor$EditorPlugins$TablePlugin$Edit = 1;
 var $author$project$PageEditor$EditorPlugins$TablePlugin$emptyDocTable = function (externalMsg) {
-	return {M: $elm$core$Maybe$Nothing, ak: 'bleu-blanc', iV: $elm$core$Array$empty, el: '', bY: externalMsg, g: 1, kq: 0, cK: '', kr: 0, cL: '', cj: false, cl: false, dU: ''};
+	return {M: $elm$core$Maybe$Nothing, al: 'bleu-blanc', iU: $elm$core$Array$empty, el: '', bY: externalMsg, g: 1, kp: 0, cK: '', kq: 0, cL: '', cj: false, cl: false, dU: ''};
 };
 var $elm$core$Array$fromListHelp = F3(
 	function (list, nodeList, nodeListSize) {
@@ -8042,20 +8051,20 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$init = F2(
 		if (mbTableMeta.$ === 1) {
 			return $author$project$PageEditor$EditorPlugins$TablePlugin$emptyDocTable(externalMsg);
 		} else {
-			var style = mbTableMeta.a.lS;
-			var nbrRows = mbTableMeta.a.kr;
-			var nbrCols = mbTableMeta.a.kq;
-			var data = mbTableMeta.a.iV;
+			var style = mbTableMeta.a.lR;
+			var nbrRows = mbTableMeta.a.kq;
+			var nbrCols = mbTableMeta.a.kp;
+			var data = mbTableMeta.a.iU;
 			return _Utils_eq(data, _List_Nil) ? $author$project$PageEditor$EditorPlugins$TablePlugin$emptyDocTable(externalMsg) : {
 				M: $elm$core$Maybe$Nothing,
-				ak: style,
-				iV: $elm$core$Array$fromList(data),
+				al: style,
+				iU: $elm$core$Array$fromList(data),
 				el: '',
 				bY: externalMsg,
 				g: 1,
-				kq: nbrCols,
+				kp: nbrCols,
 				cK: '',
-				kr: nbrRows,
+				kq: nbrRows,
 				cL: '',
 				cj: true,
 				cl: false,
@@ -8065,7 +8074,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$init = F2(
 	});
 var $author$project$Document$Document$VideoSize = F2(
 	function (videoWidth, videoHeight) {
-		return {mo: videoHeight, mp: videoWidth};
+		return {mn: videoHeight, mo: videoWidth};
 	});
 var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 	function (mbInput, externalMsg) {
@@ -8077,7 +8086,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					$elm$core$Maybe$map,
 					A2($elm$core$Basics$composeL, $author$project$PageEditor$Internals$DocumentEditorHelpers$findAlignment, $elm$core$Tuple$second),
 					mbInput)),
-			iM: A2(
+			iL: A2(
 				$elm$core$Maybe$withDefault,
 				false,
 				A2(
@@ -8085,13 +8094,13 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.iM;
+							return $.iL;
 						},
 						$elm$core$Tuple$first),
 					mbInput)),
 			el: '',
 			bY: externalMsg,
-			jk: A2(
+			jj: A2(
 				$elm$core$Maybe$withDefault,
 				false,
 				A2(
@@ -8099,14 +8108,14 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.jk;
+							return $.jj;
 						},
 						$elm$core$Tuple$first),
 					mbInput)),
 			et: A2($elm$core$Maybe$map, $elm$core$Tuple$first, mbInput),
 			cM: $elm$core$Maybe$Nothing,
 			cR: $elm$core$Maybe$Nothing,
-			k$: A2(
+			k_: A2(
 				$elm$core$Maybe$withDefault,
 				false,
 				A2(
@@ -8114,11 +8123,11 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.k$;
+							return $.k_;
 						},
 						$elm$core$Tuple$first),
 					mbInput)),
-			fK: A2(
+			fJ: A2(
 				$elm$core$Maybe$withDefault,
 				A2($author$project$Document$Document$VideoSize, 560, 314),
 				A2(
@@ -8126,7 +8135,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.fK;
+							return $.fJ;
 						},
 						$elm$core$Tuple$first),
 					mbInput)),
@@ -8137,23 +8146,23 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					$elm$core$Maybe$map,
 					function (mbI) {
 						var _v0 = function (s) {
-							return _Utils_Tuple2(s.mp, s.mo);
-						}(mbI.a.fK);
+							return _Utils_Tuple2(s.mo, s.mn);
+						}(mbI.a.fJ);
 						var w = _v0.a;
 						var h = _v0.b;
 						return w / h;
 					},
 					mbInput)),
-			lM: A2(
+			lL: A2(
 				$elm$core$Maybe$andThen,
 				A2(
 					$elm$core$Basics$composeL,
 					function ($) {
-						return $.lM;
+						return $.lL;
 					},
 					$elm$core$Tuple$first),
 				mbInput),
-			lV: A2(
+			lU: A2(
 				$elm$core$Maybe$withDefault,
 				false,
 				A2(
@@ -8161,11 +8170,11 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.lV;
+							return $.lU;
 						},
 						$elm$core$Tuple$first),
 					mbInput)),
-			fQ: A2(
+			fP: A2(
 				$elm$core$Maybe$withDefault,
 				false,
 				A2(
@@ -8173,7 +8182,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.fQ;
+							return $.fP;
 						},
 						$elm$core$Tuple$first),
 					mbInput)),
@@ -8184,11 +8193,11 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$init = F2(
 		};
 	});
 var $author$project$PageEditor$Internals$DocumentZipper$initZip = function (doc) {
-	return {bs: _List_Nil, a3: doc};
+	return {bu: _List_Nil, a3: doc};
 };
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$State = $elm$core$Basics$identity;
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$initialState = function (prefix) {
-	return {fq: false, an: prefix, ck: $elm$core$Dict$empty};
+	return {fp: false, ao: prefix, ck: $elm$core$Dict$empty};
 };
 var $billstclair$elm_localstorage$PortFunnel$InternalTypes$ListKeys = F2(
 	function (a, b) {
@@ -8259,7 +8268,7 @@ var $billstclair$elm_localstorage$PortFunnel$InternalTypes$Startup = {$: 0};
 var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$GotRecord = F3(
 	function (label, key, value) {
-		return {jY: key, N: label, hH: value};
+		return {jX: key, N: label, hG: value};
 	});
 var $elm$json$Json$Decode$map3 = _Json_map3;
 var $elm$json$Json$Decode$null = _Json_decodeNull;
@@ -8284,7 +8293,7 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$gotDecoder = A4(
 	A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$value));
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$KeysRecord = F3(
 	function (label, prefix, keys) {
-		return {jZ: keys, N: label, an: prefix};
+		return {jY: keys, N: label, ao: prefix};
 	});
 var $elm$json$Json$Decode$list = _Json_decodeList;
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$keysDecoder = A4(
@@ -8312,7 +8321,7 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$labeledStringDecoder =
 var $elm$json$Json$Encode$null = _Json_encodeNull;
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$PutRecord = F2(
 	function (key, value) {
-		return {jY: key, hH: value};
+		return {jX: key, hG: value};
 	});
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$putDecoder = A3(
 	$elm$json$Json$Decode$map2,
@@ -8367,8 +8376,8 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$strtag = function (str
 	}
 };
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$decode = function (_v0) {
-	var tag = _v0.lY;
-	var args = _v0.h5;
+	var tag = _v0.lX;
+	var args = _v0.h4;
 	var _v1 = $billstclair$elm_localstorage$PortFunnel$LocalStorage$strtag(tag);
 	switch (_v1) {
 		case 1:
@@ -8390,8 +8399,8 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$decode = function (_v0
 			var _v4 = A2($elm$json$Json$Decode$decodeValue, $billstclair$elm_localstorage$PortFunnel$LocalStorage$gotDecoder, args);
 			if (!_v4.$) {
 				var label = _v4.a.N;
-				var key = _v4.a.jY;
-				var value = _v4.a.hH;
+				var key = _v4.a.jX;
+				var value = _v4.a.hG;
 				return $elm$core$Result$Ok(
 					A3(
 						$billstclair$elm_localstorage$PortFunnel$InternalTypes$Got,
@@ -8405,8 +8414,8 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$decode = function (_v0
 		case 3:
 			var _v5 = A2($elm$json$Json$Decode$decodeValue, $billstclair$elm_localstorage$PortFunnel$LocalStorage$putDecoder, args);
 			if (!_v5.$) {
-				var key = _v5.a.jY;
-				var value = _v5.a.hH;
+				var key = _v5.a.jX;
+				var value = _v5.a.hG;
 				return $elm$core$Result$Ok(
 					A2(
 						$billstclair$elm_localstorage$PortFunnel$InternalTypes$Put,
@@ -8435,8 +8444,8 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$decode = function (_v0
 			var _v8 = A2($elm$json$Json$Decode$decodeValue, $billstclair$elm_localstorage$PortFunnel$LocalStorage$keysDecoder, args);
 			if (!_v8.$) {
 				var label = _v8.a.N;
-				var prefix = _v8.a.an;
-				var keys = _v8.a.jZ;
+				var prefix = _v8.a.ao;
+				var keys = _v8.a.jY;
 				return $elm$core$Result$Ok(
 					A3($billstclair$elm_localstorage$PortFunnel$InternalTypes$Keys, label, prefix, keys));
 			} else {
@@ -8473,8 +8482,8 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$decode = function (_v0
 		case 8:
 			var _v12 = A2($elm$json$Json$Decode$decodeValue, $billstclair$elm_localstorage$PortFunnel$LocalStorage$putDecoder, args);
 			if (!_v12.$) {
-				var key = _v12.a.jY;
-				var value = _v12.a.hH;
+				var key = _v12.a.jX;
+				var value = _v12.a.hG;
 				return $elm$core$Result$Ok(
 					A2(
 						$billstclair$elm_localstorage$PortFunnel$InternalTypes$SimulatePut,
@@ -8515,7 +8524,7 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$decode = function (_v0
 };
 var $billstclair$elm_port_funnel$PortFunnel$GenericMessage = F3(
 	function (moduleName, tag, args) {
-		return {h5: args, kj: moduleName, lY: tag};
+		return {h4: args, ki: moduleName, lX: tag};
 	});
 var $elm$json$Json$Encode$object = function (pairs) {
 	return _Json_wrap(
@@ -8727,7 +8736,7 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$encode = function (mes
 var $billstclair$elm_port_funnel$PortFunnel$ModuleDesc = $elm$core$Basics$identity;
 var $billstclair$elm_port_funnel$PortFunnel$ModuleDescRecord = F4(
 	function (moduleName, encoder, decoder, process) {
-		return {e8: decoder, fc: encoder, kj: moduleName, fB: process};
+		return {e8: decoder, fc: encoder, ki: moduleName, fA: process};
 	});
 var $billstclair$elm_port_funnel$PortFunnel$makeModuleDesc = F4(
 	function (name, encoder, decoder, processor) {
@@ -8805,9 +8814,9 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$process = F2(
 					boxedState,
 					$billstclair$elm_localstorage$PortFunnel$LocalStorage$GetResponse(
 						{
-							jY: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.an, key),
+							jX: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.ao, key),
 							N: label,
-							hH: value
+							hG: value
 						}));
 			case 5:
 				var label = message.a;
@@ -8817,18 +8826,18 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$process = F2(
 					boxedState,
 					$billstclair$elm_localstorage$PortFunnel$LocalStorage$ListKeysResponse(
 						{
-							jZ: A2(
+							jY: A2(
 								$elm$core$List$map,
-								$billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix(state.an),
+								$billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix(state.ao),
 								keys),
 							N: label,
-							an: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.an, prefix)
+							ao: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.ao, prefix)
 						}));
 			case 0:
 				return _Utils_Tuple2(
 					_Utils_update(
 						state,
-						{fq: true}),
+						{fp: true}),
 					$billstclair$elm_localstorage$PortFunnel$LocalStorage$NoResponse);
 			case 7:
 				var label = message.a;
@@ -8837,9 +8846,9 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$process = F2(
 					boxedState,
 					$billstclair$elm_localstorage$PortFunnel$LocalStorage$GetResponse(
 						{
-							jY: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.an, key),
+							jX: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.ao, key),
 							N: label,
-							hH: A2($elm$core$Dict$get, key, state.ck)
+							hG: A2($elm$core$Dict$get, key, state.ck)
 						}));
 			case 8:
 				var key = message.a;
@@ -8865,19 +8874,19 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$process = F2(
 					boxedState,
 					$billstclair$elm_localstorage$PortFunnel$LocalStorage$ListKeysResponse(
 						{
-							jZ: A3(
+							jY: A3(
 								$elm$core$Dict$foldr,
 								F3(
 									function (k, _v2, res) {
 										return A2($elm$core$String$startsWith, prefix, k) ? A2(
 											$elm$core$List$cons,
-											A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.an, k),
+											A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.ao, k),
 											res) : res;
 									}),
 								_List_Nil,
 								state.ck),
 							N: label,
-							an: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.an, prefix)
+							ao: A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$stripPrefix, state.ao, prefix)
 						}));
 			case 10:
 				var prefix = message.a;
@@ -8905,11 +8914,11 @@ var $billstclair$elm_port_funnel$PortFunnel$encodeGenericMessage = function (mes
 			[
 				_Utils_Tuple2(
 				'module',
-				$elm$json$Json$Encode$string(message.kj)),
+				$elm$json$Json$Encode$string(message.ki)),
 				_Utils_Tuple2(
 				'tag',
-				$elm$json$Json$Encode$string(message.lY)),
-				_Utils_Tuple2('args', message.h5)
+				$elm$json$Json$Encode$string(message.lX)),
+				_Utils_Tuple2('args', message.h4)
 			]));
 };
 var $billstclair$elm_port_funnel$PortFunnel$messageToValue = F2(
@@ -8926,7 +8935,7 @@ var $billstclair$elm_port_funnel$PortFunnel$sendMessage = F3(
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$send = F3(
 	function (wrapper, message, _v0) {
 		var state = _v0;
-		var prefix = state.an;
+		var prefix = state.ao;
 		var mess = function () {
 			switch (message.$) {
 				case 1:
@@ -8980,8 +8989,8 @@ var $elm$time$Time$toAdjustedMinutesHelp = F3(
 			} else {
 				var era = eras.a;
 				var olderEras = eras.b;
-				if (_Utils_cmp(era.bL, posixMinutes) < 0) {
-					return posixMinutes + era.kE;
+				if (_Utils_cmp(era.bo, posixMinutes) < 0) {
+					return posixMinutes + era.kD;
 				} else {
 					var $temp$defaultOffset = defaultOffset,
 						$temp$posixMinutes = posixMinutes,
@@ -9019,8 +9028,8 @@ var $elm$time$Time$toCivil = function (minutes) {
 	var year = yearOfEra + (era * 400);
 	return {
 		e5: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
-		fu: month,
-		fY: year + ((month <= 2) ? 1 : 0)
+		ft: month,
+		fX: year + ((month <= 2) ? 1 : 0)
 	};
 };
 var $elm$time$Time$toDay = F2(
@@ -9043,7 +9052,7 @@ var $elm$time$Time$Sep = 8;
 var $elm$time$Time$toMonth = F2(
 	function (zone, time) {
 		var _v0 = $elm$time$Time$toCivil(
-			A2($elm$time$Time$toAdjustedMinutes, zone, time)).fu;
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).ft;
 		switch (_v0) {
 			case 1:
 				return 0;
@@ -9106,17 +9115,17 @@ var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
 var $author$project$PageEditor$PageEditor$reset = F2(
 	function (mbDoc, externalMsg) {
 		var handlers = {
-			iq: externalMsg($author$project$PageEditor$PageEditor$EditCell),
-			iF: A2($elm$core$Basics$composeL, externalMsg, $author$project$PageEditor$PageEditor$SelectDoc),
-			iG: function (_v3) {
+			ip: externalMsg($author$project$PageEditor$PageEditor$EditCell),
+			iE: A2($elm$core$Basics$composeL, externalMsg, $author$project$PageEditor$PageEditor$SelectDoc),
+			iF: function (_v3) {
 				return externalMsg($author$project$PageEditor$PageEditor$NoOp);
 			},
-			ks: function (_v4) {
+			kr: function (_v4) {
 				return externalMsg($author$project$PageEditor$PageEditor$Rewind);
 			}
 		};
 		var funnelState = {
-			bn: $billstclair$elm_localstorage$PortFunnel$LocalStorage$initialState('Editor')
+			bp: $billstclair$elm_localstorage$PortFunnel$LocalStorage$initialState('Editor')
 		};
 		var doc_ = A2(
 			$author$project$PageEditor$Internals$DocumentEditorHelpers$fixUids,
@@ -9124,27 +9133,27 @@ var $author$project$PageEditor$PageEditor$reset = F2(
 			A2($elm$core$Maybe$withDefault, $author$project$PageEditor$Internals$DocumentEditorHelpers$emptyDoc, mbDoc));
 		var config = {
 			e1: false,
-			iQ: $elm$time$Time$millisToPosix(0),
-			iT: $elm$core$Dict$empty,
-			at: true,
-			jh: $elm$core$Dict$empty,
-			jm: $elm$core$Dict$empty,
-			jy: 1080,
-			kc: 75,
-			gU: $elm$core$Dict$empty,
+			iP: $elm$time$Time$millisToPosix(0),
+			iS: $elm$core$Dict$empty,
+			av: true,
+			jg: $elm$core$Dict$empty,
+			jl: $elm$core$Dict$empty,
+			jx: 1080,
+			kb: 75,
+			gT: $elm$core$Dict$empty,
+			kK: $elm$core$Basics$always(
+				externalMsg($author$project$PageEditor$PageEditor$NoOp)),
 			kL: $elm$core$Basics$always(
 				externalMsg($author$project$PageEditor$PageEditor$NoOp)),
-			kM: $elm$core$Basics$always(
-				externalMsg($author$project$PageEditor$PageEditor$NoOp)),
-			kN: $elm$core$Set$empty,
-			g2: $elm$core$Set$empty,
+			kM: $elm$core$Set$empty,
+			g1: $elm$core$Set$empty,
 			dN: $elm$core$Dict$empty,
 			eH: 1,
-			fC: $elm$core$Maybe$Nothing,
-			lk: 0,
-			mu: 1920,
-			mx: $elm$core$Maybe$Just(handlers),
-			fZ: $elm$time$Time$utc
+			fB: $elm$core$Maybe$Nothing,
+			lj: 0,
+			mt: 1920,
+			mw: $elm$core$Maybe$Just(handlers),
+			fY: $elm$time$Time$utc
 		};
 		var _v0 = A3(
 			$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$init,
@@ -9175,27 +9184,27 @@ var $author$project$PageEditor$PageEditor$reset = F2(
 				k: config,
 				ee: false,
 				b: $elm$core$Maybe$Nothing,
-				i3: $author$project$PageEditor$Internals$DocumentZipper$initZip(doc_),
+				i2: $author$project$PageEditor$Internals$DocumentZipper$initZip(doc_),
 				bY: externalMsg,
 				bZ: A2(
 					$author$project$PageEditor$EditorPlugins$FichesPlugin$init,
 					_List_Nil,
 					A2($elm$core$Basics$composeL, externalMsg, $author$project$PageEditor$PageEditor$FichesPluginMsg)),
-				bB: funnelState,
-				bC: newGalleryPlugin,
+				bC: funnelState,
+				bD: newGalleryPlugin,
 				b2: newImagePlugin,
-				fr: '',
+				fq: '',
 				ep: '',
-				j8: _List_Nil,
-				bc: $elm$core$Maybe$Nothing,
+				j7: _List_Nil,
+				bd: $elm$core$Maybe$Nothing,
 				cJ: false,
 				eu: '',
-				gV: $author$project$PageEditor$Internals$DocumentEditorHelpers$maxUid(doc_) + 1,
+				gU: $author$project$PageEditor$Internals$DocumentEditorHelpers$maxUid(doc_) + 1,
 				cf: A2(
 					$author$project$PageEditor$EditorPlugins$PictureLinksPlugin$init,
 					_List_Nil,
 					A2($elm$core$Basics$composeL, externalMsg, $author$project$PageEditor$PageEditor$PictureLinksPluginMsg)),
-				aK: false,
+				aL: false,
 				cn: A2(
 					$author$project$PageEditor$EditorPlugins$TablePlugin$init,
 					$elm$core$Maybe$Nothing,
@@ -9228,7 +9237,7 @@ var $author$project$PageEditor$PageEditor$reset = F2(
 						$billstclair$elm_localstorage$PortFunnel$LocalStorage$send,
 						$author$project$PageEditor$PageEditor$cmdPort,
 						$billstclair$elm_localstorage$PortFunnel$LocalStorage$listKeys(''),
-						funnelState.bn),
+						funnelState.bp),
 						A2(
 						$elm$core$Platform$Cmd$map,
 						externalMsg,
@@ -9251,7 +9260,7 @@ var $author$project$PageEditor$PageEditor$reset = F2(
 	});
 var $author$project$PageEditor$PageEditor$init = $author$project$PageEditor$PageEditor$reset;
 var $author$project$PageTreeEditor$PageTreeEditor$init = function (externalMsg) {
-	return {cv: $elm$core$Dict$empty, cw: 0, iQ: $elm$core$Maybe$Nothing, el: '', bY: externalMsg, am: $elm$core$Maybe$Nothing, c7: $elm$core$Maybe$Nothing, W: $elm$core$Set$empty, c8: 0, aA: $elm$core$Maybe$Nothing, aB: $elm$core$Dict$empty, aC: $elm$core$Set$empty, O: _List_Nil, ca: '', h: $elm$core$Maybe$Nothing, dd: 0, cc: 0, bh: $elm$core$Maybe$Nothing, bJ: $elm$core$Maybe$Nothing, dh: $elm$core$Maybe$Nothing, lm: $elm$core$Maybe$Nothing, hn: $elm$core$Maybe$Nothing, aI: $elm$core$Maybe$Nothing, bK: $elm$core$Maybe$Nothing};
+	return {cv: $elm$core$Dict$empty, cw: 0, iP: $elm$core$Maybe$Nothing, el: '', bY: externalMsg, an: $elm$core$Maybe$Nothing, c6: $elm$core$Maybe$Nothing, X: $elm$core$Set$empty, c7: 0, aC: $elm$core$Maybe$Nothing, aD: $elm$core$Dict$empty, aE: $elm$core$Set$empty, O: _List_Nil, ca: '', h: $elm$core$Maybe$Nothing, dc: 0, cc: 0, bi: $elm$core$Maybe$Nothing, bK: $elm$core$Maybe$Nothing, dg: $elm$core$Maybe$Nothing, ll: $elm$core$Maybe$Nothing, hm: $elm$core$Maybe$Nothing, aK: $elm$core$Maybe$Nothing, bL: $elm$core$Maybe$Nothing};
 };
 var $author$project$Publications$Publications$MurolInfo = 0;
 var $author$project$Publications$Publications$Select = function (a) {
@@ -9260,24 +9269,24 @@ var $author$project$Publications$Publications$Select = function (a) {
 var $author$project$Publications$Publications$init = function (externalMsg) {
 	return {
 		cY: $elm$core$Maybe$Nothing,
-		ik: $elm$core$Dict$empty,
-		bu: '',
-		_: $elm$core$Maybe$Nothing,
+		ij: $elm$core$Dict$empty,
+		bw: '',
+		aa: $elm$core$Maybe$Nothing,
 		e6: '',
-		iX: $elm$core$Dict$empty,
+		iW: $elm$core$Dict$empty,
 		bW: $author$project$Publications$Publications$Select(0),
 		bY: externalMsg,
-		aw: $elm$core$Maybe$Nothing,
-		gC: $elm$core$Dict$empty,
-		az: $elm$core$Maybe$Nothing,
+		ay: $elm$core$Maybe$Nothing,
+		gB: $elm$core$Dict$empty,
+		aB: $elm$core$Maybe$Nothing,
 		b4: $author$project$Internals$ToolHelpers$ToolLoadingWaiting,
 		aS: $elm$core$Dict$empty,
 		aT: $elm$core$Dict$empty,
 		aU: $elm$core$Dict$empty,
-		X: 0,
+		Y: 0,
 		G: false,
-		km: $elm$core$Dict$empty,
-		mj: $elm$core$Dict$empty,
+		kl: $elm$core$Dict$empty,
+		mi: $elm$core$Dict$empty,
 		i: $elm$core$Maybe$Nothing
 	};
 };
@@ -9305,20 +9314,20 @@ var $author$project$MurolAdmin$init = function (flags) {
 			p: newAuthTool,
 			C: 2,
 			fe: newFileExplorer,
-			a5: newGeneralDirectory,
+			a6: newGeneralDirectory,
 			b1: help,
 			b4: 0,
 			cI: $elm$core$Dict$empty,
-			da: false,
-			aF: newNewsEditor,
+			c9: false,
+			aH: newNewsEditor,
 			cP: newPageEditor,
 			I: newPageTreeEditor,
-			fC: publications,
-			lm: $elm$random$Random$initialSeed(flags.iQ),
+			fB: publications,
+			ll: $elm$random$Random$initialSeed(flags.iP),
 			eQ: $elm$core$Dict$empty,
 			aM: 1080,
 			d1: 1920,
-			fZ: $elm$time$Time$utc
+			fY: $elm$time$Time$utc
 		},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
@@ -9347,7 +9356,7 @@ var $elm$browser$Browser$Events$MySub = F3(
 	});
 var $elm$browser$Browser$Events$State = F2(
 	function (subs, pids) {
-		return {g7: pids, hw: subs};
+		return {g6: pids, hv: subs};
 	});
 var $elm$browser$Browser$Events$init = $elm$core$Task$succeed(
 	A2($elm$browser$Browser$Events$State, _List_Nil, $elm$core$Dict$empty));
@@ -9430,7 +9439,7 @@ var $elm$core$Dict$merge = F6(
 	});
 var $elm$browser$Browser$Events$Event = F2(
 	function (key, event) {
-		return {gj: event, jY: key};
+		return {gi: event, jX: key};
 	});
 var $elm$browser$Browser$Events$spawn = F3(
 	function (router, key, _v0) {
@@ -9504,7 +9513,7 @@ var $elm$browser$Browser$Events$onEffects = F3(
 			stepLeft,
 			stepBoth,
 			stepRight,
-			state.g7,
+			state.g6,
 			$elm$core$Dict$fromList(newSubs),
 			_Utils_Tuple3(_List_Nil, $elm$core$Dict$empty, _List_Nil));
 		var deadPids = _v0.a;
@@ -9532,8 +9541,8 @@ var $elm$browser$Browser$Events$onEffects = F3(
 	});
 var $elm$browser$Browser$Events$onSelfMsg = F3(
 	function (router, _v0, state) {
-		var key = _v0.jY;
-		var event = _v0.gj;
+		var key = _v0.jX;
+		var event = _v0.gi;
 		var toMessage = function (_v2) {
 			var subKey = _v2.a;
 			var _v3 = _v2.b;
@@ -9542,7 +9551,7 @@ var $elm$browser$Browser$Events$onSelfMsg = F3(
 			var decoder = _v3.c;
 			return _Utils_eq(subKey, key) ? A2(_Browser_decodeEvent, decoder, event) : $elm$core$Maybe$Nothing;
 		};
-		var messages = A2($elm$core$List$filterMap, toMessage, state.hw);
+		var messages = A2($elm$core$List$filterMap, toMessage, state.hv);
 		return A2(
 			$elm$core$Task$andThen,
 			function (_v1) {
@@ -9593,7 +9602,7 @@ var $elm$time$Time$Every = F2(
 	});
 var $elm$time$Time$State = F2(
 	function (taggers, processes) {
-		return {hb: processes, hy: taggers};
+		return {ha: processes, hx: taggers};
 	});
 var $elm$time$Time$init = $elm$core$Task$succeed(
 	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
@@ -9643,7 +9652,7 @@ var $elm$time$Time$spawnHelp = F3(
 	});
 var $elm$time$Time$onEffects = F3(
 	function (router, subs, _v0) {
-		var processes = _v0.hb;
+		var processes = _v0.ha;
 		var rightStep = F3(
 			function (_v6, id, _v7) {
 				var spawns = _v7.a;
@@ -9709,7 +9718,7 @@ var $elm$time$Time$onEffects = F3(
 	});
 var $elm$time$Time$onSelfMsg = F3(
 	function (router, interval, state) {
-		var _v0 = A2($elm$core$Dict$get, interval, state.hy);
+		var _v0 = A2($elm$core$Dict$get, interval, state.hx);
 		if (_v0.$ === 1) {
 			return $elm$core$Task$succeed(state);
 		} else {
@@ -9813,7 +9822,7 @@ var $elm$browser$Browser$AnimationManager$Time = function (a) {
 };
 var $elm$browser$Browser$AnimationManager$State = F3(
 	function (subs, request, oldTime) {
-		return {fy: oldTime, hh: request, hw: subs};
+		return {fx: oldTime, hg: request, hv: subs};
 	});
 var $elm$browser$Browser$AnimationManager$init = $elm$core$Task$succeed(
 	A3($elm$browser$Browser$AnimationManager$State, _List_Nil, $elm$core$Maybe$Nothing, 0));
@@ -9821,8 +9830,8 @@ var $elm$browser$Browser$AnimationManager$now = _Browser_now(0);
 var $elm$browser$Browser$AnimationManager$rAF = _Browser_rAF(0);
 var $elm$browser$Browser$AnimationManager$onEffects = F3(
 	function (router, subs, _v0) {
-		var request = _v0.hh;
-		var oldTime = _v0.fy;
+		var request = _v0.hg;
+		var oldTime = _v0.fx;
 		var _v1 = _Utils_Tuple2(request, subs);
 		if (_v1.a.$ === 1) {
 			if (!_v1.b.b) {
@@ -9868,8 +9877,8 @@ var $elm$browser$Browser$AnimationManager$onEffects = F3(
 	});
 var $elm$browser$Browser$AnimationManager$onSelfMsg = F3(
 	function (router, newTime, _v0) {
-		var subs = _v0.hw;
-		var oldTime = _v0.fy;
+		var subs = _v0.hv;
+		var oldTime = _v0.fx;
 		var send = function (sub) {
 			if (!sub.$) {
 				var tagger = sub.a;
@@ -9996,7 +10005,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$subscriptions =
 		_List_fromArray(
 			[
 				function () {
-				var _v0 = model.o;
+				var _v0 = model.n;
 				_v0$4:
 				while (true) {
 					if (!_v0.$) {
@@ -10094,7 +10103,7 @@ var $author$project$PageEditor$PageEditor$subscriptions = function (model) {
 					A2(
 					$elm$core$Platform$Sub$map,
 					$author$project$PageEditor$PageEditor$GalleryPluginMsg,
-					$author$project$PageEditor$EditorPlugins$GalleryPlugin$subscription(model.bC)),
+					$author$project$PageEditor$EditorPlugins$GalleryPlugin$subscription(model.bD)),
 					A2(
 					$elm$core$Platform$Sub$map,
 					$author$project$PageEditor$PageEditor$TextBlockPluginMsg,
@@ -10125,8 +10134,8 @@ var $author$project$MurolAdmin$subscriptions = function (model) {
 			[
 				$author$project$FileExplorer$FileExplorer$subscriptions(model.fe),
 				(!model.C) ? $author$project$PageEditor$PageEditor$subscriptions(model.cP) : $elm$core$Platform$Sub$none,
-				$author$project$Publications$Publications$subscriptions(model.fC),
-				(model.C === 5) ? $author$project$NewsEditor$NewsEditor$subscriptions(model.aF) : $elm$core$Platform$Sub$none,
+				$author$project$Publications$Publications$subscriptions(model.fB),
+				(model.C === 5) ? $author$project$NewsEditor$NewsEditor$subscriptions(model.aH) : $elm$core$Platform$Sub$none,
 				$author$project$Auth$AuthPlugin$subscriptions(model.p),
 				$author$project$Help$Help$subscriptions(model.b1),
 				$elm$browser$Browser$Events$onResize($author$project$MurolAdmin$WinResize)
@@ -10142,22 +10151,22 @@ var $author$project$MurolAdmin$ReloadFiles = {$: 3};
 var $author$project$Internals$ToolHelpers$ToolQuit = {$: 0};
 var $author$project$PageEditor$Internals$DocumentZipper$extractDoc = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	return current;
 };
 var $author$project$PageEditor$Internals$DocumentZipper$zipUp = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		return $elm$core$Maybe$Just(
 			{
-				bs: cs,
+				bu: cs,
 				a3: A2(
 					$author$project$Document$Document$Container,
 					parent,
@@ -10186,7 +10195,7 @@ var $author$project$PageEditor$Internals$DocumentZipper$rewind = function (docZi
 };
 var $author$project$PageEditor$PageEditor$currentDocument = function (model) {
 	return $author$project$PageEditor$Internals$DocumentZipper$extractDoc(
-		$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i3));
+		$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i2));
 };
 var $author$project$Help$Help$SetCurrentPage = F2(
 	function (a, b) {
@@ -10201,11 +10210,11 @@ var $author$project$Help$Help$externalUpdate = F2(
 			model);
 	});
 var $author$project$Auth$AuthPlugin$getLogInfo = function (model) {
-	return model.bd;
+	return model.be;
 };
 var $Skinney$murmur3$Murmur3$HashData = F4(
 	function (shift, seed, hash, charsProcessed) {
-		return {c_: charsProcessed, c4: hash, lm: seed, di: shift};
+		return {c_: charsProcessed, c4: hash, ll: seed, dh: shift};
 	});
 var $Skinney$murmur3$Murmur3$c1 = 3432918353;
 var $Skinney$murmur3$Murmur3$c2 = 461845907;
@@ -10218,13 +10227,13 @@ var $Skinney$murmur3$Murmur3$rotlBy = F2(
 		return (a << b) | (a >>> (32 - b));
 	});
 var $Skinney$murmur3$Murmur3$finalize = function (data) {
-	var acc = (!(!data.c4)) ? (data.lm ^ A2(
+	var acc = (!(!data.c4)) ? (data.ll ^ A2(
 		$Skinney$murmur3$Murmur3$multiplyBy,
 		$Skinney$murmur3$Murmur3$c2,
 		A2(
 			$Skinney$murmur3$Murmur3$rotlBy,
 			15,
-			A2($Skinney$murmur3$Murmur3$multiplyBy, $Skinney$murmur3$Murmur3$c1, data.c4)))) : data.lm;
+			A2($Skinney$murmur3$Murmur3$multiplyBy, $Skinney$murmur3$Murmur3$c1, data.c4)))) : data.ll;
 	var h0 = acc ^ data.c_;
 	var h1 = A2($Skinney$murmur3$Murmur3$multiplyBy, 2246822507, h0 ^ (h0 >>> 16));
 	var h2 = A2($Skinney$murmur3$Murmur3$multiplyBy, 3266489909, h1 ^ (h1 >>> 13));
@@ -10249,17 +10258,17 @@ var $Skinney$murmur3$Murmur3$mix = F2(
 	});
 var $Skinney$murmur3$Murmur3$hashFold = F2(
 	function (c, data) {
-		var res = data.c4 | ((255 & $elm$core$Char$toCode(c)) << data.di);
-		var _v0 = data.di;
+		var res = data.c4 | ((255 & $elm$core$Char$toCode(c)) << data.dh);
+		var _v0 = data.dh;
 		if (_v0 === 24) {
 			return {
 				c_: data.c_ + 1,
 				c4: 0,
-				lm: A2($Skinney$murmur3$Murmur3$mix, data.lm, res),
-				di: 0
+				ll: A2($Skinney$murmur3$Murmur3$mix, data.ll, res),
+				dh: 0
 			};
 		} else {
-			return {c_: data.c_ + 1, c4: res, lm: data.lm, di: data.di + 8};
+			return {c_: data.c_ + 1, c4: res, ll: data.ll, dh: data.dh + 8};
 		}
 	});
 var $Skinney$murmur3$Murmur3$hashString = F2(
@@ -10289,9 +10298,9 @@ var $author$project$Internals$CommonHelpers$hashLog = F2(
 					_Utils_ap(
 						log.dy ? 'isError' : 'isNotError',
 						_Utils_ap(
-							log.gH ? 'isImportant' : 'isNotImportant',
+							log.gG ? 'isImportant' : 'isNotImportant',
 							$elm$core$String$fromInt(
-								$elm$time$Time$posixToMillis(log.dn)))))));
+								$elm$time$Time$posixToMillis(log.dm)))))));
 		return _Utils_Tuple2(hash, newSeed);
 	});
 var $author$project$FileExplorer$FileExplorer$DocsRoot = 1;
@@ -10314,7 +10323,7 @@ var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $author$project$FileExplorer$FileExplorer$defMeta = {b$: $elm$core$Maybe$Nothing, cA: $author$project$FileExplorer$FileExplorer$RegFile, H: '', J: _List_Nil};
 var $elm$regex$Regex$Match = F4(
 	function (match, index, number, submatches) {
-		return {gC: index, kd: match, kD: number, lT: submatches};
+		return {gB: index, kc: match, kC: number, lS: submatches};
 	});
 var $elm$regex$Regex$findAtMost = _Regex_findAtMost;
 var $elm_community$string_extra$String$Extra$firstResultHelp = F2(
@@ -10346,7 +10355,7 @@ var $elm$regex$Regex$fromStringWith = _Regex_fromStringWith;
 var $elm$regex$Regex$fromString = function (string) {
 	return A2(
 		$elm$regex$Regex$fromStringWith,
-		{$9: false, kl: false},
+		{im: false, kk: false},
 		string);
 };
 var $elm$regex$Regex$never = _Regex_never;
@@ -10359,7 +10368,7 @@ var $elm_community$string_extra$String$Extra$regexEscape = A2(
 	$elm$regex$Regex$replace,
 	$elm_community$string_extra$String$Extra$regexFromString('[-/\\^$*+?.()|[\\]{}]'),
 	function (_v0) {
-		var match = _v0.kd;
+		var match = _v0.kc;
 		return '\\' + match;
 	});
 var $elm_community$string_extra$String$Extra$leftOf = F2(
@@ -10372,7 +10381,7 @@ var $elm_community$string_extra$String$Extra$leftOf = F2(
 				A2(
 					$elm$core$Basics$composeR,
 					function ($) {
-						return $.lT;
+						return $.lS;
 					},
 					$elm_community$string_extra$String$Extra$firstResult),
 				A3(
@@ -10450,7 +10459,7 @@ var $author$project$FileExplorer$FileExplorer$decodeFile = A4(
 					$elm$json$Json$Decode$map2,
 					F2(
 						function (w, h) {
-							return {jy: h, mu: w};
+							return {jx: h, mt: w};
 						}),
 					A2($elm$json$Json$Decode$field, 'width', $elm$json$Json$Decode$int),
 					A2($elm$json$Json$Decode$field, 'height', $elm$json$Json$Decode$int))),
@@ -10513,7 +10522,7 @@ var $elm$http$Http$jsonBody = function (value) {
 };
 var $elm$http$Http$post = function (r) {
 	return $elm$http$Http$request(
-		{eY: r.eY, dv: r.dv, gv: _List_Nil, gP: 'POST', hA: $elm$core$Maybe$Nothing, hD: $elm$core$Maybe$Nothing, d0: r.d0});
+		{eY: r.eY, du: r.du, gu: _List_Nil, gO: 'POST', hz: $elm$core$Maybe$Nothing, hC: $elm$core$Maybe$Nothing, d0: r.d0});
 };
 var $author$project$FileExplorer$FileExplorer$getFileList = F3(
 	function (root, toRefresh, sessionId) {
@@ -10532,7 +10541,7 @@ var $author$project$FileExplorer$FileExplorer$getFileList = F3(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A3($author$project$FileExplorer$FileExplorer$RefreshFilesys, $elm$core$Maybe$Nothing, 'Chargement info fichier réussi', root),
 					$author$project$FileExplorer$FileExplorer$decodeFiles),
@@ -10542,7 +10551,7 @@ var $author$project$FileExplorer$FileExplorer$getFileList = F3(
 var $author$project$FileExplorer$FileExplorer$load = F2(
 	function (model, logInfo) {
 		if (!logInfo.$) {
-			var sessionId = logInfo.a.fG;
+			var sessionId = logInfo.a.fF;
 			return A2(
 				$elm$core$Platform$Cmd$map,
 				model.bY,
@@ -10563,7 +10572,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$LoadGeneralDire
 	return {$: 5, a: a};
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$GenDirData = function (fiches) {
-	return {jh: fiches};
+	return {jg: fiches};
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Fiche = function (uuid) {
 	return function (categories) {
@@ -10584,7 +10593,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Fiche = functio
 																return function (linkedDocs) {
 																	return function (ouverture) {
 																		return function (lastEdit) {
-																			return {hU: adresse, cZ: categories, fa: description, i5: email, jf: fax, N: label, dz: lastEdit, j5: linkedDocs, kp: natureActiv, kC: nomEntite, kO: ouverture, dO: pjaun, k1: rank, k4: refOt, la: responsables, lF: site, l0: telNumber, fT: uuid, ms: visuel};
+																			return {hT: adresse, cZ: categories, fa: description, i4: email, je: fax, N: label, dz: lastEdit, j4: linkedDocs, ko: natureActiv, kB: nomEntite, kN: ouverture, dO: pjaun, k0: rank, k3: refOt, k9: responsables, lE: site, l$: telNumber, fS: uuid, mr: visuel};
 																		};
 																	};
 																};
@@ -10606,7 +10615,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Fiche = functio
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Label = F3(
 	function (nom, logo, lien) {
-		return {j3: lien, ka: logo, kB: nom};
+		return {j2: lien, j9: logo, kA: nom};
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeLogo = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -10623,7 +10632,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeLogo = A3(
 			$elm$json$Json$Decode$succeed(
 				F3(
 					function (u, w, h) {
-						return {jy: h, d0: u, mu: w};
+						return {jx: h, d0: u, mt: w};
 					})))));
 var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeLabel = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -10640,7 +10649,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeLabel = A3(
 			$elm$json$Json$Decode$succeed($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Label))));
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$LinkedDoc = F4(
 	function (url, label, descr, expiryDate) {
-		return {i$: descr, ja: expiryDate, N: label, d0: url};
+		return {i_: descr, i9: expiryDate, N: label, d0: url};
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeLinkedDoc = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -10678,7 +10687,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeOuverture = A2(
 	$elm$json$Json$Decode$string);
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Rank = F2(
 	function (stars, epis) {
-		return {gi: epis, lL: stars};
+		return {gh: epis, lK: stars};
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeRank = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -10701,7 +10710,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeRefOt = $elm$jso
 			$elm$json$Json$Decode$succeed($elm$core$Tuple$pair))));
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Responsable = F3(
 	function (poste, nom, tel) {
-		return {kB: nom, kZ: poste, l$: tel};
+		return {kA: nom, kY: poste, l_: tel};
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$TelBoth = function (a) {
 	return {$: 2, a: a};
@@ -11153,7 +11162,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeGenDirData = A3(
 			$elm$core$List$map(
 				function (f) {
 					return _Utils_Tuple2(
-						$TSFoster$elm_uuid$UUID$toString(f.fT),
+						$TSFoster$elm_uuid$UUID$toString(f.fS),
 						f);
 				}),
 			$elm$json$Json$Decode$list($author$project$GeneralDirectoryEditor$GeneralDirJson$decodeFiche))),
@@ -11170,14 +11179,14 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$getGeneralDirectory = 
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$LoadGeneralDirectory, $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeGenDirData),
+			du: A2($elm$http$Http$expectJson, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$LoadGeneralDirectory, $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeGenDirData),
 			d0: 'getGeneralDirectory.php'
 		});
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$load = F2(
 	function (model, logInfo) {
 		if (!logInfo.$) {
-			var sessionId = logInfo.a.fG;
+			var sessionId = logInfo.a.fF;
 			return A2(
 				$elm$core$Platform$Cmd$map,
 				model.bY,
@@ -11199,15 +11208,15 @@ var $author$project$NewsEditor$NewsEditor$LoadNews = function (a) {
 };
 var $author$project$Document$Document$News = F6(
 	function (title, date, content, pic, uuid, expiry) {
-		return {iJ: content, eh: date, i9: expiry, kT: pic, fQ: title, fT: uuid};
+		return {iI: content, eh: date, i8: expiry, kS: pic, fP: title, fS: uuid};
 	});
 var $author$project$Document$Document$Pic = F3(
 	function (url, width, height) {
-		return {jy: height, d0: url, mu: width};
+		return {jx: height, d0: url, mt: width};
 	});
 var $author$project$Document$Document$NewsContent = F2(
 	function (tbElems, attrs) {
-		return {x: attrs, l_: tbElems};
+		return {x: attrs, lZ: tbElems};
 	});
 var $author$project$Document$Document$AlignLeft = {$: 3};
 var $author$project$Document$Document$AlignRight = {$: 2};
@@ -11220,16 +11229,10 @@ var $author$project$Document$Document$Center = {$: 17};
 var $author$project$Document$Document$FillPortion = function (a) {
 	return {$: 10, a: a};
 };
-var $author$project$Document$Document$Font = function (a) {
-	return {$: 12, a: a};
-};
 var $author$project$Document$Document$FontAlignLeft = {$: 15};
 var $author$project$Document$Document$FontAlignRight = {$: 16};
 var $author$project$Document$Document$FontColor = function (a) {
 	return {$: 13, a: a};
-};
-var $author$project$Document$Document$FontSize = function (a) {
-	return {$: 14, a: a};
 };
 var $author$project$Document$Document$Height = function (a) {
 	return {$: 9, a: a};
@@ -11311,7 +11314,7 @@ var $author$project$Document$Json$DocumentDecoder$decodeDocAttribute = $elm$json
 							F4(
 								function (b, l, r, t) {
 									return $author$project$Document$Document$PaddingEach(
-										{a2: b, bb: l, bk: r, bo: t});
+										{a2: b, bc: l, bl: r, bq: t});
 								})))))),
 			A3(
 			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$requiredAt,
@@ -11440,7 +11443,7 @@ var $author$project$Document$Document$Text = F2(
 	});
 var $author$project$Document$Document$LinkMeta = F3(
 	function (targetBlank, url, label) {
-		return {N: label, hz: targetBlank, d0: url};
+		return {N: label, hy: targetBlank, d0: url};
 	});
 var $author$project$Document$Json$DocumentDecoder$decodeLinkMeta = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -11528,14 +11531,14 @@ var $author$project$Document$Json$DocumentDecoder$decodeTextBlockElement = $elm$
 						$elm$json$Json$Decode$succeed(
 							F3(
 								function (a, l, v) {
-									return {x: a, gN: l, hH: v};
+									return {x: a, gM: l, hG: v};
 								}))))),
 			$elm$json$Json$Decode$succeed(
 				function (res) {
 					return A2(
 						$author$project$Document$Document$Heading,
 						res.x,
-						_Utils_Tuple2(res.gN, res.hH));
+						_Utils_Tuple2(res.gM, res.hG));
 				})),
 			A3(
 			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -11616,7 +11619,7 @@ var $author$project$NewsEditor$NewsEditor$decodeNewsDict = A2(
 				$elm$core$List$map,
 				function (news) {
 					return _Utils_Tuple2(
-						$TSFoster$elm_uuid$UUID$toString(news.fT),
+						$TSFoster$elm_uuid$UUID$toString(news.fS),
 						news);
 				},
 				newsList);
@@ -11634,14 +11637,14 @@ var $author$project$NewsEditor$NewsEditor$getAllTheNews = function (sessionId) {
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$NewsEditor$NewsEditor$LoadNews, $author$project$NewsEditor$NewsEditor$decodeNewsDict),
+			du: A2($elm$http$Http$expectJson, $author$project$NewsEditor$NewsEditor$LoadNews, $author$project$NewsEditor$NewsEditor$decodeNewsDict),
 			d0: 'getAllTheNews.php'
 		});
 };
 var $author$project$NewsEditor$NewsEditor$load = F2(
 	function (model, logInfo) {
 		if (!logInfo.$) {
-			var sessionId = logInfo.a.fG;
+			var sessionId = logInfo.a.fF;
 			return A2(
 				$elm$core$Platform$Cmd$map,
 				model.bY,
@@ -11673,7 +11676,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$getContents = function (sessio
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$PageTreeEditor$PageTreeEditor$LoadContents, $elm$json$Json$Decode$value),
+			du: A2($elm$http$Http$expectJson, $author$project$PageTreeEditor$PageTreeEditor$LoadContents, $elm$json$Json$Decode$value),
 			d0: 'getContents.php'
 		});
 };
@@ -11703,7 +11706,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$getKeywords = function () {
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$PageTreeEditor$PageTreeEditor$LoadKeywords, $author$project$PageTreeEditor$PageTreeEditor$decodeKeywords),
+			du: A2($elm$http$Http$expectJson, $author$project$PageTreeEditor$PageTreeEditor$LoadKeywords, $author$project$PageTreeEditor$PageTreeEditor$decodeKeywords),
 			d0: 'getKeywords.php'
 		});
 }();
@@ -11716,7 +11719,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$Page = F2(
 	});
 var $author$project$PageTreeEditor$PageTreeEditor$PageInfo = F3(
 	function (name, path, mbContentId) {
-		return {kg: mbContentId, H: name, J: path};
+		return {kf: mbContentId, H: name, J: path};
 	});
 var $author$project$PageTreeEditor$PageTreeEditor$decodeUUID = A2(
 	$elm$json$Json$Decode$andThen,
@@ -11767,7 +11770,7 @@ $author$project$PageTreeEditor$PageTreeEditor$cyclic$decodePage = function () {
 	return $author$project$PageTreeEditor$PageTreeEditor$decodePage;
 };
 var $author$project$PageTreeEditor$PageTreeEditor$initPageTree = function (page) {
-	return {bs: _List_Nil, a3: page};
+	return {bu: _List_Nil, a3: page};
 };
 var $author$project$PageTreeEditor$PageTreeEditor$decodePageTree = A2($elm$json$Json$Decode$map, $author$project$PageTreeEditor$PageTreeEditor$initPageTree, $author$project$PageTreeEditor$PageTreeEditor$decodePage);
 var $author$project$PageTreeEditor$PageTreeEditor$getPageTree = function () {
@@ -11776,14 +11779,14 @@ var $author$project$PageTreeEditor$PageTreeEditor$getPageTree = function () {
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$PageTreeEditor$PageTreeEditor$LoadPageTree, $author$project$PageTreeEditor$PageTreeEditor$decodePageTree),
+			du: A2($elm$http$Http$expectJson, $author$project$PageTreeEditor$PageTreeEditor$LoadPageTree, $author$project$PageTreeEditor$PageTreeEditor$decodePageTree),
 			d0: 'getPageTree.php'
 		});
 }();
 var $author$project$PageTreeEditor$PageTreeEditor$load = F2(
 	function (model, logInfo) {
 		if (!logInfo.$) {
-			var sessionId = logInfo.a.fG;
+			var sessionId = logInfo.a.fF;
 			return A2(
 				$elm$core$Platform$Cmd$map,
 				model.bY,
@@ -11804,11 +11807,11 @@ var $author$project$Publications$Publications$LoadPublications = function (a) {
 };
 var $author$project$Document$Document$Publications = F3(
 	function (murolInfos, delibs, bulletins) {
-		return {ik: bulletins, iX: delibs, km: murolInfos};
+		return {ij: bulletins, iW: delibs, kl: murolInfos};
 	});
 var $author$project$Document$Document$BulletinMeta = F4(
 	function (issue, date, cover, index) {
-		return {iN: cover, eh: date, gC: index, gI: issue};
+		return {iM: cover, eh: date, gB: index, gH: issue};
 	});
 var $author$project$Publications$Publications$coverFilename = function (n) {
 	return function (s) {
@@ -11846,7 +11849,7 @@ var $author$project$Publications$Publications$decodeBulletin = function () {
 }();
 var $author$project$Document$Document$DelibMeta = F2(
 	function (date, index) {
-		return {eh: date, gC: index};
+		return {eh: date, gB: index};
 	});
 var $author$project$Publications$Publications$decodeDelib = function () {
 	var decodeIndexEntry = A3(
@@ -11868,7 +11871,7 @@ var $author$project$Publications$Publications$decodeDelib = function () {
 }();
 var $author$project$Document$Document$MurolInfoMeta = F3(
 	function (issue, date, topics) {
-		return {eh: date, gI: issue, mj: topics};
+		return {eh: date, gH: issue, mi: topics};
 	});
 var $author$project$Publications$Publications$decodeMurolInfo = A4(
 	$elm$json$Json$Decode$map3,
@@ -11895,7 +11898,7 @@ var $author$project$Publications$Publications$decodePublications = A4(
 				$elm$json$Json$Decode$map,
 				$elm$core$List$map(
 					function (mi) {
-						return _Utils_Tuple2(mi.gI, mi);
+						return _Utils_Tuple2(mi.gH, mi);
 					}),
 				$elm$json$Json$Decode$list($author$project$Publications$Publications$decodeMurolInfo)))),
 	A2(
@@ -11923,7 +11926,7 @@ var $author$project$Publications$Publications$decodePublications = A4(
 				$elm$json$Json$Decode$map,
 				$elm$core$List$map(
 					function (b) {
-						return _Utils_Tuple2(b.gI, b);
+						return _Utils_Tuple2(b.gH, b);
 					}),
 				$elm$json$Json$Decode$list($author$project$Publications$Publications$decodeBulletin)))));
 var $author$project$Publications$Publications$getAllPublications = function (msg) {
@@ -11932,14 +11935,14 @@ var $author$project$Publications$Publications$getAllPublications = function (msg
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, msg, $author$project$Publications$Publications$decodePublications),
+			du: A2($elm$http$Http$expectJson, msg, $author$project$Publications$Publications$decodePublications),
 			d0: '/getAllPublications.php'
 		});
 };
 var $author$project$Publications$Publications$load = F2(
 	function (model, logInfo) {
 		if (!logInfo.$) {
-			var sessionId = logInfo.a.fG;
+			var sessionId = logInfo.a.fF;
 			return A2(
 				$elm$core$Platform$Cmd$map,
 				model.bY,
@@ -11953,7 +11956,7 @@ var $author$project$Publications$Publications$load = F2(
 		}
 	});
 var $author$project$PageTreeEditor$PageTreeEditor$getMbContentId = function (_v0) {
-	var mbContentId = _v0.a.kg;
+	var mbContentId = _v0.a.kf;
 	return mbContentId;
 };
 var $author$project$PageTreeEditor$PageTreeEditor$loadedContent = function (model) {
@@ -11965,7 +11968,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$loadedContent = function (mode
 				$TSFoster$elm_uuid$UUID$toString(k),
 				model.cv);
 		},
-		A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.am));
+		A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.an));
 };
 var $elm$core$Basics$round = _Basics_round;
 var $elm$core$Dict$member = F2(
@@ -12045,7 +12048,7 @@ var $author$project$Auth$AuthPlugin$login = function (model) {
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$ConfirmLogin, $author$project$Auth$AuthPlugin$decodeLoginResult),
+			du: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$ConfirmLogin, $author$project$Auth$AuthPlugin$decodeLoginResult),
 			d0: 'login.php'
 		});
 };
@@ -12055,12 +12058,12 @@ var $author$project$Auth$AuthPlugin$ConfirmLogout = function (a) {
 var $author$project$Auth$AuthPlugin$decodeLogoutResult = A2($elm$json$Json$Decode$field, 'notLoggedIn', $elm$json$Json$Decode$bool);
 var $author$project$Auth$AuthPlugin$logout = $elm$http$Http$get(
 	{
-		dv: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$ConfirmLogout, $author$project$Auth$AuthPlugin$decodeLogoutResult),
+		du: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$ConfirmLogout, $author$project$Auth$AuthPlugin$decodeLogoutResult),
 		d0: 'logout.php'
 	});
 var $author$project$Internals$CommonHelpers$Log = F5(
 	function (message, mbDetails, isError, isImportant, timeStamp) {
-		return {dy: isError, gH: isImportant, es: mbDetails, dH: message, dn: timeStamp};
+		return {dy: isError, gG: isImportant, es: mbDetails, dH: message, dm: timeStamp};
 	});
 var $author$project$Internals$CommonHelpers$newLog = F5(
 	function (addLogMsg, logMsg, details, isError, isImportant) {
@@ -12096,7 +12099,7 @@ var $author$project$Auth$AuthPlugin$ping = function (sessionId) {
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$PingResult, $author$project$Auth$AuthPlugin$decodePing),
+			du: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$PingResult, $author$project$Auth$AuthPlugin$decodePing),
 			d0: 'ping.php'
 		});
 };
@@ -12125,7 +12128,7 @@ var $author$project$Auth$AuthPlugin$signUp = function (model) {
 	return $elm$http$Http$post(
 		{
 			eY: body,
-			dv: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$ConfirmSignUp, $author$project$Auth$AuthPlugin$decodeSignupResult),
+			du: A2($elm$http$Http$expectJson, $author$project$Auth$AuthPlugin$ConfirmSignUp, $author$project$Auth$AuthPlugin$decodeSignupResult),
 			d0: 'signup.php'
 		});
 };
@@ -12153,7 +12156,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{dt: s}),
+						{ds: s}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 3:
@@ -12176,7 +12179,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								bd: $author$project$Auth$AuthPlugin$LoggedOut,
+								be: $author$project$Auth$AuthPlugin$LoggedOut,
 								z: $author$project$Auth$AuthPlugin$LoginMode(0)
 							}),
 						$elm$core$Platform$Cmd$none,
@@ -12187,7 +12190,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								bd: logInfo,
+								be: logInfo,
 								z: $author$project$Auth$AuthPlugin$LoginMode(2)
 							}),
 						$elm$core$Platform$Cmd$none,
@@ -12201,7 +12204,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								bd: $author$project$Auth$AuthPlugin$LoggedOut,
+								be: $author$project$Auth$AuthPlugin$LoggedOut,
 								z: $author$project$Auth$AuthPlugin$LoginMode(3)
 							}),
 						A5(
@@ -12219,7 +12222,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								bd: logInfo,
+								be: logInfo,
 								z: $author$project$Auth$AuthPlugin$LoginMode(2)
 							}),
 						$elm$core$Platform$Cmd$none,
@@ -12299,7 +12302,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								bd: $author$project$Auth$AuthPlugin$LoggedOut,
+								be: $author$project$Auth$AuthPlugin$LoggedOut,
 								z: $author$project$Auth$AuthPlugin$LogoutMode(2)
 							}),
 						$elm$core$Platform$Cmd$none,
@@ -12314,7 +12317,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 11:
-				var _v5 = model.bd;
+				var _v5 = model.be;
 				if (!_v5.$) {
 					var li = _v5.a;
 					return _Utils_Tuple3(
@@ -12326,7 +12329,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
-							$author$project$Auth$AuthPlugin$ping(li.fG)),
+							$author$project$Auth$AuthPlugin$ping(li.fF)),
 						$elm$core$Maybe$Nothing);
 				} else {
 					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
@@ -12347,7 +12350,7 @@ var $author$project$Auth$AuthPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								bd: $author$project$Auth$AuthPlugin$LoggedOut,
+								be: $author$project$Auth$AuthPlugin$LoggedOut,
 								z: $author$project$Auth$AuthPlugin$LoginMode(3)
 							}),
 						$elm$core$Platform$Cmd$none,
@@ -12387,7 +12390,7 @@ var $elm$http$Http$cancel = function (tracker) {
 var $author$project$Auth$AuthPlugin$cmdIfLogged = F2(
 	function (logInfo, cmd) {
 		if (!logInfo.$) {
-			var sessionId = logInfo.a.fG;
+			var sessionId = logInfo.a.fF;
 			return cmd(sessionId);
 		} else {
 			return $elm$core$Platform$Cmd$none;
@@ -12395,7 +12398,7 @@ var $author$project$Auth$AuthPlugin$cmdIfLogged = F2(
 	});
 var $author$project$FileExplorer$FileExplorer$ProcessedImage = F5(
 	function (filename, content, size, width, height) {
-		return {iJ: content, D: filename, jy: height, fK: size, mu: width};
+		return {iI: content, D: filename, jx: height, fJ: size, mt: width};
 	});
 var $elm$json$Json$Decode$map5 = _Json_map5;
 var $author$project$FileExplorer$FileExplorer$decodeProcessedData = A6(
@@ -12451,7 +12454,7 @@ var $author$project$FileExplorer$FileExplorer$deleteFile = F3(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A3(
 						$author$project$FileExplorer$FileExplorer$RefreshFilesys,
@@ -12464,7 +12467,7 @@ var $author$project$FileExplorer$FileExplorer$deleteFile = F3(
 	});
 var $author$project$FileExplorer$FileExplorer$extractFsItem = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	return current;
 };
 var $author$project$FileExplorer$FileExplorer$modeRoot = F2(
@@ -12483,7 +12486,7 @@ var $author$project$FileExplorer$FileExplorer$modeRoot = F2(
 var $author$project$FileExplorer$FileExplorer$getCurrentFilesys = F2(
 	function (mode, model) {
 		if (mode.$ === 2) {
-			var _v1 = model.Y;
+			var _v1 = model.Z;
 			if (!_v1) {
 				return model.aW;
 			} else {
@@ -12491,7 +12494,7 @@ var $author$project$FileExplorer$FileExplorer$getCurrentFilesys = F2(
 			}
 		} else {
 			var mode_ = mode;
-			var _v2 = A2($author$project$FileExplorer$FileExplorer$modeRoot, mode_, model.Y);
+			var _v2 = A2($author$project$FileExplorer$FileExplorer$modeRoot, mode_, model.Z);
 			if (!_v2) {
 				return model.aW;
 			} else {
@@ -12500,7 +12503,7 @@ var $author$project$FileExplorer$FileExplorer$getCurrentFilesys = F2(
 		}
 	});
 var $author$project$FileExplorer$FileExplorer$initFileSys = function (fsItem) {
-	return {bs: _List_Nil, a3: fsItem};
+	return {bu: _List_Nil, a3: fsItem};
 };
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
@@ -12732,7 +12735,7 @@ var $author$project$FileExplorer$FileExplorer$makeNewFolder = F4(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A3(
 						$author$project$FileExplorer$FileExplorer$RefreshFilesys,
@@ -12804,7 +12807,7 @@ var $author$project$FileExplorer$FileExplorer$pasteFile = F4(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A3(
 						$author$project$FileExplorer$FileExplorer$RefreshFilesys,
@@ -12821,7 +12824,7 @@ var $author$project$FileExplorer$FileExplorer$toFileExplorerImageProcessor = _Pl
 var $author$project$FileExplorer$FileExplorer$processCmd = F3(
 	function (model, filename, data) {
 		var _v0 = function () {
-			var _v1 = model.dr;
+			var _v1 = model.dq;
 			switch (_v1) {
 				case 0:
 					return _Utils_Tuple2(266, 200);
@@ -12892,7 +12895,7 @@ var $author$project$FileExplorer$FileExplorer$renameFile = F4(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A3(
 						$author$project$FileExplorer$FileExplorer$RefreshFilesys,
@@ -12904,19 +12907,19 @@ var $author$project$FileExplorer$FileExplorer$renameFile = F4(
 			});
 	});
 var $author$project$FileExplorer$FileExplorer$zipUpFilesys = function (filesys) {
-	var _v0 = filesys.bs;
+	var _v0 = filesys.bu;
 	if (!_v0.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = _v0.a.eF;
-		var left = _v0.a.bb;
-		var right = _v0.a.bk;
+		var left = _v0.a.bc;
+		var right = _v0.a.bl;
 		var cs = _v0.b;
 		return $elm$core$Maybe$Just(
 			_Utils_update(
 				filesys,
 				{
-					bs: cs,
+					bu: cs,
 					a3: A2(
 						$author$project$FileExplorer$FileExplorer$Folder,
 						parent,
@@ -12998,7 +13001,7 @@ var $elm$file$File$toUrl = _File_toUrl;
 var $author$project$FileExplorer$FileExplorer$updateFilesys = F3(
 	function (mode, model, f) {
 		if (mode.$ === 2) {
-			var _v1 = model.Y;
+			var _v1 = model.Z;
 			if (!_v1) {
 				return _Utils_update(
 					model,
@@ -13014,7 +13017,7 @@ var $author$project$FileExplorer$FileExplorer$updateFilesys = F3(
 			}
 		} else {
 			var mode_ = mode;
-			var _v2 = A2($author$project$FileExplorer$FileExplorer$modeRoot, mode_, model.Y);
+			var _v2 = A2($author$project$FileExplorer$FileExplorer$modeRoot, mode_, model.Z);
 			if (!_v2) {
 				return _Utils_update(
 					model,
@@ -13080,14 +13083,14 @@ var $author$project$FileExplorer$FileExplorer$uploadFile = F3(
 		return $elm$http$Http$request(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$FileExplorer$FileExplorer$Uploaded(filename),
 					$author$project$Internals$CommonHelpers$decodeUploadStatus),
-				gv: _List_Nil,
-				gP: 'POST',
-				hA: $elm$core$Maybe$Nothing,
-				hD: $elm$core$Maybe$Just(filename),
+				gu: _List_Nil,
+				gO: 'POST',
+				hz: $elm$core$Maybe$Nothing,
+				hC: $elm$core$Maybe$Just(filename),
 				d0: 'uploadDoc.php'
 			});
 	});
@@ -13126,7 +13129,7 @@ var $author$project$FileExplorer$FileExplorer$uploadImage = F4(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A3(
 						$author$project$FileExplorer$FileExplorer$RefreshFilesys,
@@ -13172,14 +13175,14 @@ var $author$project$FileExplorer$FileExplorer$uploadImageAuto = F4(
 		return $elm$http$Http$request(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$FileExplorer$FileExplorer$Uploaded(filename),
 					$author$project$Internals$CommonHelpers$decodeUploadStatus),
-				gv: _List_Nil,
-				gP: 'POST',
-				hA: $elm$core$Maybe$Nothing,
-				hD: $elm$core$Maybe$Just(filename),
+				gu: _List_Nil,
+				gO: 'POST',
+				hz: $elm$core$Maybe$Nothing,
+				hC: $elm$core$Maybe$Just(filename),
 				d0: 'uploadBase64PicAuto.php'
 			});
 	});
@@ -13216,10 +13219,10 @@ var $author$project$FileExplorer$FileExplorer$zipDownFilesys = F2(
 						_Utils_update(
 							filesys,
 							{
-								bs: A2(
+								bu: A2(
 									$elm$core$List$cons,
-									{bb: l, eF: meta, bk: fs},
-									filesys.bs),
+									{bc: l, eF: meta, bl: fs},
+									filesys.bu),
 								a3: f
 							}));
 				}
@@ -13272,11 +13275,11 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				var newModel = _Utils_update(
 					model,
 					{
-						bE: A2(
+						bF: A2(
 							$elm$core$Maybe$map,
 							$author$project$FileExplorer$FileExplorer$extractFsItem,
 							A2($author$project$FileExplorer$FileExplorer$getCurrentFilesys, mode, model)),
-						n: $elm$core$Maybe$Nothing
+						o: $elm$core$Maybe$Nothing
 					});
 				var f = function (mbFs) {
 					var _v1 = A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$rewindFilesys, mbFs);
@@ -13293,14 +13296,14 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 					$elm$core$Maybe$Nothing);
 			case 1:
 				var mode = msg.a;
-				var _v2 = model.bE;
+				var _v2 = model.bF;
 				if (_v2.$ === 1) {
 					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
 				} else {
 					var fsItem = _v2.a;
 					var newModel = _Utils_update(
 						model,
-						{bE: $elm$core$Maybe$Nothing, n: $elm$core$Maybe$Nothing});
+						{bF: $elm$core$Maybe$Nothing, o: $elm$core$Maybe$Nothing});
 					var f = function (mbFs) {
 						return A2(
 							$elm$core$Maybe$withDefault,
@@ -13321,11 +13324,11 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				var newModel = _Utils_update(
 					model,
 					{
-						bE: A2(
+						bF: A2(
 							$elm$core$Maybe$map,
 							$author$project$FileExplorer$FileExplorer$extractFsItem,
 							A2($author$project$FileExplorer$FileExplorer$getCurrentFilesys, mode, model)),
-						n: $elm$core$Maybe$Nothing
+						o: $elm$core$Maybe$Nothing
 					});
 				var f = function (mbFs) {
 					var _v3 = A2($elm$core$Maybe$andThen, $author$project$FileExplorer$FileExplorer$zipUpFilesys, mbFs);
@@ -13346,11 +13349,11 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				var newModel = _Utils_update(
 					model,
 					{
-						bE: A2(
+						bF: A2(
 							$elm$core$Maybe$map,
 							$author$project$FileExplorer$FileExplorer$extractFsItem,
 							A2($author$project$FileExplorer$FileExplorer$getCurrentFilesys, mode, model)),
-						n: $elm$core$Maybe$Nothing
+						o: $elm$core$Maybe$Nothing
 					});
 				var f = function (mbFs) {
 					return A2(
@@ -13369,12 +13372,12 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				var mode = msg.a;
 				var fsItem = msg.b;
 				if (_Utils_eq(
-					model.n,
+					model.o,
 					$elm$core$Maybe$Just(fsItem))) {
 					return _Utils_Tuple3(
 						_Utils_update(
 							model,
-							{be: '', bI: '', n: $elm$core$Maybe$Nothing}),
+							{bf: '', bJ: '', o: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none,
 						$elm$core$Maybe$Nothing);
 				} else {
@@ -13390,9 +13393,9 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 							_Utils_update(
 								model,
 								{
-									be: '',
-									bI: $author$project$FileExplorer$FileExplorer$getName(fsItem),
-									n: $elm$core$Maybe$Just(fsItem)
+									bf: '',
+									bJ: $author$project$FileExplorer$FileExplorer$getName(fsItem),
+									o: $elm$core$Maybe$Just(fsItem)
 								}),
 							$elm$core$Platform$Cmd$none,
 							$elm$core$Maybe$Nothing) : _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
@@ -13405,7 +13408,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{be: s}),
+						{bf: s}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 6:
@@ -13416,7 +13419,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 						model,
 						{
 							F: A2($elm$core$List$cons, fsItem, model.F),
-							n: $elm$core$Maybe$Nothing
+							o: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Platform$Cmd$batch(
 						_List_fromArray(
@@ -13426,17 +13429,17 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								model.bY,
 								A2(
 									$author$project$Auth$AuthPlugin$cmdIfLogged,
-									config.bd,
+									config.be,
 									A3(
 										$author$project$FileExplorer$FileExplorer$makeNewFolder,
 										fsItem,
-										model.be,
-										A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Y)))),
+										model.bf,
+										A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Z)))),
 								A6(
 								$author$project$Auth$AuthPlugin$newLogIfLogged,
-								config.bd,
+								config.be,
 								config.eT,
-								'Requête: Nouveau dossier ' + (model.be + (' dans ' + $author$project$FileExplorer$FileExplorer$getName(fsItem))),
+								'Requête: Nouveau dossier ' + (model.bf + (' dans ' + $author$project$FileExplorer$FileExplorer$getName(fsItem))),
 								$elm$core$Maybe$Nothing,
 								false,
 								true)
@@ -13450,7 +13453,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 						model,
 						{
 							F: A2($elm$core$List$cons, fsItem, model.F),
-							n: $elm$core$Maybe$Nothing
+							o: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Platform$Cmd$batch(
 						_List_fromArray(
@@ -13460,14 +13463,14 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								model.bY,
 								A2(
 									$author$project$Auth$AuthPlugin$cmdIfLogged,
-									config.bd,
+									config.be,
 									A2(
 										$author$project$FileExplorer$FileExplorer$deleteFile,
 										fsItem,
-										A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Y)))),
+										A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Z)))),
 								A6(
 								$author$project$Auth$AuthPlugin$newLogIfLogged,
-								config.bd,
+								config.be,
 								config.eT,
 								'Requête: Suppression ' + $author$project$FileExplorer$FileExplorer$getName(fsItem),
 								$elm$core$Maybe$Nothing,
@@ -13481,7 +13484,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 					_Utils_update(
 						model,
 						{
-							bt: $elm$core$Maybe$Just(src),
+							bv: $elm$core$Maybe$Just(src),
 							F: A2($elm$core$List$cons, src, model.F)
 						}),
 					$elm$core$Platform$Cmd$none,
@@ -13489,7 +13492,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 			case 9:
 				var mode = msg.a;
 				var dest = msg.b;
-				var _v6 = model.bt;
+				var _v6 = model.bv;
 				if (_v6.$ === 1) {
 					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
 				} else {
@@ -13497,7 +13500,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 					return _Utils_Tuple3(
 						_Utils_update(
 							model,
-							{bt: $elm$core$Maybe$Nothing}),
+							{bv: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$batch(
 							_List_fromArray(
 								[
@@ -13506,15 +13509,15 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 									model.bY,
 									A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										A3(
 											$author$project$FileExplorer$FileExplorer$pasteFile,
 											src,
 											dest,
-											A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Y)))),
+											A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Z)))),
 									A6(
 									$author$project$Auth$AuthPlugin$newLogIfLogged,
-									config.bd,
+									config.be,
 									config.eT,
 									'Requête: Collage de' + ($author$project$FileExplorer$FileExplorer$getName(src) + (' dans ' + $author$project$FileExplorer$FileExplorer$getName(dest))),
 									$elm$core$Maybe$Nothing,
@@ -13528,7 +13531,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{bI: newName}),
+						{bJ: newName}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 11:
@@ -13539,7 +13542,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 						model,
 						{
 							F: A2($elm$core$List$cons, fsItem, model.F),
-							n: $elm$core$Maybe$Nothing
+							o: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Platform$Cmd$batch(
 						_List_fromArray(
@@ -13549,15 +13552,15 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								model.bY,
 								A2(
 									$author$project$Auth$AuthPlugin$cmdIfLogged,
-									config.bd,
+									config.be,
 									A3(
 										$author$project$FileExplorer$FileExplorer$renameFile,
 										fsItem,
-										model.bI,
-										A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Y)))),
+										model.bJ,
+										A2($author$project$FileExplorer$FileExplorer$modeRoot, mode, model.Z)))),
 								A6(
 								$author$project$Auth$AuthPlugin$newLogIfLogged,
-								config.bd,
+								config.be,
 								config.eT,
 								'Requête: Renommage ' + $author$project$FileExplorer$FileExplorer$getName(fsItem),
 								$elm$core$Maybe$Nothing,
@@ -13692,7 +13695,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 										mbToUnlock)),
 								aV: mbDFilesys,
 								aW: mbIFilesys,
-								Y: root
+								Z: root
 							}),
 						A5($author$project$Internals$CommonHelpers$newLog, config.eT, log, $elm$core$Maybe$Nothing, false, true),
 						$elm$core$Maybe$Nothing);
@@ -13736,7 +13739,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{eZ: false, b5: mainPanelDisplay, fw: false}),
+						{eZ: false, b5: mainPanelDisplay, fv: false}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 14:
@@ -13749,7 +13752,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 					$elm$core$Maybe$Nothing);
 			case 15:
 				var fsItem = msg.a;
-				var _v18 = model.bF;
+				var _v18 = model.bG;
 				if (_v18.$ === 1) {
 					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
 				} else {
@@ -13758,13 +13761,13 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 					return _Utils_Tuple3(
 						_Utils_update(
 							model,
-							{bT: false, c1: $elm$core$Maybe$Nothing, aN: $elm$core$Maybe$Nothing, aO: 0, aP: $elm$core$Maybe$Nothing, cE: 0, b5: 0, bF: $elm$core$Maybe$Nothing, db: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, b8: false, b9: false, dj: 100}),
+							{bT: false, c1: $elm$core$Maybe$Nothing, aN: $elm$core$Maybe$Nothing, aO: 0, aP: $elm$core$Maybe$Nothing, cE: 0, b5: 0, bG: $elm$core$Maybe$Nothing, da: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, b8: false, b9: false, di: 100}),
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
 							A2(
 								$author$project$Auth$AuthPlugin$cmdIfLogged,
-								config.bd,
+								config.be,
 								A3(
 									$author$project$FileExplorer$FileExplorer$uploadImage,
 									fsItem,
@@ -13790,7 +13793,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 					_Utils_update(
 						model,
 						{
-							ds: 1,
+							dr: 1,
 							em: $elm$core$Dict$fromList(
 								A2(
 									$elm$core$List$map,
@@ -13822,7 +13825,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								function (f) {
 									return A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										A2($author$project$FileExplorer$FileExplorer$uploadFile, fsItem, f));
 								},
 								files))),
@@ -13847,7 +13850,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 							}),
 						function () {
 							var _v20 = _Utils_Tuple2(
-								config.bd,
+								config.be,
 								A2(
 									$elm$core$Maybe$map,
 									$author$project$FileExplorer$FileExplorer$extractFsItem,
@@ -13858,7 +13861,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								return A2(
 									$elm$core$Platform$Cmd$map,
 									model.bY,
-									A3($author$project$FileExplorer$FileExplorer$uploadFile, fsItem, f, info.fG));
+									A3($author$project$FileExplorer$FileExplorer$uploadFile, fsItem, f, info.fF));
 							} else {
 								return $elm$core$Platform$Cmd$none;
 							}
@@ -13901,7 +13904,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 						model,
 						{
 							b0: fileSizes,
-							df: A2(
+							de: A2(
 								$elm$core$List$indexedMap,
 								F2(
 									function (n, f) {
@@ -13934,10 +13937,10 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				var _v22 = A2($elm$json$Json$Decode$decodeValue, $author$project$FileExplorer$FileExplorer$decodeProcessedData, json);
 				if (!_v22.$) {
 					var pi = _v22.a;
-					var content = pi.iJ;
+					var content = pi.iI;
 					var filename = pi.D;
 					var _v23 = function () {
-						var _v24 = model.df;
+						var _v24 = model.de;
 						if (!_v24.b) {
 							return _Utils_Tuple2($elm$core$Platform$Cmd$none, _List_Nil);
 						} else {
@@ -13963,7 +13966,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 							model,
 							{
 								a_: A3($elm$core$Dict$insert, filename, pi, model.a_),
-								df: processingQueue
+								de: processingQueue
 							}),
 						cmd,
 						$elm$core$Maybe$Nothing);
@@ -13975,14 +13978,14 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{dr: size}),
+						{dq: size}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 24:
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{ct: 0, ds: 0, b0: $elm$core$Dict$empty, a_: $elm$core$Dict$empty, df: _List_Nil, i: $elm$core$Dict$empty}),
+						{ct: 0, dr: 0, b0: $elm$core$Dict$empty, a_: $elm$core$Dict$empty, de: _List_Nil, i: $elm$core$Dict$empty}),
 					A2(
 						$elm$core$Platform$Cmd$map,
 						model.bY,
@@ -14004,12 +14007,12 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								i: A3(
 									$elm$core$Dict$insert,
 									s,
-									_Utils_Tuple3(0, p.fK, $elm$core$Maybe$Nothing),
+									_Utils_Tuple3(0, p.fJ, $elm$core$Maybe$Nothing),
 									model.i)
 							}),
 						function () {
 							var _v27 = _Utils_Tuple2(
-								config.bd,
+								config.be,
 								A2(
 									$elm$core$Maybe$map,
 									$author$project$FileExplorer$FileExplorer$extractFsItem,
@@ -14020,7 +14023,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								return A2(
 									$elm$core$Platform$Cmd$map,
 									model.bY,
-									A4($author$project$FileExplorer$FileExplorer$uploadImageAuto, fsItem, p.D, p.iJ, info.fG));
+									A4($author$project$FileExplorer$FileExplorer$uploadImageAuto, fsItem, p.D, p.iI, info.fF));
 							} else {
 								return $elm$core$Platform$Cmd$none;
 							}
@@ -14039,13 +14042,13 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								$elm$core$Dict$map,
 								F2(
 									function (_v28, p) {
-										return _Utils_Tuple3(0, p.fK, $elm$core$Maybe$Nothing);
+										return _Utils_Tuple3(0, p.fJ, $elm$core$Maybe$Nothing);
 									}),
 								model.a_)
 						}),
 					function () {
 						var _v29 = _Utils_Tuple2(
-							config.bd,
+							config.be,
 							A2(
 								$elm$core$Maybe$map,
 								$author$project$FileExplorer$FileExplorer$extractFsItem,
@@ -14064,7 +14067,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 												function (k, v, acc) {
 													return A2(
 														$elm$core$List$cons,
-														A4($author$project$FileExplorer$FileExplorer$uploadImageAuto, fsItem, v.D, v.iJ, info.fG),
+														A4($author$project$FileExplorer$FileExplorer$uploadImageAuto, fsItem, v.D, v.iI, info.fF),
 														acc);
 												}),
 											_List_Nil,
@@ -14078,8 +14081,8 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				var filename = msg.a;
 				var progress = msg.b;
 				if (!progress.$) {
-					var sent = progress.a.ly;
-					var size = progress.a.fK;
+					var sent = progress.a.lx;
+					var size = progress.a.fJ;
 					return _Utils_Tuple3(
 						_Utils_update(
 							model,
@@ -14102,8 +14105,8 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 						$elm$core$Platform$Cmd$none,
 						$elm$core$Maybe$Nothing);
 				} else {
-					var received = progress.a.k2;
-					var size = progress.a.fK;
+					var received = progress.a.k1;
+					var size = progress.a.fJ;
 					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
 				}
 			case 28:
@@ -14153,10 +14156,10 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 								model.bY,
 								A2(
 									$author$project$Auth$AuthPlugin$cmdIfLogged,
-									config.bd,
+									config.be,
 									A2(
 										$author$project$FileExplorer$FileExplorer$getFileList,
-										model.Y,
+										model.Z,
 										$elm$core$Dict$keys(newUploadProgress)))) : $elm$core$Platform$Cmd$none,
 							$elm$core$Maybe$Nothing);
 					} else {
@@ -14220,30 +14223,30 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				}
 			case 29:
 				var data = msg.a;
-				var newImage = {cv: data.cv, D: data.D, cB: data.cB, jy: data.jy, mu: data.mu};
+				var newImage = {cv: data.cv, D: data.D, cB: data.cB, jx: data.jx, mt: data.mt};
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
 						{
 							cE: 1,
-							bF: $elm$core$Maybe$Just(newImage),
-							db: $elm$core$Maybe$Just(data.cB),
-							aX: $elm$core$Maybe$Just(data.jy),
-							aY: $elm$core$Maybe$Just(data.mu),
+							bG: $elm$core$Maybe$Just(newImage),
+							da: $elm$core$Maybe$Just(data.cB),
+							aX: $elm$core$Maybe$Just(data.jx),
+							aY: $elm$core$Maybe$Just(data.mt),
 							b8: false
 						}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 30:
 				var data = msg.a;
-				var newImage = {cv: data.cv, D: data.D, cB: data.cB, jy: data.jy, mu: data.mu};
+				var newImage = {cv: data.cv, D: data.D, cB: data.cB, jx: data.jx, mt: data.mt};
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
 						{
 							bT: false,
 							cE: 1,
-							bF: $elm$core$Maybe$Just(newImage),
+							bG: $elm$core$Maybe$Just(newImage),
 							b8: false,
 							b9: false
 						}),
@@ -14302,7 +14305,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 									$elm$core$Basics$round(desiredHeight)),
 								aP: $elm$core$Maybe$Just(
 									$elm$core$Basics$round(desiredWidth)),
-								dj: n
+								di: n
 							}),
 						$elm$core$Platform$Cmd$none,
 						$elm$core$Maybe$Nothing);
@@ -14330,7 +14333,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{ct: 0, bT: false, aN: $elm$core$Maybe$Nothing, aO: 0, aP: $elm$core$Maybe$Nothing, cE: 0, bF: $elm$core$Maybe$Nothing, db: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, b8: false, b9: false, dj: 100}),
+						{ct: 0, bT: false, aN: $elm$core$Maybe$Nothing, aO: 0, aP: $elm$core$Maybe$Nothing, cE: 0, bG: $elm$core$Maybe$Nothing, da: $elm$core$Maybe$Nothing, aX: $elm$core$Maybe$Nothing, aY: $elm$core$Maybe$Nothing, b8: false, b9: false, di: 100}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 38:
@@ -14338,7 +14341,7 @@ var $author$project$FileExplorer$FileExplorer$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{Y: root}),
+						{Z: root}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 39:
@@ -14421,7 +14424,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$appendLabel = F2(
 						function (l_) {
 							return _Utils_ap(
 								function ($) {
-									return $.kB;
+									return $.kA;
 								}(l_),
 								_Utils_ap(
 									A2(
@@ -14430,10 +14433,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$appendLabel = F2(
 											return $.d0;
 										},
 										function ($) {
-											return $.ka;
+											return $.j9;
 										})(l_),
 									function ($) {
-										return $.j3;
+										return $.j2;
 									}(l_)));
 						},
 						A2(
@@ -14450,9 +14453,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$decodeSuccess = A2(
 		['message']),
 	$elm$json$Json$Decode$succeed(true));
 var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeLabel = function (_v0) {
-	var nom = _v0.kB;
-	var logo = _v0.ka;
-	var lien = _v0.j3;
+	var nom = _v0.kA;
+	var logo = _v0.j9;
+	var lien = _v0.j2;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -14469,10 +14472,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeLabel = function
 							$elm$json$Json$Encode$string(logo.d0)),
 							_Utils_Tuple2(
 							'width',
-							$elm$json$Json$Encode$int(logo.mu)),
+							$elm$json$Json$Encode$int(logo.mt)),
 							_Utils_Tuple2(
 							'height',
-							$elm$json$Json$Encode$int(logo.jy))
+							$elm$json$Json$Encode$int(logo.jx))
 						]))),
 				_Utils_Tuple2(
 				'lien',
@@ -14528,13 +14531,13 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 				_Utils_Tuple2(
 				'uuid',
 				$elm$json$Json$Encode$string(
-					$TSFoster$elm_uuid$UUID$toString(f.fT))),
+					$TSFoster$elm_uuid$UUID$toString(f.fS))),
 				_Utils_Tuple2(
 				'categories',
 				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, f.cZ)),
 				_Utils_Tuple2(
 				'natureActiv',
-				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, f.kp)),
+				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, f.ko)),
 				_Utils_Tuple2(
 				'refOt',
 				A2(
@@ -14556,7 +14559,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 										$elm$json$Json$Encode$string(s))
 									]));
 						},
-						f.k4))),
+						f.k3))),
 				_Utils_Tuple2(
 				'label',
 				A2($elm$json$Json$Encode$list, $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeLabel, f.N)),
@@ -14570,17 +14573,17 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 							A2(
 								$elm$core$Maybe$withDefault,
 								$elm$json$Json$Encode$null,
-								A2($elm$core$Maybe$map, $elm$json$Json$Encode$int, f.k1.lL))),
+								A2($elm$core$Maybe$map, $elm$json$Json$Encode$int, f.k0.lK))),
 							_Utils_Tuple2(
 							'epis',
 							A2(
 								$elm$core$Maybe$withDefault,
 								$elm$json$Json$Encode$null,
-								A2($elm$core$Maybe$map, $elm$json$Json$Encode$int, f.k1.gi)))
+								A2($elm$core$Maybe$map, $elm$json$Json$Encode$int, f.k0.gh)))
 						]))),
 				_Utils_Tuple2(
 				'nomEntite',
-				$elm$json$Json$Encode$string(f.kC)),
+				$elm$json$Json$Encode$string(f.kB)),
 				_Utils_Tuple2(
 				'responsables',
 				A2(
@@ -14591,34 +14594,34 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 								[
 									_Utils_Tuple2(
 									'poste',
-									$elm$json$Json$Encode$string(r.kZ)),
+									$elm$json$Json$Encode$string(r.kY)),
 									_Utils_Tuple2(
 									'nom',
-									$elm$json$Json$Encode$string(r.kB)),
+									$elm$json$Json$Encode$string(r.kA)),
 									_Utils_Tuple2(
 									'tel',
-									$author$project$GeneralDirectoryEditor$GeneralDirJson$encodeTel(r.l$))
+									$author$project$GeneralDirectoryEditor$GeneralDirJson$encodeTel(r.l_))
 								]));
 					},
-					f.la)),
+					f.k9)),
 				_Utils_Tuple2(
 				'adresse',
-				$elm$json$Json$Encode$string(f.hU)),
+				$elm$json$Json$Encode$string(f.hT)),
 				_Utils_Tuple2(
 				'telNumber',
 				A2(
 					$elm$core$Maybe$withDefault,
 					$elm$json$Json$Encode$null,
-					A2($elm$core$Maybe$map, $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeTel, f.l0))),
+					A2($elm$core$Maybe$map, $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeTel, f.l$))),
 				_Utils_Tuple2(
 				'fax',
 				A2(
 					$elm$core$Maybe$withDefault,
 					$elm$json$Json$Encode$null,
-					A2($elm$core$Maybe$map, $elm$json$Json$Encode$string, f.jf))),
+					A2($elm$core$Maybe$map, $elm$json$Json$Encode$string, f.je))),
 				_Utils_Tuple2(
 				'email',
-				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, f.i5)),
+				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, f.i4)),
 				_Utils_Tuple2(
 				'site',
 				A2(
@@ -14640,7 +14643,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 										$elm$json$Json$Encode$string(url))
 									]));
 						},
-						f.lF))),
+						f.lE))),
 				_Utils_Tuple2(
 				'pjaun',
 				A2(
@@ -14649,7 +14652,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 					A2($elm$core$Maybe$map, $elm$json$Json$Encode$string, f.dO))),
 				_Utils_Tuple2(
 				'visuel',
-				$elm$json$Json$Encode$string(f.ms)),
+				$elm$json$Json$Encode$string(f.mr)),
 				_Utils_Tuple2(
 				'description',
 				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$string, f.fa)),
@@ -14672,7 +14675,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 									A2(
 										$elm$core$Maybe$withDefault,
 										$elm$json$Json$Encode$null,
-										A2($elm$core$Maybe$map, $elm$json$Json$Encode$string, ld.i$))),
+										A2($elm$core$Maybe$map, $elm$json$Json$Encode$string, ld.i_))),
 									_Utils_Tuple2(
 									'expiryDate',
 									A2(
@@ -14681,10 +14684,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 										A2(
 											$elm$core$Maybe$map,
 											A2($elm$core$Basics$composeL, $elm$json$Json$Encode$int, $elm$time$Time$posixToMillis),
-											ld.ja)))
+											ld.i9)))
 								]));
 					},
-					f.j5)),
+					f.j4)),
 				_Utils_Tuple2(
 				'ouverture',
 				A2(
@@ -14699,7 +14702,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$encodeFiche = function
 								return $elm$json$Json$Encode$string('Saisonniere');
 							}
 						},
-						f.kO))),
+						f.kN))),
 				_Utils_Tuple2(
 				'lastEdit',
 				$elm$json$Json$Encode$int(
@@ -14723,7 +14726,7 @@ var $author$project$Internals$CommonHelpers$jsonResolver = function (decoder) {
 					var metadata = response.a;
 					var body = response.b;
 					return $elm$core$Result$Err(
-						$elm$http$Http$BadStatus(metadata.lN));
+						$elm$http$Http$BadStatus(metadata.lM));
 				default:
 					var metadata = response.a;
 					var body = response.b;
@@ -14755,7 +14758,7 @@ var $elm$http$Http$task = function (r) {
 		_Http_toTask,
 		0,
 		$elm$http$Http$resultToTask,
-		{h1: false, eY: r.eY, dv: r.k7, gv: r.gv, gP: r.gP, hA: r.hA, hD: $elm$core$Maybe$Nothing, d0: r.d0});
+		{h0: false, eY: r.eY, du: r.k6, gu: r.gu, gO: r.gO, hz: r.hz, hC: $elm$core$Maybe$Nothing, d0: r.d0});
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirJson$updateFicheTask = F2(
 	function (fiche, sessionId) {
@@ -14773,17 +14776,17 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$updateFicheTask = F2(
 		return $elm$http$Http$task(
 			{
 				eY: body,
-				gv: _List_Nil,
-				gP: 'Post',
-				k7: $author$project$Internals$CommonHelpers$jsonResolver($author$project$GeneralDirectoryEditor$GeneralDirJson$decodeSuccess),
-				hA: $elm$core$Maybe$Nothing,
+				gu: _List_Nil,
+				gO: 'Post',
+				k6: $author$project$Internals$CommonHelpers$jsonResolver($author$project$GeneralDirectoryEditor$GeneralDirJson$decodeSuccess),
+				hz: $elm$core$Maybe$Nothing,
 				d0: 'updateFiche.php'
 			});
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$batchFichesUpdate = F2(
 	function (logInfo, fichesToUpdate) {
 		if (!logInfo.$) {
-			var sessionId = logInfo.a.fG;
+			var sessionId = logInfo.a.fF;
 			return $elm$core$Platform$Cmd$batch(
 				A2(
 					$elm$core$List$map,
@@ -14836,7 +14839,7 @@ var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$monthToNumber1based = func
 };
 var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$newDateRecord = F8(
 	function (year, month, day, hour, minute, second, millis, zone) {
-		return {e5: day, gB: hour, ew: millis, gQ: minute, fu: month, ll: second, fY: year, fZ: zone};
+		return {e5: day, gz: hour, ew: millis, gP: minute, ft: month, lk: second, fX: year, fY: zone};
 	});
 var $elm$time$Time$toHour = F2(
 	function (zone, time) {
@@ -14875,7 +14878,7 @@ var $elm$time$Time$toSecond = F2(
 var $elm$time$Time$toYear = F2(
 	function (zone, time) {
 		return $elm$time$Time$toCivil(
-			A2($elm$time$Time$toAdjustedMinutes, zone, time)).fY;
+			A2($elm$time$Time$toAdjustedMinutes, zone, time)).fX;
 	});
 var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$civilFromPosixWithTimezone = F2(
 	function (tz, time) {
@@ -14891,9 +14894,9 @@ var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$civilFromPosixWithTimezone
 		return A8($AdrianRibao$elm_derberos_date$Derberos$Date$Core$newDateRecord, year, month, day, hour, minute, second, millis, zeroOffset);
 	});
 var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$civilToPosixUnadjusted = function (dateRecord) {
-	var y = dateRecord.fY - ((dateRecord.fu <= 2) ? 1 : 0);
-	var time = ((((dateRecord.gB * 3600) * 1000) + ((dateRecord.gQ * 60) * 1000)) + (dateRecord.ll * 1000)) + dateRecord.ew;
-	var mp = A2($elm$core$Basics$modBy, 12, dateRecord.fu + 9);
+	var y = dateRecord.fX - ((dateRecord.ft <= 2) ? 1 : 0);
+	var time = ((((dateRecord.gz * 3600) * 1000) + ((dateRecord.gP * 60) * 1000)) + (dateRecord.lk * 1000)) + dateRecord.ew;
+	var mp = A2($elm$core$Basics$modBy, 12, dateRecord.ft + 9);
 	var era = $elm$core$Basics$floor(y / 400);
 	var yoe = y - (era * 400);
 	var doy = (((((153 * mp) + 2) / 5) | 0) + dateRecord.e5) - 1;
@@ -14919,7 +14922,7 @@ var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$adjustMilliseconds = F2(
 var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$civilToPosix = function (dateRecord) {
 	return A2(
 		$AdrianRibao$elm_derberos_date$Derberos$Date$Core$adjustMilliseconds,
-		dateRecord.fZ,
+		dateRecord.fY,
 		$AdrianRibao$elm_derberos_date$Derberos$Date$Core$civilToPosixUnadjusted(dateRecord));
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs = function (fiches) {
@@ -14934,7 +14937,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs = fun
 							return A2($elm$core$Set$insert, a, acc_);
 						}),
 					acc,
-					f.kp);
+					f.ko);
 			}),
 		$elm$core$Set$empty,
 		fiches);
@@ -14960,9 +14963,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeLabels = fun
 	return A2(
 		$elm_community$list_extra$List$Extra$uniqueBy,
 		function (_v1) {
-			var nom = _v1.kB;
-			var logo = _v1.ka;
-			var lien = _v1.j3;
+			var nom = _v1.kA;
+			var logo = _v1.j9;
+			var lien = _v1.j2;
 			return _Utils_ap(
 				nom,
 				_Utils_ap(logo.d0, lien));
@@ -15014,11 +15017,11 @@ var $elm_community$list_extra$List$Extra$elemIndex = function (x) {
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLabel = A3(
 	$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$Label,
 	'',
-	{jy: 0, d0: '', mu: 0},
+	{jx: 0, d0: '', mt: 0},
 	'');
-var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc = {i$: $elm$core$Maybe$Nothing, ja: $elm$core$Maybe$Nothing, N: '', d0: ''};
+var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc = {i_: $elm$core$Maybe$Nothing, i9: $elm$core$Maybe$Nothing, N: '', d0: ''};
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyTel = $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$TelFixe('');
-var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp = {kB: '', kZ: '', l$: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyTel};
+var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp = {kA: '', kY: '', l_: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyTel};
 var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel = F2(
 	function (model, mbLabelName) {
 		return A2(
@@ -15031,33 +15034,33 @@ var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel = F2(
 						A2(
 							$elm$core$List$map,
 							function (l_) {
-								return _Utils_Tuple2(l_.kB, l_);
+								return _Utils_Tuple2(l_.kA, l_);
 							},
-							model.j2)));
+							model.j1)));
 			},
 			mbLabelName);
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ficheToBuffer = function (fiche) {
 	return {
-		hU: fiche.hU,
+		hT: fiche.hT,
 		cZ: fiche.cZ,
 		fa: fiche.fa,
-		i5: fiche.i5,
-		jf: fiche.jf,
+		i4: fiche.i4,
+		je: fiche.je,
 		N: fiche.N,
 		dz: fiche.dz,
-		j5: fiche.j5,
-		kp: fiche.kp,
-		kC: fiche.kC,
-		kO: fiche.kO,
+		j4: fiche.j4,
+		ko: fiche.ko,
+		kB: fiche.kB,
+		kN: fiche.kN,
 		dO: fiche.dO,
-		k1: fiche.k1,
-		k4: fiche.k4,
-		la: fiche.la,
-		lF: fiche.lF,
-		l0: fiche.l0,
-		fT: $elm$core$Maybe$Just(fiche.fT),
-		ms: fiche.ms
+		k0: fiche.k0,
+		k3: fiche.k3,
+		k9: fiche.k9,
+		lE: fiche.lE,
+		l$: fiche.l$,
+		fS: $elm$core$Maybe$Just(fiche.fS),
+		mr: fiche.mr
 	};
 };
 var $elm_community$list_extra$List$Extra$updateIf = F3(
@@ -15107,7 +15110,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$filterAndUpdate = F
 					}
 				}),
 			_Utils_Tuple2($elm$core$Dict$empty, _List_Nil),
-			model.jh);
+			model.jg);
 	});
 var $elm$core$Tuple$mapFirst = F2(
 	function (func, _v0) {
@@ -15159,12 +15162,12 @@ var $author$project$GeneralDirectoryEditor$GeneralDirJson$removeFiche = F2(
 						_Utils_Tuple2(
 						'uuid',
 						$elm$json$Json$Encode$string(
-							$TSFoster$elm_uuid$UUID$toString(fiche.fT)))
+							$TSFoster$elm_uuid$UUID$toString(fiche.fS)))
 					])));
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$FicheUpdated(fiche),
 					$author$project$GeneralDirectoryEditor$GeneralDirJson$decodeSuccess),
@@ -15175,7 +15178,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$setFicheActiv = F2(
 	function (fiche, val) {
 		return _Utils_update(
 			fiche,
-			{kp: val});
+			{ko: val});
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$setFicheCat = F2(
 	function (fiche, val) {
@@ -15402,9 +15405,9 @@ var $elm_community$list_extra$List$Extra$swapAt = F3(
 		}
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$validLabel = function (_v0) {
-	var nom = _v0.kB;
-	var logo = _v0.ka;
-	var lien = _v0.j3;
+	var nom = _v0.kA;
+	var logo = _v0.j9;
+	var lien = _v0.j2;
 	return (nom !== '') && ((logo.d0 !== '') && (lien !== ''));
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$validLinkedDoc = function (_v0) {
@@ -15421,7 +15424,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							kn: $elm$core$Maybe$Just(nom)
+							km: $elm$core$Maybe$Just(nom)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 1:
@@ -15430,8 +15433,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							ip: _Utils_eq(
-								model.ip,
+							io: _Utils_eq(
+								model.io,
 								$elm$core$Maybe$Just(cat)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(cat)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -15441,8 +15444,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							hQ: _Utils_eq(
-								model.hQ,
+							hP: _Utils_eq(
+								model.hP,
 								$elm$core$Maybe$Just(activ)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(activ)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -15452,8 +15455,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							j$: _Utils_eq(
-								model.j$,
+							j_: _Utils_eq(
+								model.j_,
 								$elm$core$Maybe$Just(label)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(label)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -15463,31 +15466,31 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							jg: _Utils_eq(
-								model.lu,
+							jf: _Utils_eq(
+								model.lt,
 								$elm$core$Maybe$Just(s)) ? $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyFiche : A2(
 								$elm$core$Maybe$withDefault,
 								$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyFiche,
 								A2(
 									$elm$core$Maybe$map,
 									$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ficheToBuffer,
-									A2($elm$core$Dict$get, s, model.jh))),
-							lu: _Utils_eq(
-								model.lu,
+									A2($elm$core$Dict$get, s, model.jg))),
+							lt: _Utils_eq(
+								model.lt,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 5:
 				var res = msg.a;
 				if (!res.$) {
-					var fiches = res.a.jh;
+					var fiches = res.a.jg;
 					var labels = $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeLabels(fiches);
 					var categories = $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeCats(fiches);
 					var activites = $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs(fiches);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{hR: activites, cZ: categories, jh: fiches, j2: labels, b4: $author$project$Internals$ToolHelpers$ToolLoadingSuccess}),
+							{hQ: activites, cZ: categories, jg: fiches, j1: labels, b4: $author$project$Internals$ToolHelpers$ToolLoadingSuccess}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					var e = res.a;
@@ -15508,10 +15511,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						_Utils_update(
 							model,
 							{
-								hR: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs(model.jh),
-								cZ: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeCats(model.jh),
-								j2: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeLabels(model.jh),
-								j9: A2($elm_community$list_extra$List$Extra$remove, fiche, model.j9)
+								hQ: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs(model.jg),
+								cZ: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeCats(model.jg),
+								j1: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeLabels(model.jg),
+								j8: A2($elm_community$list_extra$List$Extra$remove, fiche, model.j8)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -15519,13 +15522,13 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						_Utils_update(
 							model,
 							{
-								e6: A2($elm$core$List$cons, fiche.kC, model.e6),
-								jh: A3(
+								e6: A2($elm$core$List$cons, fiche.kB, model.e6),
+								jg: A3(
 									$elm$core$Dict$insert,
-									$TSFoster$elm_uuid$UUID$toString(fiche.fT),
+									$TSFoster$elm_uuid$UUID$toString(fiche.fS),
 									fiche,
-									model.jh),
-								j9: A2($elm_community$list_extra$List$Extra$remove, fiche, model.j9)
+									model.jg),
+								j8: A2($elm_community$list_extra$List$Extra$remove, fiche, model.j8)
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -15535,10 +15538,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							io: $elm$core$Maybe$Nothing,
-							lp: $elm$core$Maybe$Nothing,
-							lr: _Utils_eq(
-								model.lr,
+							$9: $elm$core$Maybe$Nothing,
+							lo: $elm$core$Maybe$Nothing,
+							lq: _Utils_eq(
+								model.lq,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -15548,13 +15551,13 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							io: _Utils_eq(
-								model.lp,
+							$9: _Utils_eq(
+								model.lo,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s),
-							lp: _Utils_eq(
-								model.lp,
+							lo: _Utils_eq(
+								model.lo,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s),
-							lr: $elm$core$Maybe$Nothing
+							lq: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 9:
@@ -15563,18 +15566,18 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							io: $elm$core$Maybe$Just(s)
+							$9: $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 10:
-				var _v3 = _Utils_Tuple2(model.lp, model.io);
+				var _v3 = _Utils_Tuple2(model.lo, model.$9);
 				if ((!_v3.a.$) && (!_v3.b.$)) {
 					var avCat = _v3.a.a;
 					var newCat = _v3.b.a;
 					if (_Utils_eq(avCat, newCat)) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var fb = model.jg;
+						var fb = model.jf;
 						var newFb = _Utils_update(
 							fb,
 							{
@@ -15601,21 +15604,21 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 							_Utils_update(
 								model,
 								{
-									io: $elm$core$Maybe$Nothing,
+									$9: $elm$core$Maybe$Nothing,
 									cZ: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeCats(newFiches),
-									jg: newFb,
-									jh: newFiches,
-									j9: _Utils_ap(model.j9, fichesToUpdate),
-									lp: $elm$core$Maybe$Nothing,
-									lr: $elm$core$Maybe$Nothing
+									jf: newFb,
+									jg: newFiches,
+									j8: _Utils_ap(model.j8, fichesToUpdate),
+									lo: $elm$core$Maybe$Nothing,
+									lq: $elm$core$Maybe$Nothing
 								}),
-							A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$batchFichesUpdate, config.bd, fichesToUpdate));
+							A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$batchFichesUpdate, config.be, fichesToUpdate));
 					}
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 11:
-				var _v5 = _Utils_Tuple2(model.lp, model.io);
+				var _v5 = _Utils_Tuple2(model.lo, model.$9);
 				_v5$2:
 				while (true) {
 					if (!_v5.a.$) {
@@ -15624,17 +15627,17 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 							var newCat = _v5.b.a;
 							if (_Utils_eq(avCat, newCat)) {
 								var newCatsFiche = _Utils_ap(
-									model.jg.cZ,
+									model.jf.cZ,
 									_List_fromArray(
 										[newCat]));
-								var fb = model.jg;
+								var fb = model.jf;
 								var newFb = _Utils_update(
 									fb,
 									{cZ: newCatsFiche});
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
-										{io: $elm$core$Maybe$Nothing, jg: newFb, lp: $elm$core$Maybe$Nothing}),
+										{$9: $elm$core$Maybe$Nothing, jf: newFb, lo: $elm$core$Maybe$Nothing}),
 									$elm$core$Platform$Cmd$none);
 							} else {
 								return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -15647,18 +15650,18 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 							var _v6 = _v5.a;
 							var newCat = _v5.b.a;
 							var newCatsFiche = _Utils_ap(
-								model.jg.cZ,
+								model.jf.cZ,
 								_List_fromArray(
 									[newCat]));
 							var newCats = A2($elm$core$Set$insert, newCat, model.cZ);
-							var fb = model.jg;
+							var fb = model.jf;
 							var newFb = _Utils_update(
 								fb,
 								{cZ: newCatsFiche});
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{io: $elm$core$Maybe$Nothing, cZ: newCats, jg: newFb}),
+									{$9: $elm$core$Maybe$Nothing, cZ: newCats, jf: newFb}),
 								$elm$core$Platform$Cmd$none);
 						} else {
 							break _v5$2;
@@ -15667,7 +15670,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 12:
-				var fb = model.jg;
+				var fb = model.jf;
 				var newCats = A2(
 					$elm$core$Maybe$withDefault,
 					fb.cZ,
@@ -15676,14 +15679,14 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						function (c) {
 							return A2($elm_community$list_extra$List$Extra$remove, c, fb.cZ);
 						},
-						model.lr));
+						model.lq));
 				var newFb = _Utils_update(
 					fb,
 					{cZ: newCats});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{io: $elm$core$Maybe$Nothing, jg: newFb, lp: $elm$core$Maybe$Nothing, lr: $elm$core$Maybe$Nothing}),
+						{$9: $elm$core$Maybe$Nothing, jf: newFb, lo: $elm$core$Maybe$Nothing, lq: $elm$core$Maybe$Nothing}),
 					$elm$core$Platform$Cmd$none);
 			case 13:
 				var s = msg.a;
@@ -15691,11 +15694,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							hP: $elm$core$Maybe$Nothing,
-							ln: _Utils_eq(
-								model.ln,
+							hO: $elm$core$Maybe$Nothing,
+							lm: _Utils_eq(
+								model.lm,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s),
-							lo: $elm$core$Maybe$Nothing
+							ln: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 14:
@@ -15704,12 +15707,12 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							hP: _Utils_eq(
-								model.lo,
+							hO: _Utils_eq(
+								model.ln,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s),
-							ln: $elm$core$Maybe$Nothing,
-							lo: _Utils_eq(
-								model.lo,
+							lm: $elm$core$Maybe$Nothing,
+							ln: _Utils_eq(
+								model.ln,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -15719,34 +15722,34 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							hP: $elm$core$Maybe$Just(s)
+							hO: $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 16:
-				var _v7 = _Utils_Tuple2(model.lo, model.hP);
+				var _v7 = _Utils_Tuple2(model.ln, model.hO);
 				if ((!_v7.a.$) && (!_v7.b.$)) {
 					var avActiv = _v7.a.a;
 					var newActiv = _v7.b.a;
 					if (_Utils_eq(avActiv, newActiv)) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var fb = model.jg;
+						var fb = model.jf;
 						var newFb = _Utils_update(
 							fb,
 							{
-								kp: A3(
+								ko: A3(
 									$elm_community$list_extra$List$Extra$setIf,
 									function (c) {
 										return _Utils_eq(c, avActiv);
 									},
 									newActiv,
-									fb.kp)
+									fb.ko)
 							});
 						var _v8 = A5(
 							$author$project$GeneralDirectoryEditor$GeneralDirHelpers$filterAndUpdate,
 							model,
 							function ($) {
-								return $.kp;
+								return $.ko;
 							},
 							$author$project$GeneralDirectoryEditor$GeneralDirHelpers$setFicheActiv,
 							avActiv,
@@ -15757,21 +15760,21 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 							_Utils_update(
 								model,
 								{
-									hP: $elm$core$Maybe$Nothing,
-									hR: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs(newFiches),
-									jg: newFb,
-									jh: newFiches,
-									j9: _Utils_ap(model.j9, fichesToUpdate),
-									ln: $elm$core$Maybe$Nothing,
-									lo: $elm$core$Maybe$Nothing
+									hO: $elm$core$Maybe$Nothing,
+									hQ: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs(newFiches),
+									jf: newFb,
+									jg: newFiches,
+									j8: _Utils_ap(model.j8, fichesToUpdate),
+									lm: $elm$core$Maybe$Nothing,
+									ln: $elm$core$Maybe$Nothing
 								}),
-							A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$batchFichesUpdate, config.bd, fichesToUpdate));
+							A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$batchFichesUpdate, config.be, fichesToUpdate));
 					}
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 17:
-				var _v9 = _Utils_Tuple2(model.lo, model.hP);
+				var _v9 = _Utils_Tuple2(model.ln, model.hO);
 				_v9$2:
 				while (true) {
 					if (!_v9.a.$) {
@@ -15780,17 +15783,17 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 							var newActiv = _v9.b.a;
 							if (_Utils_eq(avActiv, newActiv)) {
 								var newActivFiche = _Utils_ap(
-									model.jg.kp,
+									model.jf.ko,
 									_List_fromArray(
 										[newActiv]));
-								var fb = model.jg;
+								var fb = model.jf;
 								var newFb = _Utils_update(
 									fb,
-									{kp: newActivFiche});
+									{ko: newActivFiche});
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
-										{hP: $elm$core$Maybe$Nothing, jg: newFb, lo: $elm$core$Maybe$Nothing}),
+										{hO: $elm$core$Maybe$Nothing, jf: newFb, ln: $elm$core$Maybe$Nothing}),
 									$elm$core$Platform$Cmd$none);
 							} else {
 								return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -15802,19 +15805,19 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						if (!_v9.b.$) {
 							var _v10 = _v9.a;
 							var newActiv = _v9.b.a;
-							var newActivs = A2($elm$core$Set$insert, newActiv, model.hR);
+							var newActivs = A2($elm$core$Set$insert, newActiv, model.hQ);
 							var newActivFiche = _Utils_ap(
-								model.jg.kp,
+								model.jf.ko,
 								_List_fromArray(
 									[newActiv]));
-							var fb = model.jg;
+							var fb = model.jf;
 							var newFb = _Utils_update(
 								fb,
-								{kp: newActivFiche});
+								{ko: newActivFiche});
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{hP: $elm$core$Maybe$Nothing, hR: newActivs, jg: newFb}),
+									{hO: $elm$core$Maybe$Nothing, hQ: newActivs, jf: newFb}),
 								$elm$core$Platform$Cmd$none);
 						} else {
 							break _v9$2;
@@ -15823,23 +15826,23 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 18:
-				var fb = model.jg;
+				var fb = model.jf;
 				var newActivs = A2(
 					$elm$core$Maybe$withDefault,
 					fb.cZ,
 					A2(
 						$elm$core$Maybe$map,
 						function (a) {
-							return A2($elm_community$list_extra$List$Extra$remove, a, fb.kp);
+							return A2($elm_community$list_extra$List$Extra$remove, a, fb.ko);
 						},
-						model.ln));
+						model.lm));
 				var newFb = _Utils_update(
 					fb,
-					{kp: newActivs});
+					{ko: newActivs});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{hP: $elm$core$Maybe$Nothing, jg: newFb, ln: $elm$core$Maybe$Nothing, lo: $elm$core$Maybe$Nothing}),
+						{hO: $elm$core$Maybe$Nothing, jf: newFb, lm: $elm$core$Maybe$Nothing, ln: $elm$core$Maybe$Nothing}),
 					$elm$core$Platform$Cmd$none);
 			case 19:
 				var s = msg.a;
@@ -15847,10 +15850,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							j_: $elm$core$Maybe$Nothing,
-							lq: $elm$core$Maybe$Nothing,
-							lv: _Utils_eq(
-								model.lv,
+							jZ: $elm$core$Maybe$Nothing,
+							lp: $elm$core$Maybe$Nothing,
+							lu: _Utils_eq(
+								model.lu,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -15860,87 +15863,87 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							j_: _Utils_eq(
-								model.lq,
+							jZ: _Utils_eq(
+								model.lp,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$List$head(
 								A2(
 									$elm$core$List$filter,
 									function (l) {
-										return _Utils_eq(l.kB, s);
+										return _Utils_eq(l.kA, s);
 									},
-									model.j2)),
-							lq: _Utils_eq(
-								model.lq,
+									model.j1)),
+							lp: _Utils_eq(
+								model.lp,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s),
-							lv: $elm$core$Maybe$Nothing
+							lu: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 21:
 				var s = msg.a;
-				var baseLabel = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLabel, model.j_);
+				var baseLabel = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLabel, model.jZ);
 				var newLabel = _Utils_update(
 					baseLabel,
-					{kB: s});
+					{kA: s});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							j_: $elm$core$Maybe$Just(newLabel)
+							jZ: $elm$core$Maybe$Just(newLabel)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 22:
 				var s = msg.a;
-				var baseLabel = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLabel, model.j_);
+				var baseLabel = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLabel, model.jZ);
 				var newLabel = _Utils_update(
 					baseLabel,
-					{j3: s});
+					{j2: s});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							j_: $elm$core$Maybe$Just(newLabel)
+							jZ: $elm$core$Maybe$Just(newLabel)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 23:
 				var pr = msg.a;
 				if (!pr.$) {
 					var url = pr.a.d0;
-					var width = pr.a.mu;
-					var height = pr.a.jy;
-					var baseLabel = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLabel, model.j_);
+					var width = pr.a.mt;
+					var height = pr.a.jx;
+					var baseLabel = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLabel, model.jZ);
 					var newLabel = _Utils_update(
 						baseLabel,
 						{
-							ka: {jy: height, d0: url, mu: width}
+							j9: {jx: height, d0: url, mt: width}
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								j_: $elm$core$Maybe$Just(newLabel),
-								j1: false
+								jZ: $elm$core$Maybe$Just(newLabel),
+								j0: false
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 24:
-				var _v12 = _Utils_Tuple2(model.lq, model.j_);
+				var _v12 = _Utils_Tuple2(model.lp, model.jZ);
 				_v12$2:
 				while (true) {
 					if (!_v12.a.$) {
 						if (!_v12.b.$) {
-							var mbNewLabel = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lq);
-							var newFicheLabels = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$appendLabel, mbNewLabel, model.jg.N);
-							var newLabels = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$appendLabel, mbNewLabel, model.j2);
-							var fb = model.jg;
+							var mbNewLabel = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lp);
+							var newFicheLabels = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$appendLabel, mbNewLabel, model.jf.N);
+							var newLabels = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$appendLabel, mbNewLabel, model.j1);
+							var fb = model.jf;
 							var newFb = _Utils_update(
 								fb,
 								{N: newFicheLabels});
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{jg: newFb, j_: $elm$core$Maybe$Nothing, j2: newLabels}),
+									{jf: newFb, jZ: $elm$core$Maybe$Nothing, j1: newLabels}),
 								$elm$core$Platform$Cmd$none);
 						} else {
 							break _v12$2;
@@ -15949,11 +15952,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						if (!_v12.b.$) {
 							var _v13 = _v12.a;
 							var _v14 = _Utils_Tuple2(
-								model.j_,
-								A2($elm$core$Maybe$map, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$validLabel, model.j_));
+								model.jZ,
+								A2($elm$core$Maybe$map, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$validLabel, model.jZ));
 							if (((!_v14.a.$) && (!_v14.b.$)) && _v14.b.a) {
 								var newLabel = _v14.a.a;
-								var fb = model.jg;
+								var fb = model.jf;
 								var newFb = _Utils_update(
 									fb,
 									{
@@ -15966,10 +15969,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 									_Utils_update(
 										model,
 										{
-											jg: newFb,
-											j_: $elm$core$Maybe$Nothing,
-											j2: _Utils_ap(
-												model.j2,
+											jf: newFb,
+											jZ: $elm$core$Maybe$Nothing,
+											j1: _Utils_ap(
+												model.j1,
 												_List_fromArray(
 													[newLabel]))
 										}),
@@ -15984,8 +15987,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 25:
-				var mbLabel = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lv);
-				var fb = model.jg;
+				var mbLabel = A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lu);
+				var fb = model.jf;
 				var newLabels = A2(
 					$elm$core$Maybe$withDefault,
 					fb.N,
@@ -16001,19 +16004,19 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb, j_: $elm$core$Maybe$Nothing, lq: $elm$core$Maybe$Nothing, lv: $elm$core$Maybe$Nothing}),
+						{jf: newFb, jZ: $elm$core$Maybe$Nothing, lp: $elm$core$Maybe$Nothing, lu: $elm$core$Maybe$Nothing}),
 					$elm$core$Platform$Cmd$none);
 			case 26:
 				var _v15 = _Utils_Tuple2(
-					A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lq),
-					model.j_);
+					A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lp),
+					model.jZ);
 				if ((!_v15.a.$) && (!_v15.b.$)) {
 					var avLabel = _v15.a.a;
 					var newLabel = _v15.b.a;
 					if (_Utils_eq(avLabel, newLabel)) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var fb = model.jg;
+						var fb = model.jf;
 						var newFb = _Utils_update(
 							fb,
 							{
@@ -16040,26 +16043,26 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 							_Utils_update(
 								model,
 								{
-									jg: newFb,
-									jh: newFiches,
-									j_: $elm$core$Maybe$Nothing,
-									j2: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeLabels(newFiches),
-									j9: _Utils_ap(model.j9, fichesToUpdate),
-									lq: $elm$core$Maybe$Nothing,
-									lv: $elm$core$Maybe$Nothing
+									jf: newFb,
+									jg: newFiches,
+									jZ: $elm$core$Maybe$Nothing,
+									j1: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeLabels(newFiches),
+									j8: _Utils_ap(model.j8, fichesToUpdate),
+									lp: $elm$core$Maybe$Nothing,
+									lu: $elm$core$Maybe$Nothing
 								}),
-							A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$batchFichesUpdate, config.bd, fichesToUpdate));
+							A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$batchFichesUpdate, config.be, fichesToUpdate));
 					}
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 27:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var baseRefOt = A2(
 					$elm$core$Maybe$withDefault,
 					_Utils_Tuple2(0, ''),
-					fb.k4);
+					fb.k3);
 				var newRefOt = A2(
 					$elm$core$Maybe$andThen,
 					function (n) {
@@ -16072,19 +16075,19 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					$elm$core$String$toInt(s));
 				var newFb = _Utils_update(
 					fb,
-					{k4: newRefOt});
+					{k3: newRefOt});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 28:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var baseRefOt = A2(
 					$elm$core$Maybe$withDefault,
 					_Utils_Tuple2(0, ''),
-					fb.k4);
+					fb.k3);
 				var newRefOt = $elm$core$Maybe$Just(
 					A2(
 						$elm$core$Tuple$mapSecond,
@@ -16092,56 +16095,56 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						baseRefOt));
 				var newFb = _Utils_update(
 					fb,
-					{k4: newRefOt});
+					{k3: newRefOt});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 29:
 				var s = msg.a;
-				var fb = model.jg;
-				var rank = fb.k1;
+				var fb = model.jf;
+				var rank = fb.k0;
 				var newRank = _Utils_update(
 					rank,
 					{
-						lL: $elm$core$String$toInt(s)
+						lK: $elm$core$String$toInt(s)
 					});
 				var newFb = _Utils_update(
 					fb,
-					{k1: newRank});
+					{k0: newRank});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 30:
 				var s = msg.a;
-				var fb = model.jg;
-				var rank = fb.k1;
+				var fb = model.jf;
+				var rank = fb.k0;
 				var newRank = _Utils_update(
 					rank,
 					{
-						gi: $elm$core$String$toInt(s)
+						gh: $elm$core$String$toInt(s)
 					});
 				var newFb = _Utils_update(
 					fb,
-					{k1: newRank});
+					{k0: newRank});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 31:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newFb = _Utils_update(
 					fb,
-					{kC: s});
+					{kB: s});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 32:
 				var r = msg.a;
@@ -16149,45 +16152,45 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							k9: _Utils_eq(
-								model.lx,
+							k8: _Utils_eq(
+								model.lw,
 								$elm$core$Maybe$Just(r)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(r),
-							lx: _Utils_eq(
-								model.lx,
+							lw: _Utils_eq(
+								model.lw,
 								$elm$core$Maybe$Just(r)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(r)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 33:
 				var s = msg.a;
-				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k9);
+				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k8);
 				var newResp = _Utils_update(
 					baseResp,
-					{kZ: s});
+					{kY: s});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							k9: $elm$core$Maybe$Just(newResp)
+							k8: $elm$core$Maybe$Just(newResp)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 34:
 				var s = msg.a;
-				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k9);
+				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k8);
 				var newResp = _Utils_update(
 					baseResp,
-					{kB: s});
+					{kA: s});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							k9: $elm$core$Maybe$Just(newResp)
+							k8: $elm$core$Maybe$Just(newResp)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 35:
 				var s = msg.a;
-				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k9);
+				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k8);
 				var newTel = function () {
-					var _v17 = baseResp.l$;
+					var _v17 = baseResp.l_;
 					switch (_v17.$) {
 						case 0:
 							var n = _v17.a;
@@ -16206,19 +16209,19 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}();
 				var newResp = _Utils_update(
 					baseResp,
-					{l$: newTel});
+					{l_: newTel});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							k9: $elm$core$Maybe$Just(newResp)
+							k8: $elm$core$Maybe$Just(newResp)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 36:
 				var s = msg.a;
-				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k9);
+				var baseResp = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp, model.k8);
 				var newTel = function () {
-					var _v19 = baseResp.l$;
+					var _v19 = baseResp.l_;
 					switch (_v19.$) {
 						case 0:
 							var n = _v19.a;
@@ -16237,41 +16240,41 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}();
 				var newResp = _Utils_update(
 					baseResp,
-					{l$: newTel});
+					{l_: newTel});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							k9: $elm$core$Maybe$Just(newResp)
+							k8: $elm$core$Maybe$Just(newResp)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 37:
-				var _v21 = _Utils_Tuple2(model.lx, model.k9);
+				var _v21 = _Utils_Tuple2(model.lw, model.k8);
 				if ((!_v21.a.$) && (!_v21.b.$)) {
 					var r1 = _v21.a.a;
 					var r2 = _v21.b.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
-							la: A3(
+							k9: A3(
 								$elm_community$list_extra$List$Extra$setIf,
 								function (r) {
 									return _Utils_eq(r, r1);
 								},
 								r2,
-								fb.la)
+								fb.k9)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jg: newFb}),
+							{jf: newFb}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 38:
-				var _v22 = model.k9;
+				var _v22 = model.k8;
 				if (_v22.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -16279,56 +16282,56 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					if (_Utils_eq(r, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp)) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var fb = model.jg;
+						var fb = model.jf;
 						var newFb = _Utils_update(
 							fb,
 							{
-								la: _Utils_ap(
-									fb.la,
+								k9: _Utils_ap(
+									fb.k9,
 									_List_fromArray(
 										[r]))
 							});
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{jg: newFb, k9: $elm$core$Maybe$Nothing}),
+								{jf: newFb, k8: $elm$core$Maybe$Nothing}),
 							$elm$core$Platform$Cmd$none);
 					}
 				}
 			case 39:
-				var _v23 = model.lx;
+				var _v23 = model.lw;
 				if (_v23.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var r = _v23.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
-							la: A2($elm_community$list_extra$List$Extra$remove, r, fb.la)
+							k9: A2($elm_community$list_extra$List$Extra$remove, r, fb.k9)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jg: newFb, k9: $elm$core$Maybe$Nothing, lx: $elm$core$Maybe$Nothing}),
+							{jf: newFb, k8: $elm$core$Maybe$Nothing, lw: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 40:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newFb = _Utils_update(
 					fb,
-					{hU: s});
+					{hT: s});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 41:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newTel = function () {
-					var _v24 = fb.l0;
+					var _v24 = fb.l$;
 					if (!_v24.$) {
 						switch (_v24.a.$) {
 							case 0:
@@ -16357,17 +16360,17 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}();
 				var newFb = _Utils_update(
 					fb,
-					{l0: newTel});
+					{l$: newTel});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 42:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newTel = function () {
-					var _v26 = fb.l0;
+					var _v26 = fb.l$;
 					if (!_v26.$) {
 						switch (_v26.a.$) {
 							case 0:
@@ -16396,24 +16399,24 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}();
 				var newFb = _Utils_update(
 					fb,
-					{l0: newTel});
+					{l$: newTel});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 43:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newFb = _Utils_update(
 					fb,
 					{
-						jf: (s === '') ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
+						je: (s === '') ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 					});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 44:
 				var s = msg.a;
@@ -16421,11 +16424,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							i6: _Utils_eq(
-								model.lt,
+							i5: _Utils_eq(
+								model.ls,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s),
-							lt: _Utils_eq(
-								model.lt,
+							ls: _Utils_eq(
+								model.ls,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -16435,80 +16438,80 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							i6: $elm$core$Maybe$Just(s)
+							i5: $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 46:
-				var _v28 = _Utils_Tuple2(model.lt, model.i6);
+				var _v28 = _Utils_Tuple2(model.ls, model.i5);
 				if ((!_v28.a.$) && (!_v28.b.$)) {
 					var mail1 = _v28.a.a;
 					var mail2 = _v28.b.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
-							i5: A3(
+							i4: A3(
 								$elm_community$list_extra$List$Extra$setIf,
 								function (m) {
 									return _Utils_eq(m, mail1);
 								},
 								mail2,
-								fb.i5)
+								fb.i4)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i6: $elm$core$Maybe$Nothing, jg: newFb, lt: $elm$core$Maybe$Nothing}),
+							{i5: $elm$core$Maybe$Nothing, jf: newFb, ls: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 47:
-				var _v29 = model.i6;
+				var _v29 = model.i5;
 				if (!_v29.$) {
 					var mail = _v29.a;
 					if (mail === '') {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var fb = model.jg;
+						var fb = model.jf;
 						var newFb = _Utils_update(
 							fb,
 							{
-								i5: _Utils_ap(
-									fb.i5,
+								i4: _Utils_ap(
+									fb.i4,
 									_List_fromArray(
 										[mail]))
 							});
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{i6: $elm$core$Maybe$Nothing, jg: newFb, lt: $elm$core$Maybe$Nothing}),
+								{i5: $elm$core$Maybe$Nothing, jf: newFb, ls: $elm$core$Maybe$Nothing}),
 							$elm$core$Platform$Cmd$none);
 					}
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 48:
-				var _v30 = model.lt;
+				var _v30 = model.ls;
 				if (_v30.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var mail = _v30.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
-							i5: A2($elm_community$list_extra$List$Extra$remove, mail, fb.i5)
+							i4: A2($elm_community$list_extra$List$Extra$remove, mail, fb.i4)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i6: $elm$core$Maybe$Nothing, jg: newFb, lt: $elm$core$Maybe$Nothing}),
+							{i5: $elm$core$Maybe$Nothing, jf: newFb, ls: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 51:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newFb = _Utils_update(
 					fb,
 					{
@@ -16517,16 +16520,16 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 49:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newFb = _Utils_update(
 					fb,
 					{
-						lF: function () {
-							var _v31 = fb.lF;
+						lE: function () {
+							var _v31 = fb.lE;
 							if (!_v31.$) {
 								var _v32 = _v31.a;
 								var l = _v32.a;
@@ -16542,16 +16545,16 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 50:
 				var s = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newFb = _Utils_update(
 					fb,
 					{
-						lF: function () {
-							var _v33 = fb.lF;
+						lE: function () {
+							var _v33 = fb.lE;
 							if (!_v33.$) {
 								var _v34 = _v33.a;
 								var l = _v34.a;
@@ -16567,56 +16570,56 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 52:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{mr: true}),
+						{mq: true}),
 					$elm$core$Platform$Cmd$none);
 			case 53:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{mr: false}),
+						{mq: false}),
 					$elm$core$Platform$Cmd$none);
 			case 54:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{j1: true}),
+						{j0: true}),
 					$elm$core$Platform$Cmd$none);
 			case 55:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{j1: false}),
+						{j0: false}),
 					$elm$core$Platform$Cmd$none);
 			case 56:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{i2: true}),
+						{i1: true}),
 					$elm$core$Platform$Cmd$none);
 			case 57:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{i2: false}),
+						{i1: false}),
 					$elm$core$Platform$Cmd$none);
 			case 58:
 				var pr = msg.a;
 				if (!pr.$) {
 					var url = pr.a.d0;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
-						{ms: url});
+						{mr: url});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jg: newFb, mr: false}),
+							{jf: newFb, mq: false}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -16627,11 +16630,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							i0: _Utils_eq(
-								model.ls,
+							i$: _Utils_eq(
+								model.lr,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s),
-							ls: _Utils_eq(
-								model.ls,
+							lr: _Utils_eq(
+								model.lr,
 								$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -16641,15 +16644,15 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							i0: $elm$core$Maybe$Just(s)
+							i$: $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 61:
-				var _v36 = _Utils_Tuple2(model.ls, model.i0);
+				var _v36 = _Utils_Tuple2(model.lr, model.i$);
 				if ((!_v36.a.$) && (!_v36.b.$)) {
 					var d1 = _v36.a.a;
 					var d2 = _v36.b.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
@@ -16664,13 +16667,13 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i0: $elm$core$Maybe$Nothing, jg: newFb, ls: $elm$core$Maybe$Nothing}),
+							{i$: $elm$core$Maybe$Nothing, jf: newFb, lr: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 62:
-				var _v37 = model.i0;
+				var _v37 = model.i$;
 				if (_v37.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -16678,7 +16681,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					if (d === '') {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var fb = model.jg;
+						var fb = model.jf;
 						var newFb = _Utils_update(
 							fb,
 							{
@@ -16690,17 +16693,17 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{i0: $elm$core$Maybe$Nothing, jg: newFb}),
+								{i$: $elm$core$Maybe$Nothing, jf: newFb}),
 							$elm$core$Platform$Cmd$none);
 					}
 				}
 			case 63:
-				var _v38 = model.ls;
+				var _v38 = model.lr;
 				if (_v38.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var d = _v38.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
@@ -16709,21 +16712,21 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i0: $elm$core$Maybe$Nothing, jg: newFb, ls: $elm$core$Maybe$Nothing}),
+							{i$: $elm$core$Maybe$Nothing, jf: newFb, lr: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 64:
 				var _v39 = A2(
 					$elm$core$Maybe$andThen,
 					function (d) {
-						return A2($elm_community$list_extra$List$Extra$elemIndex, d, model.jg.fa);
+						return A2($elm_community$list_extra$List$Extra$elemIndex, d, model.jf.fa);
 					},
-					model.ls);
+					model.lr);
 				if (_v39.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var n = _v39.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
@@ -16732,21 +16735,21 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jg: newFb}),
+							{jf: newFb}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 65:
 				var _v40 = A2(
 					$elm$core$Maybe$andThen,
 					function (d) {
-						return A2($elm_community$list_extra$List$Extra$elemIndex, d, model.jg.fa);
+						return A2($elm_community$list_extra$List$Extra$elemIndex, d, model.jf.fa);
 					},
-					model.ls);
+					model.lr);
 				if (_v40.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var n = _v40.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
@@ -16755,7 +16758,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jg: newFb}),
+							{jf: newFb}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 66:
@@ -16764,42 +16767,42 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							jb: $elm$core$Maybe$Nothing,
-							j4: _Utils_eq(
-								model.lw,
+							ja: $elm$core$Maybe$Nothing,
+							j3: _Utils_eq(
+								model.lv,
 								$elm$core$Maybe$Just(ld)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(ld),
-							lw: _Utils_eq(
-								model.lw,
+							lv: _Utils_eq(
+								model.lv,
 								$elm$core$Maybe$Just(ld)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(ld)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 67:
-				var _v41 = _Utils_Tuple2(model.lw, model.j4);
+				var _v41 = _Utils_Tuple2(model.lv, model.j3);
 				if ((!_v41.a.$) && (!_v41.b.$)) {
 					var ld1 = _v41.a.a;
 					var ld2 = _v41.b.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
-							j5: A3(
+							j4: A3(
 								$elm_community$list_extra$List$Extra$setIf,
 								function (ld) {
 									return _Utils_eq(ld, ld1);
 								},
 								ld2,
-								fb.j5)
+								fb.j4)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jb: $elm$core$Maybe$Nothing, jg: newFb, j4: $elm$core$Maybe$Nothing, lw: $elm$core$Maybe$Nothing}),
+							{ja: $elm$core$Maybe$Nothing, jf: newFb, j3: $elm$core$Maybe$Nothing, lv: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 68:
-				var _v42 = model.j4;
+				var _v42 = model.j3;
 				if (_v42.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -16807,45 +16810,45 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					if (!$author$project$GeneralDirectoryEditor$GeneralDirHelpers$validLinkedDoc(ld)) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var fb = model.jg;
+						var fb = model.jf;
 						var newFb = _Utils_update(
 							fb,
 							{
-								j5: _Utils_ap(
-									fb.j5,
+								j4: _Utils_ap(
+									fb.j4,
 									_List_fromArray(
 										[ld]))
 							});
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{jb: $elm$core$Maybe$Nothing, jg: newFb, j4: $elm$core$Maybe$Nothing}),
+								{ja: $elm$core$Maybe$Nothing, jf: newFb, j3: $elm$core$Maybe$Nothing}),
 							$elm$core$Platform$Cmd$none);
 					}
 				}
 			case 69:
-				var _v43 = model.lw;
+				var _v43 = model.lv;
 				if (_v43.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var ld = _v43.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var newFb = _Utils_update(
 						fb,
 						{
-							j5: A2($elm_community$list_extra$List$Extra$remove, ld, fb.j5)
+							j4: A2($elm_community$list_extra$List$Extra$remove, ld, fb.j4)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jb: $elm$core$Maybe$Nothing, jg: newFb, j4: $elm$core$Maybe$Nothing, lw: $elm$core$Maybe$Nothing}),
+							{ja: $elm$core$Maybe$Nothing, jf: newFb, j3: $elm$core$Maybe$Nothing, lv: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 70:
 				var pr = msg.a;
 				if (pr.$ === 1) {
 					var s = pr.a;
-					var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j4);
+					var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j3);
 					var newLd = _Utils_update(
 						baseLD,
 						{d0: s});
@@ -16853,8 +16856,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						_Utils_update(
 							model,
 							{
-								i2: false,
-								j4: $elm$core$Maybe$Just(newLd)
+								i1: false,
+								j3: $elm$core$Maybe$Just(newLd)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -16862,7 +16865,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 				}
 			case 71:
 				var s = msg.a;
-				var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j4);
+				var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j3);
 				var newLd = _Utils_update(
 					baseLD,
 					{N: s});
@@ -16870,38 +16873,38 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							j4: $elm$core$Maybe$Just(newLd)
+							j3: $elm$core$Maybe$Just(newLd)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 72:
 				var s = msg.a;
-				var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j4);
+				var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j3);
 				var newLd = _Utils_update(
 					baseLD,
 					{
-						i$: $elm$core$Maybe$Just(s)
+						i_: $elm$core$Maybe$Just(s)
 					});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							j4: $elm$core$Maybe$Just(newLd)
+							j3: $elm$core$Maybe$Just(newLd)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 73:
 				var s = msg.a;
-				var _v45 = A3($author$project$Internals$CommonHelpers$parseDate, model.iQ, config.fZ, s);
+				var _v45 = A3($author$project$Internals$CommonHelpers$parseDate, model.iP, config.fY, s);
 				if (_v45.$ === 1) {
-					var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j4);
+					var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j3);
 					var newLd = _Utils_update(
 						baseLD,
-						{ja: $elm$core$Maybe$Nothing});
+						{i9: $elm$core$Maybe$Nothing});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								jb: $elm$core$Maybe$Just(s),
-								j4: $elm$core$Maybe$Just(newLd)
+								ja: $elm$core$Maybe$Just(s),
+								j3: $elm$core$Maybe$Just(newLd)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -16910,73 +16913,73 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					var month = _v46.b;
 					var year = _v46.c;
 					var newTime = $AdrianRibao$elm_derberos_date$Derberos$Date$Core$civilToPosix(
-						A8($AdrianRibao$elm_derberos_date$Derberos$Date$Core$newDateRecord, year, month, day, 0, 0, 0, 0, config.fZ));
-					var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j4);
+						A8($AdrianRibao$elm_derberos_date$Derberos$Date$Core$newDateRecord, year, month, day, 0, 0, 0, 0, config.fY));
+					var baseLD = A2($elm$core$Maybe$withDefault, $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc, model.j3);
 					var newLd = _Utils_update(
 						baseLD,
 						{
-							ja: $elm$core$Maybe$Just(newTime)
+							i9: $elm$core$Maybe$Just(newTime)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								jb: $elm$core$Maybe$Nothing,
-								j4: $elm$core$Maybe$Just(newLd)
+								ja: $elm$core$Maybe$Nothing,
+								j3: $elm$core$Maybe$Just(newLd)
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 74:
 				var o = msg.a;
-				var fb = model.jg;
+				var fb = model.jf;
 				var newFb = _Utils_update(
 					fb,
 					{
-						kO: $elm$core$Maybe$Just(o)
+						kN: $elm$core$Maybe$Just(o)
 					});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jg: newFb}),
+						{jf: newFb}),
 					$elm$core$Platform$Cmd$none);
 			case 75:
-				var _v47 = model.lm;
+				var _v47 = model.ll;
 				if (!_v47.$) {
 					var seed = _v47.a;
-					var fb = model.jg;
+					var fb = model.jf;
 					var _v48 = A2($elm$random$Random$step, $TSFoster$elm_uuid$UUID$generator, seed);
 					var uuid = _v48.a;
 					var newSeed = _v48.b;
-					var toSave = {hU: fb.hU, cZ: fb.cZ, fa: fb.fa, i5: fb.i5, jf: fb.jf, N: fb.N, dz: fb.dz, j5: fb.j5, kp: fb.kp, kC: fb.kC, kO: fb.kO, dO: fb.dO, k1: fb.k1, k4: fb.k4, la: fb.la, lF: fb.lF, l0: fb.l0, fT: uuid, ms: fb.ms};
+					var toSave = {hT: fb.hT, cZ: fb.cZ, fa: fb.fa, i4: fb.i4, je: fb.je, N: fb.N, dz: fb.dz, j4: fb.j4, ko: fb.ko, kB: fb.kB, kN: fb.kN, dO: fb.dO, k0: fb.k0, k3: fb.k3, k9: fb.k9, lE: fb.lE, l$: fb.l$, fS: uuid, mr: fb.mr};
 					var newFiches = A3(
 						$elm$core$Dict$insert,
 						$TSFoster$elm_uuid$UUID$toString(uuid),
 						toSave,
-						model.jh);
+						model.jg);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								hQ: $elm$core$Maybe$Nothing,
-								ip: $elm$core$Maybe$Nothing,
-								jg: _Utils_update(
+								hP: $elm$core$Maybe$Nothing,
+								io: $elm$core$Maybe$Nothing,
+								jf: _Utils_update(
 									fb,
 									{
-										fT: $elm$core$Maybe$Just(uuid)
+										fS: $elm$core$Maybe$Just(uuid)
 									}),
-								jh: newFiches,
-								j$: $elm$core$Maybe$Nothing,
-								j9: A2($elm$core$List$cons, toSave, model.j9),
-								kn: $elm$core$Maybe$Nothing,
-								lc: 0,
-								lm: $elm$core$Maybe$Just(newSeed),
-								lu: $elm$core$Maybe$Just(
+								jg: newFiches,
+								j_: $elm$core$Maybe$Nothing,
+								j8: A2($elm$core$List$cons, toSave, model.j8),
+								km: $elm$core$Maybe$Nothing,
+								lb: 0,
+								ll: $elm$core$Maybe$Just(newSeed),
+								lt: $elm$core$Maybe$Just(
 									$TSFoster$elm_uuid$UUID$toString(uuid))
 							}),
 						function () {
-							var _v49 = config.bd;
+							var _v49 = config.be;
 							if (!_v49.$) {
-								var sessionId = _v49.a.fG;
+								var sessionId = _v49.a.fF;
 								return A2(
 									$elm$core$Task$attempt,
 									$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$FicheUpdated(toSave),
@@ -17003,22 +17006,22 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 						return A2(
 							$elm$core$Dict$get,
 							$TSFoster$elm_uuid$UUID$toString(id),
-							model.jh);
+							model.jg);
 					},
-					model.jg.fT);
+					model.jf.fS);
 				if (!_v50.$) {
 					var f = _v50.a;
 					var newFiches = A2(
 						$elm$core$Dict$remove,
-						$TSFoster$elm_uuid$UUID$toString(f.fT),
-						model.jh);
+						$TSFoster$elm_uuid$UUID$toString(f.fS),
+						model.jg);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{jh: newFiches}),
+							{jg: newFiches}),
 						A2(
 							$author$project$Auth$AuthPlugin$cmdIfLogged,
-							config.bd,
+							config.be,
 							$author$project$GeneralDirectoryEditor$GeneralDirJson$removeFiche(f)));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -17029,35 +17032,35 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
+							hO: $elm$core$Maybe$Nothing,
 							hP: $elm$core$Maybe$Nothing,
-							hQ: $elm$core$Maybe$Nothing,
+							$9: $elm$core$Maybe$Nothing,
 							io: $elm$core$Maybe$Nothing,
-							ip: $elm$core$Maybe$Nothing,
-							i0: $elm$core$Maybe$Nothing,
-							i2: false,
-							i6: $elm$core$Maybe$Nothing,
-							jb: $elm$core$Maybe$Nothing,
-							jg: (!d) ? $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyFiche : model.jg,
+							i$: $elm$core$Maybe$Nothing,
+							i1: false,
+							i5: $elm$core$Maybe$Nothing,
+							ja: $elm$core$Maybe$Nothing,
+							jf: (!d) ? $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyFiche : model.jf,
+							jZ: $elm$core$Maybe$Nothing,
 							j_: $elm$core$Maybe$Nothing,
-							j$: $elm$core$Maybe$Nothing,
+							j$: false,
 							j0: false,
-							j1: false,
-							j4: $elm$core$Maybe$Nothing,
-							kn: $elm$core$Maybe$Nothing,
-							k9: $elm$core$Maybe$Nothing,
-							lc: d,
+							j3: $elm$core$Maybe$Nothing,
+							km: $elm$core$Maybe$Nothing,
+							k8: $elm$core$Maybe$Nothing,
+							lb: d,
+							lm: $elm$core$Maybe$Nothing,
 							ln: $elm$core$Maybe$Nothing,
 							lo: $elm$core$Maybe$Nothing,
 							lp: $elm$core$Maybe$Nothing,
 							lq: $elm$core$Maybe$Nothing,
 							lr: $elm$core$Maybe$Nothing,
 							ls: $elm$core$Maybe$Nothing,
-							lt: $elm$core$Maybe$Nothing,
-							lu: (!d) ? $elm$core$Maybe$Nothing : model.lu,
+							lt: (!d) ? $elm$core$Maybe$Nothing : model.lt,
+							lu: $elm$core$Maybe$Nothing,
 							lv: $elm$core$Maybe$Nothing,
 							lw: $elm$core$Maybe$Nothing,
-							lx: $elm$core$Maybe$Nothing,
-							mr: false
+							mq: false
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 77:
@@ -17066,8 +17069,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$internalUpdate
 					_Utils_update(
 						model,
 						{
-							iQ: t,
-							lm: $elm$core$Maybe$Just(
+							iP: t,
+							ll: $elm$core$Maybe$Just(
 								$elm$random$Random$initialSeed(
 									$elm$time$Time$posixToMillis(t)))
 						}),
@@ -17092,24 +17095,24 @@ var $author$project$NewsEditor$NewsEditor$NewsSaved = F2(
 	});
 var $author$project$NewsEditor$NewsEditor$bufferFromNews = function (news) {
 	return {
-		iJ: news.iJ,
+		iI: news.iI,
 		eh: news.eh,
-		i9: news.i9,
-		kT: news.kT,
-		fQ: news.fQ,
-		fT: $elm$core$Maybe$Just(news.fT)
+		i8: news.i8,
+		kS: news.kS,
+		fP: news.fP,
+		fS: $elm$core$Maybe$Just(news.fS)
 	};
 };
 var $author$project$NewsEditor$NewsEditor$emptyNews = {
-	iJ: $elm$core$Maybe$Nothing,
+	iI: $elm$core$Maybe$Nothing,
 	eh: $elm$time$Time$millisToPosix(0),
-	i9: $elm$time$Time$millisToPosix(0),
-	kT: $elm$core$Maybe$Nothing,
-	fQ: '',
-	fT: $elm$core$Maybe$Nothing
+	i8: $elm$time$Time$millisToPosix(0),
+	kS: $elm$core$Maybe$Nothing,
+	fP: '',
+	fS: $elm$core$Maybe$Nothing
 };
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$parserOutput = function (model) {
-	return {x: model.aL, l_: model.q};
+	return {x: model.R, lZ: model.q};
 };
 var $author$project$NewsEditor$NewsEditor$NewsRemoved = F2(
 	function (a, b) {
@@ -17136,7 +17139,7 @@ var $author$project$NewsEditor$NewsEditor$removeNews = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$NewsEditor$NewsEditor$NewsRemoved(idsToRemove),
 					$author$project$NewsEditor$NewsEditor$decodeSuccess),
@@ -17172,9 +17175,9 @@ var $author$project$Document$Json$DocumentSerializer$encodeDocAttribute = functi
 	switch (docAttr.$) {
 		case 0:
 			var bottom = docAttr.a.a2;
-			var left = docAttr.a.bb;
-			var right = docAttr.a.bk;
-			var top = docAttr.a.bo;
+			var left = docAttr.a.bc;
+			var right = docAttr.a.bl;
+			var top = docAttr.a.bq;
 			return $elm$core$Maybe$Just(
 				$elm$json$Json$Encode$object(
 					_List_fromArray(
@@ -17356,7 +17359,7 @@ var $author$project$Document$Json$DocumentSerializer$encodeDocAttributes = funct
 		A2($elm$core$List$filterMap, $author$project$Document$Json$DocumentSerializer$encodeDocAttribute, attrs));
 };
 var $author$project$Document$Json$DocumentSerializer$encodeLinkMeta = function (_v0) {
-	var targetBlank = _v0.hz;
+	var targetBlank = _v0.hy;
 	var url = _v0.d0;
 	var label = _v0.N;
 	return $elm$json$Json$Encode$object(
@@ -17511,7 +17514,7 @@ var $author$project$Document$Json$DocumentSerializer$encodeTextBlockElement = fu
 	}
 };
 var $author$project$Document$Json$DocumentSerializer$encodeNewsContent = function (_v0) {
-	var tbElems = _v0.l_;
+	var tbElems = _v0.lZ;
 	var attrs = _v0.x;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
@@ -17525,12 +17528,12 @@ var $author$project$Document$Json$DocumentSerializer$encodeNewsContent = functio
 			]));
 };
 var $author$project$Document$Json$DocumentSerializer$encodeNews = function (_v0) {
-	var title = _v0.fQ;
+	var title = _v0.fP;
 	var date = _v0.eh;
-	var content = _v0.iJ;
-	var pic = _v0.kT;
-	var uuid = _v0.fT;
-	var expiry = _v0.i9;
+	var content = _v0.iI;
+	var pic = _v0.kS;
+	var uuid = _v0.fS;
+	var expiry = _v0.i8;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -17556,8 +17559,8 @@ var $author$project$Document$Json$DocumentSerializer$encodeNews = function (_v0)
 						$elm$core$Maybe$map,
 						function (_v1) {
 							var url = _v1.d0;
-							var width = _v1.mu;
-							var height = _v1.jy;
+							var width = _v1.mt;
+							var height = _v1.jx;
 							return $elm$json$Json$Encode$object(
 								_List_fromArray(
 									[
@@ -17602,10 +17605,10 @@ var $author$project$NewsEditor$NewsEditor$setNews = F3(
 		return $elm$http$Http$task(
 			{
 				eY: body,
-				gv: _List_Nil,
-				gP: 'Post',
-				k7: $author$project$Internals$CommonHelpers$jsonResolver($author$project$NewsEditor$NewsEditor$decodeSuccess),
-				hA: $elm$core$Maybe$Nothing,
+				gu: _List_Nil,
+				gO: 'Post',
+				k6: $author$project$Internals$CommonHelpers$jsonResolver($author$project$NewsEditor$NewsEditor$decodeSuccess),
+				hz: $elm$core$Maybe$Nothing,
 				d0: 'setNews.php'
 			});
 	});
@@ -17626,7 +17629,7 @@ var $elm$core$List$concatMap = F2(
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$deactivateAttributes = _Platform_outgoingPort('deactivateAttributes', $elm$core$Basics$identity);
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$Selection = F3(
 	function (start, end, attrs) {
-		return {x: attrs, by: end, bL: start};
+		return {x: attrs, a4: end, bo: start};
 	});
 var $elm$json$Json$Decode$keyValuePairs = _Json_decodeKeyValuePairs;
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$decodeSelection = function () {
@@ -17667,7 +17670,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$decodeSelection
 }();
 var $author$project$PageTreeEditor$PageTreeEditor$extractPage = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	return current;
 };
 var $elm$core$Result$toMaybe = function (result) {
@@ -17682,7 +17685,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$getPathFromId = F2(
 	function (model, cId) {
 		var findPath = function (_v0) {
 			var path = _v0.a.J;
-			var mbContentId = _v0.a.kg;
+			var mbContentId = _v0.a.kf;
 			var xs = _v0.b;
 			return _Utils_eq(
 				mbContentId,
@@ -18006,158 +18009,113 @@ var $hecrj$html_parser$Html$Parser$nodeToString = function (node_) {
 			return '<!-- ' + (comment_ + ' -->');
 	}
 };
+var $elm$url$Url$percentEncode = _Url_percentEncode;
+var $author$project$PageTreeEditor$PageTreeEditor$zipUp = function (pageTree) {
+	var _v0 = pageTree.bu;
+	if (!_v0.b) {
+		return $elm$core$Maybe$Nothing;
+	} else {
+		var parent = _v0.a.eF;
+		var left = _v0.a.bc;
+		var right = _v0.a.bl;
+		var cs = _v0.b;
+		return $elm$core$Maybe$Just(
+			_Utils_update(
+				pageTree,
+				{
+					bu: cs,
+					a3: A2(
+						$author$project$PageTreeEditor$PageTreeEditor$Page,
+						parent,
+						_Utils_ap(
+							left,
+							_Utils_ap(
+								_List_fromArray(
+									[pageTree.a3]),
+								right)))
+				}));
+	}
+};
+var $author$project$PageTreeEditor$PageTreeEditor$rewind = function (pageTree) {
+	rewind:
+	while (true) {
+		var _v0 = $author$project$PageTreeEditor$PageTreeEditor$zipUp(pageTree);
+		if (_v0.$ === 1) {
+			return pageTree;
+		} else {
+			var pageTree_ = _v0.a;
+			var $temp$pageTree = pageTree_;
+			pageTree = $temp$pageTree;
+			continue rewind;
+		}
+	}
+};
+var $author$project$PageTreeEditor$PageTreeEditor$pageIndex = function (model) {
+	var toList = function (_v0) {
+		var pageInfo = _v0.a;
+		var xs = _v0.b;
+		var _v1 = pageInfo.kf;
+		if (_v1.$ === 1) {
+			return A2($elm$core$List$concatMap, toList, xs);
+		} else {
+			var contentId = _v1.a;
+			var strPath = function (path) {
+				return function (p) {
+					return '/' + p;
+				}(
+					A2(
+						$elm$core$String$join,
+						'/',
+						A2($elm$core$List$map, $elm$url$Url$percentEncode, path)));
+			};
+			return A2(
+				$elm$core$List$cons,
+				_Utils_Tuple3(
+					strPath(pageInfo.J),
+					pageInfo.H,
+					$TSFoster$elm_uuid$UUID$toString(contentId)),
+				A2($elm$core$List$concatMap, toList, xs));
+		}
+	};
+	var _v2 = model.h;
+	if (!_v2.$) {
+		var pt = _v2.a;
+		return $elm$core$Dict$fromList(
+			A2(
+				$elm$core$List$map,
+				function (_v3) {
+					var p = _v3.a;
+					var n = _v3.b;
+					var cId = _v3.c;
+					return _Utils_Tuple2(
+						cId,
+						{H: n, J: p});
+				},
+				toList(
+					$author$project$PageTreeEditor$PageTreeEditor$extractPage(
+						$author$project$PageTreeEditor$PageTreeEditor$rewind(pt)))));
+	} else {
+		return $elm$core$Dict$empty;
+	}
+};
+var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$setAlignMent = F2(
+	function (attrs, alignment) {
+		var alignments = _List_fromArray(
+			[$author$project$Document$Document$FontAlignRight, $author$project$Document$Document$FontAlignLeft, $author$project$Document$Document$Center, $author$project$Document$Document$Justify]);
+		var attrs_ = A2(
+			$elm$core$List$filter,
+			function (attr) {
+				return !A2($elm$core$List$member, attr, alignments);
+			},
+			attrs);
+		return A2($elm$core$List$cons, alignment, attrs_);
+	});
 var $hecrj$html_parser$Html$Parser$Element = F3(
 	function (a, b, c) {
 		return {$: 1, a: a, b: b, c: c};
 	});
 var $hecrj$html_parser$Html$Parser$Text = function (a) {
 	return {$: 0, a: a};
-};
-var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss = function (attr) {
-	switch (attr.$) {
-		case 0:
-			var padding = attr.a;
-			return _List_Nil;
-		case 1:
-			var x = attr.a;
-			var y = attr.b;
-			return _List_Nil;
-		case 2:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('float', 'right')
-				]);
-		case 3:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('float', 'left')
-				]);
-		case 4:
-			return _List_Nil;
-		case 5:
-			var _v1 = attr.a;
-			var r = _v1.a;
-			var g = _v1.b;
-			var b = _v1.c;
-			var _v2 = _Utils_Tuple3(
-				$elm$core$String$fromInt(
-					$elm$core$Basics$round(r * 255)),
-				$elm$core$String$fromInt(
-					$elm$core$Basics$round(g * 255)),
-				$elm$core$String$fromInt(
-					$elm$core$Basics$round(b * 255)));
-			var r_ = _v2.a;
-			var g_ = _v2.b;
-			var b_ = _v2.c;
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('background-color', 'rgb(' + (r_ + (',' + (g_ + (',' + (b_ + ')'))))))
-				]);
-		case 6:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('width', '100%')
-				]);
-		case 7:
-			return _List_Nil;
-		case 8:
-			var n = attr.a;
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					'width',
-					$elm$core$String$fromInt(n) + 'px')
-				]);
-		case 9:
-			var n = attr.a;
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					'height',
-					$elm$core$String$fromInt(n) + 'px')
-				]);
-		case 10:
-			var n = attr.a;
-			return _List_Nil;
-		case 11:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('border-style', 'solid'),
-					_Utils_Tuple2('border-width', '1px'),
-					_Utils_Tuple2('border-color', 'rgb(127,127,127)')
-				]);
-		case 12:
-			var font = attr.a;
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('font-family', font)
-				]);
-		case 13:
-			var _v3 = attr.a;
-			var r = _v3.a;
-			var g = _v3.b;
-			var b = _v3.c;
-			var _v4 = _Utils_Tuple3(
-				$elm$core$String$fromInt(
-					$elm$core$Basics$round(r * 255)),
-				$elm$core$String$fromInt(
-					$elm$core$Basics$round(g * 255)),
-				$elm$core$String$fromInt(
-					$elm$core$Basics$round(b * 255)));
-			var r_ = _v4.a;
-			var g_ = _v4.b;
-			var b_ = _v4.c;
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('color', 'rgb(' + (r_ + (',' + (g_ + (',' + (b_ + ')'))))))
-				]);
-		case 14:
-			var n = attr.a;
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					'font-size',
-					$elm$core$String$fromInt(n) + 'px')
-				]);
-		case 15:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('text-align', 'left')
-				]);
-		case 16:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('text-align', 'right')
-				]);
-		case 17:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('text-align', 'center')
-				]);
-		case 18:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('text-align', 'justify')
-				]);
-		case 19:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('font-weight', 'bold')
-				]);
-		case 20:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2('font-style', 'italic')
-				]);
-		case 21:
-			var attrs = attr.a;
-			return _List_fromArray(
-				[attrs]);
-		default:
-			var n = attr.a;
-			var handler = attr.b;
-			return _List_Nil;
-	}
 };
 var $elm$parser$Parser$Advanced$Bad = F2(
 	function (a, b) {
@@ -18220,7 +18178,7 @@ var $elm$parser$Parser$Advanced$AddRight = F2(
 	});
 var $elm$parser$Parser$Advanced$DeadEnd = F4(
 	function (row, col, problem, contextStack) {
-		return {gc: col, iL: contextStack, g9: problem, hj: row};
+		return {gb: col, iK: contextStack, g8: problem, hi: row};
 	});
 var $elm$parser$Parser$Advanced$Empty = {$: 0};
 var $elm$parser$Parser$Advanced$fromState = F2(
@@ -18228,13 +18186,13 @@ var $elm$parser$Parser$Advanced$fromState = F2(
 		return A2(
 			$elm$parser$Parser$Advanced$AddRight,
 			$elm$parser$Parser$Advanced$Empty,
-			A4($elm$parser$Parser$Advanced$DeadEnd, s.hj, s.gc, x, s.d));
+			A4($elm$parser$Parser$Advanced$DeadEnd, s.hi, s.gb, x, s.d));
 	});
 var $elm$parser$Parser$Advanced$isSubChar = _Parser_isSubChar;
 var $elm$parser$Parser$Advanced$chompIf = F2(
 	function (isGood, expecting) {
 		return function (s) {
-			var newOffset = A3($elm$parser$Parser$Advanced$isSubChar, isGood, s.kE, s.fL);
+			var newOffset = A3($elm$parser$Parser$Advanced$isSubChar, isGood, s.kD, s.fK);
 			return _Utils_eq(newOffset, -1) ? A2(
 				$elm$parser$Parser$Advanced$Bad,
 				false,
@@ -18242,11 +18200,11 @@ var $elm$parser$Parser$Advanced$chompIf = F2(
 				$elm$parser$Parser$Advanced$Good,
 				true,
 				0,
-				{gc: 1, d: s.d, fn: s.fn, kE: s.kE + 1, hj: s.hj + 1, fL: s.fL}) : A3(
+				{gb: 1, d: s.d, fm: s.fm, kD: s.kD + 1, hi: s.hi + 1, fK: s.fK}) : A3(
 				$elm$parser$Parser$Advanced$Good,
 				true,
 				0,
-				{gc: s.gc + 1, d: s.d, fn: s.fn, kE: newOffset, hj: s.hj, fL: s.fL}));
+				{gb: s.gb + 1, d: s.d, fm: s.fm, kD: newOffset, hi: s.hi, fK: s.fK}));
 		};
 	});
 var $elm$parser$Parser$chompIf = function (isGood) {
@@ -18256,13 +18214,13 @@ var $elm$parser$Parser$Advanced$chompWhileHelp = F5(
 	function (isGood, offset, row, col, s0) {
 		chompWhileHelp:
 		while (true) {
-			var newOffset = A3($elm$parser$Parser$Advanced$isSubChar, isGood, offset, s0.fL);
+			var newOffset = A3($elm$parser$Parser$Advanced$isSubChar, isGood, offset, s0.fK);
 			if (_Utils_eq(newOffset, -1)) {
 				return A3(
 					$elm$parser$Parser$Advanced$Good,
-					_Utils_cmp(s0.kE, offset) < 0,
+					_Utils_cmp(s0.kD, offset) < 0,
 					0,
-					{gc: col, d: s0.d, fn: s0.fn, kE: offset, hj: row, fL: s0.fL});
+					{gb: col, d: s0.d, fm: s0.fm, kD: offset, hi: row, fK: s0.fK});
 			} else {
 				if (_Utils_eq(newOffset, -2)) {
 					var $temp$isGood = isGood,
@@ -18294,7 +18252,7 @@ var $elm$parser$Parser$Advanced$chompWhileHelp = F5(
 	});
 var $elm$parser$Parser$Advanced$chompWhile = function (isGood) {
 	return function (s) {
-		return A5($elm$parser$Parser$Advanced$chompWhileHelp, isGood, s.kE, s.hj, s.gc, s);
+		return A5($elm$parser$Parser$Advanced$chompWhileHelp, isGood, s.kD, s.hi, s.gb, s);
 	};
 };
 var $elm$parser$Parser$chompWhile = $elm$parser$Parser$Advanced$chompWhile;
@@ -18359,7 +18317,7 @@ var $elm$parser$Parser$Advanced$mapChompedString = F2(
 					p,
 					A2(
 						func,
-						A3($elm$core$String$slice, s0.kE, s1.kE, s0.fL),
+						A3($elm$core$String$slice, s0.kD, s1.kD, s0.fK),
 						a),
 					s1);
 			}
@@ -18438,7 +18396,7 @@ var $elm$parser$Parser$Advanced$chompUntil = function (_v0) {
 	var str = _v0.a;
 	var expecting = _v0.b;
 	return function (s) {
-		var _v1 = A5($elm$parser$Parser$Advanced$findSubString, str, s.kE, s.hj, s.gc, s.fL);
+		var _v1 = A5($elm$parser$Parser$Advanced$findSubString, str, s.kD, s.hi, s.gb, s.fK);
 		var newOffset = _v1.a;
 		var newRow = _v1.b;
 		var newCol = _v1.c;
@@ -18447,9 +18405,9 @@ var $elm$parser$Parser$Advanced$chompUntil = function (_v0) {
 			false,
 			A4($elm$parser$Parser$Advanced$fromInfo, newRow, newCol, expecting, s.d)) : A3(
 			$elm$parser$Parser$Advanced$Good,
-			_Utils_cmp(s.kE, newOffset) < 0,
+			_Utils_cmp(s.kD, newOffset) < 0,
 			0,
-			{gc: newCol, d: s.d, fn: s.fn, kE: newOffset, hj: newRow, fL: s.fL});
+			{gb: newCol, d: s.d, fm: s.fm, kD: newOffset, hi: newRow, fK: s.fK});
 	};
 };
 var $elm$parser$Parser$Expecting = function (a) {
@@ -18480,7 +18438,7 @@ var $elm$parser$Parser$Advanced$token = function (_v0) {
 	var expecting = _v0.b;
 	var progress = !$elm$core$String$isEmpty(str);
 	return function (s) {
-		var _v1 = A5($elm$parser$Parser$Advanced$isSubString, str, s.kE, s.hj, s.gc, s.fL);
+		var _v1 = A5($elm$parser$Parser$Advanced$isSubString, str, s.kD, s.hi, s.gb, s.fK);
 		var newOffset = _v1.a;
 		var newRow = _v1.b;
 		var newCol = _v1.c;
@@ -18491,7 +18449,7 @@ var $elm$parser$Parser$Advanced$token = function (_v0) {
 			$elm$parser$Parser$Advanced$Good,
 			progress,
 			0,
-			{gc: newCol, d: s.d, fn: s.fn, kE: newOffset, hj: newRow, fL: s.fL});
+			{gb: newCol, d: s.d, fm: s.fm, kD: newOffset, hi: newRow, fK: s.fK});
 	};
 };
 var $elm$parser$Parser$token = function (str) {
@@ -20843,7 +20801,7 @@ var $elm$parser$Parser$Advanced$consumeBase = _Parser_consumeBase;
 var $elm$parser$Parser$Advanced$consumeBase16 = _Parser_consumeBase16;
 var $elm$parser$Parser$Advanced$bumpOffset = F2(
 	function (newOffset, s) {
-		return {gc: s.gc + (newOffset - s.kE), d: s.d, fn: s.fn, kE: newOffset, hj: s.hj, fL: s.fL};
+		return {gb: s.gb + (newOffset - s.kD), d: s.d, fm: s.fm, kD: newOffset, hi: s.hi, fK: s.fK};
 	});
 var $elm$parser$Parser$Advanced$chompBase10 = _Parser_chompBase10;
 var $elm$parser$Parser$Advanced$isAsciiCode = _Parser_isAsciiCode;
@@ -20879,7 +20837,7 @@ var $elm$parser$Parser$Advanced$finalizeInt = F5(
 			var toValue = handler.a;
 			return _Utils_eq(startOffset, endOffset) ? A2(
 				$elm$parser$Parser$Advanced$Bad,
-				_Utils_cmp(s.kE, startOffset) < 0,
+				_Utils_cmp(s.kD, startOffset) < 0,
 				A2($elm$parser$Parser$Advanced$fromState, s, invalid)) : A3(
 				$elm$parser$Parser$Advanced$Good,
 				true,
@@ -20891,21 +20849,21 @@ var $elm$core$String$toFloat = _String_toFloat;
 var $elm$parser$Parser$Advanced$finalizeFloat = F6(
 	function (invalid, expecting, intSettings, floatSettings, intPair, s) {
 		var intOffset = intPair.a;
-		var floatOffset = A2($elm$parser$Parser$Advanced$consumeDotAndExp, intOffset, s.fL);
+		var floatOffset = A2($elm$parser$Parser$Advanced$consumeDotAndExp, intOffset, s.fK);
 		if (floatOffset < 0) {
 			return A2(
 				$elm$parser$Parser$Advanced$Bad,
 				true,
-				A4($elm$parser$Parser$Advanced$fromInfo, s.hj, s.gc - (floatOffset + s.kE), invalid, s.d));
+				A4($elm$parser$Parser$Advanced$fromInfo, s.hi, s.gb - (floatOffset + s.kD), invalid, s.d));
 		} else {
-			if (_Utils_eq(s.kE, floatOffset)) {
+			if (_Utils_eq(s.kD, floatOffset)) {
 				return A2(
 					$elm$parser$Parser$Advanced$Bad,
 					false,
 					A2($elm$parser$Parser$Advanced$fromState, s, expecting));
 			} else {
 				if (_Utils_eq(intOffset, floatOffset)) {
-					return A5($elm$parser$Parser$Advanced$finalizeInt, invalid, intSettings, s.kE, intPair, s);
+					return A5($elm$parser$Parser$Advanced$finalizeInt, invalid, intSettings, s.kD, intPair, s);
 				} else {
 					if (floatSettings.$ === 1) {
 						var x = floatSettings.a;
@@ -20916,7 +20874,7 @@ var $elm$parser$Parser$Advanced$finalizeFloat = F6(
 					} else {
 						var toValue = floatSettings.a;
 						var _v1 = $elm$core$String$toFloat(
-							A3($elm$core$String$slice, s.kE, floatOffset, s.fL));
+							A3($elm$core$String$slice, s.kD, floatOffset, s.fK));
 						if (_v1.$ === 1) {
 							return A2(
 								$elm$parser$Parser$Advanced$Bad,
@@ -20937,43 +20895,43 @@ var $elm$parser$Parser$Advanced$finalizeFloat = F6(
 	});
 var $elm$parser$Parser$Advanced$number = function (c) {
 	return function (s) {
-		if (A3($elm$parser$Parser$Advanced$isAsciiCode, 48, s.kE, s.fL)) {
-			var zeroOffset = s.kE + 1;
+		if (A3($elm$parser$Parser$Advanced$isAsciiCode, 48, s.kD, s.fK)) {
+			var zeroOffset = s.kD + 1;
 			var baseOffset = zeroOffset + 1;
-			return A3($elm$parser$Parser$Advanced$isAsciiCode, 120, zeroOffset, s.fL) ? A5(
+			return A3($elm$parser$Parser$Advanced$isAsciiCode, 120, zeroOffset, s.fK) ? A5(
 				$elm$parser$Parser$Advanced$finalizeInt,
-				c.jV,
-				c.gz,
+				c.jU,
+				c.gx,
 				baseOffset,
-				A2($elm$parser$Parser$Advanced$consumeBase16, baseOffset, s.fL),
-				s) : (A3($elm$parser$Parser$Advanced$isAsciiCode, 111, zeroOffset, s.fL) ? A5(
+				A2($elm$parser$Parser$Advanced$consumeBase16, baseOffset, s.fK),
+				s) : (A3($elm$parser$Parser$Advanced$isAsciiCode, 111, zeroOffset, s.fK) ? A5(
 				$elm$parser$Parser$Advanced$finalizeInt,
-				c.jV,
-				c.gZ,
+				c.jU,
+				c.gY,
 				baseOffset,
-				A3($elm$parser$Parser$Advanced$consumeBase, 8, baseOffset, s.fL),
-				s) : (A3($elm$parser$Parser$Advanced$isAsciiCode, 98, zeroOffset, s.fL) ? A5(
+				A3($elm$parser$Parser$Advanced$consumeBase, 8, baseOffset, s.fK),
+				s) : (A3($elm$parser$Parser$Advanced$isAsciiCode, 98, zeroOffset, s.fK) ? A5(
 				$elm$parser$Parser$Advanced$finalizeInt,
-				c.jV,
-				c.f4,
+				c.jU,
+				c.f3,
 				baseOffset,
-				A3($elm$parser$Parser$Advanced$consumeBase, 2, baseOffset, s.fL),
+				A3($elm$parser$Parser$Advanced$consumeBase, 2, baseOffset, s.fK),
 				s) : A6(
 				$elm$parser$Parser$Advanced$finalizeFloat,
-				c.jV,
+				c.jU,
+				c.gj,
+				c.gE,
 				c.gk,
-				c.gF,
-				c.gl,
 				_Utils_Tuple2(zeroOffset, 0),
 				s)));
 		} else {
 			return A6(
 				$elm$parser$Parser$Advanced$finalizeFloat,
-				c.jV,
+				c.jU,
+				c.gj,
+				c.gE,
 				c.gk,
-				c.gF,
-				c.gl,
-				A3($elm$parser$Parser$Advanced$consumeBase, 10, s.kE, s.fL),
+				A3($elm$parser$Parser$Advanced$consumeBase, 10, s.kD, s.fK),
 				s);
 		}
 	};
@@ -20982,13 +20940,13 @@ var $elm$parser$Parser$Advanced$int = F2(
 	function (expecting, invalid) {
 		return $elm$parser$Parser$Advanced$number(
 			{
-				f4: $elm$core$Result$Err(invalid),
-				gk: expecting,
-				gl: $elm$core$Result$Err(invalid),
-				gz: $elm$core$Result$Err(invalid),
-				gF: $elm$core$Result$Ok($elm$core$Basics$identity),
-				jV: invalid,
-				gZ: $elm$core$Result$Err(invalid)
+				f3: $elm$core$Result$Err(invalid),
+				gj: expecting,
+				gk: $elm$core$Result$Err(invalid),
+				gx: $elm$core$Result$Err(invalid),
+				gE: $elm$core$Result$Ok($elm$core$Basics$identity),
+				jU: invalid,
+				gY: $elm$core$Result$Err(invalid)
 			});
 	});
 var $elm$parser$Parser$int = A2($elm$parser$Parser$Advanced$int, $elm$parser$Parser$ExpectingInt, $elm$parser$Parser$ExpectingInt);
@@ -21256,10 +21214,10 @@ $hecrj$html_parser$Html$Parser$cyclic$element = function () {
 };
 var $elm$parser$Parser$DeadEnd = F3(
 	function (row, col, problem) {
-		return {gc: col, g9: problem, hj: row};
+		return {gb: col, g8: problem, hi: row};
 	});
 var $elm$parser$Parser$problemToDeadEnd = function (p) {
-	return A3($elm$parser$Parser$DeadEnd, p.hj, p.gc, p.g9);
+	return A3($elm$parser$Parser$DeadEnd, p.hi, p.gb, p.g8);
 };
 var $elm$parser$Parser$Advanced$bagToList = F2(
 	function (bag, list) {
@@ -21291,7 +21249,7 @@ var $elm$parser$Parser$Advanced$run = F2(
 	function (_v0, src) {
 		var parse = _v0;
 		var _v1 = parse(
-			{gc: 1, d: _List_Nil, fn: 1, kE: 0, hj: 1, fL: src});
+			{gb: 1, d: _List_Nil, fm: 1, kD: 0, hi: 1, fK: src});
 		if (!_v1.$) {
 			var value = _v1.b;
 			return $elm$core$Result$Ok(value);
@@ -21319,97 +21277,173 @@ var $hecrj$html_parser$Html$Parser$run = function (str) {
 		A2($hecrj$html_parser$Html$Parser$oneOrMore, 'node', $hecrj$html_parser$Html$Parser$node),
 		str);
 };
-var $elm$url$Url$percentEncode = _Url_percentEncode;
-var $author$project$PageTreeEditor$PageTreeEditor$zipUp = function (pageTree) {
-	var _v0 = pageTree.bs;
-	if (!_v0.b) {
-		return $elm$core$Maybe$Nothing;
-	} else {
-		var parent = _v0.a.eF;
-		var left = _v0.a.bb;
-		var right = _v0.a.bk;
-		var cs = _v0.b;
-		return $elm$core$Maybe$Just(
-			_Utils_update(
-				pageTree,
-				{
-					bs: cs,
-					a3: A2(
-						$author$project$PageTreeEditor$PageTreeEditor$Page,
-						parent,
-						_Utils_ap(
-							left,
-							_Utils_ap(
-								_List_fromArray(
-									[pageTree.a3]),
-								right)))
-				}));
+var $author$project$Document$DocumentViews$StyleSheets$docAttrToCss = function (attr) {
+	switch (attr.$) {
+		case 0:
+			var padding = attr.a;
+			return _List_Nil;
+		case 1:
+			var x = attr.a;
+			var y = attr.b;
+			return _List_Nil;
+		case 2:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('float', 'right')
+				]);
+		case 3:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('float', 'left')
+				]);
+		case 4:
+			return _List_Nil;
+		case 5:
+			var _v1 = attr.a;
+			var r = _v1.a;
+			var g = _v1.b;
+			var b = _v1.c;
+			var _v2 = _Utils_Tuple3(
+				$elm$core$String$fromInt(
+					$elm$core$Basics$round(r * 255)),
+				$elm$core$String$fromInt(
+					$elm$core$Basics$round(g * 255)),
+				$elm$core$String$fromInt(
+					$elm$core$Basics$round(b * 255)));
+			var r_ = _v2.a;
+			var g_ = _v2.b;
+			var b_ = _v2.c;
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('background-color', 'rgb(' + (r_ + (',' + (g_ + (',' + (b_ + ')'))))))
+				]);
+		case 6:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('width', '100%')
+				]);
+		case 7:
+			return _List_Nil;
+		case 8:
+			var n = attr.a;
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					'width',
+					$elm$core$String$fromInt(n) + 'px')
+				]);
+		case 9:
+			var n = attr.a;
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					'height',
+					$elm$core$String$fromInt(n) + 'px')
+				]);
+		case 10:
+			var n = attr.a;
+			return _List_Nil;
+		case 11:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('border-style', 'solid'),
+					_Utils_Tuple2('border-width', '1px'),
+					_Utils_Tuple2('border-color', 'rgb(127,127,127)')
+				]);
+		case 12:
+			var font = attr.a;
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('font-family', font)
+				]);
+		case 13:
+			var _v3 = attr.a;
+			var r = _v3.a;
+			var g = _v3.b;
+			var b = _v3.c;
+			var _v4 = _Utils_Tuple3(
+				$elm$core$String$fromInt(
+					$elm$core$Basics$round(r * 255)),
+				$elm$core$String$fromInt(
+					$elm$core$Basics$round(g * 255)),
+				$elm$core$String$fromInt(
+					$elm$core$Basics$round(b * 255)));
+			var r_ = _v4.a;
+			var g_ = _v4.b;
+			var b_ = _v4.c;
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('color', 'rgb(' + (r_ + (',' + (g_ + (',' + (b_ + ')'))))))
+				]);
+		case 14:
+			var n = attr.a;
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					'font-size',
+					$elm$core$String$fromInt(n) + 'px')
+				]);
+		case 15:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('text-align', 'left')
+				]);
+		case 16:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('text-align', 'right')
+				]);
+		case 17:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('text-align', 'center')
+				]);
+		case 18:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('text-align', 'justify')
+				]);
+		case 19:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('font-weight', 'bold')
+				]);
+		case 20:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2('font-style', 'italic')
+				]);
+		case 21:
+			var attrs = attr.a;
+			return _List_fromArray(
+				[attrs]);
+		default:
+			var n = attr.a;
+			var handler = attr.b;
+			return _List_Nil;
 	}
 };
-var $author$project$PageTreeEditor$PageTreeEditor$rewind = function (pageTree) {
-	rewind:
-	while (true) {
-		var _v0 = $author$project$PageTreeEditor$PageTreeEditor$zipUp(pageTree);
-		if (_v0.$ === 1) {
-			return pageTree;
-		} else {
-			var pageTree_ = _v0.a;
-			var $temp$pageTree = pageTree_;
-			pageTree = $temp$pageTree;
-			continue rewind;
-		}
-	}
-};
-var $author$project$PageTreeEditor$PageTreeEditor$pageIndex = function (model) {
-	var toList = function (_v0) {
-		var pageInfo = _v0.a;
-		var xs = _v0.b;
-		var _v1 = pageInfo.kg;
-		if (_v1.$ === 1) {
-			return A2($elm$core$List$concatMap, toList, xs);
-		} else {
-			var contentId = _v1.a;
-			var strPath = function (path) {
-				return function (p) {
-					return '/' + p;
-				}(
-					A2(
-						$elm$core$String$join,
-						'/',
-						A2($elm$core$List$map, $elm$url$Url$percentEncode, path)));
-			};
-			return A2(
-				$elm$core$List$cons,
-				_Utils_Tuple3(
-					strPath(pageInfo.J),
-					pageInfo.H,
-					$TSFoster$elm_uuid$UUID$toString(contentId)),
-				A2($elm$core$List$concatMap, toList, xs));
-		}
-	};
-	var _v2 = model.h;
-	if (!_v2.$) {
-		var pt = _v2.a;
-		return $elm$core$Dict$fromList(
+var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr = function (attrs) {
+	return function (r) {
+		return _List_fromArray(
+			[
+				_Utils_Tuple2('style', r)
+			]);
+	}(
+		A2(
+			$elm$core$String$join,
+			' ',
 			A2(
 				$elm$core$List$map,
-				function (_v3) {
-					var p = _v3.a;
-					var n = _v3.b;
-					var cId = _v3.c;
-					return _Utils_Tuple2(
-						cId,
-						{H: n, J: p});
+				function (_v0) {
+					var a = _v0.a;
+					var v = _v0.b;
+					return a + (': ' + (v + ';'));
 				},
-				toList(
-					$author$project$PageTreeEditor$PageTreeEditor$extractPage(
-						$author$project$PageTreeEditor$PageTreeEditor$rewind(pt)))));
-	} else {
-		return $elm$core$Dict$empty;
-	}
+				A2($elm$core$List$concatMap, $author$project$Document$DocumentViews$StyleSheets$docAttrToCss, attrs))));
 };
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimToNode = F2(
-	function (config, tbp) {
+	function (pageIndex, tbp) {
 		if (!tbp.$) {
 			if (!tbp.a.b) {
 				var s = tbp.b;
@@ -21420,7 +21454,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimTo
 				return A3(
 					$hecrj$html_parser$Html$Parser$Element,
 					'span',
-					A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, attrs),
+					$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr(attrs),
 					_List_fromArray(
 						[
 							$hecrj$html_parser$Html$Parser$Text(s)
@@ -21428,10 +21462,9 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimTo
 			}
 		} else {
 			var attrs = tbp.a;
-			var targetBlank = tbp.b.hz;
+			var targetBlank = tbp.b.hy;
 			var url = tbp.b.d0;
 			var label = tbp.b.N;
-			var pageIndex = $author$project$PageTreeEditor$PageTreeEditor$pageIndex(config.I);
 			var url_ = function () {
 				var _v1 = A2($elm$core$Dict$get, url, pageIndex);
 				if (!_v1.$) {
@@ -21444,7 +21477,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimTo
 				$hecrj$html_parser$Html$Parser$Element,
 				'a',
 				_Utils_ap(
-					A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, attrs),
+					$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr(attrs),
 					_Utils_ap(
 						_List_fromArray(
 							[
@@ -21461,7 +21494,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimTo
 		}
 	});
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElementToNode = F2(
-	function (config, tbe) {
+	function (pageIndex, tbe) {
 		switch (tbe.$) {
 			case 0:
 				var attrs = tbe.a;
@@ -21471,10 +21504,10 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElemen
 						A3(
 						$hecrj$html_parser$Html$Parser$Element,
 						'p',
-						A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, attrs),
+						$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr(attrs),
 						A2(
 							$elm$core$List$map,
-							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimToNode(config),
+							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimToNode(pageIndex),
 							prims))
 					]);
 			case 1:
@@ -21485,7 +21518,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElemen
 						A3(
 						$hecrj$html_parser$Html$Parser$Element,
 						'ul',
-						A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, attrs),
+						$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr(attrs),
 						A2(
 							$elm$core$List$map,
 							function (li) {
@@ -21495,7 +21528,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElemen
 									_List_Nil,
 									A2(
 										$elm$core$List$map,
-										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimToNode(config),
+										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimToNode(pageIndex),
 										li));
 							},
 							lis))
@@ -21511,7 +21544,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElemen
 								A3(
 								$hecrj$html_parser$Html$Parser$Element,
 								'h1',
-								A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, attrs),
+								$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr(attrs),
 								_List_fromArray(
 									[
 										$hecrj$html_parser$Html$Parser$Text(s)
@@ -21526,7 +21559,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElemen
 								A3(
 								$hecrj$html_parser$Html$Parser$Element,
 								'h2',
-								A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, attrs),
+								$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr(attrs),
 								_List_fromArray(
 									[
 										$hecrj$html_parser$Html$Parser$Text(s)
@@ -21541,7 +21574,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElemen
 								A3(
 								$hecrj$html_parser$Html$Parser$Element,
 								'h3',
-								A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, attrs),
+								$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$styleAttr(attrs),
 								_List_fromArray(
 									[
 										$hecrj$html_parser$Html$Parser$Text(s)
@@ -21554,7 +21587,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElemen
 				var prim = tbe.a;
 				return _List_fromArray(
 					[
-						A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimToNode, config, prim)
+						A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrimToNode, pageIndex, prim)
 					]);
 			default:
 				var html = tbe.a;
@@ -21757,12 +21790,12 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 				var content = msg.a;
 				var output = _List_fromArray(
 					[
-						$author$project$Document$Document$TrixHtml(content.fl)
+						$author$project$Document$Document$TrixHtml(content.gA)
 					]);
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{c5: content, q: output}),
+						{dv: content, q: output}),
 					$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$getSelection(0),
 					$elm$core$Maybe$Nothing);
 			case 1:
@@ -21781,7 +21814,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								aJ: $elm$core$Maybe$Just(sel)
+								ap: $elm$core$Maybe$Just(sel)
 							}),
 						$elm$core$Platform$Cmd$none,
 						$elm$core$Maybe$Nothing);
@@ -21818,7 +21851,8 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 									$hecrj$html_parser$Html$Parser$nodeToString,
 									A2(
 										$elm$core$List$concatMap,
-										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElementToNode(config),
+										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockElementToNode(
+											$author$project$PageTreeEditor$PageTreeEditor$pageIndex(config.I)),
 										model.q))))),
 					$elm$core$Maybe$Nothing);
 			case 4:
@@ -21826,8 +21860,8 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							o: _Utils_eq(
-								model.o,
+							n: _Utils_eq(
+								model.n,
 								$elm$core$Maybe$Just(0)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(0)
 						}),
 					$elm$core$Platform$Cmd$none,
@@ -21837,8 +21871,8 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							o: _Utils_eq(
-								model.o,
+							n: _Utils_eq(
+								model.n,
 								$elm$core$Maybe$Just(1)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(1)
 						}),
 					$elm$core$Platform$Cmd$none,
@@ -21848,21 +21882,21 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							o: _Utils_eq(
-								model.o,
+							n: _Utils_eq(
+								model.n,
 								$elm$core$Maybe$Just(2)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(2)
 						}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 7:
 				var cId = msg.a;
-				var _v3 = model.aJ;
+				var _v3 = model.ap;
 				if (!_v3.$) {
-					var start = _v3.a.bL;
-					var end = _v3.a.by;
+					var start = _v3.a.bo;
+					var end = _v3.a.a4;
 					var attrs = _v3.a.x;
 					if (!_Utils_eq(start, end)) {
-						var selected = A3($elm$core$String$slice, start, end, model.c5.dW);
+						var selected = A3($elm$core$String$slice, start, end, model.dv.dW);
 						var path = A3(
 							$elm$core$String$replace,
 							' ',
@@ -21891,7 +21925,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						return _Utils_Tuple3(
 							_Utils_update(
 								model,
-								{o: $elm$core$Maybe$Nothing}),
+								{n: $elm$core$Maybe$Nothing}),
 							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$insertHtml(data),
 							$elm$core$Maybe$Nothing);
 					} else {
@@ -21905,21 +21939,21 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							o: _Utils_eq(
-								model.o,
+							n: _Utils_eq(
+								model.n,
 								$elm$core$Maybe$Just(4)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(4)
 						}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 9:
 				var url = msg.a;
-				var _v4 = model.aJ;
+				var _v4 = model.ap;
 				if (!_v4.$) {
-					var start = _v4.a.bL;
-					var end = _v4.a.by;
+					var start = _v4.a.bo;
+					var end = _v4.a.a4;
 					var attrs = _v4.a.x;
 					if (!_Utils_eq(start, end)) {
-						var selected = A3($elm$core$String$slice, start, end, model.c5.dW);
+						var selected = A3($elm$core$String$slice, start, end, model.dv.dW);
 						var link = '<a href=doc:' + (url + ('>' + (selected + '</>')));
 						var data = $elm$json$Json$Encode$object(
 							_List_fromArray(
@@ -21940,7 +21974,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						return _Utils_Tuple3(
 							_Utils_update(
 								model,
-								{o: $elm$core$Maybe$Nothing}),
+								{n: $elm$core$Maybe$Nothing}),
 							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$insertHtml(data),
 							$elm$core$Maybe$Nothing);
 					} else {
@@ -21962,16 +21996,16 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								o: $elm$core$Maybe$Nothing,
-								aL: A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$updateAttrs, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$isFontColorAttr, $author$project$Document$Document$FontColor, color_, model.aL)
+								n: $elm$core$Maybe$Nothing,
+								R: A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$updateAttrs, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$isFontColorAttr, $author$project$Document$Document$FontColor, color_, model.R)
 							}),
 						$elm$core$Platform$Cmd$batch(_List_Nil),
 						$elm$core$Maybe$Nothing);
 				} else {
-					var _v5 = model.aJ;
+					var _v5 = model.ap;
 					if (!_v5.$) {
-						var start = _v5.a.bL;
-						var end = _v5.a.by;
+						var start = _v5.a.bo;
+						var end = _v5.a.a4;
 						var attrs = _v5.a.x;
 						var data = $elm$json$Json$Encode$object(
 							_List_fromArray(
@@ -21996,7 +22030,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						return _Utils_Tuple3(
 							_Utils_update(
 								model,
-								{o: $elm$core$Maybe$Nothing}),
+								{n: $elm$core$Maybe$Nothing}),
 							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$activateAttribute(data),
 							$elm$core$Maybe$Nothing);
 					} else {
@@ -22016,16 +22050,16 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								o: $elm$core$Maybe$Nothing,
-								aL: A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$updateAttrs, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$isBackgroundColorAttr, $author$project$Document$Document$BackgroundColor, color_, model.aL)
+								n: $elm$core$Maybe$Nothing,
+								R: A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$updateAttrs, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$isBackgroundColorAttr, $author$project$Document$Document$BackgroundColor, color_, model.R)
 							}),
 						$elm$core$Platform$Cmd$batch(_List_Nil),
 						$elm$core$Maybe$Nothing);
 				} else {
-					var _v6 = model.aJ;
+					var _v6 = model.ap;
 					if (!_v6.$) {
-						var start = _v6.a.bL;
-						var end = _v6.a.by;
+						var start = _v6.a.bo;
+						var end = _v6.a.a4;
 						var attrs = _v6.a.x;
 						var data = $elm$json$Json$Encode$object(
 							_List_fromArray(
@@ -22050,7 +22084,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						return _Utils_Tuple3(
 							_Utils_update(
 								model,
-								{o: $elm$core$Maybe$Nothing}),
+								{n: $elm$core$Maybe$Nothing}),
 							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$activateAttribute(data),
 							$elm$core$Maybe$Nothing);
 					} else {
@@ -22065,15 +22099,15 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								aL: A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$updateAttrs, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$isFontAttr, $author$project$Document$Document$Font, font, model.aL)
+								R: A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$updateAttrs, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$isFontAttr, $author$project$Document$Document$Font, font, model.R)
 							}),
 						$elm$core$Platform$Cmd$batch(_List_Nil),
 						$elm$core$Maybe$Nothing);
 				} else {
-					var _v7 = model.aJ;
+					var _v7 = model.ap;
 					if (!_v7.$) {
-						var start = _v7.a.bL;
-						var end = _v7.a.by;
+						var start = _v7.a.bo;
+						var end = _v7.a.a4;
 						var attrs = _v7.a.x;
 						var data = $elm$json$Json$Encode$object(
 							_List_fromArray(
@@ -22094,7 +22128,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 						return _Utils_Tuple3(
 							_Utils_update(
 								model,
-								{o: $elm$core$Maybe$Nothing}),
+								{n: $elm$core$Maybe$Nothing}),
 							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$activateAttribute(data),
 							$elm$core$Maybe$Nothing);
 					} else {
@@ -22104,17 +22138,64 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 			case 13:
 				var isWholeTextAttr = msg.a;
 				var n = msg.b;
-				return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
+				if (isWholeTextAttr) {
+					return _Utils_Tuple3(
+						_Utils_update(
+							model,
+							{
+								R: A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$updateAttrs, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$isFontAttr, $author$project$Document$Document$FontSize, n, model.R)
+							}),
+						$elm$core$Platform$Cmd$batch(_List_Nil),
+						$elm$core$Maybe$Nothing);
+				} else {
+					var _v8 = model.ap;
+					if (!_v8.$) {
+						var start = _v8.a.bo;
+						var end = _v8.a.a4;
+						var attrs = _v8.a.x;
+						var data = $elm$json$Json$Encode$object(
+							_List_fromArray(
+								[
+									_Utils_Tuple2(
+									'selectionStart',
+									$elm$json$Json$Encode$int(start)),
+									_Utils_Tuple2(
+									'selectionEnd',
+									$elm$json$Json$Encode$int(end)),
+									_Utils_Tuple2(
+									'attribute',
+									$elm$json$Json$Encode$string('fontSize')),
+									_Utils_Tuple2(
+									'value',
+									$elm$json$Json$Encode$string(
+										$elm$core$String$fromInt(n) + 'px'))
+								]));
+						return _Utils_Tuple3(
+							_Utils_update(
+								model,
+								{n: $elm$core$Maybe$Nothing}),
+							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$activateAttribute(data),
+							$elm$core$Maybe$Nothing);
+					} else {
+						return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
+					}
+				}
 			case 14:
-				var toogle = msg.a;
-				var attr = msg.b;
-				return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
+				var a = msg.a;
+				return _Utils_Tuple3(
+					_Utils_update(
+						model,
+						{
+							R: A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$setAlignMent, model.R, a)
+						}),
+					$elm$core$Platform$Cmd$none,
+					$elm$core$Maybe$Nothing);
 			case 15:
-				var _v8 = model.aJ;
-				if (!_v8.$) {
-					var start = _v8.a.bL;
-					var end = _v8.a.by;
-					var attrs = _v8.a.x;
+				var _v9 = model.ap;
+				if (!_v9.$) {
+					var start = _v9.a.bo;
+					var end = _v9.a.a4;
+					var attrs = _v9.a.x;
 					var data = $elm$json$Json$Encode$object(
 						_List_fromArray(
 							[
@@ -22134,7 +22215,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 					return _Utils_Tuple3(
 						_Utils_update(
 							model,
-							{o: $elm$core$Maybe$Nothing}),
+							{n: $elm$core$Maybe$Nothing}),
 						$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$deactivateAttributes(data),
 						$elm$core$Maybe$Nothing);
 				} else {
@@ -22144,7 +22225,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{o: $elm$core$Maybe$Nothing}),
+						{n: $elm$core$Maybe$Nothing}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 17:
@@ -22153,7 +22234,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$update = F3(
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Just(
 						$author$project$PageEditor$Internals$DocumentEditorHelpers$EditorPluginData(
-							_Utils_Tuple2(model.q, model.aL))));
+							_Utils_Tuple2(model.q, model.R))));
 			case 18:
 				return _Utils_Tuple3(
 					model,
@@ -22173,7 +22254,7 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{b4: $author$project$Internals$ToolHelpers$ToolLoadingSuccess, gU: newsDict}),
+							{b4: $author$project$Internals$ToolHelpers$ToolLoadingSuccess, gT: newsDict}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					var e = res.a;
@@ -22191,11 +22272,11 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 					_Utils_update(
 						model,
 						{
-							e: A2($elm$core$Set$member, id, model.Z) ? $elm$core$Maybe$Nothing : A2(
+							e: A2($elm$core$Set$member, id, model._) ? $elm$core$Maybe$Nothing : A2(
 								$elm$core$Maybe$map,
 								$author$project$NewsEditor$NewsEditor$bufferFromNews,
-								A2($elm$core$Dict$get, id, model.gU)),
-							Z: A2($elm$core$Set$member, id, model.Z) ? A2($elm$core$Set$remove, id, model.Z) : A2($elm$core$Set$insert, id, model.Z)
+								A2($elm$core$Dict$get, id, model.gT)),
+							_: A2($elm$core$Set$member, id, model._) ? A2($elm$core$Set$remove, id, model._) : A2($elm$core$Set$insert, id, model._)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 2:
@@ -22203,7 +22284,7 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 				var baseNews = A2($elm$core$Maybe$withDefault, $author$project$NewsEditor$NewsEditor$emptyNews, model.e);
 				var newBuffer = _Utils_update(
 					baseNews,
-					{fQ: title});
+					{fP: title});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -22213,20 +22294,20 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 					$elm$core$Platform$Cmd$none);
 			case 3:
 				var s = msg.a;
-				var _v2 = A3($author$project$Internals$CommonHelpers$parseDate, model.iQ, config.fZ, s);
+				var _v2 = A3($author$project$Internals$CommonHelpers$parseDate, model.iP, config.fY, s);
 				if (_v2.$ === 1) {
 					var baseNews = A2($elm$core$Maybe$withDefault, $author$project$NewsEditor$NewsEditor$emptyNews, model.e);
 					var newBuffer = _Utils_update(
 						baseNews,
 						{
-							i9: $elm$time$Time$millisToPosix(0)
+							i8: $elm$time$Time$millisToPosix(0)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								e: $elm$core$Maybe$Just(newBuffer),
-								bz: s
+								bA: s
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -22235,34 +22316,34 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 					var month = _v3.b;
 					var year = _v3.c;
 					var newTime = $AdrianRibao$elm_derberos_date$Derberos$Date$Core$civilToPosix(
-						A8($AdrianRibao$elm_derberos_date$Derberos$Date$Core$newDateRecord, year, month, day, 0, 0, 0, 0, config.fZ));
+						A8($AdrianRibao$elm_derberos_date$Derberos$Date$Core$newDateRecord, year, month, day, 0, 0, 0, 0, config.fY));
 					var baseNews = A2($elm$core$Maybe$withDefault, $author$project$NewsEditor$NewsEditor$emptyNews, model.e);
 					var newBuffer = _Utils_update(
 						baseNews,
-						{i9: newTime});
+						{i8: newTime});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								e: $elm$core$Maybe$Just(newBuffer),
-								bz: s
+								bA: s
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 4:
 				var baseContent = A2(
 					$elm$core$Maybe$withDefault,
-					{x: _List_Nil, l_: _List_Nil},
+					{x: _List_Nil, lZ: _List_Nil},
 					A2(
 						$elm$core$Maybe$andThen,
 						function ($) {
-							return $.iJ;
+							return $.iI;
 						},
 						model.e));
 				var _v4 = A3(
 					$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$init,
 					baseContent.x,
-					$elm$core$Maybe$Just(baseContent.l_),
+					$elm$core$Maybe$Just(baseContent.lZ),
 					A2($elm$core$Basics$composeL, model.bY, $author$project$NewsEditor$NewsEditor$TextBlockPluginMsg));
 				var newTextBlockPlugin = _v4.a;
 				var textBlockPluginCmds = _v4.b;
@@ -22275,13 +22356,13 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{e: $elm$core$Maybe$Nothing, Z: $elm$core$Set$empty, br: false, bz: '', cN: 0, bH: false}),
+						{e: $elm$core$Maybe$Nothing, _: $elm$core$Set$empty, bt: false, bA: '', cN: 0, bI: false}),
 					$elm$core$Platform$Cmd$none);
 			case 6:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{br: !model.br}),
+						{bt: !model.bt}),
 					$elm$core$Platform$Cmd$none);
 			case 7:
 				return _Utils_Tuple2(
@@ -22296,10 +22377,10 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 								model.bY,
 								A2(
 									$author$project$Auth$AuthPlugin$cmdIfLogged,
-									config.bd,
+									config.be,
 									$author$project$NewsEditor$NewsEditor$removeNews(
-										$elm$core$Set$toList(model.Z)))),
-								A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.bd, config.eT, 'Suppression actualité(s)...', $elm$core$Maybe$Nothing, false, true)
+										$elm$core$Set$toList(model._)))),
+								A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.be, config.eT, 'Suppression actualité(s)...', $elm$core$Maybe$Nothing, false, true)
 							])));
 			case 8:
 				var ids = msg.a;
@@ -22310,19 +22391,19 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 							model,
 							{
 								e: $elm$core$Maybe$Nothing,
-								Z: $elm$core$Set$empty,
-								br: false,
-								bz: '',
-								gU: A3(
+								_: $elm$core$Set$empty,
+								bt: false,
+								bA: '',
+								gT: A3(
 									$elm$core$List$foldr,
 									F2(
 										function (id, acc) {
 											return A2($elm$core$Dict$remove, id, acc);
 										}),
-									model.gU,
+									model.gT,
 									ids),
 								cN: 0,
-								bH: false,
+								bI: false,
 								bM: 2
 							}),
 						A5($author$project$Internals$CommonHelpers$newLog, config.eT, 'Actualité(s) suprimée(s)', $elm$core$Maybe$Nothing, false, true));
@@ -22345,54 +22426,54 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{bH: true}),
+						{bI: true}),
 					$elm$core$Platform$Cmd$none);
 			case 10:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{bH: false}),
+						{bI: false}),
 					$elm$core$Platform$Cmd$none);
 			case 11:
 				var pr = msg.a;
 				if (!pr.$) {
 					var url = pr.a.d0;
-					var width = pr.a.mu;
-					var height = pr.a.jy;
+					var width = pr.a.mt;
+					var height = pr.a.jx;
 					var newPic = A3($author$project$Document$Document$Pic, url, width, height);
 					var baseNews = A2($elm$core$Maybe$withDefault, $author$project$NewsEditor$NewsEditor$emptyNews, model.e);
 					var newBuffer = _Utils_update(
 						baseNews,
 						{
-							kT: $elm$core$Maybe$Just(newPic)
+							kS: $elm$core$Maybe$Just(newPic)
 						});
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								e: $elm$core$Maybe$Just(newBuffer),
-								bH: false
+								bI: false
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 12:
-				var _v7 = _Utils_Tuple3(model.e, config.bd, model.lm);
+				var _v7 = _Utils_Tuple3(model.e, config.be, model.ll);
 				if (((!_v7.a.$) && (!_v7.b.$)) && (!_v7.c.$)) {
 					var news = _v7.a.a;
-					var sessionId = _v7.b.a.fG;
+					var sessionId = _v7.b.a.fF;
 					var seed = _v7.c.a;
 					var _v8 = A2($elm$random$Random$step, $TSFoster$elm_uuid$UUID$generator, seed);
 					var uuid = _v8.a;
 					var newSeed = _v8.b;
-					var toSave = {iJ: news.iJ, eh: news.eh, i9: news.i9, kT: news.kT, fQ: news.fQ, fT: uuid};
+					var toSave = {iI: news.iI, eh: news.eh, i8: news.i8, kS: news.kS, fP: news.fP, fS: uuid};
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								cN: 0,
-								lm: $elm$core$Maybe$Just(newSeed),
+								ll: $elm$core$Maybe$Just(newSeed),
 								bM: 1
 							}),
 						$elm$core$Platform$Cmd$batch(
@@ -22410,7 +22491,7 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 												return A3($author$project$NewsEditor$NewsEditor$setNews, t, toSave, sessionId);
 											},
 											$elm$time$Time$now))),
-									A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.bd, config.eT, 'Création actualité...', $elm$core$Maybe$Nothing, false, true)
+									A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.be, config.eT, 'Création actualité...', $elm$core$Maybe$Nothing, false, true)
 								])));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -22424,17 +22505,17 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 							model,
 							{
 								e: $elm$core$Maybe$Nothing,
-								Z: $elm$core$Set$empty,
-								br: false,
-								bz: '',
-								gU: A3(
+								_: $elm$core$Set$empty,
+								bt: false,
+								bA: '',
+								gT: A3(
 									$elm$core$Dict$insert,
-									$TSFoster$elm_uuid$UUID$toString(toSave.fT),
+									$TSFoster$elm_uuid$UUID$toString(toSave.fS),
 									_Utils_update(
 										toSave,
-										{eh: model.iQ}),
-									model.gU),
-								bH: false,
+										{eh: model.iP}),
+									model.gT),
+								bI: false,
 								bM: 2
 							}),
 						A5($author$project$Internals$CommonHelpers$newLog, config.eT, 'Actualité sauvegardée', $elm$core$Maybe$Nothing, false, true));
@@ -22467,7 +22548,7 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 				var newBuffer = _Utils_update(
 					baseNews,
 					{
-						iJ: $elm$core$Maybe$Just(
+						iI: $elm$core$Maybe$Just(
 							$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$parserOutput(newTextBlockPlugin))
 					});
 				return _Utils_Tuple2(
@@ -22486,8 +22567,8 @@ var $author$project$NewsEditor$NewsEditor$update = F3(
 					_Utils_update(
 						model,
 						{
-							iQ: t,
-							lm: $elm$core$Maybe$Just(
+							iP: t,
+							ll: $elm$core$Maybe$Just(
 								$elm$random$Random$initialSeed(
 									$elm$time$Time$posixToMillis(t)))
 						}),
@@ -22536,11 +22617,11 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$newCell = F2(
 		return $author$project$Document$Document$Cell(
 			{
 				x: _List_Nil,
-				aq: cellContent,
+				as: cellContent,
 				a: {
-					bp: $elm$core$Set$empty,
-					bv: $elm$core$Maybe$Nothing,
-					bD: $elm$core$Maybe$Just(
+					br: $elm$core$Set$empty,
+					bx: $elm$core$Maybe$Nothing,
+					bE: $elm$core$Maybe$Just(
 						'defaultHtmlId' + $elm$core$String$fromInt(nextUid)),
 					cW: nextUid
 				}
@@ -22552,13 +22633,13 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$emptyCell = funct
 var $author$project$PageEditor$Internals$DocumentZipper$addNewInside = F2(
 	function (nextUid, _v0) {
 		var current = _v0.a3;
-		var contexts = _v0.bs;
+		var contexts = _v0.bu;
 		if (!current.$) {
 			var cv = current.a;
 			var xs = current.b;
 			return $elm$core$Maybe$Just(
 				{
-					bs: contexts,
+					bu: contexts,
 					a3: A2(
 						$author$project$Document$Document$Container,
 						cv,
@@ -22575,13 +22656,13 @@ var $author$project$PageEditor$Internals$DocumentZipper$addNewInside = F2(
 	});
 var $author$project$PageEditor$Internals$DocumentZipper$zipLeft = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		var _v2 = $elm$core$List$reverse(left);
 		if (!_v2.b) {
@@ -22591,12 +22672,12 @@ var $author$project$PageEditor$Internals$DocumentZipper$zipLeft = function (_v0)
 			var ds = _v2.b;
 			return $elm$core$Maybe$Just(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: $elm$core$List$reverse(ds),
+							bc: $elm$core$List$reverse(ds),
 							eF: parent,
-							bk: A2($elm$core$List$cons, current, right)
+							bl: A2($elm$core$List$cons, current, right)
 						},
 						cs),
 					a3: d
@@ -22607,27 +22688,27 @@ var $author$project$PageEditor$Internals$DocumentZipper$zipLeft = function (_v0)
 var $author$project$PageEditor$Internals$DocumentZipper$addNewLeft = F2(
 	function (nextUid, _v0) {
 		var current = _v0.a3;
-		var contexts = _v0.bs;
+		var contexts = _v0.bu;
 		if (!contexts.b) {
 			return $elm$core$Maybe$Nothing;
 		} else {
 			var parent = contexts.a.eF;
-			var left = contexts.a.bb;
-			var right = contexts.a.bk;
+			var left = contexts.a.bc;
+			var right = contexts.a.bl;
 			var cs = contexts.b;
 			return $author$project$PageEditor$Internals$DocumentZipper$zipLeft(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: _Utils_ap(
+							bc: _Utils_ap(
 								left,
 								_List_fromArray(
 									[
 										$author$project$PageEditor$Internals$DocumentEditorHelpers$emptyCell(nextUid)
 									])),
 							eF: parent,
-							bk: right
+							bl: right
 						},
 						cs),
 					a3: current
@@ -22636,13 +22717,13 @@ var $author$project$PageEditor$Internals$DocumentZipper$addNewLeft = F2(
 	});
 var $author$project$PageEditor$Internals$DocumentZipper$zipRight = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		if (!right.b) {
 			return $elm$core$Maybe$Nothing;
@@ -22651,15 +22732,15 @@ var $author$project$PageEditor$Internals$DocumentZipper$zipRight = function (_v0
 			var ds = right.b;
 			return $elm$core$Maybe$Just(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: _Utils_ap(
+							bc: _Utils_ap(
 								left,
 								_List_fromArray(
 									[current])),
 							eF: parent,
-							bk: ds
+							bl: ds
 						},
 						cs),
 					a3: d
@@ -22670,22 +22751,22 @@ var $author$project$PageEditor$Internals$DocumentZipper$zipRight = function (_v0
 var $author$project$PageEditor$Internals$DocumentZipper$addNewRight = F2(
 	function (nextUid, _v0) {
 		var current = _v0.a3;
-		var contexts = _v0.bs;
+		var contexts = _v0.bu;
 		if (!contexts.b) {
 			return $elm$core$Maybe$Nothing;
 		} else {
 			var parent = contexts.a.eF;
-			var left = contexts.a.bb;
-			var right = contexts.a.bk;
+			var left = contexts.a.bc;
+			var right = contexts.a.bl;
 			var cs = contexts.b;
 			return $author$project$PageEditor$Internals$DocumentZipper$zipRight(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: left,
+							bc: left,
 							eF: parent,
-							bk: A2(
+							bl: A2(
 								$elm$core$List$cons,
 								$author$project$PageEditor$Internals$DocumentEditorHelpers$emptyCell(nextUid),
 								right)
@@ -22742,13 +22823,13 @@ var $billstclair$elm_port_funnel$PortFunnel$process = F4(
 			return $elm$core$Result$Err(err);
 		} else {
 			var message = _v1.a;
-			var substate = accessors.gr(state);
-			var _v2 = A2(moduleDesc.fB, message, substate);
+			var substate = accessors.gq(state);
+			var _v2 = A2(moduleDesc.fA, message, substate);
 			var substate2 = _v2.a;
 			var response = _v2.b;
 			return $elm$core$Result$Ok(
 				_Utils_Tuple2(
-					A2(accessors.hq, substate2, state),
+					A2(accessors.hp, substate2, state),
 					response));
 		}
 	});
@@ -22760,7 +22841,7 @@ var $Janiczek$cmd_extra$Cmd$Extra$withCmds = F2(
 	});
 var $billstclair$elm_port_funnel$PortFunnel$appProcess = F5(
 	function (cmdPort, genericMessage, funnel, state, model) {
-		var _v0 = A4($billstclair$elm_port_funnel$PortFunnel$process, funnel.f_, funnel.gR, genericMessage, state);
+		var _v0 = A4($billstclair$elm_port_funnel$PortFunnel$process, funnel.fZ, funnel.gQ, genericMessage, state);
 		if (_v0.$ === 1) {
 			var error = _v0.a;
 			return $elm$core$Result$Err(error);
@@ -22772,8 +22853,8 @@ var $billstclair$elm_port_funnel$PortFunnel$appProcess = F5(
 				return cmdPort(
 					$billstclair$elm_port_funnel$PortFunnel$encodeGenericMessage(gm));
 			};
-			var cmd = A2(funnel.gd, gmToCmdPort, response);
-			var _v2 = A3(funnel.gu, response, state2, model);
+			var cmd = A2(funnel.gc, gmToCmdPort, response);
+			var _v2 = A3(funnel.gt, response, state2, model);
 			var model2 = _v2.a;
 			var cmd2 = _v2.b;
 			return $elm$core$Result$Ok(
@@ -22823,7 +22904,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$cellContStrToCellConte
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$clear = $billstclair$elm_localstorage$PortFunnel$InternalTypes$Clear;
 var $author$project$Document$Document$CellValue = F3(
 	function (cellContent, id, attrs) {
-		return {x: attrs, aq: cellContent, a: id};
+		return {x: attrs, as: cellContent, a: id};
 	});
 var $author$project$Document$Document$BlockLinks = function (a) {
 	return {$: 4, a: a};
@@ -22833,11 +22914,11 @@ var $author$project$Document$Document$CustomElement = function (a) {
 };
 var $author$project$Document$Document$PictureLink = F2(
 	function (url, img) {
-		return {jK: img, d0: url};
+		return {jJ: img, d0: url};
 	});
 var $author$project$Document$Document$BlockLinkMeta = F4(
 	function (image, label, targetBlank, url) {
-		return {jG: image, N: label, hz: targetBlank, d0: url};
+		return {jF: image, N: label, hy: targetBlank, d0: url};
 	});
 var $author$project$Document$Json$DocumentDecoder$decodeBlockLink = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -22858,15 +22939,15 @@ var $author$project$Document$Json$DocumentDecoder$decodeBlockLink = A3(
 				$elm$json$Json$Decode$succeed($author$project$Document$Document$BlockLinkMeta)))));
 var $author$project$Document$Document$GalleryMeta = F4(
 	function (uuid, title, images, hq) {
-		return {jC: hq, jJ: images, fQ: title, fT: uuid};
+		return {jB: hq, jI: images, fP: title, fS: uuid};
 	});
 var $author$project$Document$Document$ImageMeta = F3(
 	function (src, caption, size) {
-		return {f8: caption, fK: size, fL: src};
+		return {f7: caption, fJ: size, fK: src};
 	});
 var $author$project$Document$Document$ImgSize = F2(
 	function (imgWidth, imgHeight) {
-		return {jL: imgHeight, jM: imgWidth};
+		return {jK: imgHeight, jL: imgWidth};
 	});
 var $author$project$Document$Json$DocumentDecoder$decodeImageSize = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -22936,7 +23017,7 @@ var $author$project$Document$Json$DocumentDecoder$decodeGalleryMeta = A3(
 				$elm$json$Json$Decode$succeed($author$project$Document$Document$GalleryMeta)))));
 var $author$project$Document$Document$TableMeta = F4(
 	function (style, nbrRows, nbrCols, data) {
-		return {iV: data, kq: nbrCols, kr: nbrRows, lS: style};
+		return {iU: data, kp: nbrCols, kq: nbrRows, lR: style};
 	});
 var $author$project$Document$Json$DocumentDecoder$decodeTableMeta = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -22961,7 +23042,7 @@ var $author$project$Document$Json$DocumentDecoder$decodeTableMeta = A3(
 				$elm$json$Json$Decode$succeed($author$project$Document$Document$TableMeta)))));
 var $author$project$Document$Document$VideoMeta = F9(
 	function (src, size, frameBorder, suggestions, controls, privacy, title, startAt, hosting) {
-		return {iM: controls, jk: frameBorder, jA: hosting, k$: privacy, fK: size, fL: src, lM: startAt, lV: suggestions, fQ: title};
+		return {iL: controls, jj: frameBorder, jz: hosting, k_: privacy, fJ: size, fK: src, lL: startAt, lU: suggestions, fP: title};
 	});
 var $author$project$Document$Document$Youtube = 0;
 var $author$project$Document$Json$DocumentDecoder$decodeVideoHost = A2(
@@ -23113,7 +23194,7 @@ var $author$project$Document$Json$DocumentDecoder$decodeCellContent = $elm$json$
 		]));
 var $author$project$Document$Document$Id = F4(
 	function (uid, docStyleId, htmlId, classes) {
-		return {bp: classes, bv: docStyleId, bD: htmlId, cW: uid};
+		return {br: classes, bx: docStyleId, bE: htmlId, cW: uid};
 	});
 var $author$project$Document$Json$DocumentDecoder$decodeId = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -23150,7 +23231,7 @@ var $author$project$Document$Json$DocumentDecoder$decodeCellValue = A3(
 			$elm$json$Json$Decode$succeed($author$project$Document$Document$CellValue))));
 var $author$project$Document$Document$ContainerValue = F3(
 	function (containerLabel, id, attrs) {
-		return {x: attrs, bq: containerLabel, a: id};
+		return {x: attrs, bs: containerLabel, a: id};
 	});
 var $author$project$Document$Document$DocRow = 1;
 var $author$project$Document$Document$ResponsiveBloc = 3;
@@ -23238,9 +23319,9 @@ var $billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage = function (val
 	return A2($billstclair$elm_port_funnel$PortFunnel$decodeValue, $billstclair$elm_port_funnel$PortFunnel$genericMessageDecoder, value);
 };
 var $author$project$Document$Json$DocumentSerializer$encodeBlockLink = function (_v0) {
-	var image = _v0.jG;
+	var image = _v0.jF;
 	var label = _v0.N;
-	var targetBlank = _v0.hz;
+	var targetBlank = _v0.hy;
 	var url = _v0.d0;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
@@ -23260,8 +23341,8 @@ var $author$project$Document$Json$DocumentSerializer$encodeBlockLink = function 
 			]));
 };
 var $author$project$Document$Json$DocumentSerializer$encodeImageSize = function (_v0) {
-	var imgWidth = _v0.jM;
-	var imgHeight = _v0.jL;
+	var imgWidth = _v0.jL;
+	var imgHeight = _v0.jK;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -23305,9 +23386,9 @@ var $author$project$Document$Json$DocumentSerializer$encodeImgSource = function 
 	}
 };
 var $author$project$Document$Json$DocumentSerializer$encodeImageMeta = function (_v0) {
-	var src = _v0.fL;
-	var caption = _v0.f8;
-	var size = _v0.fK;
+	var src = _v0.fK;
+	var caption = _v0.f7;
+	var size = _v0.fJ;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -23327,7 +23408,7 @@ var $author$project$Document$Json$DocumentSerializer$encodeImageMeta = function 
 };
 var $author$project$Document$Json$DocumentSerializer$encodePictureLink = function (_v0) {
 	var url = _v0.d0;
-	var img = _v0.jK;
+	var img = _v0.jJ;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -23340,10 +23421,10 @@ var $author$project$Document$Json$DocumentSerializer$encodePictureLink = functio
 			]));
 };
 var $author$project$Document$Json$DocumentSerializer$encodeTableMeta = function (_v0) {
-	var style = _v0.lS;
-	var nbrRows = _v0.kr;
-	var nbrCols = _v0.kq;
-	var data = _v0.iV;
+	var style = _v0.lR;
+	var nbrRows = _v0.kq;
+	var nbrCols = _v0.kp;
+	var data = _v0.iU;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -23371,8 +23452,8 @@ var $author$project$Document$Json$DocumentSerializer$encodeVideoHost = function 
 	return $elm$json$Json$Encode$string('Youtube');
 };
 var $author$project$Document$Json$DocumentSerializer$encodeVideoSize = function (_v0) {
-	var videoWidth = _v0.mp;
-	var videoHeight = _v0.mo;
+	var videoWidth = _v0.mo;
+	var videoHeight = _v0.mn;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -23385,15 +23466,15 @@ var $author$project$Document$Json$DocumentSerializer$encodeVideoSize = function 
 			]));
 };
 var $author$project$Document$Json$DocumentSerializer$encodeVideoMeta = function (_v0) {
-	var src = _v0.fL;
-	var size = _v0.fK;
-	var frameBorder = _v0.jk;
-	var suggestions = _v0.lV;
-	var controls = _v0.iM;
-	var privacy = _v0.k$;
-	var title = _v0.fQ;
-	var startAt = _v0.lM;
-	var hosting = _v0.jA;
+	var src = _v0.fK;
+	var size = _v0.fJ;
+	var frameBorder = _v0.jj;
+	var suggestions = _v0.lU;
+	var controls = _v0.iL;
+	var privacy = _v0.k_;
+	var title = _v0.fP;
+	var startAt = _v0.lL;
+	var hosting = _v0.jz;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -23516,16 +23597,16 @@ var $author$project$Document$Json$DocumentSerializer$encodeCellContent = functio
 									_Utils_Tuple2(
 									'uuid',
 									$elm$json$Json$Encode$string(
-										$TSFoster$elm_uuid$UUID$toString(gallery.fT))),
+										$TSFoster$elm_uuid$UUID$toString(gallery.fS))),
 									_Utils_Tuple2(
 									'title',
-									$elm$json$Json$Encode$string(gallery.fQ)),
+									$elm$json$Json$Encode$string(gallery.fP)),
 									_Utils_Tuple2(
 									'images',
-									A2($elm$json$Json$Encode$list, $author$project$Document$Json$DocumentSerializer$encodeImageMeta, gallery.jJ)),
+									A2($elm$json$Json$Encode$list, $author$project$Document$Json$DocumentSerializer$encodeImageMeta, gallery.jI)),
 									_Utils_Tuple2(
 									'hq',
-									$elm$json$Json$Encode$bool(gallery.jC))
+									$elm$json$Json$Encode$bool(gallery.jB))
 								])))
 					]));
 		case 7:
@@ -23575,9 +23656,9 @@ var $elm$json$Json$Encode$set = F2(
 	});
 var $author$project$Document$Json$DocumentSerializer$encodeId = function (_v0) {
 	var uid = _v0.cW;
-	var docStyleId = _v0.bv;
-	var htmlId = _v0.bD;
-	var classes = _v0.bp;
+	var docStyleId = _v0.bx;
+	var htmlId = _v0.bE;
+	var classes = _v0.br;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -23602,7 +23683,7 @@ var $author$project$Document$Json$DocumentSerializer$encodeId = function (_v0) {
 			]));
 };
 var $author$project$Document$Json$DocumentSerializer$encodeCellValue = function (_v0) {
-	var cellContent = _v0.aq;
+	var cellContent = _v0.as;
 	var id = _v0.a;
 	var attrs = _v0.x;
 	return $elm$json$Json$Encode$object(
@@ -23632,7 +23713,7 @@ var $author$project$Document$Json$DocumentSerializer$encodeContainerLabel = func
 	}
 };
 var $author$project$Document$Json$DocumentSerializer$encodeContainerValue = function (_v0) {
-	var containerLabel = _v0.bq;
+	var containerLabel = _v0.bs;
 	var id = _v0.a;
 	var attrs = _v0.x;
 	return $elm$json$Json$Encode$object(
@@ -23688,7 +23769,7 @@ var $elm$file$File$Select$file = F2(
 			_File_uploadOne(mimes));
 	});
 var $author$project$PageTreeEditor$PageTreeEditor$fileIoSelectedPageInfo = function (model) {
-	var _v0 = model.am;
+	var _v0 = model.an;
 	if (_v0.$ === 1) {
 		return $elm$core$Maybe$Nothing;
 	} else {
@@ -23748,7 +23829,7 @@ var $emilianobovetti$elm_yajson$Yajson$fromValue = function (val) {
 };
 var $billstclair$elm_port_funnel$PortFunnel$FunnelSpec = F4(
 	function (accessors, moduleDesc, commander, handler) {
-		return {f_: accessors, gd: commander, gu: handler, gR: moduleDesc};
+		return {fZ: accessors, gc: commander, gt: handler, gQ: moduleDesc};
 	});
 var $author$project$PageEditor$PageEditor$StorageFunnel = $elm$core$Basics$identity;
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$commander = F2(
@@ -23757,39 +23838,39 @@ var $billstclair$elm_localstorage$PortFunnel$LocalStorage$commander = F2(
 	});
 var $billstclair$elm_port_funnel$PortFunnel$StateAccessors = F2(
 	function (get, set) {
-		return {gr: get, hq: set};
+		return {gq: get, hp: set};
 	});
 var $author$project$PageEditor$PageEditor$storageAccessors = A2(
 	$billstclair$elm_port_funnel$PortFunnel$StateAccessors,
 	function ($) {
-		return $.bn;
+		return $.bp;
 	},
 	F2(
 		function (substate, state) {
 			return _Utils_update(
 				state,
-				{bn: substate});
+				{bp: substate});
 		}));
 var $author$project$PageEditor$PageEditor$storageHandler = F3(
 	function (response, state, mdl) {
 		var model = _Utils_update(
 			mdl,
-			{bB: state});
+			{bC: state});
 		switch (response.$) {
 			case 1:
-				var key = response.a.jY;
-				var value = response.a.hH;
+				var key = response.a.jX;
+				var value = response.a.hG;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{ep: key, bc: value}),
+						{ep: key, bd: value}),
 					$elm$core$Platform$Cmd$none);
 			case 2:
-				var keys = response.a.jZ;
+				var keys = response.a.jY;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{j8: keys}),
+						{j7: keys}),
 					$elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -23805,19 +23886,19 @@ var $author$project$PageEditor$PageEditor$funnels = $elm$core$Dict$fromList(
 var $billstclair$elm_localstorage$PortFunnel$LocalStorage$get = $billstclair$elm_localstorage$PortFunnel$InternalTypes$Get($elm$core$Maybe$Nothing);
 var $author$project$Document$Document$getAttrs = function (doc) {
 	if (doc.$ === 1) {
-		var cellContent = doc.a.aq;
+		var cellContent = doc.a.as;
 		var id = doc.a.a;
 		var attrs = doc.a.x;
 		return attrs;
 	} else {
-		var containerLabel = doc.a.bq;
+		var containerLabel = doc.a.bs;
 		var id = doc.a.a;
 		var attrs = doc.a.x;
 		return attrs;
 	}
 };
 var $author$project$PageTreeEditor$PageTreeEditor$getFileIoPath = function (model) {
-	var _v0 = model.am;
+	var _v0 = model.an;
 	if (!_v0.$) {
 		var _v1 = _v0.a;
 		var path = _v1.a.J;
@@ -23829,20 +23910,20 @@ var $author$project$PageTreeEditor$PageTreeEditor$getFileIoPath = function (mode
 var $author$project$Document$Document$getHtmlId = function (doc) {
 	if (doc.$ === 1) {
 		var cv = doc.a;
-		return cv.a.bD;
+		return cv.a.bE;
 	} else {
 		var cv = doc.a;
-		return cv.a.bD;
+		return cv.a.bE;
 	}
 };
 var $author$project$Document$Document$getId = function (doc) {
 	if (doc.$ === 1) {
-		var cellContent = doc.a.aq;
+		var cellContent = doc.a.as;
 		var id = doc.a.a;
 		var attrs = doc.a.x;
 		return id;
 	} else {
-		var containerLabel = doc.a.bq;
+		var containerLabel = doc.a.bs;
 		var id = doc.a.a;
 		var attrs = doc.a.x;
 		return id;
@@ -23864,11 +23945,11 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$newContainer = F2
 			$author$project$Document$Document$Container,
 			{
 				x: _List_Nil,
-				bq: containerLabel,
+				bs: containerLabel,
 				a: {
-					bp: $elm$core$Set$empty,
-					bv: $elm$core$Maybe$Nothing,
-					bD: $elm$core$Maybe$Just(
+					br: $elm$core$Set$empty,
+					bx: $elm$core$Maybe$Nothing,
+					bE: $elm$core$Maybe$Just(
 						'defaultHtmlId' + $elm$core$String$fromInt(nextUid)),
 					cW: nextUid
 				}
@@ -23899,7 +23980,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$open = F3(
 					A2(
 						$elm$core$Basics$composeL,
 						function ($) {
-							return $.f8;
+							return $.f7;
 						},
 						$elm$core$Tuple$first),
 					mbInput),
@@ -24012,7 +24093,7 @@ var $author$project$PageEditor$PageEditor$openNewPlugin = F2(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{bC: galleryPlugin}),
+								{bD: galleryPlugin}),
 							newCmds);
 					default:
 						break _v0$8;
@@ -24034,9 +24115,9 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$TextBlockPlugin =
 var $author$project$PageEditor$Internals$DocumentEditorHelpers$VideoPlugin = {$: 1};
 var $author$project$PageEditor$PageEditor$openPlugin = F2(
 	function (config, model) {
-		var _v0 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3);
+		var _v0 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2);
 		if (_v0.$ === 1) {
-			var cellContent = _v0.a.aq;
+			var cellContent = _v0.a.as;
 			var id = _v0.a.a;
 			var attrs = _v0.a.x;
 			switch (cellContent.$) {
@@ -24168,7 +24249,7 @@ var $author$project$PageEditor$PageEditor$openPlugin = F2(
 							model,
 							{
 								b: $elm$core$Maybe$Just($author$project$PageEditor$Internals$DocumentEditorHelpers$GalleryPlugin),
-								bC: newGallery
+								bD: newGallery
 							}),
 						newCmds);
 				default:
@@ -24385,17 +24466,17 @@ var $author$project$PageTreeEditor$PageTreeEditor$resetFileIoSelected = function
 var $author$project$PageEditor$Internals$DocumentZipper$safeDeleteCurrent = F2(
 	function (nextUid, _v0) {
 		var current = _v0.a3;
-		var contexts = _v0.bs;
+		var contexts = _v0.bu;
 		if (!contexts.b) {
 			return $elm$core$Maybe$Nothing;
 		} else {
 			var parent = contexts.a.eF;
-			var left = contexts.a.bb;
-			var right = contexts.a.bk;
+			var left = contexts.a.bc;
+			var right = contexts.a.bl;
 			var cs = contexts.b;
 			return (_Utils_eq(left, _List_Nil) && _Utils_eq(right, _List_Nil)) ? $elm$core$Maybe$Just(
 				{
-					bs: cs,
+					bu: cs,
 					a3: A2(
 						$author$project$Document$Document$Container,
 						parent,
@@ -24405,7 +24486,7 @@ var $author$project$PageEditor$Internals$DocumentZipper$safeDeleteCurrent = F2(
 							]))
 				}) : $elm$core$Maybe$Just(
 				{
-					bs: cs,
+					bu: cs,
 					a3: A2(
 						$author$project$Document$Document$Container,
 						parent,
@@ -24429,7 +24510,7 @@ var $author$project$PageEditor$PageEditor$scrollTo = function (mbId) {
 					return A2(
 						$elm$core$Task$andThen,
 						function (el) {
-							return A3($elm$browser$Browser$Dom$setViewportOf, 'documentContainer', 0, (el.gh.mw - mainContInfo.gh.mw) - 50);
+							return A3($elm$browser$Browser$Dom$setViewportOf, 'documentContainer', 0, (el.gg.mv - mainContInfo.gg.mv) - 50);
 						},
 						$elm$browser$Browser$Dom$getElement(destId));
 				},
@@ -24458,13 +24539,13 @@ var $elm$file$File$Download$string = F3(
 	});
 var $author$project$PageEditor$Internals$DocumentZipper$swapLeft = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		var _v2 = $elm$core$List$reverse(left);
 		if (!_v2.b) {
@@ -24474,12 +24555,12 @@ var $author$project$PageEditor$Internals$DocumentZipper$swapLeft = function (_v0
 			var ds = _v2.b;
 			return $elm$core$Maybe$Just(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: $elm$core$List$reverse(ds),
+							bc: $elm$core$List$reverse(ds),
 							eF: parent,
-							bk: A2($elm$core$List$cons, d, right)
+							bl: A2($elm$core$List$cons, d, right)
 						},
 						cs),
 					a3: current
@@ -24489,13 +24570,13 @@ var $author$project$PageEditor$Internals$DocumentZipper$swapLeft = function (_v0
 };
 var $author$project$PageEditor$Internals$DocumentZipper$swapRight = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		if (!right.b) {
 			return $elm$core$Maybe$Nothing;
@@ -24504,15 +24585,15 @@ var $author$project$PageEditor$Internals$DocumentZipper$swapRight = function (_v
 			var ds = right.b;
 			return $elm$core$Maybe$Just(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: _Utils_ap(
+							bc: _Utils_ap(
 								left,
 								_List_fromArray(
 									[d])),
 							eF: parent,
-							bk: ds
+							bl: ds
 						},
 						cs),
 					a3: current
@@ -24552,13 +24633,13 @@ var $AdrianRibao$elm_derberos_date$Derberos$Date$Core$posixToCivil = function (t
 	var year = yearOfEra + (era * 400);
 	return {
 		e5: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
-		gB: hour,
+		gz: hour,
 		ew: millis,
-		gQ: minute,
-		fu: month,
-		ll: second,
-		fY: year + ((month <= 2) ? 1 : 0),
-		fZ: $elm$time$Time$utc
+		gP: minute,
+		ft: month,
+		lk: second,
+		fX: year + ((month <= 2) ? 1 : 0),
+		fY: $elm$time$Time$utc
 	};
 };
 var $author$project$Internals$CommonHelpers$timeToStr = F2(
@@ -24573,15 +24654,15 @@ var $author$project$Internals$CommonHelpers$timeToStr = F2(
 			$elm$core$String$padLeft,
 			2,
 			'0',
-			$elm$core$String$fromInt(dateRec.fu)) + ('-' + ($elm$core$String$fromInt(dateRec.fY) + (' ' + (A3(
+			$elm$core$String$fromInt(dateRec.ft)) + ('-' + ($elm$core$String$fromInt(dateRec.fX) + (' ' + (A3(
 			$elm$core$String$padLeft,
 			2,
 			'0',
-			$elm$core$String$fromInt(dateRec.gB)) + ('H' + A3(
+			$elm$core$String$fromInt(dateRec.gz)) + ('H' + A3(
 			$elm$core$String$padLeft,
 			2,
 			'0',
-			$elm$core$String$fromInt(dateRec.gQ)))))))));
+			$elm$core$String$fromInt(dateRec.gP)))))))));
 	});
 var $elm$file$File$toString = _File_toString;
 var $author$project$PageEditor$PageEditor$undoCacheDepth = 4;
@@ -24632,7 +24713,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$update = F2(
 											return $elm$core$Maybe$Just(
 												_Utils_update(
 													val,
-													{hz: true, d0: url}));
+													{hy: true, d0: url}));
 										} else {
 											return $elm$core$Maybe$Nothing;
 										}
@@ -24662,7 +24743,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$update = F2(
 											return $elm$core$Maybe$Just(
 												_Utils_update(
 													val,
-													{hz: false, d0: url}));
+													{hy: false, d0: url}));
 										} else {
 											return $elm$core$Maybe$Nothing;
 										}
@@ -24680,11 +24761,11 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$update = F2(
 					_Utils_update(
 						model,
 						{
-							bA: $elm$core$Maybe$Just(s)
+							bB: $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Maybe$Nothing);
 			case 7:
-				var _v5 = _Utils_Tuple2(model.l, model.bA);
+				var _v5 = _Utils_Tuple2(model.l, model.bB);
 				if ((!_v5.a.$) && (!_v5.b.$)) {
 					var id = _v5.a.a;
 					var url = _v5.b.a;
@@ -24701,7 +24782,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$update = F2(
 											return $elm$core$Maybe$Just(
 												_Utils_update(
 													val,
-													{hz: true, d0: url}));
+													{hy: true, d0: url}));
 										} else {
 											return $elm$core$Maybe$Nothing;
 										}
@@ -24731,13 +24812,13 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$update = F2(
 											return $elm$core$Maybe$Just(
 												_Utils_update(
 													val,
-													{jG: url}));
+													{jF: url}));
 										} else {
 											return $elm$core$Maybe$Nothing;
 										}
 									},
 									model.j),
-								bA: $elm$core$Maybe$Nothing,
+								bB: $elm$core$Maybe$Nothing,
 								b3: $elm$core$Maybe$Nothing,
 								a$: 0
 							}),
@@ -24808,7 +24889,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$update = F2(
 						}),
 					0,
 					$elm$core$Dict$keys(model.j));
-				var newBlock = {jG: '', N: '', hz: false, d0: ''};
+				var newBlock = {jF: '', N: '', hy: false, d0: ''};
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -24883,14 +24964,14 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$update = F2(
 		}
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$fichesData = function (model) {
-	return model.jh;
+	return model.jg;
 };
 var $elm$core$List$sortBy = _List_sortBy;
 var $author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches = F2(
 	function (_v0, model) {
-		var genDirEditor = _v0.gq;
+		var genDirEditor = _v0.gp;
 		var nameFilterFun = function () {
-			var _v8 = model.kn;
+			var _v8 = model.km;
 			if (!_v8.$) {
 				if (_v8.a === '') {
 					return $elm$core$Basics$always(true);
@@ -24902,7 +24983,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches = F2(
 						return A2(
 							$elm$core$String$contains,
 							$elm$core$String$toLower(name),
-							$elm$core$String$toLower(f.kC));
+							$elm$core$String$toLower(f.kB));
 					};
 				}
 			} else {
@@ -24910,7 +24991,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches = F2(
 			}
 		}();
 		var labelFilterFun = function () {
-			var _v6 = model.j$;
+			var _v6 = model.j_;
 			if (!_v6.$) {
 				var label = _v6.a;
 				return function (_v7) {
@@ -24919,7 +25000,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches = F2(
 					return A2(
 						$elm$core$List$any,
 						function (l) {
-							return _Utils_eq(l.kB, label);
+							return _Utils_eq(l.kA, label);
 						},
 						f.N);
 				};
@@ -24928,7 +25009,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches = F2(
 			}
 		}();
 		var catFilterFun = function () {
-			var _v4 = model.ip;
+			var _v4 = model.io;
 			if (!_v4.$) {
 				var cat = _v4.a;
 				return function (_v5) {
@@ -24941,13 +25022,13 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches = F2(
 			}
 		}();
 		var activFilterFun = function () {
-			var _v2 = model.hQ;
+			var _v2 = model.hP;
 			if (!_v2.$) {
 				var activ = _v2.a;
 				return function (_v3) {
 					var k = _v3.a;
 					var f = _v3.b;
-					return A2($elm$core$List$member, activ, f.kp);
+					return A2($elm$core$List$member, activ, f.ko);
 				};
 			} else {
 				return $elm$core$Basics$always(true);
@@ -24958,7 +25039,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches = F2(
 			function (_v1) {
 				var k = _v1.a;
 				var f = _v1.b;
-				return $elm$core$String$toLower(f.kC);
+				return $elm$core$String$toLower(f.kB);
 			},
 			A2(
 				$elm$core$List$filter,
@@ -24990,8 +25071,8 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							a6: $elm$core$Maybe$Nothing,
-							kn: $elm$core$Maybe$Just(nom)
+							a7: $elm$core$Maybe$Nothing,
+							km: $elm$core$Maybe$Just(nom)
 						}),
 					$elm$core$Maybe$Nothing);
 			case 1:
@@ -25000,10 +25081,10 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							ip: _Utils_eq(
-								model.ip,
+							io: _Utils_eq(
+								model.io,
 								$elm$core$Maybe$Just(cat)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(cat),
-							a6: $elm$core$Maybe$Nothing
+							a7: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Maybe$Nothing);
 			case 2:
@@ -25012,10 +25093,10 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							hQ: _Utils_eq(
-								model.hQ,
+							hP: _Utils_eq(
+								model.hP,
 								$elm$core$Maybe$Just(activ)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(activ),
-							a6: $elm$core$Maybe$Nothing
+							a7: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Maybe$Nothing);
 			case 3:
@@ -25024,9 +25105,9 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							a6: $elm$core$Maybe$Nothing,
-							j$: _Utils_eq(
-								model.j$,
+							a7: $elm$core$Maybe$Nothing,
+							j_: _Utils_eq(
+								model.j_,
 								$elm$core$Maybe$Just(label)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(label)
 						}),
 					$elm$core$Maybe$Nothing);
@@ -25042,8 +25123,8 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								a6: $elm$core$Maybe$Just(sel),
-								ah: A2($elm$core$Set$union, model.ah, fichesToAdd)
+								a7: $elm$core$Maybe$Just(sel),
+								ai: A2($elm$core$Set$union, model.ai, fichesToAdd)
 							}),
 						$elm$core$Maybe$Nothing);
 				} else {
@@ -25051,8 +25132,8 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								a6: $elm$core$Maybe$Just(sel),
-								ah: $elm$core$Set$empty
+								a7: $elm$core$Maybe$Just(sel),
+								ai: $elm$core$Set$empty
 							}),
 						$elm$core$Maybe$Nothing);
 				}
@@ -25062,8 +25143,8 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							a6: $elm$core$Maybe$Nothing,
-							ah: A2($elm$core$Set$member, s, model.ah) ? A2($elm$core$Set$remove, s, model.ah) : A2($elm$core$Set$insert, s, model.ah)
+							a7: $elm$core$Maybe$Nothing,
+							ai: A2($elm$core$Set$member, s, model.ai) ? A2($elm$core$Set$remove, s, model.ai) : A2($elm$core$Set$insert, s, model.ai)
 						}),
 					$elm$core$Maybe$Nothing);
 			case 6:
@@ -25071,11 +25152,11 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$update = F3(
 					model,
 					$elm$core$Maybe$Just($author$project$PageEditor$Internals$DocumentEditorHelpers$EditorPluginQuit));
 			case 7:
-				return _Utils_eq(model.ah, $elm$core$Set$empty) ? _Utils_Tuple2(model, $elm$core$Maybe$Nothing) : _Utils_Tuple2(
+				return _Utils_eq(model.ai, $elm$core$Set$empty) ? _Utils_Tuple2(model, $elm$core$Maybe$Nothing) : _Utils_Tuple2(
 					model,
 					$elm$core$Maybe$Just(
 						$author$project$PageEditor$Internals$DocumentEditorHelpers$EditorPluginData(
-							$elm$core$Set$toList(model.ah))));
+							$elm$core$Set$toList(model.ai))));
 			default:
 				return _Utils_Tuple2(model, $elm$core$Maybe$Nothing);
 		}
@@ -25095,7 +25176,7 @@ var $elm$core$List$all = F2(
 	});
 var $author$project$PageEditor$EditorPlugins$GalleryPlugin$ProcessedImage = F6(
 	function (filename, content, thumb, size, width, height) {
-		return {iJ: content, D: filename, jy: height, fK: size, mg: thumb, mu: width};
+		return {iI: content, D: filename, jx: height, fJ: size, mf: thumb, mt: width};
 	});
 var $elm$json$Json$Decode$map6 = _Json_map6;
 var $author$project$PageEditor$EditorPlugins$GalleryPlugin$decodeProcessedData = A7(
@@ -25148,7 +25229,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$deleteImage = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: $elm$http$Http$expectWhatever(
+				du: $elm$http$Http$expectWhatever(
 					$author$project$PageEditor$EditorPlugins$GalleryPlugin$PicDeleted(path)),
 				d0: 'deleteFile.php'
 			});
@@ -25203,9 +25284,9 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$indexName = function 
 			$elm$core$String$fromInt(n)));
 };
 var $author$project$Document$Document$dummyPic = {
-	f8: $elm$core$Maybe$Nothing,
-	fK: A2($author$project$Document$Document$ImgSize, 0, 0),
-	fL: A2($author$project$Document$Document$Inline, '', '')
+	f7: $elm$core$Maybe$Nothing,
+	fJ: A2($author$project$Document$Document$ImgSize, 0, 0),
+	fK: A2($author$project$Document$Document$Inline, '', '')
 };
 var $author$project$PageEditor$EditorPlugins$GalleryPlugin$makeGalleryMeta = F3(
 	function (title, hq, pics) {
@@ -25216,8 +25297,8 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$makeGalleryMeta = F3(
 			return _Utils_Tuple2(
 				newSeed,
 				{
-					jC: hq,
-					jJ: A2(
+					jB: hq,
+					jI: A2(
 						$elm$core$List$map,
 						function (_v1) {
 							var n = _v1.a;
@@ -25225,12 +25306,12 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$makeGalleryMeta = F3(
 							return _Utils_update(
 								$author$project$Document$Document$dummyPic,
 								{
-									fL: $author$project$Document$Document$UrlSrc(p)
+									fK: $author$project$Document$Document$UrlSrc(p)
 								});
 						},
 						pics),
-					fQ: title,
-					fT: uuid
+					fP: title,
+					fS: uuid
 				});
 		};
 	});
@@ -25333,14 +25414,14 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$uploadImage = F6(
 		return $elm$http$Http$request(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$PageEditor$EditorPlugins$GalleryPlugin$Uploaded(filename),
 					$author$project$Internals$CommonHelpers$decodeUploadStatus),
-				gv: _List_Nil,
-				gP: 'POST',
-				hA: $elm$core$Maybe$Nothing,
-				hD: $elm$core$Maybe$Just(filename),
+				gu: _List_Nil,
+				gO: 'POST',
+				hz: $elm$core$Maybe$Nothing,
+				hC: $elm$core$Maybe$Just(filename),
 				d0: 'photothequeUpload.php'
 			});
 	});
@@ -25382,7 +25463,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 								A2(
 									$elm$core$List$map,
 									function ($) {
-										return $.fL;
+										return $.fK;
 									},
 									A2(
 										$elm$core$Maybe$withDefault,
@@ -25390,7 +25471,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.jJ;
+												return $.jI;
 											},
 											model.q)))))));
 				var files = A2($elm$core$List$cons, first, remaining);
@@ -25419,7 +25500,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 						model,
 						{
 							b0: fileSizes,
-							df: A2(
+							de: A2(
 								$elm$core$List$indexedMap,
 								F2(
 									function (n, f) {
@@ -25445,7 +25526,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							a1: model.a9 ? A3($elm$core$Dict$insert, filename, data, model.a1) : model.a1,
+							a1: model.ba ? A3($elm$core$Dict$insert, filename, data, model.a1) : model.a1,
 							cg: 1
 						}),
 					A3($author$project$PageEditor$EditorPlugins$GalleryPlugin$processCmd, model, filename, data),
@@ -25455,10 +25536,10 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 				var _v3 = A2($elm$json$Json$Decode$decodeValue, $author$project$PageEditor$EditorPlugins$GalleryPlugin$decodeProcessedData, json);
 				if (!_v3.$) {
 					var pi = _v3.a;
-					var content = pi.iJ;
+					var content = pi.iI;
 					var filename = pi.D;
 					var _v4 = function () {
-						var _v5 = model.df;
+						var _v5 = model.de;
 						if (!_v5.b) {
 							return _Utils_Tuple2($elm$core$Platform$Cmd$none, _List_Nil);
 						} else {
@@ -25484,7 +25565,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 							model,
 							{
 								a_: A3($elm$core$Dict$insert, filename, pi, model.a_),
-								df: processingQueue
+								de: processingQueue
 							}),
 						cmd,
 						$elm$core$Maybe$Nothing);
@@ -25495,7 +25576,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 				var hq = msg.a;
 				var title = msg.b;
 				var pics = msg.c;
-				var _v7 = model.lm;
+				var _v7 = model.ll;
 				if (_v7.$ === 1) {
 					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
 				} else {
@@ -25507,10 +25588,10 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 						_Utils_update(
 							model,
 							{
-								a4: $elm$core$Maybe$Just(title),
+								a5: $elm$core$Maybe$Just(title),
 								q: $elm$core$Maybe$Just(galleryMeta),
 								cg: 3,
-								lm: $elm$core$Maybe$Just(newSeed)
+								ll: $elm$core$Maybe$Just(newSeed)
 							}),
 						$elm$core$Platform$Cmd$none,
 						$elm$core$Maybe$Nothing);
@@ -25521,7 +25602,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							lm: $elm$core$Maybe$Just(
+							ll: $elm$core$Maybe$Just(
 								$elm$random$Random$initialSeed(
 									$elm$time$Time$posixToMillis(t)))
 						}),
@@ -25531,8 +25612,8 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 				var filename = msg.a;
 				var progress = msg.b;
 				if (!progress.$) {
-					var sent = progress.a.ly;
-					var size = progress.a.fK;
+					var sent = progress.a.lx;
+					var size = progress.a.fJ;
 					return _Utils_Tuple3(
 						_Utils_update(
 							model,
@@ -25555,8 +25636,8 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 						$elm$core$Platform$Cmd$none,
 						$elm$core$Maybe$Nothing);
 				} else {
-					var received = progress.a.k2;
-					var size = progress.a.fK;
+					var received = progress.a.k1;
+					var size = progress.a.fJ;
 					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $elm$core$Maybe$Nothing);
 				}
 			case 14:
@@ -25606,7 +25687,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 							canEdit ? A2(
 								$elm$core$Task$perform,
 								function (_v14) {
-									return config.he;
+									return config.hd;
 								},
 								$elm$core$Task$succeed(0)) : $elm$core$Platform$Cmd$none,
 							$elm$core$Maybe$Nothing);
@@ -25673,7 +25754,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{a1: $elm$core$Dict$empty, b0: $elm$core$Dict$empty, q: $elm$core$Maybe$Nothing, cg: 0, a_: $elm$core$Dict$empty, df: _List_Nil, i: $elm$core$Dict$empty}),
+						{a1: $elm$core$Dict$empty, b0: $elm$core$Dict$empty, q: $elm$core$Maybe$Nothing, cg: 0, a_: $elm$core$Dict$empty, de: _List_Nil, i: $elm$core$Dict$empty}),
 					A2(
 						$elm$core$Platform$Cmd$map,
 						model.bY,
@@ -25697,15 +25778,15 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 									s,
 									_Utils_Tuple3(
 										0,
-										model.a9 ? (p.fK + A2(
+										model.ba ? (p.fJ + A2(
 											$elm$core$Maybe$withDefault,
 											0,
-											A2($elm$core$Dict$get, p.D, model.b0))) : p.fK,
+											A2($elm$core$Dict$get, p.D, model.b0))) : p.fJ,
 										$elm$core$Maybe$Nothing),
 									model.i)
 							}),
 						function () {
-							var _v24 = _Utils_Tuple2(config.bd, model.a4);
+							var _v24 = _Utils_Tuple2(config.be, model.a5);
 							if ((!_v24.a.$) && (!_v24.b.$)) {
 								var info = _v24.a.a;
 								var title = _v24.b.a;
@@ -25716,10 +25797,10 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 										$author$project$PageEditor$EditorPlugins$GalleryPlugin$uploadImage,
 										title,
 										p.D,
-										p.iJ,
-										p.mg,
-										model.a9 ? A2($elm$core$Dict$get, p.D, model.a1) : $elm$core$Maybe$Nothing,
-										info.fG));
+										p.iI,
+										p.mf,
+										model.ba ? A2($elm$core$Dict$get, p.D, model.a1) : $elm$core$Maybe$Nothing,
+										info.fF));
 							} else {
 								return $elm$core$Platform$Cmd$none;
 							}
@@ -25740,16 +25821,16 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 									function (_v25, p) {
 										return _Utils_Tuple3(
 											0,
-											model.a9 ? (p.fK + A2(
+											model.ba ? (p.fJ + A2(
 												$elm$core$Maybe$withDefault,
 												0,
-												A2($elm$core$Dict$get, p.D, model.b0))) : p.fK,
+												A2($elm$core$Dict$get, p.D, model.b0))) : p.fJ,
 											$elm$core$Maybe$Nothing);
 									}),
 								model.a_)
 						}),
 					function () {
-						var _v26 = _Utils_Tuple2(config.bd, model.a4);
+						var _v26 = _Utils_Tuple2(config.be, model.a5);
 						if ((!_v26.a.$) && (!_v26.b.$)) {
 							var info = _v26.a.a;
 							var title = _v26.b.a;
@@ -25768,10 +25849,10 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 															$author$project$PageEditor$EditorPlugins$GalleryPlugin$uploadImage,
 															title,
 															v.D,
-															v.iJ,
-															v.mg,
-															model.a9 ? A2($elm$core$Dict$get, v.D, model.a1) : $elm$core$Maybe$Nothing,
-															info.fG),
+															v.iI,
+															v.mf,
+															model.ba ? A2($elm$core$Dict$get, v.D, model.a1) : $elm$core$Maybe$Nothing,
+															info.fF),
 														acc);
 												}),
 											_List_Nil,
@@ -25782,7 +25863,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 					}(),
 					$elm$core$Maybe$Nothing);
 			case 18:
-				var _v27 = _Utils_Tuple2(model.lm, model.a4);
+				var _v27 = _Utils_Tuple2(model.ll, model.a5);
 				if ((!_v27.a.$) && (!_v27.b.$)) {
 					var seed = _v27.a.a;
 					var title = _v27.b.a;
@@ -25792,17 +25873,17 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 							return _Utils_Tuple2(fn, '/images/phototheque/' + (title + ('/' + fn)));
 						},
 						$elm$core$Dict$keys(model.a_));
-					var _v28 = A4($author$project$PageEditor$EditorPlugins$GalleryPlugin$makeGalleryMeta, title, model.a9, pics, seed);
+					var _v28 = A4($author$project$PageEditor$EditorPlugins$GalleryPlugin$makeGalleryMeta, title, model.ba, pics, seed);
 					var newSeed = _v28.a;
 					var newGalleryMeta = _v28.b;
 					var galleryMeta = function () {
 						var _v29 = model.q;
 						if (!_v29.$) {
-							var images = _v29.a.jJ;
+							var images = _v29.a.jI;
 							return _Utils_update(
 								newGalleryMeta,
 								{
-									jJ: _Utils_ap(images, newGalleryMeta.jJ)
+									jI: _Utils_ap(images, newGalleryMeta.jI)
 								});
 						} else {
 							return newGalleryMeta;
@@ -25817,8 +25898,8 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 								q: $elm$core$Maybe$Just(galleryMeta),
 								cg: 3,
 								a_: $elm$core$Dict$empty,
-								df: _List_Nil,
-								lm: $elm$core$Maybe$Just(newSeed),
+								de: _List_Nil,
+								ll: $elm$core$Maybe$Just(newSeed),
 								i: $elm$core$Dict$empty
 							}),
 						$elm$core$Platform$Cmd$none,
@@ -25842,7 +25923,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{a1: $elm$core$Dict$empty, q: $elm$core$Maybe$Nothing, a_: $elm$core$Dict$empty, df: _List_Nil, i: $elm$core$Dict$empty}),
+						{a1: $elm$core$Dict$empty, q: $elm$core$Maybe$Nothing, a_: $elm$core$Dict$empty, de: _List_Nil, i: $elm$core$Dict$empty}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Just($author$project$PageEditor$Internals$DocumentEditorHelpers$EditorPluginQuit));
 			case 4:
@@ -25851,7 +25932,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 					_Utils_update(
 						model,
 						{
-							a4: $elm$core$Maybe$Just(s)
+							a5: $elm$core$Maybe$Just(s)
 						}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
@@ -25866,21 +25947,21 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 					var newOutput = _Utils_update(
 						output,
 						{
-							jJ: A3(
+							jI: A3(
 								$elm_community$list_extra$List$Extra$updateIf,
 								function (i) {
 									return _Utils_eq(
-										i.fL,
+										i.fK,
 										$author$project$Document$Document$UrlSrc(src));
 								},
 								function (i) {
 									return _Utils_update(
 										i,
 										{
-											f8: $elm$core$Maybe$Just(caption)
+											f7: $elm$core$Maybe$Just(caption)
 										});
 								},
-								output.jJ)
+								output.jI)
 						});
 					return _Utils_Tuple3(
 						_Utils_update(
@@ -25901,7 +25982,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 					var newOutput = _Utils_update(
 						output,
 						{
-							jJ: A3($elm_community$list_extra$List$Extra$swapAt, id, id - 1, output.jJ)
+							jI: A3($elm_community$list_extra$List$Extra$swapAt, id, id - 1, output.jI)
 						});
 					return _Utils_Tuple3(
 						_Utils_update(
@@ -25922,7 +26003,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 					var newOutput = _Utils_update(
 						output,
 						{
-							jJ: A3($elm_community$list_extra$List$Extra$swapAt, id, id + 1, output.jJ)
+							jI: A3($elm_community$list_extra$List$Extra$swapAt, id, id + 1, output.jI)
 						});
 					return _Utils_Tuple3(
 						_Utils_update(
@@ -25938,7 +26019,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 				var _v34 = A2(
 					$elm$core$Maybe$map,
 					function ($) {
-						return $.fL;
+						return $.fK;
 					},
 					A2(
 						$elm$core$Maybe$andThen,
@@ -25946,7 +26027,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 						A2(
 							$elm$core$Maybe$map,
 							function ($) {
-								return $.jJ;
+								return $.jI;
 							},
 							model.q)));
 				if ((!_v34.$) && (!_v34.a.$)) {
@@ -25965,7 +26046,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.jC;
+												return $.jB;
 											},
 											model.q),
 										$elm$core$Maybe$Just(true)) ? _List_fromArray(
@@ -25978,7 +26059,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 									A2(
 										$elm$core$Maybe$map,
 										function ($) {
-											return $.jJ;
+											return $.jI;
 										},
 										model.q))
 							}),
@@ -25990,23 +26071,23 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 									[
 										A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										$author$project$PageEditor$EditorPlugins$GalleryPlugin$deleteImage(src)),
 										A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										$author$project$PageEditor$EditorPlugins$GalleryPlugin$deleteImage(
 											$author$project$Internals$CommonHelpers$thumbSrc(src))),
 										_Utils_eq(
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.jC;
+												return $.jB;
 											},
 											model.q),
 										$elm$core$Maybe$Just(true)) ? A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										$author$project$PageEditor$EditorPlugins$GalleryPlugin$deleteImage(
 											$author$project$Internals$CommonHelpers$hdSrc(src))) : $elm$core$Platform$Cmd$none
 									]))),
@@ -26030,13 +26111,13 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 									var _v36 = _Utils_Tuple3(model.q, model.cH, allDone);
 									if (((!_v36.a.$) && (!_v36.b.$)) && _v36.c) {
 										var o = _v36.a.a;
-										var images = o.jJ;
+										var images = o.jI;
 										var pic = _v36.b.a;
 										return $elm$core$Maybe$Just(
 											_Utils_update(
 												o,
 												{
-													jJ: A2($elm_community$list_extra$List$Extra$remove, pic, images)
+													jI: A2($elm_community$list_extra$List$Extra$remove, pic, images)
 												}));
 									} else {
 										return model.q;
@@ -26046,11 +26127,11 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 						allDone ? $elm$core$Platform$Cmd$batch(
 							_List_fromArray(
 								[
-									A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.bd, config.eT, src + ' supprimée', $elm$core$Maybe$Nothing, false, false),
+									A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.be, config.eT, src + ' supprimée', $elm$core$Maybe$Nothing, false, false),
 									A2(
 									$elm$core$Task$perform,
 									function (_v37) {
-										return config.he;
+										return config.hd;
 									},
 									$elm$core$Task$succeed(0))
 								])) : $elm$core$Platform$Cmd$none,
@@ -26061,7 +26142,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 						model,
 						A6(
 							$author$project$Auth$AuthPlugin$newLogIfLogged,
-							config.bd,
+							config.be,
 							config.eT,
 							'Impossible de supprimer  ' + src,
 							$elm$core$Maybe$Just(
@@ -26075,7 +26156,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$update = F3(
 				return _Utils_Tuple3(
 					_Utils_update(
 						model,
-						{a9: b}),
+						{ba: b}),
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			default:
@@ -26158,13 +26239,13 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$update = F3(
 					$elm$core$Platform$Cmd$none,
 					$elm$core$Maybe$Nothing);
 			case 2:
-				var src = msg.a.fL;
-				var width = msg.a.mu;
-				var height = msg.a.jy;
+				var src = msg.a.fK;
+				var width = msg.a.mt;
+				var height = msg.a.jx;
 				var newImageMeta = {
-					f8: model.b6,
-					fK: {jL: height, jM: width},
-					fL: $author$project$Document$Document$UrlSrc(src)
+					f7: model.b6,
+					fJ: {jK: height, jL: width},
+					fK: $author$project$Document$Document$UrlSrc(src)
 				};
 				return _Utils_Tuple3(
 					_Utils_update(
@@ -26197,7 +26278,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$update = F3(
 								_Utils_Tuple2(
 									_Utils_update(
 										imageMeta,
-										{f8: model.b6}),
+										{f7: model.b6}),
 									A2($author$project$PageEditor$Internals$DocumentEditorHelpers$setAligment, model.bQ, model.en)))));
 				}
 			case 5:
@@ -26216,31 +26297,31 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{c6: true}),
+						{c5: true}),
 					$elm$core$Maybe$Nothing);
 			case 2:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{c6: false}),
+						{c5: false}),
 					$elm$core$Maybe$Nothing);
 			case 3:
-				var src = msg.a.fL;
-				var width = msg.a.mu;
-				var height = msg.a.jy;
-				var _v1 = A2($elm$random$Random$step, $TSFoster$elm_uuid$UUID$generator, model.lm);
+				var src = msg.a.fK;
+				var width = msg.a.mt;
+				var height = msg.a.jx;
+				var _v1 = A2($elm$random$Random$step, $TSFoster$elm_uuid$UUID$generator, model.ll);
 				var uuid = _v1.a;
 				var newSeed = _v1.b;
 				var newPicLink = {
 					ce: {
-						jK: {
-							f8: $elm$core$Maybe$Nothing,
-							fK: {jL: height, jM: width},
-							fL: $author$project$Document$Document$UrlSrc(src)
+						jJ: {
+							f7: $elm$core$Maybe$Nothing,
+							fJ: {jK: height, jL: width},
+							fK: $author$project$Document$Document$UrlSrc(src)
 						},
 						d0: ''
 					},
-					fT: uuid
+					fS: uuid
 				};
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -26250,8 +26331,8 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$update = F2(
 								model.e,
 								_List_fromArray(
 									[newPicLink])),
-							c6: false,
-							lm: newSeed
+							c5: false,
+							ll: newSeed
 						}),
 					$elm$core$Maybe$Nothing);
 			case 4:
@@ -26272,7 +26353,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$update = F2(
 						$elm$core$List$map,
 						function (pl) {
 							if (_Utils_eq(
-								$TSFoster$elm_uuid$UUID$toString(pl.fT),
+								$TSFoster$elm_uuid$UUID$toString(pl.fS),
 								uuid)) {
 								var picLink = pl.ce;
 								return _Utils_update(
@@ -26303,7 +26384,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$update = F2(
 							$elm_community$list_extra$List$Extra$findIndex,
 							function (p) {
 								return _Utils_eq(
-									$TSFoster$elm_uuid$UUID$toString(p.fT),
+									$TSFoster$elm_uuid$UUID$toString(p.fS),
 									s);
 							},
 							model.e);
@@ -26329,7 +26410,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$update = F2(
 							$elm_community$list_extra$List$Extra$findIndex,
 							function (p) {
 								return _Utils_eq(
-									$TSFoster$elm_uuid$UUID$toString(p.fT),
+									$TSFoster$elm_uuid$UUID$toString(p.fS),
 									s);
 							},
 							model.e);
@@ -26361,7 +26442,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$update = F2(
 									$elm$core$List$filter,
 									function (p) {
 										return !_Utils_eq(
-											$TSFoster$elm_uuid$UUID$toString(p.fT),
+											$TSFoster$elm_uuid$UUID$toString(p.fS),
 											s);
 									},
 									model.e)
@@ -26394,7 +26475,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$update = F2(
 										$elm$core$List$filter,
 										function (p) {
 											return _Utils_eq(
-												$TSFoster$elm_uuid$UUID$toString(p.fT),
+												$TSFoster$elm_uuid$UUID$toString(p.fS),
 												s);
 										},
 										model.e)))
@@ -27026,9 +27107,9 @@ var $mdgriffith$elm_ui$Element$Border$widthXY = F2(
 	});
 var $mdgriffith$elm_ui$Element$Border$widthEach = function (_v0) {
 	var bottom = _v0.a2;
-	var top = _v0.bo;
-	var left = _v0.bb;
-	var right = _v0.bk;
+	var top = _v0.bq;
+	var left = _v0.bc;
+	var right = _v0.bl;
 	return (_Utils_eq(top, bottom) && _Utils_eq(left, right)) ? (_Utils_eq(top, right) ? $mdgriffith$elm_ui$Element$Border$width(top) : A2($mdgriffith$elm_ui$Element$Border$widthXY, left, top)) : A2(
 		$mdgriffith$elm_ui$Internal$Model$StyleClass,
 		$mdgriffith$elm_ui$Internal$Flag$borderWidth,
@@ -27046,48 +27127,48 @@ var $author$project$Document$DocumentViews$StyleSheets$tableStyles = $elm$core$D
 			_Utils_Tuple2(
 			'default',
 			{
-				ir: function (ri) {
+				iq: function (ri) {
 					return _List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 1, bb: 0, bk: 1, bo: 0}),
+							{a2: 1, bc: 0, bl: 1, bq: 0}),
 							$mdgriffith$elm_ui$Element$Background$color(
 							(!A2($elm$core$Basics$modBy, 2, ri)) ? A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8) : A3($mdgriffith$elm_ui$Element$rgb, 1, 1, 1)),
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 						]);
 				},
-				iH: _List_Nil,
-				lW: _List_fromArray(
+				iG: _List_Nil,
+				lV: _List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$Border$widthEach(
-						{a2: 0, bb: 1, bk: 0, bo: 1})
+						{a2: 0, bc: 1, bl: 0, bq: 1})
 					])
 			}),
 			_Utils_Tuple2(
 			'souligné',
 			{
-				ir: function (ri) {
+				iq: function (ri) {
 					return _List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 1, bb: 0, bk: 0, bo: 0}),
+							{a2: 1, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 						]);
 				},
-				iH: _List_fromArray(
+				iG: _List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Element$paddingXY, 1, 0)
 					]),
-				lW: _List_Nil
+				lV: _List_Nil
 			}),
 			_Utils_Tuple2(
 			'gris-vert',
 			{
-				ir: function (ri) {
+				iq: function (ri) {
 					return _List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 1, bb: 0, bk: 0, bo: 0}),
+							{a2: 1, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$color(
 							A4($mdgriffith$elm_ui$Element$rgba, 0.5, 0.5, 0.5, 1)),
 							$mdgriffith$elm_ui$Element$Background$color(
@@ -27095,20 +27176,20 @@ var $author$project$Document$DocumentViews$StyleSheets$tableStyles = $elm$core$D
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 						]);
 				},
-				iH: _List_fromArray(
+				iG: _List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Element$paddingXY, 1, 1)
 					]),
-				lW: _List_Nil
+				lV: _List_Nil
 			}),
 			_Utils_Tuple2(
 			'bleu-blanc',
 			{
-				ir: function (ri) {
+				iq: function (ri) {
 					return _List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 1, bb: 0, bk: 0, bo: 0}),
+							{a2: 1, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$color(
 							A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5)),
 							$mdgriffith$elm_ui$Element$Background$color(
@@ -27116,11 +27197,11 @@ var $author$project$Document$DocumentViews$StyleSheets$tableStyles = $elm$core$D
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 						]);
 				},
-				iH: _List_fromArray(
+				iG: _List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Element$paddingXY, 1, 1)
 					]),
-				lW: _List_fromArray(
+				lV: _List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$Border$width(1)
 					])
@@ -27147,10 +27228,10 @@ var $elm$core$Array$toIndexedList = function (array) {
 };
 var $author$project$PageEditor$EditorPlugins$TablePlugin$toTableMeta = function (docTable) {
 	return {
-		iV: $elm$core$Array$toList(docTable.iV),
+		iU: $elm$core$Array$toList(docTable.iU),
+		kp: docTable.kp,
 		kq: docTable.kq,
-		kr: docTable.kr,
-		lS: docTable.ak
+		lR: docTable.al
 	};
 };
 var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
@@ -27176,10 +27257,10 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 					_Utils_update(
 						model,
 						{
-							ak: function () {
+							al: function () {
 								var _v1 = A2($elm$core$Dict$get, s, $author$project$Document$DocumentViews$StyleSheets$tableStyles);
 								if (_v1.$ === 1) {
-									return model.ak;
+									return model.al;
 								} else {
 									return s;
 								}
@@ -27201,14 +27282,14 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 					$elm$core$Maybe$Nothing);
 			case 5:
 				var nbrRows = function (n) {
-					return (_Utils_cmp(n, $author$project$PageEditor$EditorPlugins$TablePlugin$maxRows) < 1) ? n : model.kr;
+					return (_Utils_cmp(n, $author$project$PageEditor$EditorPlugins$TablePlugin$maxRows) < 1) ? n : model.kq;
 				}(
 					A2(
 						$elm$core$Maybe$withDefault,
 						0,
 						$elm$core$String$toInt(model.cL)));
 				var nbrCols = function (n) {
-					return (_Utils_cmp(n, $author$project$PageEditor$EditorPlugins$TablePlugin$maxCols) < 1) ? n : model.kq;
+					return (_Utils_cmp(n, $author$project$PageEditor$EditorPlugins$TablePlugin$maxCols) < 1) ? n : model.kp;
 				}(
 					A2(
 						$elm$core$Maybe$withDefault,
@@ -27218,7 +27299,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{iV: data, kq: nbrCols, cK: '', kr: nbrRows, cL: '', cj: true}),
+						{iU: data, kp: nbrCols, cK: '', kq: nbrRows, cL: '', cj: true}),
 					$elm$core$Maybe$Nothing);
 			case 6:
 				var _v2 = msg.a;
@@ -27229,17 +27310,17 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 					_Utils_update(
 						model,
 						{
-							iV: function () {
-								var _v3 = A2($elm$core$Array$get, i, model.iV);
+							iU: function () {
+								var _v3 = A2($elm$core$Array$get, i, model.iU);
 								if (_v3.$ === 1) {
-									return model.iV;
+									return model.iU;
 								} else {
 									var a = _v3.a;
 									return A3(
 										$elm$core$Array$set,
 										i,
 										A3($elm$core$Array$set, j, s, a),
-										model.iV);
+										model.iU);
 								}
 							}()
 						}),
@@ -27269,11 +27350,11 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 									var i = _v6.a;
 									return !_Utils_eq(i, ri);
 								},
-								$elm$core$Array$toIndexedList(model.iV))));
+								$elm$core$Array$toIndexedList(model.iU))));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{M: $elm$core$Maybe$Nothing, iV: newData, kr: model.kr + 1}),
+							{M: $elm$core$Maybe$Nothing, iU: newData, kq: model.kq + 1}),
 						$elm$core$Maybe$Nothing);
 				}
 			case 9:
@@ -27299,11 +27380,11 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 										},
 										$elm$core$Array$toIndexedList(row))));
 						},
-						model.iV);
+						model.iU);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{M: $elm$core$Maybe$Nothing, iV: newData, kq: model.kq - 1}),
+							{M: $elm$core$Maybe$Nothing, iU: newData, kp: model.kp - 1}),
 						$elm$core$Maybe$Nothing);
 				}
 			case 10:
@@ -27319,15 +27400,15 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 									[
 										A2(
 										$elm$core$Array$initialize,
-										model.kq,
+										model.kp,
 										$elm$core$Basics$always(''))
 									]));
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
 									{
-										iV: A2($elm$core$Array$append, newRow, model.iV),
-										kr: model.kr + 1
+										iU: A2($elm$core$Array$append, newRow, model.iU),
+										kq: model.kq + 1
 									}),
 								$elm$core$Maybe$Nothing);
 						case 1:
@@ -27335,14 +27416,14 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 							var _v14 = _v10.b;
 							var newRow = A2(
 								$elm$core$Array$initialize,
-								model.kq,
+								model.kp,
 								$elm$core$Basics$always(''));
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
 									{
-										iV: A2($elm$core$Array$push, newRow, model.iV),
-										kr: model.kr + 1
+										iU: A2($elm$core$Array$push, newRow, model.iU),
+										kq: model.kq + 1
 									}),
 								$elm$core$Maybe$Nothing);
 						case 2:
@@ -27358,11 +27439,11 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 												[''])),
 										row);
 								},
-								model.iV);
+								model.iU);
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{iV: newData, kq: model.kq + 1}),
+									{iU: newData, kp: model.kp + 1}),
 								$elm$core$Maybe$Nothing);
 						default:
 							var _v17 = _v10.a;
@@ -27372,11 +27453,11 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 								function (row) {
 									return A2($elm$core$Array$push, '', row);
 								},
-								model.iV);
+								model.iU);
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{iV: newData, kq: model.kq + 1}),
+									{iU: newData, kp: model.kp + 1}),
 								$elm$core$Maybe$Nothing);
 					}
 				} else {
@@ -27386,16 +27467,16 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 							var _v20 = _v10.b.a;
 							var i = _v20.a;
 							var j = _v20.b;
-							var topHalf = A3($elm$core$Array$slice, 0, i, model.iV);
+							var topHalf = A3($elm$core$Array$slice, 0, i, model.iU);
 							var newRow = $elm$core$Array$fromList(
 								_List_fromArray(
 									[
 										A2(
 										$elm$core$Array$initialize,
-										model.kq,
+										model.kp,
 										$elm$core$Basics$always(''))
 									]));
-							var bottomHalf = A3($elm$core$Array$slice, i, model.kr, model.iV);
+							var bottomHalf = A3($elm$core$Array$slice, i, model.kq, model.iU);
 							var newData = A2(
 								$elm$core$Array$append,
 								topHalf,
@@ -27403,23 +27484,23 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{M: $elm$core$Maybe$Nothing, iV: newData, kr: model.kr + 1}),
+									{M: $elm$core$Maybe$Nothing, iU: newData, kq: model.kq + 1}),
 								$elm$core$Maybe$Nothing);
 						case 1:
 							var _v21 = _v10.a;
 							var _v22 = _v10.b.a;
 							var i = _v22.a;
 							var j = _v22.b;
-							var topHalf = A3($elm$core$Array$slice, 0, i + 1, model.iV);
+							var topHalf = A3($elm$core$Array$slice, 0, i + 1, model.iU);
 							var newRow = $elm$core$Array$fromList(
 								_List_fromArray(
 									[
 										A2(
 										$elm$core$Array$initialize,
-										model.kq,
+										model.kp,
 										$elm$core$Basics$always(''))
 									]));
-							var bottomHalf = A3($elm$core$Array$slice, i + 1, model.kr, model.iV);
+							var bottomHalf = A3($elm$core$Array$slice, i + 1, model.kq, model.iU);
 							var newData = A2(
 								$elm$core$Array$append,
 								topHalf,
@@ -27427,7 +27508,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{M: $elm$core$Maybe$Nothing, iV: newData, kr: model.kr + 1}),
+									{M: $elm$core$Maybe$Nothing, iU: newData, kq: model.kq + 1}),
 								$elm$core$Maybe$Nothing);
 						case 2:
 							var _v23 = _v10.a;
@@ -27435,18 +27516,18 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 							var i = _v24.a;
 							var j = _v24.b;
 							var addNewCell = function (row) {
-								var rightHalf = A3($elm$core$Array$slice, j, model.kq, row);
+								var rightHalf = A3($elm$core$Array$slice, j, model.kp, row);
 								var leftHalf = A3($elm$core$Array$slice, 0, j, row);
 								return A2(
 									$elm$core$Array$append,
 									A2($elm$core$Array$push, '', leftHalf),
 									rightHalf);
 							};
-							var newData = A2($elm$core$Array$map, addNewCell, model.iV);
+							var newData = A2($elm$core$Array$map, addNewCell, model.iU);
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{M: $elm$core$Maybe$Nothing, iV: newData, kq: model.kq + 1}),
+									{M: $elm$core$Maybe$Nothing, iU: newData, kp: model.kp + 1}),
 								$elm$core$Maybe$Nothing);
 						default:
 							var _v25 = _v10.a;
@@ -27454,18 +27535,18 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$update = F2(
 							var i = _v26.a;
 							var j = _v26.b;
 							var addNewCell = function (row) {
-								var rightHalf = A3($elm$core$Array$slice, j + 1, model.kq, row);
+								var rightHalf = A3($elm$core$Array$slice, j + 1, model.kp, row);
 								var leftHalf = A3($elm$core$Array$slice, 0, j + 1, row);
 								return A2(
 									$elm$core$Array$append,
 									A2($elm$core$Array$push, '', leftHalf),
 									rightHalf);
 							};
-							var newData = A2($elm$core$Array$map, addNewCell, model.iV);
+							var newData = A2($elm$core$Array$map, addNewCell, model.iU);
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{M: $elm$core$Maybe$Nothing, iV: newData, kq: model.kq + 1}),
+									{M: $elm$core$Maybe$Nothing, iU: newData, kp: model.kp + 1}),
 								$elm$core$Maybe$Nothing);
 					}
 				}
@@ -27551,7 +27632,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$parseHtml = function (s
 		var newSrc = mbNewSrc.a;
 		return $elm$core$Maybe$Just(
 			{
-				iM: A2(
+				iL: A2(
 					$elm$core$Maybe$withDefault,
 					true,
 					A2(
@@ -27560,7 +27641,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$parseHtml = function (s
 							return !(v === '0');
 						},
 						A2($elm$core$Dict$get, 'controls', propDict))),
-				jk: A2(
+				jj: A2(
 					$elm$core$Maybe$withDefault,
 					false,
 					A2(
@@ -27569,7 +27650,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$parseHtml = function (s
 							return v === '1';
 						},
 						A2($elm$core$Dict$get, 'frameborder', propDict))),
-				jy: A2(
+				jx: A2(
 					$elm$core$Maybe$withDefault,
 					315,
 					A2(
@@ -27577,18 +27658,18 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$parseHtml = function (s
 						$elm$core$String$toInt,
 						A2($elm$core$Dict$get, 'height', propDict))),
 				cM: newSrc,
-				k$: A2(
+				k_: A2(
 					$elm$core$Maybe$withDefault,
 					false,
 					A2(
 						$elm$core$Maybe$map,
 						$elm$core$String$contains('nocookie'),
 						A2($elm$core$Dict$get, 'src', propDict))),
-				lM: A2(
+				lL: A2(
 					$elm$core$Maybe$andThen,
 					$elm$core$String$toInt,
 					A2($elm$core$Dict$get, 'start', propDict)),
-				lV: A2(
+				lU: A2(
 					$elm$core$Maybe$withDefault,
 					false,
 					A2(
@@ -27597,7 +27678,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$parseHtml = function (s
 							return v === '1';
 						},
 						A2($elm$core$Dict$get, 'rel', propDict))),
-				fQ: A2(
+				fP: A2(
 					$elm$core$Maybe$withDefault,
 					true,
 					A2(
@@ -27606,7 +27687,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$parseHtml = function (s
 							return !(v === '0');
 						},
 						A2($elm$core$Dict$get, 'showinfo', propDict))),
-				mu: A2(
+				mt: A2(
 					$elm$core$Maybe$withDefault,
 					560,
 					A2(
@@ -27689,15 +27770,15 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 						_Utils_update(
 							model,
 							{
-								iM: res.iM,
-								jk: res.jk,
+								iL: res.iL,
+								jj: res.jj,
 								cM: res.cM,
-								k$: res.k$,
-								fK: A2($author$project$Document$Document$VideoSize, res.mu, res.jy),
-								dT: res.mu / res.jy,
-								lM: res.lM,
-								lV: res.lV,
-								fQ: res.fQ
+								k_: res.k_,
+								fJ: A2($author$project$Document$Document$VideoSize, res.mt, res.jx),
+								dT: res.mt / res.jx,
+								lL: res.lL,
+								lU: res.lU,
+								fP: res.fP
 							}),
 						$elm$core$Maybe$Nothing);
 				}
@@ -27713,35 +27794,35 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{jk: bool}),
+						{jj: bool}),
 					$elm$core$Maybe$Nothing);
 			case 4:
 				var bool = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{iM: bool}),
+						{iL: bool}),
 					$elm$core$Maybe$Nothing);
 			case 5:
 				var bool = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{k$: bool}),
+						{k_: bool}),
 					$elm$core$Maybe$Nothing);
 			case 6:
 				var bool = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{fQ: bool}),
+						{fP: bool}),
 					$elm$core$Maybe$Nothing);
 			case 7:
 				var bool = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{lV: bool}),
+						{lU: bool}),
 					$elm$core$Maybe$Nothing);
 			case 8:
 				var s = msg.a;
@@ -27754,7 +27835,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 						_Utils_update(
 							model,
 							{
-								lM: $elm$core$Maybe$Just(t)
+								lL: $elm$core$Maybe$Just(t)
 							}),
 						$elm$core$Maybe$Nothing);
 				}
@@ -27767,7 +27848,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 						_Utils_update(
 							model,
 							{
-								fK: A2(
+								fJ: A2(
 									$author$project$Document$Document$VideoSize,
 									w,
 									$elm$core$Basics$round(w / model.dT))
@@ -27785,7 +27866,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 						_Utils_update(
 							model,
 							{
-								fK: A2(
+								fJ: A2(
 									$author$project$Document$Document$VideoSize,
 									$elm$core$Basics$round(h * model.dT),
 									h)
@@ -27802,7 +27883,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 						return _Utils_Tuple2(model, $elm$core$Maybe$Nothing);
 					} else {
 						var vm = _v6.a;
-						var newVideoMeta = {iM: model.iM, jk: model.jk, jA: 0, k$: model.k$, fK: model.fK, fL: vm.fL, lM: model.lM, lV: model.lV, fQ: model.fQ};
+						var newVideoMeta = {iL: model.iL, jj: model.jj, jz: 0, k_: model.k_, fJ: model.fJ, fK: vm.fK, lL: model.lL, lU: model.lU, fP: model.fP};
 						return _Utils_Tuple2(
 							model,
 							$elm$core$Maybe$Just(
@@ -27813,7 +27894,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 					}
 				} else {
 					var url = _v5.a;
-					var newVideoMeta = {iM: model.iM, jk: model.jk, jA: 0, k$: model.k$, fK: model.fK, fL: url, lM: model.lM, lV: model.lV, fQ: model.fQ};
+					var newVideoMeta = {iL: model.iL, jj: model.jj, jz: 0, k_: model.k_, fJ: model.fJ, fK: url, lL: model.lL, lU: model.lU, fP: model.fP};
 					return _Utils_Tuple2(
 						model,
 						$elm$core$Maybe$Just(
@@ -27833,8 +27914,8 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$update = F2(
 var $author$project$PageEditor$Internals$DocumentZipper$updateCurrent = F2(
 	function (_new, _v0) {
 		var current = _v0.a3;
-		var contexts = _v0.bs;
-		return {bs: contexts, a3: _new};
+		var contexts = _v0.bu;
+		return {bu: contexts, a3: _new};
 	});
 var $author$project$PageEditor$Internals$DocumentZipper$break = F2(
 	function (p, xs) {
@@ -27866,7 +27947,7 @@ var $author$project$PageEditor$Internals$DocumentZipper$break = F2(
 var $author$project$PageEditor$Internals$DocumentZipper$zipDown = F2(
 	function (p, _v0) {
 		var current = _v0.a3;
-		var contexts = _v0.bs;
+		var contexts = _v0.bu;
 		if (current.$ === 1) {
 			return $elm$core$Maybe$Nothing;
 		} else {
@@ -27885,9 +27966,9 @@ var $author$project$PageEditor$Internals$DocumentZipper$zipDown = F2(
 					var ds_ = r.b;
 					return $elm$core$Maybe$Just(
 						{
-							bs: A2(
+							bu: A2(
 								$elm$core$List$cons,
-								{bb: l, eF: nv, bk: ds_},
+								{bc: l, eF: nv, bl: ds_},
 								contexts),
 							a3: d
 						});
@@ -27897,12 +27978,12 @@ var $author$project$PageEditor$Internals$DocumentZipper$zipDown = F2(
 	});
 var $author$project$Document$Document$getUid = function (doc) {
 	if (doc.$ === 1) {
-		var cellContent = doc.a.aq;
+		var cellContent = doc.a.as;
 		var id = doc.a.a;
 		var attrs = doc.a.x;
 		return id.cW;
 	} else {
-		var containerLabel = doc.a.bq;
+		var containerLabel = doc.a.bs;
 		var id = doc.a.a;
 		var attrs = doc.a.x;
 		return id.cW;
@@ -27912,7 +27993,7 @@ var $author$project$PageEditor$Internals$DocumentZipper$zipToUid = F2(
 	function (uid, docZipper) {
 		var helper = function (zipper) {
 			var current = zipper.a3;
-			var contexts = zipper.bs;
+			var contexts = zipper.bu;
 			if (_Utils_eq(
 				$author$project$Document$Document$getUid(current),
 				uid)) {
@@ -27956,16 +28037,16 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							k: _Utils_update(
 								ws,
 								{
-									jy: $elm$core$Basics$round(vp.hK.jy),
-									eH: (vp.hK.mu < 1300) ? 2 : 1,
-									mu: $elm$core$Basics$round(vp.hK.mu)
+									jx: $elm$core$Basics$round(vp.hJ.jx),
+									eH: (vp.hJ.mt < 1300) ? 2 : 1,
+									mt: $elm$core$Basics$round(vp.hJ.mt)
 								})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 2:
 				var res = msg.a;
 				if (!res.$) {
-					var viewport = res.a.hK;
+					var viewport = res.a.hJ;
 					var currentConfig = model.k;
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -27974,7 +28055,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 								k: _Utils_update(
 									currentConfig,
 									{
-										kc: $elm$core$Basics$round(viewport.jy)
+										kb: $elm$core$Basics$round(viewport.jx)
 									})
 							}),
 						$elm$core$Platform$Cmd$none);
@@ -27988,7 +28069,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				var cfg = model.k;
 				var newConfig = _Utils_update(
 					cfg,
-					{jy: height, mu: width});
+					{jx: height, mt: width});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -28028,7 +28109,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				var _v2 = A2(
 					$author$project$PageEditor$Internals$DocumentZipper$zipDown,
 					$author$project$Document$Document$hasUid(uid),
-					model.i3);
+					model.i2);
 				if (_v2.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -28036,12 +28117,12 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: newDocument}),
+							{i2: newDocument}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 7:
 				var uid = msg.a;
-				var _v3 = A2($author$project$PageEditor$Internals$DocumentZipper$zipToUid, uid, model.i3);
+				var _v3 = A2($author$project$PageEditor$Internals$DocumentZipper$zipToUid, uid, model.i2);
 				if (_v3.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -28049,7 +28130,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: newDocument}),
+							{i2: newDocument}),
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
@@ -28066,11 +28147,11 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					_Utils_update(
 						model,
 						{
-							i3: $author$project$PageEditor$Internals$DocumentZipper$rewind(model.i3)
+							i2: $author$project$PageEditor$Internals$DocumentZipper$rewind(model.i2)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 9:
-				var _v4 = $author$project$PageEditor$Internals$DocumentZipper$swapLeft(model.i3);
+				var _v4 = $author$project$PageEditor$Internals$DocumentZipper$swapLeft(model.i2);
 				if (_v4.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -28078,7 +28159,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: newDoc}),
+							{i2: newDoc}),
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
@@ -28091,7 +28172,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 									]))));
 				}
 			case 10:
-				var _v5 = $author$project$PageEditor$Internals$DocumentZipper$swapRight(model.i3);
+				var _v5 = $author$project$PageEditor$Internals$DocumentZipper$swapRight(model.i2);
 				if (_v5.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -28099,7 +28180,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: newDoc}),
+							{i2: newDoc}),
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
@@ -28123,7 +28204,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					$elm$core$Platform$Cmd$none);
 			case 13:
 				var containerLabel = msg.a;
-				var _v6 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3);
+				var _v6 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2);
 				if (!_v6.$) {
 					var cv = _v6.a;
 					var children = _v6.b;
@@ -28131,14 +28212,14 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 						$author$project$Document$Document$Container,
 						_Utils_update(
 							cv,
-							{bq: containerLabel}),
+							{bs: containerLabel}),
 						children);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								b: $elm$core$Maybe$Nothing,
-								i3: A2($author$project$PageEditor$Internals$DocumentZipper$updateCurrent, newDoc, model.i3)
+								i2: A2($author$project$PageEditor$Internals$DocumentZipper$updateCurrent, newDoc, model.i2)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -28148,7 +28229,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				var _v7 = msg.a;
 				var mbToRemove = _v7.a;
 				var mbToAdd = _v7.b;
-				var _v8 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3);
+				var _v8 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2);
 				if (!_v8.$) {
 					var cv = _v8.a;
 					var children = _v8.b;
@@ -28182,14 +28263,14 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							model,
 							{
 								b: $elm$core$Maybe$Nothing,
-								i3: A2($author$project$PageEditor$Internals$DocumentZipper$updateCurrent, newDoc, model.i3)
+								i2: A2($author$project$PageEditor$Internals$DocumentZipper$updateCurrent, newDoc, model.i2)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 15:
-				var _v9 = A2($author$project$PageEditor$Internals$DocumentZipper$addNewInside, model.gV, model.i3);
+				var _v9 = A2($author$project$PageEditor$Internals$DocumentZipper$addNewInside, model.gU, model.i2);
 				if (_v9.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -28197,11 +28278,11 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: newDoc, gV: model.gV + 1}),
+							{i2: newDoc, gU: model.gU + 1}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 16:
-				var _v10 = A2($author$project$PageEditor$Internals$DocumentZipper$addNewLeft, model.gV, model.i3);
+				var _v10 = A2($author$project$PageEditor$Internals$DocumentZipper$addNewLeft, model.gU, model.i2);
 				if (_v10.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -28209,7 +28290,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: newDoc, gV: model.gV + 1}),
+							{i2: newDoc, gU: model.gU + 1}),
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
@@ -28222,7 +28303,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 									]))));
 				}
 			case 17:
-				var _v11 = A2($author$project$PageEditor$Internals$DocumentZipper$addNewRight, model.gV, model.i3);
+				var _v11 = A2($author$project$PageEditor$Internals$DocumentZipper$addNewRight, model.gU, model.i2);
 				if (_v11.$ === 1) {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -28230,7 +28311,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: newDoc, gV: model.gV + 1}),
+							{i2: newDoc, gU: model.gU + 1}),
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
@@ -28249,11 +28330,11 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 						model,
 						{
 							b: $elm$core$Maybe$Nothing,
-							i3: A2(
+							i2: A2(
 								$author$project$PageEditor$Internals$DocumentZipper$updateCurrent,
-								A2($author$project$PageEditor$Internals$DocumentEditorHelpers$newContainer, model.gV, containerLabel),
-								model.i3),
-							gV: model.gV + 2
+								A2($author$project$PageEditor$Internals$DocumentEditorHelpers$newContainer, model.gU, containerLabel),
+								model.i2),
+							gU: model.gU + 2
 						}),
 					$elm$core$Platform$Cmd$batch(_List_Nil));
 			case 19:
@@ -28271,7 +28352,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				return _Utils_Tuple2(
 					_Utils_update(
 						newModel,
-						{gV: model.gV + 1}),
+						{gU: model.gU + 1}),
 					$elm$core$Platform$Cmd$batch(
 						_List_fromArray(
 							[cmd])));
@@ -28285,27 +28366,27 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							model,
 							{
 								b: $elm$core$Maybe$Nothing,
-								i3: A2(
+								i2: A2(
 									$author$project$PageEditor$Internals$DocumentZipper$updateCurrent,
-									A2($author$project$PageEditor$Internals$DocumentEditorHelpers$newCell, model.gV, cellContent_),
-									model.i3),
-								gV: model.gV + 1
+									A2($author$project$PageEditor$Internals$DocumentEditorHelpers$newCell, model.gU, cellContent_),
+									model.i2),
+								gU: model.gU + 1
 							}),
 						$elm$core$Platform$Cmd$batch(_List_Nil));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			case 21:
-				var newDoc = A2($author$project$PageEditor$Internals$DocumentZipper$safeDeleteCurrent, model.gV, model.i3);
+				var newDoc = A2($author$project$PageEditor$Internals$DocumentZipper$safeDeleteCurrent, model.gU, model.i2);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							i3: A2($elm$core$Maybe$withDefault, model.i3, newDoc),
+							i2: A2($elm$core$Maybe$withDefault, model.i2, newDoc),
 							bN: A2(
 								$elm$core$List$take,
 								$author$project$PageEditor$PageEditor$undoCacheDepth,
-								A2($elm$core$List$cons, model.i3, model.bN))
+								A2($elm$core$List$cons, model.i2, model.bN))
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 22:
@@ -28314,28 +28395,28 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 						model,
 						{
 							cu: $elm$core$Maybe$Just(
-								$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+								$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 23:
-				var newDoc = A2($author$project$PageEditor$Internals$DocumentZipper$safeDeleteCurrent, model.gV, model.i3);
-				var currentDoc = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3);
+				var newDoc = A2($author$project$PageEditor$Internals$DocumentZipper$safeDeleteCurrent, model.gU, model.i2);
+				var currentDoc = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
 							cu: $elm$core$Maybe$Just(currentDoc),
-							i3: A2($elm$core$Maybe$withDefault, model.i3, newDoc),
-							gV: model.gV + 1,
+							i2: A2($elm$core$Maybe$withDefault, model.i2, newDoc),
+							gU: model.gU + 1,
 							bN: A2(
 								$elm$core$List$take,
 								$author$project$PageEditor$PageEditor$undoCacheDepth,
-								A2($elm$core$List$cons, model.i3, model.bN))
+								A2($elm$core$List$cons, model.i2, model.bN))
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 24:
 				var _v14 = _Utils_Tuple2(
-					$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3),
+					$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2),
 					model.cu);
 				if ((!_v14.a.$) && (!_v14.b.$)) {
 					var _v15 = _v14.a;
@@ -28349,15 +28430,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							xs,
 							_List_fromArray(
 								[
-									A2($author$project$PageEditor$Internals$DocumentEditorHelpers$fixUids, model.gV, doc)
+									A2($author$project$PageEditor$Internals$DocumentEditorHelpers$fixUids, model.gU, doc)
 								])));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								cu: $elm$core$Maybe$Nothing,
-								i3: A2($author$project$PageEditor$Internals$DocumentZipper$updateCurrent, newDoc, model.i3),
-								gV: $author$project$PageEditor$Internals$DocumentEditorHelpers$maxUid(newDoc) + 1
+								i2: A2($author$project$PageEditor$Internals$DocumentZipper$updateCurrent, newDoc, model.i2),
+								gU: $author$project$PageEditor$Internals$DocumentEditorHelpers$maxUid(newDoc) + 1
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -28373,7 +28454,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{i3: zipper, bN: xs}),
+							{i2: zipper, bN: xs}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 26:
@@ -28415,7 +28496,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 						{
 							k: _Utils_update(
 								config_,
-								{lk: season})
+								{lj: season})
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 31:
@@ -28432,7 +28513,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{aK: !model.aK}),
+						{aL: !model.aL}),
 					$elm$core$Platform$Cmd$none);
 			case 33:
 				var mbPlugin = msg.a;
@@ -28467,7 +28548,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										[
 											$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))
 										]))));
 					} else {
 						var tm = mbEditorPluginResult.a.a;
@@ -28476,16 +28557,16 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: $author$project$Document$Document$getAttrs(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)),
-									aq: $author$project$Document$Document$Table(tm),
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)),
+									as: $author$project$Document$Document$Table(tm),
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							A2(
 								$elm$core$Platform$Cmd$map,
 								model.bY,
@@ -28494,7 +28575,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										[
 											$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))
 										]))));
 					}
 				}
@@ -28531,7 +28612,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))),
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))),
 										textBlockPluginCmds
 									])));
 					} else {
@@ -28543,15 +28624,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: attrs,
-									aq: $author$project$Document$Document$TextBlock(tbElems),
+									as: $author$project$Document$Document$TextBlock(tbElems),
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28560,7 +28641,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))),
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))),
 										textBlockPluginCmds
 									])));
 					}
@@ -28592,7 +28673,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))),
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))),
 										imagePluginCmds
 									])));
 					} else {
@@ -28604,15 +28685,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: attrs,
-									aq: $author$project$Document$Document$Image(imgMeta),
+									as: $author$project$Document$Document$Image(imgMeta),
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28621,7 +28702,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))),
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))),
 										imagePluginCmds
 									])));
 					}
@@ -28649,7 +28730,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 								model.bY,
 								$author$project$PageEditor$PageEditor$scrollTo(
 									$author$project$Document$Document$getHtmlId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))));
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))));
 					} else {
 						var _v31 = mbEditorPluginResult.a.a;
 						var videoMeta = _v31.a;
@@ -28659,15 +28740,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: attrs,
-									aq: $author$project$Document$Document$Video(videoMeta),
+									as: $author$project$Document$Document$Video(videoMeta),
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28676,7 +28757,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))))
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))))
 									])));
 					}
 				}
@@ -28703,7 +28784,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 								model.bY,
 								$author$project$PageEditor$PageEditor$scrollTo(
 									$author$project$Document$Document$getHtmlId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))));
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))));
 					} else {
 						var newBlockLinks = mbEditorPluginResult.a.a;
 						var newDoc = A2(
@@ -28711,15 +28792,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: _List_Nil,
-									aq: newBlockLinks,
+									as: newBlockLinks,
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28728,7 +28809,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))))
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))))
 									])));
 					}
 				}
@@ -28755,7 +28836,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 								model.bY,
 								$author$project$PageEditor$PageEditor$scrollTo(
 									$author$project$Document$Document$getHtmlId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))));
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))));
 					} else {
 						var newFichesIds = mbEditorPluginResult.a.a;
 						var newDoc = A2(
@@ -28763,15 +28844,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: _List_Nil,
-									aq: $author$project$Document$Document$Fiches(newFichesIds),
+									as: $author$project$Document$Document$Fiches(newFichesIds),
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28780,7 +28861,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))))
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))))
 									])));
 					}
 				}
@@ -28807,7 +28888,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 								model.bY,
 								$author$project$PageEditor$PageEditor$scrollTo(
 									$author$project$Document$Document$getHtmlId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))));
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))));
 					} else {
 						var newPictureLinks = mbEditorPluginResult.a.a;
 						var newDoc = A2(
@@ -28815,15 +28896,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: _List_Nil,
-									aq: $author$project$Document$Document$PictureLinks(newPictureLinks),
+									as: $author$project$Document$Document$PictureLinks(newPictureLinks),
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28832,7 +28913,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))))
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))))
 									])));
 					}
 				}
@@ -28840,9 +28921,9 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				var galleryPluginMsg = msg.a;
 				var _v41 = A3(
 					$author$project$PageEditor$EditorPlugins$GalleryPlugin$update,
-					{eT: config.eT, bd: config.bd, he: config.he},
+					{eT: config.eT, be: config.be, hd: config.hd},
 					galleryPluginMsg,
-					model.bC);
+					model.bD);
 				var newGalleryPlugin = _v41.a;
 				var galleryCmd = _v41.b;
 				var mbGalleryPluginResult = _v41.c;
@@ -28850,7 +28931,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{bC: newGalleryPlugin}),
+							{bD: newGalleryPlugin}),
 						galleryCmd);
 				} else {
 					if (!mbGalleryPluginResult.a.$) {
@@ -28858,7 +28939,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, bC: newGalleryPlugin}),
+								{b: $elm$core$Maybe$Nothing, bD: newGalleryPlugin}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28867,7 +28948,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))),
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))),
 										galleryCmd
 									])));
 					} else {
@@ -28877,15 +28958,15 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$author$project$Document$Document$Cell(
 								{
 									x: _List_Nil,
-									aq: $author$project$Document$Document$Gallery(newGalleryMeta),
+									as: $author$project$Document$Document$Gallery(newGalleryMeta),
 									a: $author$project$Document$Document$getId(
-										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3))
+										$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2))
 								}),
-							model.i3);
+							model.i2);
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{b: $elm$core$Maybe$Nothing, i3: newDoc}),
+								{b: $elm$core$Maybe$Nothing, i2: newDoc}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -28894,7 +28975,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 										model.bY,
 										$author$project$PageEditor$PageEditor$scrollTo(
 											$author$project$Document$Document$getHtmlId(
-												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)))),
+												$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)))),
 										galleryCmd
 									])));
 					}
@@ -28903,7 +28984,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				var _v44 = A2(
 					$elm$core$Maybe$map,
 					$elm$json$Json$Decode$decodeValue($author$project$Document$Json$DocumentDecoder$decodeDocument),
-					model.bc);
+					model.bd);
 				if ((!_v44.$) && (!_v44.a.$)) {
 					var newDoc = _v44.a.a;
 					var _v45 = A2(
@@ -28935,7 +29016,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					_Utils_update(
 						model,
 						{
-							fr: function (res) {
+							fq: function (res) {
 								if (!res.$) {
 									var json = res.a;
 									return $emilianobovetti$elm_yajson$Yajson$Stringify$pretty(json);
@@ -28945,7 +29026,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 								}
 							}(
 								$emilianobovetti$elm_yajson$Yajson$fromValue(val)),
-							bc: $elm$core$Maybe$Just(val)
+							bd: $elm$core$Maybe$Just(val)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 45:
@@ -28973,7 +29054,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{fr: newBuffer, bc: newLocalStorageValue}),
+						{fq: newBuffer, bd: newLocalStorageValue}),
 					$elm$core$Platform$Cmd$none);
 			case 46:
 				return _Utils_Tuple2(
@@ -28985,7 +29066,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$billstclair$elm_localstorage$PortFunnel$LocalStorage$send,
 							$author$project$PageEditor$PageEditor$cmdPort,
 							$billstclair$elm_localstorage$PortFunnel$LocalStorage$get(model.ep),
-							model.bB.bn)));
+							model.bC.bp)));
 			case 47:
 				return _Utils_Tuple2(
 					model,
@@ -28998,8 +29079,8 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 									A3(
 									$billstclair$elm_localstorage$PortFunnel$LocalStorage$send,
 									$author$project$PageEditor$PageEditor$cmdPort,
-									A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$put, model.ep, model.bc),
-									model.bB.bn),
+									A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$put, model.ep, model.bd),
+									model.bC.bp),
 									A3($andrewMacmurray$elm_delay$Delay$after, 500, 0, $author$project$PageEditor$PageEditor$ListKeys)
 								]))));
 			case 48:
@@ -29015,7 +29096,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 									$billstclair$elm_localstorage$PortFunnel$LocalStorage$send,
 									$author$project$PageEditor$PageEditor$cmdPort,
 									A2($billstclair$elm_localstorage$PortFunnel$LocalStorage$put, model.ep, $elm$core$Maybe$Nothing),
-									model.bB.bn),
+									model.bC.bp),
 									A3($andrewMacmurray$elm_delay$Delay$after, 500, 0, $author$project$PageEditor$PageEditor$ListKeys)
 								]))));
 			case 49:
@@ -29031,7 +29112,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 									$billstclair$elm_localstorage$PortFunnel$LocalStorage$send,
 									$author$project$PageEditor$PageEditor$cmdPort,
 									$billstclair$elm_localstorage$PortFunnel$LocalStorage$clear(''),
-									model.bB.bn),
+									model.bC.bp),
 									A3($andrewMacmurray$elm_delay$Delay$after, 500, 0, $author$project$PageEditor$PageEditor$ListKeys)
 								]))));
 			case 50:
@@ -29044,7 +29125,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 							$billstclair$elm_localstorage$PortFunnel$LocalStorage$send,
 							$author$project$PageEditor$PageEditor$cmdPort,
 							$billstclair$elm_localstorage$PortFunnel$LocalStorage$listKeys(''),
-							model.bB.bn)));
+							model.bC.bp)));
 			case 51:
 				var val = msg.a;
 				var _v49 = $billstclair$elm_port_funnel$PortFunnel$decodeGenericMessage(val);
@@ -29052,12 +29133,12 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var genericMessage = _v49.a;
-					var moduleName = genericMessage.kj;
+					var moduleName = genericMessage.ki;
 					var _v50 = A2($elm$core$Dict$get, moduleName, $author$project$PageEditor$PageEditor$funnels);
 					if (!_v50.$) {
 						var funnel = _v50.a;
 						var storFunnel = funnel;
-						var _v52 = A5($billstclair$elm_port_funnel$PortFunnel$appProcess, $author$project$PageEditor$PageEditor$cmdPort, genericMessage, storFunnel, model.bB, model);
+						var _v52 = A5($billstclair$elm_port_funnel$PortFunnel$appProcess, $author$project$PageEditor$PageEditor$cmdPort, genericMessage, storFunnel, model.bC, model);
 						if (_v52.$ === 1) {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 						} else {
@@ -29074,11 +29155,11 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 								}
 							}(
 								$emilianobovetti$elm_yajson$Yajson$fromValue(
-									A2($elm$core$Maybe$withDefault, $elm$json$Json$Encode$null, mdl.bc)));
+									A2($elm$core$Maybe$withDefault, $elm$json$Json$Encode$null, mdl.bd)));
 							return _Utils_Tuple2(
 								_Utils_update(
 									mdl,
-									{fr: newBuffer}),
+									{fq: newBuffer}),
 								$elm$core$Platform$Cmd$batch(
 									_List_fromArray(
 										[cmd])));
@@ -29106,7 +29187,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 						return 'nouvelle page';
 					}
 				}();
-				var filename = pageName + (' ' + (A2($author$project$Internals$CommonHelpers$timeToStr, config.fZ, time) + '.json'));
+				var filename = pageName + (' ' + (A2($author$project$Internals$CommonHelpers$timeToStr, config.fY, time) + '.json'));
 				var content = function (res) {
 					if (!res.$) {
 						var json = res.a;
@@ -29129,7 +29210,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 						}(
 							$author$project$Document$Json$DocumentSerializer$encodeDocument(
 								$author$project$PageEditor$Internals$DocumentZipper$extractDoc(
-									$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i3))))));
+									$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i2))))));
 				return _Utils_Tuple2(
 					model,
 					A3($elm$file$File$Download$string, filename, 'text/json', content));
@@ -29201,7 +29282,7 @@ var $author$project$PageEditor$PageEditor$internalUpdate = F3(
 			case 58:
 				var _v61 = $author$project$PageTreeEditor$PageTreeEditor$loadedContent(config.I);
 				if (!_v61.$) {
-					var docContent = _v61.a.i1;
+					var docContent = _v61.a.i0;
 					var _v62 = A2(
 						$author$project$PageEditor$PageEditor$reset,
 						$elm$core$Maybe$Just(docContent),
@@ -29232,7 +29313,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$SaveContent = function (a) {
 };
 var $author$project$PageTreeEditor$PageTreeEditor$Content = F3(
 	function (contentId, jsonContent, docContent) {
-		return {ec: contentId, i1: docContent, gL: jsonContent};
+		return {ec: contentId, i0: docContent, gK: jsonContent};
 	});
 var $author$project$PageTreeEditor$PageTreeEditor$decodeContent = A3(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
@@ -29261,17 +29342,17 @@ var $author$project$PageTreeEditor$PageTreeEditor$decodeContents = A2(
 		$elm$json$Json$Decode$list($author$project$PageTreeEditor$PageTreeEditor$decodeContent)));
 var $author$project$PageTreeEditor$PageTreeEditor$delete = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		return $elm$core$Maybe$Just(
 			{
-				bs: cs,
+				bu: cs,
 				a3: A2(
 					$author$project$PageTreeEditor$PageTreeEditor$Page,
 					parent,
@@ -29305,7 +29386,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$deleteContent = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$PageTreeEditor$PageTreeEditor$ContentUpdated(contentId),
 					$author$project$PageTreeEditor$PageTreeEditor$decodeSuccess),
@@ -29384,7 +29465,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$saveContent = F3(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$PageTreeEditor$PageTreeEditor$ContentUpdated(contentId),
 					$author$project$PageTreeEditor$PageTreeEditor$decodeSuccess),
@@ -29398,7 +29479,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$PageTreeUpdated = F3(
 var $author$project$PageTreeEditor$PageTreeEditor$encodePageInfo = function (_v0) {
 	var name = _v0.H;
 	var path = _v0.J;
-	var mbContentId = _v0.kg;
+	var mbContentId = _v0.kf;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -29456,7 +29537,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$savePageTree = F4(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A2($author$project$PageTreeEditor$PageTreeEditor$PageTreeUpdated, mbPage, page),
 					$author$project$PageTreeEditor$PageTreeEditor$decodeSuccess),
@@ -29488,7 +29569,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$setKeyword = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A2(
 						$author$project$PageTreeEditor$PageTreeEditor$KeywordUpdated,
@@ -29500,13 +29581,13 @@ var $author$project$PageTreeEditor$PageTreeEditor$setKeyword = F2(
 	});
 var $author$project$PageTreeEditor$PageTreeEditor$swapLeft = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		var _v2 = $elm$core$List$reverse(left);
 		if (!_v2.b) {
@@ -29516,12 +29597,12 @@ var $author$project$PageTreeEditor$PageTreeEditor$swapLeft = function (_v0) {
 			var ds = _v2.b;
 			return $elm$core$Maybe$Just(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: $elm$core$List$reverse(ds),
+							bc: $elm$core$List$reverse(ds),
 							eF: parent,
-							bk: A2($elm$core$List$cons, d, right)
+							bl: A2($elm$core$List$cons, d, right)
 						},
 						cs),
 					a3: current
@@ -29531,13 +29612,13 @@ var $author$project$PageTreeEditor$PageTreeEditor$swapLeft = function (_v0) {
 };
 var $author$project$PageTreeEditor$PageTreeEditor$swapRight = function (_v0) {
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	if (!contexts.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
 		var parent = contexts.a.eF;
-		var left = contexts.a.bb;
-		var right = contexts.a.bk;
+		var left = contexts.a.bc;
+		var right = contexts.a.bl;
 		var cs = contexts.b;
 		if (!right.b) {
 			return $elm$core$Maybe$Nothing;
@@ -29546,15 +29627,15 @@ var $author$project$PageTreeEditor$PageTreeEditor$swapRight = function (_v0) {
 			var ds = right.b;
 			return $elm$core$Maybe$Just(
 				{
-					bs: A2(
+					bu: A2(
 						$elm$core$List$cons,
 						{
-							bb: _Utils_ap(
+							bc: _Utils_ap(
 								left,
 								_List_fromArray(
 									[d])),
 							eF: parent,
-							bk: ds
+							bl: ds
 						},
 						cs),
 					a3: current
@@ -29583,7 +29664,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$unsetKeyword = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					A2(
 						$author$project$PageTreeEditor$PageTreeEditor$KeywordUpdated,
@@ -29655,10 +29736,10 @@ var $author$project$PageTreeEditor$PageTreeEditor$zipDown = F2(
 					_Utils_update(
 						pageTree,
 						{
-							bs: A2(
+							bu: A2(
 								$elm$core$List$cons,
-								{bb: l, eF: pageInfo, bk: ps},
-								pageTree.bs),
+								{bc: l, eF: pageInfo, bl: ps},
+								pageTree.bu),
 							a3: p
 						}));
 			}
@@ -29715,8 +29796,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								bJ: $elm$core$Maybe$Nothing,
-								hn: $elm$core$Maybe$Just(page)
+								bK: $elm$core$Maybe$Nothing,
+								hm: $elm$core$Maybe$Just(page)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 1:
@@ -29727,7 +29808,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								am: $elm$core$Maybe$Just(page)
+								an: $elm$core$Maybe$Just(page)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 2:
@@ -29738,7 +29819,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								c7: $elm$core$Maybe$Just(page)
+								c6: $elm$core$Maybe$Just(page)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 3:
@@ -29747,7 +29828,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								dh: $elm$core$Maybe$Just(page)
+								dg: $elm$core$Maybe$Just(page)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 4:
@@ -29756,7 +29837,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								c7: A2(
+								c6: A2(
 									$elm$core$Maybe$map,
 									$author$project$PageTreeEditor$PageTreeEditor$extractPage,
 									A2(
@@ -29771,7 +29852,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								am: A2(
+								an: A2(
 									$elm$core$Maybe$map,
 									$author$project$PageTreeEditor$PageTreeEditor$extractPage,
 									A2(
@@ -29831,7 +29912,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 								model,
 								{
 									h: $elm$core$Maybe$Just(pageTree),
-									dd: 2
+									dc: 2
 								}),
 							A5($author$project$Internals$CommonHelpers$newLog, config.eT, 'Chargement arborescence réussi', $elm$core$Maybe$Nothing, false, false));
 					} else {
@@ -29839,7 +29920,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{dd: 3}),
+								{dc: 3}),
 							A5(
 								$author$project$Internals$CommonHelpers$newLog,
 								config.eT,
@@ -29856,14 +29937,14 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{W: keywords, c8: 2}),
+								{X: keywords, c7: 2}),
 							A5($author$project$Internals$CommonHelpers$newLog, config.eT, 'Chargement mots clés réussi', $elm$core$Maybe$Nothing, false, false));
 					} else {
 						var e = res.a;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{el: '', c8: 3}),
+								{el: '', c7: 3}),
 							A5(
 								$author$project$Internals$CommonHelpers$newLog,
 								config.eT,
@@ -29884,7 +29965,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 								{
 									O: A2($elm_community$list_extra$List$Extra$remove, page, model.O),
 									cc: 2,
-									hn: $elm$core$Maybe$Nothing
+									hm: $elm$core$Maybe$Nothing
 								}),
 							A5($author$project$Internals$CommonHelpers$newLog, config.eT, 'Arborescence mise à jour', $elm$core$Maybe$Nothing, false, false));
 					} else {
@@ -29944,7 +30025,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 					if (model.ca === '') {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
-						var _v8 = _Utils_Tuple2(model.dh, model.lm);
+						var _v8 = _Utils_Tuple2(model.dg, model.ll);
 						if ((!_v8.a.$) && (!_v8.b.$)) {
 							var page = _v8.a.a;
 							var pageInfo = page.a;
@@ -29953,7 +30034,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							var newPage = A2(
 								$author$project$PageTreeEditor$PageTreeEditor$Page,
 								{
-									kg: $elm$core$Maybe$Nothing,
+									kf: $elm$core$Maybe$Nothing,
 									H: model.ca,
 									J: _Utils_ap(
 										pageInfo.J,
@@ -29996,7 +30077,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 					var page = msg.a;
 					var pageInfo = page.a;
 					var xs = page.b;
-					var _v9 = model.lm;
+					var _v9 = model.ll;
 					if (!_v9.$) {
 						var seed = _v9.a;
 						var mbBackup = A2(
@@ -30009,15 +30090,15 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						var _v10 = A2($elm$random$Random$step, $TSFoster$elm_uuid$UUID$generator, seed);
 						var uuid = _v10.a;
 						var newSeed = _v10.b;
-						var contentId = A2($elm$core$Maybe$withDefault, uuid, pageInfo.kg);
+						var contentId = A2($elm$core$Maybe$withDefault, uuid, pageInfo.kf);
 						var mbBackupContent = A2(
 							$elm$core$Dict$get,
 							$TSFoster$elm_uuid$UUID$toString(contentId),
 							model.cv);
 						var newContent = {
 							ec: contentId,
-							i1: config.iP,
-							gL: $author$project$Document$Json$DocumentSerializer$encodeDocument(config.iP)
+							i0: config.iO,
+							gK: $author$project$Document$Json$DocumentSerializer$encodeDocument(config.iO)
 						};
 						var newContents = A3(
 							$elm$core$Dict$insert,
@@ -30029,7 +30110,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							_Utils_update(
 								pageInfo,
 								{
-									kg: $elm$core$Maybe$Just(contentId)
+									kf: $elm$core$Maybe$Just(contentId)
 								}),
 							xs);
 						var newPageTree = A2(
@@ -30047,24 +30128,24 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 								model,
 								{
 									cv: newContents,
-									am: $elm$core$Maybe$Just(
+									an: $elm$core$Maybe$Just(
 										A2(
 											$author$project$PageTreeEditor$PageTreeEditor$Page,
 											_Utils_update(
 												pageInfo,
 												{
-													kg: $elm$core$Maybe$Just(contentId)
+													kf: $elm$core$Maybe$Just(contentId)
 												}),
 											xs)),
-									aB: A3(
+									aD: A3(
 										$elm$core$Dict$insert,
 										$TSFoster$elm_uuid$UUID$toString(contentId),
 										mbBackupContent,
-										model.aB),
+										model.aD),
 									O: A2($elm$core$List$cons, newPage, model.O),
 									h: newPageTree,
 									cc: 1,
-									lm: $elm$core$Maybe$Just(newSeed)
+									ll: $elm$core$Maybe$Just(newSeed)
 								}),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
@@ -30074,8 +30155,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 										model.bY,
 										A2(
 											$author$project$Auth$AuthPlugin$cmdIfLogged,
-											config.bd,
-											A2($author$project$PageTreeEditor$PageTreeEditor$saveContent, contentId, config.iP))),
+											config.be,
+											A2($author$project$PageTreeEditor$PageTreeEditor$saveContent, contentId, config.iO))),
 										A2(
 										$elm$core$Platform$Cmd$map,
 										model.bY,
@@ -30087,12 +30168,12 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 												function (pt) {
 													return A2(
 														$author$project$Auth$AuthPlugin$cmdIfLogged,
-														config.bd,
+														config.be,
 														A3($author$project$PageTreeEditor$PageTreeEditor$savePageTree, mbBackup, newPage, pt));
 												},
 												A2($elm$core$Maybe$map, $author$project$PageTreeEditor$PageTreeEditor$extractPage, newPageTree)))),
-										A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.bd, config.eT, 'Sauvegarde page...', $elm$core$Maybe$Nothing, false, true),
-										A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.bd, config.eT, 'Sauvegarde arborescence...', $elm$core$Maybe$Nothing, false, false)
+										A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.be, config.eT, 'Sauvegarde page...', $elm$core$Maybe$Nothing, false, true),
+										A6($author$project$Auth$AuthPlugin$newLogIfLogged, config.be, config.eT, 'Sauvegarde arborescence...', $elm$core$Maybe$Nothing, false, false)
 									])));
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -30105,18 +30186,18 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							_Utils_update(
 								model,
 								{
-									W: A2(
+									X: A2(
 										$elm$core$Set$filter,
 										function (_v12) {
 											var k = _v12.a;
 											var cId = _v12.b;
 											return A2($elm$core$Dict$member, cId, model.cv);
 										},
-										model.W),
-									aB: A2(
+										model.X),
+									aD: A2(
 										$elm$core$Dict$remove,
 										$TSFoster$elm_uuid$UUID$toString(uuid),
-										model.aB),
+										model.aD),
 									cc: 2
 								}),
 							A5($author$project$Internals$CommonHelpers$newLog, config.eT, 'Page sauvegardée', $elm$core$Maybe$Nothing, false, true));
@@ -30130,7 +30211,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 										var _v13 = A2(
 											$elm$core$Dict$get,
 											$TSFoster$elm_uuid$UUID$toString(uuid),
-											model.aB);
+											model.aD);
 										if ((!_v13.$) && (!_v13.a.$)) {
 											var backup = _v13.a.a;
 											return A3(
@@ -30145,10 +30226,10 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 												model.cv);
 										}
 									}(),
-									aB: A2(
+									aD: A2(
 										$elm$core$Dict$remove,
 										$TSFoster$elm_uuid$UUID$toString(uuid),
-										model.aB),
+										model.aD),
 									cc: 3
 								}),
 							A5(
@@ -30166,23 +30247,23 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								bJ: $elm$core$Maybe$Just(s)
+								bK: $elm$core$Maybe$Just(s)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 14:
-					var _v14 = model.hn;
+					var _v14 = model.hm;
 					if (!_v14.$) {
 						var _v15 = _v14.a;
 						var pageInfo = _v15.a;
 						var xs = _v15.b;
-						if ($author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.bJ)) {
+						if ($author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.bK)) {
 							var newPage = $author$project$PageTreeEditor$PageTreeEditor$fixPaths(
 								A2(
 									$author$project$PageTreeEditor$PageTreeEditor$Page,
 									_Utils_update(
 										pageInfo,
 										{
-											H: A2($elm$core$Maybe$withDefault, '', model.bJ)
+											H: A2($elm$core$Maybe$withDefault, '', model.bK)
 										}),
 									xs));
 							var newPageTree = A2(
@@ -30201,8 +30282,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 									{
 										O: A2($elm$core$List$cons, newPage, model.O),
 										h: newPageTree,
-										bJ: $elm$core$Maybe$Nothing,
-										hn: $elm$core$Maybe$Nothing
+										bK: $elm$core$Maybe$Nothing,
+										hm: $elm$core$Maybe$Nothing
 									}),
 								A2(
 									$elm$core$Platform$Cmd$map,
@@ -30215,7 +30296,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 											function (pt) {
 												return A2(
 													$author$project$Auth$AuthPlugin$cmdIfLogged,
-													config.bd,
+													config.be,
 													A3(
 														$author$project$PageTreeEditor$PageTreeEditor$savePageTree,
 														$elm$core$Maybe$Just(
@@ -30238,7 +30319,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							{ca: s}),
 						$elm$core$Platform$Cmd$none);
 				case 16:
-					var _v16 = model.hn;
+					var _v16 = model.hm;
 					if (!_v16.$) {
 						var _v17 = _v16.a;
 						var pageInfo = _v17.a;
@@ -30267,10 +30348,10 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 								_Utils_update(
 									model,
 									{
-										am: $elm$core$Maybe$Nothing,
-										aB: A2(
+										an: $elm$core$Maybe$Nothing,
+										aD: A2(
 											$elm$core$Maybe$withDefault,
-											model.aB,
+											model.aD,
 											A2(
 												$elm$core$Maybe$map,
 												function (cId) {
@@ -30278,13 +30359,13 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 														$elm$core$Dict$insert,
 														$TSFoster$elm_uuid$UUID$toString(cId),
 														$elm$core$Maybe$Nothing,
-														model.aB);
+														model.aD);
 												},
 												$author$project$PageTreeEditor$PageTreeEditor$getMbContentId(
 													A2($author$project$PageTreeEditor$PageTreeEditor$Page, pageInfo, xs)))),
 										O: A2($elm$core$List$cons, backup, model.O),
 										h: newPageTree,
-										hn: $elm$core$Maybe$Nothing
+										hm: $elm$core$Maybe$Nothing
 									}),
 								A2(
 									$elm$core$Platform$Cmd$map,
@@ -30300,7 +30381,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 													function (pt) {
 														return A2(
 															$author$project$Auth$AuthPlugin$cmdIfLogged,
-															config.bd,
+															config.be,
 															A3(
 																$author$project$PageTreeEditor$PageTreeEditor$savePageTree,
 																$elm$core$Maybe$Just(backup),
@@ -30316,7 +30397,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 													function (contentId) {
 														return A2(
 															$author$project$Auth$AuthPlugin$cmdIfLogged,
-															config.bd,
+															config.be,
 															$author$project$PageTreeEditor$PageTreeEditor$deleteContent(contentId));
 													},
 													$author$project$PageTreeEditor$PageTreeEditor$getMbContentId(
@@ -30329,7 +30410,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					}
 				case 17:
-					var _v19 = _Utils_Tuple2(model.hn, model.bh);
+					var _v19 = _Utils_Tuple2(model.hm, model.bi);
 					if ((!_v19.a.$) && (_v19.b.$ === 1)) {
 						var page = _v19.a.a;
 						var _v20 = _v19.b;
@@ -30338,15 +30419,15 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 								model,
 								{
 									O: A2($elm$core$List$cons, page, model.O),
-									bh: $elm$core$Maybe$Just(page),
-									hn: $elm$core$Maybe$Nothing
+									bi: $elm$core$Maybe$Just(page),
+									hm: $elm$core$Maybe$Nothing
 								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					}
 				case 18:
-					var _v21 = _Utils_Tuple2(model.hn, model.bh);
+					var _v21 = _Utils_Tuple2(model.hm, model.bi);
 					if ((!_v21.a.$) && (!_v21.b.$)) {
 						var _v22 = _v21.a.a;
 						var pageInfo = _v22.a;
@@ -30391,7 +30472,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{h: newPageTree, bh: $elm$core$Maybe$Nothing, hn: $elm$core$Maybe$Nothing}),
+								{h: newPageTree, bi: $elm$core$Maybe$Nothing, hm: $elm$core$Maybe$Nothing}),
 							A2(
 								$elm$core$Platform$Cmd$map,
 								model.bY,
@@ -30403,7 +30484,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 										function (pt) {
 											return A2(
 												$author$project$Auth$AuthPlugin$cmdIfLogged,
-												config.bd,
+												config.be,
 												A3(
 													$author$project$PageTreeEditor$PageTreeEditor$savePageTree,
 													$elm$core$Maybe$Just(page),
@@ -30416,7 +30497,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 					}
 				case 19:
 					var up = msg.a;
-					var _v23 = model.hn;
+					var _v23 = model.hm;
 					if (!_v23.$) {
 						var _v24 = _v23.a;
 						var pageInfo = _v24.a;
@@ -30441,7 +30522,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 										O: A2($elm$core$List$cons, newPage, model.O),
 										h: $elm$core$Maybe$Just(
 											$author$project$PageTreeEditor$PageTreeEditor$rewind(newPageTree)),
-										hn: $elm$core$Maybe$Nothing
+										hm: $elm$core$Maybe$Nothing
 									}),
 								A2(
 									$elm$core$Platform$Cmd$map,
@@ -30449,7 +30530,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 									function (pt) {
 										return A2(
 											$author$project$Auth$AuthPlugin$cmdIfLogged,
-											config.bd,
+											config.be,
 											A3(
 												$author$project$PageTreeEditor$PageTreeEditor$savePageTree,
 												A2(
@@ -30479,8 +30560,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								aI: _Utils_eq(
-									model.aI,
+								aK: _Utils_eq(
+									model.aK,
 									$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 							}),
 						$elm$core$Platform$Cmd$none);
@@ -30490,8 +30571,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								bK: _Utils_eq(
-									model.bK,
+								bL: _Utils_eq(
+									model.bL,
 									$elm$core$Maybe$Just(s)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(s)
 							}),
 						$elm$core$Platform$Cmd$none);
@@ -30501,33 +30582,33 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								aA: $elm$core$Maybe$Just(s),
-								aI: $elm$core$Maybe$Nothing
+								aC: $elm$core$Maybe$Just(s),
+								aK: $elm$core$Maybe$Nothing
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 23:
-					var _v26 = A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn);
+					var _v26 = A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm);
 					if (!_v26.$) {
 						var contentId = _v26.a;
-						if ($author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.aA)) {
+						if ($author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.aC)) {
 							var newEntry = _Utils_Tuple2(
-								A2($elm$core$Maybe$withDefault, '', model.aA),
+								A2($elm$core$Maybe$withDefault, '', model.aC),
 								$TSFoster$elm_uuid$UUID$toString(contentId));
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
 									{
-										W: A2($elm$core$Set$insert, newEntry, model.W),
-										aA: $elm$core$Maybe$Nothing,
-										aC: A2($elm$core$Set$insert, newEntry, model.aC),
-										aI: $elm$core$Maybe$Nothing
+										X: A2($elm$core$Set$insert, newEntry, model.X),
+										aC: $elm$core$Maybe$Nothing,
+										aE: A2($elm$core$Set$insert, newEntry, model.aE),
+										aK: $elm$core$Maybe$Nothing
 									}),
 								A2(
 									$elm$core$Platform$Cmd$map,
 									model.bY,
 									A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										$author$project$PageTreeEditor$PageTreeEditor$setKeyword(newEntry))));
 						} else {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -30537,8 +30618,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 					}
 				case 24:
 					var _v27 = _Utils_Tuple2(
-						model.aI,
-						A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn));
+						model.aK,
+						A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm));
 					if ((!_v27.a.$) && (!_v27.b.$)) {
 						var keyword = _v27.a.a;
 						var contentId = _v27.b.a;
@@ -30549,25 +30630,25 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							_Utils_update(
 								model,
 								{
-									W: A2($elm$core$Set$insert, newEntry, model.W),
-									aA: $elm$core$Maybe$Nothing,
-									aC: A2($elm$core$Set$insert, newEntry, model.aC),
-									aI: $elm$core$Maybe$Nothing
+									X: A2($elm$core$Set$insert, newEntry, model.X),
+									aC: $elm$core$Maybe$Nothing,
+									aE: A2($elm$core$Set$insert, newEntry, model.aE),
+									aK: $elm$core$Maybe$Nothing
 								}),
 							A2(
 								$elm$core$Platform$Cmd$map,
 								model.bY,
 								A2(
 									$author$project$Auth$AuthPlugin$cmdIfLogged,
-									config.bd,
+									config.be,
 									$author$project$PageTreeEditor$PageTreeEditor$setKeyword(newEntry))));
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					}
 				case 25:
 					var _v28 = _Utils_Tuple2(
-						model.bK,
-						A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn));
+						model.bL,
+						A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm));
 					if ((!_v28.a.$) && (!_v28.b.$)) {
 						var keyword = _v28.a.a;
 						var contentId = _v28.b.a;
@@ -30578,16 +30659,16 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							_Utils_update(
 								model,
 								{
-									W: A2($elm$core$Set$remove, newEntry, model.W),
-									aC: A2($elm$core$Set$insert, newEntry, model.aC),
-									bK: $elm$core$Maybe$Nothing
+									X: A2($elm$core$Set$remove, newEntry, model.X),
+									aE: A2($elm$core$Set$insert, newEntry, model.aE),
+									bL: $elm$core$Maybe$Nothing
 								}),
 							A2(
 								$elm$core$Platform$Cmd$map,
 								model.bY,
 								A2(
 									$author$project$Auth$AuthPlugin$cmdIfLogged,
-									config.bd,
+									config.be,
 									$author$project$PageTreeEditor$PageTreeEditor$unsetKeyword(newEntry))));
 					} else {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -30603,10 +30684,10 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							_Utils_update(
 								model,
 								{
-									aC: A2(
+									aE: A2(
 										$elm$core$Set$remove,
 										_Utils_Tuple2(k, cId),
-										model.aC)
+										model.aE)
 								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
@@ -30614,17 +30695,17 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 							_Utils_update(
 								model,
 								{
-									W: unset ? A2(
+									X: unset ? A2(
 										$elm$core$Set$insert,
 										_Utils_Tuple2(k, cId),
-										model.W) : A2(
+										model.X) : A2(
 										$elm$core$Set$remove,
 										_Utils_Tuple2(k, cId),
-										model.W),
-									aC: A2(
+										model.X),
+									aE: A2(
 										$elm$core$Set$remove,
 										_Utils_Tuple2(k, cId),
-										model.aC)
+										model.aE)
 								}),
 							$elm$core$Platform$Cmd$none);
 					}
@@ -30632,7 +30713,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{am: $elm$core$Maybe$Nothing}),
+							{an: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				case 28:
 					var t = msg.a;
@@ -30640,8 +30721,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$update = F3(
 						_Utils_update(
 							model,
 							{
-								iQ: $elm$core$Maybe$Just(t),
-								lm: $elm$core$Maybe$Just(
+								iP: $elm$core$Maybe$Just(t),
+								ll: $elm$core$Maybe$Just(
 									$elm$random$Random$initialSeed(
 										$elm$time$Time$posixToMillis(t)))
 							}),
@@ -30674,7 +30755,7 @@ var $author$project$Internals$CommonHelpers$dateToStr = F2(
 			$elm$core$String$padLeft,
 			2,
 			'0',
-			$elm$core$String$fromInt(dateRec.fu)) + ('/' + $elm$core$String$fromInt(dateRec.fY))));
+			$elm$core$String$fromInt(dateRec.ft)) + ('/' + $elm$core$String$fromInt(dateRec.fX))));
 	});
 var $author$project$Publications$Publications$decodeBulletinCover = $elm$json$Json$Decode$oneOf(
 	_List_fromArray(
@@ -30729,7 +30810,7 @@ var $author$project$Publications$Publications$deleteBulletin = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Publications$Publications$BulletinDeleted(issue),
 					$author$project$Publications$Publications$decodeSuccess),
@@ -30759,7 +30840,7 @@ var $author$project$Publications$Publications$deleteDelib = F3(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Publications$Publications$DelibDeleted(date),
 					$author$project$Publications$Publications$decodeSuccess),
@@ -30797,7 +30878,7 @@ var $author$project$Publications$Publications$deleteMurolInfo = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Publications$Publications$MurolInfoDeleted(issue),
 					$author$project$Publications$Publications$decodeSuccess),
@@ -30857,10 +30938,10 @@ var $author$project$Publications$Publications$BulletinSaved = F2(
 		return {$: 31, a: a, b: b};
 	});
 var $author$project$Publications$Publications$encodeBulletin = function (_v0) {
-	var issue = _v0.gI;
+	var issue = _v0.gH;
 	var date = _v0.eh;
-	var cover = _v0.iN;
-	var index = _v0.gC;
+	var cover = _v0.iM;
+	var index = _v0.gB;
 	var encodeIndexEntry = function (_v1) {
 		var topic = _v1.a;
 		var page = _v1.b;
@@ -30902,7 +30983,7 @@ var $author$project$Publications$Publications$saveBulletinMeta = F2(
 				$elm$core$String$padLeft,
 				3,
 				'0',
-				$elm$core$String$fromInt(bulletin.gI)));
+				$elm$core$String$fromInt(bulletin.gH)));
 		var body = $elm$http$Http$jsonBody(
 			$elm$json$Json$Encode$object(
 				_List_fromArray(
@@ -30920,14 +31001,14 @@ var $author$project$Publications$Publications$saveBulletinMeta = F2(
 		return $elm$http$Http$request(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
-					$author$project$Publications$Publications$BulletinSaved(bulletin.gI),
+					$author$project$Publications$Publications$BulletinSaved(bulletin.gH),
 					$author$project$Publications$Publications$decodeSuccess),
-				gv: _List_Nil,
-				gP: 'POST',
-				hA: $elm$core$Maybe$Nothing,
-				hD: $elm$core$Maybe$Just('bulletinMeta'),
+				gu: _List_Nil,
+				gO: 'POST',
+				hz: $elm$core$Maybe$Nothing,
+				hC: $elm$core$Maybe$Just('bulletinMeta'),
 				d0: '/saveBulletin.php'
 			});
 	});
@@ -30937,7 +31018,7 @@ var $author$project$Publications$Publications$DelibSaved = F2(
 	});
 var $author$project$Publications$Publications$encodeDelib = function (_v0) {
 	var date = _v0.eh;
-	var index = _v0.gC;
+	var index = _v0.gB;
 	var encodeIndexEntry = function (_v1) {
 		var topic = _v1.a;
 		var page = _v1.b;
@@ -30980,7 +31061,7 @@ var $author$project$Publications$Publications$saveDelibMeta = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Publications$Publications$DelibSaved(
 						$elm$time$Time$posixToMillis(delib.eh)),
@@ -30993,9 +31074,9 @@ var $author$project$Publications$Publications$MurolInfoSaved = F2(
 		return {$: 23, a: a, b: b};
 	});
 var $author$project$Publications$Publications$encodeMurolInfo = function (_v0) {
-	var issue = _v0.gI;
+	var issue = _v0.gH;
 	var date = _v0.eh;
-	var topics = _v0.mj;
+	var topics = _v0.mi;
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
 			[
@@ -31027,9 +31108,9 @@ var $author$project$Publications$Publications$saveMurolInfoMeta = F2(
 		return $elm$http$Http$post(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
-					$author$project$Publications$Publications$MurolInfoSaved(murolInfo.gI),
+					$author$project$Publications$Publications$MurolInfoSaved(murolInfo.gH),
 					$author$project$Publications$Publications$decodeSuccess),
 				d0: '/saveMurolInfo.php'
 			});
@@ -31069,15 +31150,15 @@ var $author$project$Publications$Publications$uploadPub = F5(
 		return $elm$http$Http$request(
 			{
 				eY: body,
-				dv: A2(
+				du: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Publications$Publications$UploadDone(
 						saveMetaCmd(sessionId)),
 					$author$project$Internals$CommonHelpers$decodeUploadStatus),
-				gv: _List_Nil,
-				gP: 'POST',
-				hA: $elm$core$Maybe$Nothing,
-				hD: $elm$core$Maybe$Just('publicationUpload'),
+				gu: _List_Nil,
+				gO: 'POST',
+				hz: $elm$core$Maybe$Nothing,
+				hC: $elm$core$Maybe$Just('publicationUpload'),
 				d0: '/uploadPub.php'
 			});
 	});
@@ -31116,13 +31197,13 @@ var $author$project$Publications$Publications$update = F3(
 			case 1:
 				var res = msg.a;
 				if (!res.$) {
-					var murolInfos = res.a.km;
-					var delibs = res.a.iX;
-					var bulletins = res.a.ik;
+					var murolInfos = res.a.kl;
+					var delibs = res.a.iW;
+					var bulletins = res.a.ij;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{ik: bulletins, iX: delibs, b4: $author$project$Internals$ToolHelpers$ToolLoadingSuccess, km: murolInfos}),
+							{ij: bulletins, iW: delibs, b4: $author$project$Internals$ToolHelpers$ToolLoadingSuccess, kl: murolInfos}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					var e = res.a;
@@ -31136,22 +31217,22 @@ var $author$project$Publications$Publications$update = F3(
 				}
 			case 2:
 				var n = msg.a;
-				var _v3 = A2($elm$core$Dict$get, n, model.km);
+				var _v3 = A2($elm$core$Dict$get, n, model.kl);
 				if (!_v3.$) {
-					var issue = _v3.a.gI;
+					var issue = _v3.a.gH;
 					var date = _v3.a.eh;
-					var topics = _v3.a.mj;
+					var topics = _v3.a.mi;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								bu: A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date),
-								_: $elm$core$Maybe$Just(date),
+								bw: A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date),
+								aa: $elm$core$Maybe$Just(date),
 								bW: $author$project$Publications$Publications$Edit(0),
-								az: $elm$core$Maybe$Just(
+								aB: $elm$core$Maybe$Just(
 									$elm$core$String$fromInt(issue)),
 								G: true,
-								mj: $elm$core$Dict$fromList(
+								mi: $elm$core$Dict$fromList(
 									A2(
 										$elm$core$List$indexedMap,
 										F2(
@@ -31168,18 +31249,18 @@ var $author$project$Publications$Publications$update = F3(
 				}
 			case 3:
 				var n = msg.a;
-				var _v4 = A2($elm$core$Dict$get, n, model.iX);
+				var _v4 = A2($elm$core$Dict$get, n, model.iW);
 				if (!_v4.$) {
 					var date = _v4.a.eh;
-					var index = _v4.a.gC;
+					var index = _v4.a.gB;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								bu: A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date),
-								_: $elm$core$Maybe$Just(date),
+								bw: A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date),
+								aa: $elm$core$Maybe$Just(date),
 								bW: $author$project$Publications$Publications$Edit(1),
-								gC: $elm$core$Dict$fromList(
+								gB: $elm$core$Dict$fromList(
 									A2(
 										$elm$core$List$indexedMap,
 										F2(
@@ -31201,21 +31282,21 @@ var $author$project$Publications$Publications$update = F3(
 				}
 			case 4:
 				var n = msg.a;
-				var _v6 = A2($elm$core$Dict$get, n, model.ik);
+				var _v6 = A2($elm$core$Dict$get, n, model.ij);
 				if (!_v6.$) {
-					var issue = _v6.a.gI;
+					var issue = _v6.a.gH;
 					var date = _v6.a.eh;
-					var cover = _v6.a.iN;
-					var index = _v6.a.gC;
+					var cover = _v6.a.iM;
+					var index = _v6.a.gB;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
 								cY: $elm$core$Maybe$Nothing,
-								bu: A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date),
-								_: $elm$core$Maybe$Just(date),
+								bw: A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date),
+								aa: $elm$core$Maybe$Just(date),
 								bW: $author$project$Publications$Publications$Edit(2),
-								gC: $elm$core$Dict$fromList(
+								gB: $elm$core$Dict$fromList(
 									A2(
 										$elm$core$List$indexedMap,
 										F2(
@@ -31229,7 +31310,7 @@ var $author$project$Publications$Publications$update = F3(
 														$elm$core$Maybe$Just(p)));
 											}),
 										index)),
-								az: $elm$core$Maybe$Just(
+								aB: $elm$core$Maybe$Just(
 									$elm$core$String$fromInt(issue)),
 								G: true
 							}),
@@ -31243,35 +31324,35 @@ var $author$project$Publications$Publications$update = F3(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{az: newIssue}),
+						{aB: newIssue}),
 					$elm$core$Platform$Cmd$none);
 			case 6:
 				var date = msg.a;
-				var _v8 = A2($author$project$Publications$Publications$parseDate, config.fZ, date);
+				var _v8 = A2($author$project$Publications$Publications$parseDate, config.fY, date);
 				if (!_v8.$) {
 					var posix = _v8.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								bu: date,
-								_: $elm$core$Maybe$Just(posix)
+								bw: date,
+								aa: $elm$core$Maybe$Just(posix)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{bu: date, _: $elm$core$Maybe$Nothing}),
+							{bw: date, aa: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 7:
-				var key = $author$project$Publications$Publications$nextKey(model.mj);
+				var key = $author$project$Publications$Publications$nextKey(model.mi);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							mj: A3($elm$core$Dict$insert, key, $elm$core$Maybe$Nothing, model.mj)
+							mi: A3($elm$core$Dict$insert, key, $elm$core$Maybe$Nothing, model.mi)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 8:
@@ -31282,7 +31363,7 @@ var $author$project$Publications$Publications$update = F3(
 					_Utils_update(
 						model,
 						{
-							mj: A3($elm$core$Dict$insert, key, newTopic, model.mj)
+							mi: A3($elm$core$Dict$insert, key, newTopic, model.mi)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 9:
@@ -31291,26 +31372,26 @@ var $author$project$Publications$Publications$update = F3(
 					_Utils_update(
 						model,
 						{
-							mj: A2($elm$core$Dict$remove, key, model.mj)
+							mi: A2($elm$core$Dict$remove, key, model.mi)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 10:
-				var key = $author$project$Publications$Publications$nextKey(model.gC);
+				var key = $author$project$Publications$Publications$nextKey(model.gB);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							gC: A3(
+							gB: A3(
 								$elm$core$Dict$insert,
 								key,
 								_Utils_Tuple2($elm$core$Maybe$Nothing, $elm$core$Maybe$Nothing),
-								model.gC)
+								model.gB)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 11:
 				var key = msg.a;
 				var topic = msg.b;
-				var _v9 = A2($elm$core$Dict$get, key, model.gC);
+				var _v9 = A2($elm$core$Dict$get, key, model.gB);
 				if (!_v9.$) {
 					var _v10 = _v9.a;
 					var pNbr = _v10.b;
@@ -31318,13 +31399,13 @@ var $author$project$Publications$Publications$update = F3(
 						_Utils_update(
 							model,
 							{
-								gC: A3(
+								gB: A3(
 									$elm$core$Dict$insert,
 									key,
 									_Utils_Tuple2(
 										(topic === '') ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(topic),
 										pNbr),
-									model.gC)
+									model.gB)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -31333,7 +31414,7 @@ var $author$project$Publications$Publications$update = F3(
 			case 12:
 				var key = msg.a;
 				var pageNbr = msg.b;
-				var _v11 = A2($elm$core$Dict$get, key, model.gC);
+				var _v11 = A2($elm$core$Dict$get, key, model.gB);
 				if (!_v11.$) {
 					var _v12 = _v11.a;
 					var topic = _v12.a;
@@ -31341,13 +31422,13 @@ var $author$project$Publications$Publications$update = F3(
 						_Utils_update(
 							model,
 							{
-								gC: A3(
+								gB: A3(
 									$elm$core$Dict$insert,
 									key,
 									_Utils_Tuple2(
 										topic,
 										$elm$core$String$toInt(pageNbr)),
-									model.gC)
+									model.gB)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -31359,7 +31440,7 @@ var $author$project$Publications$Publications$update = F3(
 					_Utils_update(
 						model,
 						{
-							gC: A2($elm$core$Dict$remove, key, model.gC)
+							gB: A2($elm$core$Dict$remove, key, model.gB)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 14:
@@ -31374,11 +31455,11 @@ var $author$project$Publications$Publications$update = F3(
 								$elm_community$list_extra$List$Extra$swapAt,
 								i,
 								i - 1,
-								$elm$core$Dict$values(model.mj))));
+								$elm$core$Dict$values(model.mi))));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{mj: newTopics}),
+							{mi: newTopics}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					var newIndex = $elm$core$Dict$fromList(
@@ -31389,11 +31470,11 @@ var $author$project$Publications$Publications$update = F3(
 								$elm_community$list_extra$List$Extra$swapAt,
 								i,
 								i - 1,
-								$elm$core$Dict$values(model.gC))));
+								$elm$core$Dict$values(model.gB))));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{gC: newIndex}),
+							{gB: newIndex}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 15:
@@ -31408,11 +31489,11 @@ var $author$project$Publications$Publications$update = F3(
 								$elm_community$list_extra$List$Extra$swapAt,
 								i,
 								i + 1,
-								$elm$core$Dict$values(model.mj))));
+								$elm$core$Dict$values(model.mi))));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{mj: newTopics}),
+							{mi: newTopics}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					var newIndex = $elm$core$Dict$fromList(
@@ -31423,11 +31504,11 @@ var $author$project$Publications$Publications$update = F3(
 								$elm_community$list_extra$List$Extra$swapAt,
 								i,
 								i + 1,
-								$elm$core$Dict$values(model.gC))));
+								$elm$core$Dict$values(model.gB))));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{gC: newIndex}),
+							{gB: newIndex}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 16:
@@ -31442,7 +31523,7 @@ var $author$project$Publications$Publications$update = F3(
 						{
 							bW: $author$project$Publications$Publications$Edit(
 								$author$project$Publications$Publications$extractPubType(model)),
-							aw: $elm$core$Maybe$Just(file)
+							ay: $elm$core$Maybe$Just(file)
 						}),
 					function () {
 						var _v15 = model.bW;
@@ -31487,8 +31568,8 @@ var $author$project$Publications$Publications$update = F3(
 			case 20:
 				var progress = msg.a;
 				if (!progress.$) {
-					var sent = progress.a.ly;
-					var size = progress.a.fK;
+					var sent = progress.a.lx;
+					var size = progress.a.fJ;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -31549,12 +31630,12 @@ var $author$project$Publications$Publications$update = F3(
 				}
 			case 22:
 				var _v21 = _Utils_Tuple3(
-					A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.az),
-					model._,
+					A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.aB),
+					model.aa,
 					A2(
 						$elm$core$List$filterMap,
 						$elm$core$Basics$identity,
-						$elm$core$Dict$values(model.mj)));
+						$elm$core$Dict$values(model.mi)));
 				if (((!_v21.a.$) && (!_v21.b.$)) && _v21.c.b) {
 					var issue = _v21.a.a;
 					var date = _v21.b.a;
@@ -31564,8 +31645,8 @@ var $author$project$Publications$Publications$update = F3(
 					var saveMetaCmd = $author$project$Publications$Publications$saveMurolInfoMeta(
 						{
 							eh: date,
-							gI: issue,
-							mj: A2($elm$core$List$cons, t, ts)
+							gH: issue,
+							mi: A2($elm$core$List$cons, t, ts)
 						});
 					var name = function (s) {
 						return s + '.pdf';
@@ -31581,14 +31662,14 @@ var $author$project$Publications$Publications$update = F3(
 								model,
 								{
 									bW: $author$project$Publications$Publications$Upload(0),
-									X: 1
+									Y: 1
 								}),
 							A2(
 								$elm$core$Platform$Cmd$map,
 								model.bY,
-								A2($author$project$Auth$AuthPlugin$cmdIfLogged, config.bd, saveMetaCmd)));
+								A2($author$project$Auth$AuthPlugin$cmdIfLogged, config.be, saveMetaCmd)));
 					} else {
-						var _v23 = model.aw;
+						var _v23 = model.ay;
 						if (!_v23.$) {
 							var file = _v23.a;
 							return _Utils_Tuple2(
@@ -31596,14 +31677,14 @@ var $author$project$Publications$Publications$update = F3(
 									model,
 									{
 										bW: $author$project$Publications$Publications$Upload(0),
-										X: 1
+										Y: 1
 									}),
 								A2(
 									$elm$core$Platform$Cmd$map,
 									model.bY,
 									A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										A4($author$project$Publications$Publications$uploadPub, file, 0, name, saveMetaCmd))));
 						} else {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -31621,24 +31702,24 @@ var $author$project$Publications$Publications$update = F3(
 							model,
 							{
 								aU: A2($elm$core$Dict$remove, issue, model.aU),
-								X: 2
+								Y: 2
 							}),
 						A2(
 							$elm$core$Task$perform,
 							function (_v25) {
-								return config.he;
+								return config.hd;
 							},
 							$elm$core$Task$succeed(0)));
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{X: 3}),
+							{Y: 3}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 24:
 				var issue = msg.a;
-				var _v26 = A2($elm$core$Dict$get, issue, model.km);
+				var _v26 = A2($elm$core$Dict$get, issue, model.kl);
 				if (!_v26.$) {
 					var mu = _v26.a;
 					return _Utils_Tuple2(
@@ -31646,14 +31727,14 @@ var $author$project$Publications$Publications$update = F3(
 							model,
 							{
 								aU: A3($elm$core$Dict$insert, issue, mu, model.aU),
-								km: A2($elm$core$Dict$remove, issue, model.km)
+								kl: A2($elm$core$Dict$remove, issue, model.kl)
 							}),
 						A2(
 							$elm$core$Platform$Cmd$map,
 							model.bY,
 							A2(
 								$author$project$Auth$AuthPlugin$cmdIfLogged,
-								config.bd,
+								config.be,
 								$author$project$Publications$Publications$deleteMurolInfo(issue))));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -31676,7 +31757,7 @@ var $author$project$Publications$Publications$update = F3(
 							A2(
 								$elm$core$Task$perform,
 								function (_v28) {
-									return config.he;
+									return config.hd;
 								},
 								$elm$core$Task$succeed(0)));
 					} else {
@@ -31686,7 +31767,7 @@ var $author$project$Publications$Publications$update = F3(
 								model,
 								{
 									aU: A2($elm$core$Dict$remove, issue, model.aU),
-									km: A3($elm$core$Dict$insert, issue, mu, model.km)
+									kl: A3($elm$core$Dict$insert, issue, mu, model.kl)
 								}),
 							$elm$core$Platform$Cmd$none);
 					}
@@ -31695,7 +31776,7 @@ var $author$project$Publications$Publications$update = F3(
 				}
 			case 26:
 				var _v29 = _Utils_Tuple2(
-					model._,
+					model.aa,
 					A3(
 						$elm$core$List$foldr,
 						F2(
@@ -31712,7 +31793,7 @@ var $author$project$Publications$Publications$update = F3(
 								}
 							}),
 						_List_Nil,
-						$elm$core$Dict$values(model.gC)));
+						$elm$core$Dict$values(model.gB)));
 				if ((!_v29.a.$) && _v29.b.b) {
 					var date = _v29.a.a;
 					var _v31 = _v29.b;
@@ -31721,7 +31802,7 @@ var $author$project$Publications$Publications$update = F3(
 					var saveMetaCmd = $author$project$Publications$Publications$saveDelibMeta(
 						{
 							eh: date,
-							gC: A2($elm$core$List$cons, x, xs)
+							gB: A2($elm$core$List$cons, x, xs)
 						});
 					var name = function (s) {
 						return s + '.pdf';
@@ -31730,21 +31811,21 @@ var $author$project$Publications$Publications$update = F3(
 							$elm$core$String$replace,
 							'/',
 							'-',
-							A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date)));
+							A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date)));
 					if (model.G) {
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
 									bW: $author$project$Publications$Publications$Upload(1),
-									X: 1
+									Y: 1
 								}),
 							A2(
 								$elm$core$Platform$Cmd$map,
 								model.bY,
-								A2($author$project$Auth$AuthPlugin$cmdIfLogged, config.bd, saveMetaCmd)));
+								A2($author$project$Auth$AuthPlugin$cmdIfLogged, config.be, saveMetaCmd)));
 					} else {
-						var _v32 = model.aw;
+						var _v32 = model.ay;
 						if (!_v32.$) {
 							var file = _v32.a;
 							return _Utils_Tuple2(
@@ -31752,14 +31833,14 @@ var $author$project$Publications$Publications$update = F3(
 									model,
 									{
 										bW: $author$project$Publications$Publications$Upload(1),
-										X: 1
+										Y: 1
 									}),
 								A2(
 									$elm$core$Platform$Cmd$map,
 									model.bY,
 									A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										A4($author$project$Publications$Publications$uploadPub, file, 1, name, saveMetaCmd))));
 						} else {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -31777,24 +31858,24 @@ var $author$project$Publications$Publications$update = F3(
 							model,
 							{
 								aT: A2($elm$core$Dict$remove, date, model.aT),
-								X: 2
+								Y: 2
 							}),
 						A2(
 							$elm$core$Task$perform,
 							function (_v34) {
-								return config.he;
+								return config.hd;
 							},
 							$elm$core$Task$succeed(0)));
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{X: 3}),
+							{Y: 3}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 28:
 				var date = msg.a;
-				var _v35 = A2($elm$core$Dict$get, date, model.iX);
+				var _v35 = A2($elm$core$Dict$get, date, model.iW);
 				if (!_v35.$) {
 					var delib = _v35.a;
 					var name = function (s) {
@@ -31806,13 +31887,13 @@ var $author$project$Publications$Publications$update = F3(
 							'-',
 							A2(
 								$author$project$Internals$CommonHelpers$dateToStr,
-								config.fZ,
+								config.fY,
 								$elm$time$Time$millisToPosix(date))));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								iX: A2($elm$core$Dict$remove, date, model.iX),
+								iW: A2($elm$core$Dict$remove, date, model.iW),
 								aT: A3($elm$core$Dict$insert, date, delib, model.aT)
 							}),
 						A2(
@@ -31820,7 +31901,7 @@ var $author$project$Publications$Publications$update = F3(
 							model.bY,
 							A2(
 								$author$project$Auth$AuthPlugin$cmdIfLogged,
-								config.bd,
+								config.be,
 								A2($author$project$Publications$Publications$deleteDelib, name, date))));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -31843,7 +31924,7 @@ var $author$project$Publications$Publications$update = F3(
 							A2(
 								$elm$core$Task$perform,
 								function (_v37) {
-									return config.he;
+									return config.hd;
 								},
 								$elm$core$Task$succeed(0)));
 					} else {
@@ -31852,7 +31933,7 @@ var $author$project$Publications$Publications$update = F3(
 							_Utils_update(
 								model,
 								{
-									iX: A3($elm$core$Dict$insert, date, delib, model.iX),
+									iW: A3($elm$core$Dict$insert, date, delib, model.iW),
 									aT: A2($elm$core$Dict$remove, date, model.aT)
 								}),
 							$elm$core$Platform$Cmd$none);
@@ -31863,8 +31944,8 @@ var $author$project$Publications$Publications$update = F3(
 			case 30:
 				var _v38 = _Utils_Tuple2(
 					_Utils_Tuple2(
-						A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.az),
-						model._),
+						A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.aB),
+						model.aa),
 					A3(
 						$elm$core$List$foldr,
 						F2(
@@ -31881,7 +31962,7 @@ var $author$project$Publications$Publications$update = F3(
 								}
 							}),
 						_List_Nil,
-						$elm$core$Dict$values(model.gC)));
+						$elm$core$Dict$values(model.gB)));
 				if (((!_v38.a.a.$) && (!_v38.a.b.$)) && _v38.b.b) {
 					var _v40 = _v38.a;
 					var issue = _v40.a.a;
@@ -31891,10 +31972,10 @@ var $author$project$Publications$Publications$update = F3(
 					var xs = _v41.b;
 					var saveMetaCmd = $author$project$Publications$Publications$saveBulletinMeta(
 						{
-							iN: A2($elm$core$Maybe$withDefault, '', model.cY),
+							iM: A2($elm$core$Maybe$withDefault, '', model.cY),
 							eh: date,
-							gC: A2($elm$core$List$cons, x, xs),
-							gI: issue
+							gB: A2($elm$core$List$cons, x, xs),
+							gH: issue
 						});
 					var name = function (s) {
 						return s + '.pdf';
@@ -31910,14 +31991,14 @@ var $author$project$Publications$Publications$update = F3(
 								model,
 								{
 									bW: $author$project$Publications$Publications$Upload(2),
-									X: 1
+									Y: 1
 								}),
 							A2(
 								$elm$core$Platform$Cmd$map,
 								model.bY,
-								A2($author$project$Auth$AuthPlugin$cmdIfLogged, config.bd, saveMetaCmd)));
+								A2($author$project$Auth$AuthPlugin$cmdIfLogged, config.be, saveMetaCmd)));
 					} else {
-						var _v42 = model.aw;
+						var _v42 = model.ay;
 						if (!_v42.$) {
 							var file = _v42.a;
 							return _Utils_Tuple2(
@@ -31925,14 +32006,14 @@ var $author$project$Publications$Publications$update = F3(
 									model,
 									{
 										bW: $author$project$Publications$Publications$Upload(2),
-										X: 1
+										Y: 1
 									}),
 								A2(
 									$elm$core$Platform$Cmd$map,
 									model.bY,
 									A2(
 										$author$project$Auth$AuthPlugin$cmdIfLogged,
-										config.bd,
+										config.be,
 										A4($author$project$Publications$Publications$uploadPub, file, 2, name, saveMetaCmd))));
 						} else {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -31950,31 +32031,31 @@ var $author$project$Publications$Publications$update = F3(
 							model,
 							{
 								aS: A2($elm$core$Dict$remove, issue, model.aS),
-								X: 2
+								Y: 2
 							}),
 						A2(
 							$elm$core$Task$perform,
 							function (_v44) {
-								return config.he;
+								return config.hd;
 							},
 							$elm$core$Task$succeed(0)));
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{X: 3}),
+							{Y: 3}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 32:
 				var issue = msg.a;
-				var _v45 = A2($elm$core$Dict$get, issue, model.ik);
+				var _v45 = A2($elm$core$Dict$get, issue, model.ij);
 				if (!_v45.$) {
 					var bulletin = _v45.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								ik: A2($elm$core$Dict$remove, issue, model.ik),
+								ij: A2($elm$core$Dict$remove, issue, model.ij),
 								aS: A3($elm$core$Dict$insert, issue, bulletin, model.aS)
 							}),
 						A2(
@@ -31982,7 +32063,7 @@ var $author$project$Publications$Publications$update = F3(
 							model.bY,
 							A2(
 								$author$project$Auth$AuthPlugin$cmdIfLogged,
-								config.bd,
+								config.be,
 								$author$project$Publications$Publications$deleteBulletin(issue))));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -32005,7 +32086,7 @@ var $author$project$Publications$Publications$update = F3(
 							A2(
 								$elm$core$Task$perform,
 								function (_v47) {
-									return config.he;
+									return config.hd;
 								},
 								$elm$core$Task$succeed(0)));
 					} else {
@@ -32014,7 +32095,7 @@ var $author$project$Publications$Publications$update = F3(
 							_Utils_update(
 								model,
 								{
-									ik: A3($elm$core$Dict$insert, issue, bulletin, model.ik),
+									ij: A3($elm$core$Dict$insert, issue, bulletin, model.ij),
 									aS: A2($elm$core$Dict$remove, issue, model.aS)
 								}),
 							$elm$core$Platform$Cmd$none);
@@ -32055,7 +32136,7 @@ var $author$project$MurolAdmin$update = F2(
 					$author$project$FileExplorer$FileExplorer$update,
 					{
 						eT: $author$project$MurolAdmin$AddLog,
-						bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p)
+						be: $author$project$Auth$AuthPlugin$getLogInfo(model.p)
 					},
 					fileExplorerMsg,
 					model.fe);
@@ -32084,11 +32165,11 @@ var $author$project$MurolAdmin$update = F2(
 					1,
 					_List_fromArray(
 						[
-							A2($author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$load, model.a5, logInfo),
+							A2($author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$load, model.a6, logInfo),
 							A2($author$project$PageTreeEditor$PageTreeEditor$load, model.I, logInfo),
 							A2($author$project$FileExplorer$FileExplorer$load, model.fe, logInfo),
-							A2($author$project$NewsEditor$NewsEditor$load, model.aF, logInfo),
-							A2($author$project$Publications$Publications$load, model.fC, logInfo)
+							A2($author$project$NewsEditor$NewsEditor$load, model.aH, logInfo),
+							A2($author$project$Publications$Publications$load, model.fB, logInfo)
 						])) : _Utils_Tuple2(model.b4, _List_Nil);
 				var newLoadingStatus = _v3.a;
 				var loadingCmds = _v3.b;
@@ -32114,12 +32195,12 @@ var $author$project$MurolAdmin$update = F2(
 					{
 						eT: $author$project$MurolAdmin$AddLog,
 						fe: model.fe,
-						gq: model.a5,
-						j7: $author$project$PageTreeEditor$PageTreeEditor$loadedContent(model.I),
-						bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+						gp: model.a6,
+						j6: $author$project$PageTreeEditor$PageTreeEditor$loadedContent(model.I),
+						be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
 						I: model.I,
-						he: $author$project$MurolAdmin$ReloadFiles,
-						fZ: model.fZ
+						hd: $author$project$MurolAdmin$ReloadFiles,
+						fY: model.fY
 					},
 					pageEditorMsg,
 					model.cP);
@@ -32137,8 +32218,8 @@ var $author$project$MurolAdmin$update = F2(
 					$author$project$PageTreeEditor$PageTreeEditor$update,
 					{
 						eT: $author$project$MurolAdmin$AddLog,
-						iP: $author$project$PageEditor$PageEditor$currentDocument(model.cP),
-						bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p)
+						iO: $author$project$PageEditor$PageEditor$currentDocument(model.cP),
+						be: $author$project$Auth$AuthPlugin$getLogInfo(model.p)
 					},
 					pageTreeEditorMsg,
 					model.I);
@@ -32155,17 +32236,17 @@ var $author$project$MurolAdmin$update = F2(
 					$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$update,
 					{
 						eT: $author$project$MurolAdmin$AddLog,
-						bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-						fZ: model.fZ
+						be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+						fY: model.fY
 					},
 					generalDirectoryMsg,
-					model.a5);
+					model.a6);
 				var newGeneralDirectory = _v6.a;
 				var generalDirectoryCmds = _v6.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{a5: newGeneralDirectory}),
+						{a6: newGeneralDirectory}),
 					generalDirectoryCmds);
 			case 7:
 				var newsEditorMsg = msg.a;
@@ -32173,18 +32254,18 @@ var $author$project$MurolAdmin$update = F2(
 					$author$project$NewsEditor$NewsEditor$update,
 					{
 						eT: $author$project$MurolAdmin$AddLog,
-						bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+						be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
 						I: model.I,
-						fZ: model.fZ
+						fY: model.fY
 					},
 					newsEditorMsg,
-					model.aF);
+					model.aH);
 				var newNewsEditor = _v7.a;
 				var newsEditorCmds = _v7.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{aF: newNewsEditor}),
+						{aH: newNewsEditor}),
 					newsEditorCmds);
 			case 8:
 				var publicationsMsg = msg.a;
@@ -32192,18 +32273,18 @@ var $author$project$MurolAdmin$update = F2(
 					$author$project$Publications$Publications$update,
 					{
 						eT: $author$project$MurolAdmin$AddLog,
-						bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-						he: $author$project$MurolAdmin$ReloadFiles,
-						fZ: model.fZ
+						be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+						hd: $author$project$MurolAdmin$ReloadFiles,
+						fY: model.fY
 					},
 					publicationsMsg,
-					model.fC);
+					model.fB);
 				var newPublications = _v8.a;
 				var newPubCmds = _v8.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{fC: newPublications}),
+						{fB: newPublications}),
 					newPubCmds);
 			case 9:
 				var helpMsg = msg.a;
@@ -32260,8 +32341,8 @@ var $author$project$MurolAdmin$update = F2(
 					_Utils_update(
 						model,
 						{
-							aM: $elm$core$Basics$round(vp.hK.jy),
-							d1: $elm$core$Basics$round(vp.hK.mu)
+							aM: $elm$core$Basics$round(vp.hJ.jx),
+							d1: $elm$core$Basics$round(vp.hJ.mt)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 14:
@@ -32277,11 +32358,11 @@ var $author$project$MurolAdmin$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{fZ: zone}),
+						{fY: zone}),
 					$elm$core$Platform$Cmd$none);
 			case 16:
 				var log = msg.a;
-				var _v13 = A2($author$project$Internals$CommonHelpers$hashLog, model.lm, log);
+				var _v13 = A2($author$project$Internals$CommonHelpers$hashLog, model.ll, log);
 				var logHash = _v13.a;
 				var newSeed = _v13.b;
 				var newLogs = A4(
@@ -32295,13 +32376,13 @@ var $author$project$MurolAdmin$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{cI: newLogs, lm: newSeed}),
+						{cI: newLogs, ll: newSeed}),
 					$elm$core$Platform$Cmd$none);
 			case 17:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{da: !model.da}),
+						{c9: !model.c9}),
 					$elm$core$Platform$Cmd$none);
 			case 18:
 				var h = msg.a;
@@ -32344,7 +32425,7 @@ var $mdgriffith$elm_ui$Internal$Model$Unkeyed = function (a) {
 };
 var $mdgriffith$elm_ui$Internal$Model$AsEl = 2;
 var $mdgriffith$elm_ui$Internal$Model$asEl = 2;
-var $mdgriffith$elm_ui$Internal$Style$classes = {hO: 'a', eS: 'atv', hV: 'ab', hW: 'cx', hX: 'cy', hY: 'acb', hZ: 'accx', h_: 'accy', h$: 'acr', f0: 'al', f1: 'ar', h0: 'at', eU: 'ah', eV: 'av', h4: 's', ia: 'bh', ib: 'b', ie: 'w7', ig: 'bd', ih: 'bdt', d4: 'bn', ii: 'bs', d7: 'cpe', iy: 'cp', iz: 'cpx', iA: 'cpy', e0: 'c', d9: 'ctr', ea: 'cb', eb: 'ccx', bU: 'ccy', du: 'cl', ed: 'cr', iK: 'ct', iR: 'cptr', iS: 'ctxt', gm: 'fcs', gn: 'focus-within', jl: 'fs', ju: 'g', fh: 'hbh', fj: 'hc', gx: 'he', fk: 'hf', gy: 'hfp', jB: 'hv', jH: 'ic', jO: 'fr', jQ: 'iml', jR: 'imlf', jS: 'imlp', jT: 'implw', jU: 'it', jX: 'i', dC: 'lnk', dc: 'nb', gW: 'notxt', kG: 'ol', kH: 'or', cO: 'oq', kP: 'oh', g4: 'pg', g5: 'p', kS: 'ppe', Y: 'ui', hj: 'r', lg: 'sb', lh: 'sbx', li: 'sby', lj: 'sbt', lE: 'e', lG: 'cap', lI: 'sev', lR: 'sk', dW: 't', l1: 'tc', l3: 'w8', l4: 'w2', l5: 'w9', l6: 'tj', eP: 'tja', l7: 'tl', l8: 'w3', l9: 'w5', ma: 'w4', mb: 'tr', mc: 'w6', me: 'w1', mf: 'tun', hF: 'ts', cV: 'clr', hG: 'u', fU: 'wc', hL: 'we', fV: 'wf', hM: 'wfp', fW: 'wrp'};
+var $mdgriffith$elm_ui$Internal$Style$classes = {hN: 'a', eS: 'atv', hU: 'ab', hV: 'cx', hW: 'cy', hX: 'acb', hY: 'accx', hZ: 'accy', h_: 'acr', f$: 'al', f0: 'ar', h$: 'at', eU: 'ah', eV: 'av', h3: 's', h9: 'bh', ia: 'b', id: 'w7', $8: 'bd', ig: 'bdt', d4: 'bn', ih: 'bs', d7: 'cpe', ix: 'cp', iy: 'cpx', iz: 'cpy', e0: 'c', d9: 'ctr', ea: 'cb', eb: 'ccx', bU: 'ccy', dt: 'cl', ed: 'cr', iJ: 'ct', iQ: 'cptr', iR: 'ctxt', gl: 'fcs', gm: 'focus-within', jk: 'fs', jt: 'g', fh: 'hbh', fj: 'hc', gv: 'he', fk: 'hf', gw: 'hfp', jA: 'hv', jG: 'ic', jN: 'fr', jP: 'iml', jQ: 'imlf', jR: 'imlp', jS: 'implw', jT: 'it', jW: 'i', dC: 'lnk', db: 'nb', gV: 'notxt', kF: 'ol', kG: 'or', cO: 'oq', kO: 'oh', g3: 'pg', g4: 'p', kR: 'ppe', Z: 'ui', hi: 'r', lf: 'sb', lg: 'sbx', lh: 'sby', li: 'sbt', lD: 'e', lF: 'cap', lH: 'sev', lQ: 'sk', dW: 't', l0: 'tc', l2: 'w8', l3: 'w2', l4: 'w9', l5: 'tj', eP: 'tja', l6: 'tl', l7: 'w3', l8: 'w5', l9: 'w4', ma: 'tr', mb: 'w6', md: 'w1', me: 'tun', hE: 'ts', cV: 'clr', hF: 'u', fT: 'wc', hK: 'we', fU: 'wf', hL: 'wfp', fV: 'wrp'};
 var $elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
 		return A2(
@@ -32356,12 +32437,12 @@ var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty(
 var $mdgriffith$elm_ui$Internal$Model$Generic = {$: 0};
 var $mdgriffith$elm_ui$Internal$Model$div = $mdgriffith$elm_ui$Internal$Model$Generic;
 var $mdgriffith$elm_ui$Internal$Model$NoNearbyChildren = {$: 0};
-var $mdgriffith$elm_ui$Internal$Model$columnClass = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.e0);
-var $mdgriffith$elm_ui$Internal$Model$gridClass = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.ju);
-var $mdgriffith$elm_ui$Internal$Model$pageClass = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.g4);
-var $mdgriffith$elm_ui$Internal$Model$paragraphClass = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.g5);
-var $mdgriffith$elm_ui$Internal$Model$rowClass = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hj);
-var $mdgriffith$elm_ui$Internal$Model$singleClass = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.lE);
+var $mdgriffith$elm_ui$Internal$Model$columnClass = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.e0);
+var $mdgriffith$elm_ui$Internal$Model$gridClass = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.jt);
+var $mdgriffith$elm_ui$Internal$Model$pageClass = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.g3);
+var $mdgriffith$elm_ui$Internal$Model$paragraphClass = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.g4);
+var $mdgriffith$elm_ui$Internal$Model$rowClass = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hi);
+var $mdgriffith$elm_ui$Internal$Model$singleClass = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.lD);
 var $mdgriffith$elm_ui$Internal$Model$contextClasses = function (context) {
 	switch (context) {
 		case 0:
@@ -32564,13 +32645,13 @@ var $mdgriffith$elm_ui$Internal$Model$getStyleName = function (style) {
 			return 'grid-rows-' + (A2(
 				$elm$core$String$join,
 				'-',
-				A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.le)) + ('-cols-' + (A2(
+				A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.ld)) + ('-cols-' + (A2(
 				$elm$core$String$join,
 				'-',
-				A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.iD)) + ('-space-x-' + ($mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lJ.a) + ('-space-y-' + $mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lJ.b)))))));
+				A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.iC)) + ('-space-x-' + ($mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lI.a) + ('-space-y-' + $mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lI.b)))))));
 		case 9:
 			var pos = style.a;
-			return 'gp grid-pos-' + ($elm$core$String$fromInt(pos.hj) + ('-' + ($elm$core$String$fromInt(pos.gc) + ('-' + ($elm$core$String$fromInt(pos.mu) + ('-' + $elm$core$String$fromInt(pos.jy)))))));
+			return 'gp grid-pos-' + ($elm$core$String$fromInt(pos.hi) + ('-' + ($elm$core$String$fromInt(pos.gb) + ('-' + ($elm$core$String$fromInt(pos.mt) + ('-' + $elm$core$String$fromInt(pos.jx)))))));
 		case 11:
 			var selector = style.a;
 			var subStyle = style.b;
@@ -32646,17 +32727,17 @@ var $mdgriffith$elm_ui$Internal$Model$formatBoxShadow = function (shadow) {
 			$elm$core$Basics$identity,
 			_List_fromArray(
 				[
-					shadow.gE ? $elm$core$Maybe$Just('inset') : $elm$core$Maybe$Nothing,
+					shadow.gD ? $elm$core$Maybe$Just('inset') : $elm$core$Maybe$Nothing,
 					$elm$core$Maybe$Just(
-					$elm$core$String$fromFloat(shadow.kE.a) + 'px'),
+					$elm$core$String$fromFloat(shadow.kD.a) + 'px'),
 					$elm$core$Maybe$Just(
-					$elm$core$String$fromFloat(shadow.kE.b) + 'px'),
+					$elm$core$String$fromFloat(shadow.kD.b) + 'px'),
 					$elm$core$Maybe$Just(
-					$elm$core$String$fromFloat(shadow.id) + 'px'),
+					$elm$core$String$fromFloat(shadow.ic) + 'px'),
 					$elm$core$Maybe$Just(
-					$elm$core$String$fromFloat(shadow.fK) + 'px'),
+					$elm$core$String$fromFloat(shadow.fJ) + 'px'),
 					$elm$core$Maybe$Just(
-					$mdgriffith$elm_ui$Internal$Model$formatColor(shadow.iB))
+					$mdgriffith$elm_ui$Internal$Model$formatColor(shadow.iA))
 				])));
 };
 var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
@@ -32664,7 +32745,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 		[
 			A2(
 			$mdgriffith$elm_ui$Internal$Model$Style,
-			$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gn) + ':focus-within',
+			$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gm) + ':focus-within',
 			A2(
 				$elm$core$List$filterMap,
 				$elm$core$Basics$identity,
@@ -32678,7 +32759,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 								'border-color',
 								$mdgriffith$elm_ui$Internal$Model$formatColor(color));
 						},
-						focus.$8),
+						focus.ie),
 						A2(
 						$elm$core$Maybe$map,
 						function (color) {
@@ -32687,7 +32768,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 								'background-color',
 								$mdgriffith$elm_ui$Internal$Model$formatColor(color));
 						},
-						focus.h7),
+						focus.h6),
 						A2(
 						$elm$core$Maybe$map,
 						function (shadow) {
@@ -32696,23 +32777,23 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 								'box-shadow',
 								$mdgriffith$elm_ui$Internal$Model$formatBoxShadow(
 									{
-										id: shadow.id,
-										iB: shadow.iB,
-										gE: false,
-										kE: A2(
+										ic: shadow.ic,
+										iA: shadow.iA,
+										gD: false,
+										kD: A2(
 											$elm$core$Tuple$mapSecond,
 											$elm$core$Basics$toFloat,
-											A2($elm$core$Tuple$mapFirst, $elm$core$Basics$toFloat, shadow.kE)),
-										fK: shadow.fK
+											A2($elm$core$Tuple$mapFirst, $elm$core$Basics$toFloat, shadow.kD)),
+										fJ: shadow.fJ
 									}));
 						},
-						focus.lD),
+						focus.lC),
 						$elm$core$Maybe$Just(
 						A2($mdgriffith$elm_ui$Internal$Model$Property, 'outline', 'none'))
 					]))),
 			A2(
 			$mdgriffith$elm_ui$Internal$Model$Style,
-			$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4) + (':focus .focusable, ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4) + '.focusable:focus')),
+			$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3) + (':focus .focusable, ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3) + '.focusable:focus')),
 			A2(
 				$elm$core$List$filterMap,
 				$elm$core$Basics$identity,
@@ -32726,7 +32807,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 								'border-color',
 								$mdgriffith$elm_ui$Internal$Model$formatColor(color));
 						},
-						focus.$8),
+						focus.ie),
 						A2(
 						$elm$core$Maybe$map,
 						function (color) {
@@ -32735,7 +32816,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 								'background-color',
 								$mdgriffith$elm_ui$Internal$Model$formatColor(color));
 						},
-						focus.h7),
+						focus.h6),
 						A2(
 						$elm$core$Maybe$map,
 						function (shadow) {
@@ -32744,17 +32825,17 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 								'box-shadow',
 								$mdgriffith$elm_ui$Internal$Model$formatBoxShadow(
 									{
-										id: shadow.id,
-										iB: shadow.iB,
-										gE: false,
-										kE: A2(
+										ic: shadow.ic,
+										iA: shadow.iA,
+										gD: false,
+										kD: A2(
 											$elm$core$Tuple$mapSecond,
 											$elm$core$Basics$toFloat,
-											A2($elm$core$Tuple$mapFirst, $elm$core$Basics$toFloat, shadow.kE)),
-										fK: shadow.fK
+											A2($elm$core$Tuple$mapFirst, $elm$core$Basics$toFloat, shadow.kD)),
+										fJ: shadow.fJ
 									}));
 						},
-						focus.lD),
+						focus.lC),
 						$elm$core$Maybe$Just(
 						A2($mdgriffith$elm_ui$Internal$Model$Property, 'outline', 'none'))
 					])))
@@ -32808,7 +32889,7 @@ var $mdgriffith$elm_ui$Internal$Style$contentName = function (desc) {
 	switch (desc) {
 		case 0:
 			var _v1 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iK);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iJ);
 		case 1:
 			var _v2 = desc;
 			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ea);
@@ -32817,7 +32898,7 @@ var $mdgriffith$elm_ui$Internal$Style$contentName = function (desc) {
 			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ed);
 		case 3:
 			var _v4 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.du);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.dt);
 		case 4:
 			var _v5 = desc;
 			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.eb);
@@ -32830,22 +32911,22 @@ var $mdgriffith$elm_ui$Internal$Style$selfName = function (desc) {
 	switch (desc) {
 		case 0:
 			var _v1 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h0);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h$);
 		case 1:
 			var _v2 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hV);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hU);
 		case 2:
 			var _v3 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.f1);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.f0);
 		case 3:
 			var _v4 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.f0);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.f$);
 		case 4:
 			var _v5 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hV);
 		default:
 			var _v6 = desc;
-			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hX);
+			return $mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW);
 	}
 };
 var $mdgriffith$elm_ui$Internal$Style$describeAlignment = function (values) {
@@ -32861,7 +32942,7 @@ var $mdgriffith$elm_ui$Internal$Style$describeAlignment = function (values) {
 				content),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Child,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 				_List_fromArray(
 					[
 						A2(
@@ -32887,7 +32968,7 @@ var $mdgriffith$elm_ui$Internal$Style$elDescription = _List_fromArray(
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'z-index', '0'),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Child,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ia),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h9),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'z-index', '-1')
@@ -32895,7 +32976,7 @@ var $mdgriffith$elm_ui$Internal$Style$elDescription = _List_fromArray(
 			])),
 		A2(
 		$mdgriffith$elm_ui$Internal$Style$Descriptor,
-		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lj),
+		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.li),
 		_List_fromArray(
 			[
 				A2(
@@ -32912,7 +32993,7 @@ var $mdgriffith$elm_ui$Internal$Style$elDescription = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Descriptor,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fV),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fU),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'align-self', 'auto !important')
@@ -32935,21 +33016,21 @@ var $mdgriffith$elm_ui$Internal$Style$elDescription = _List_fromArray(
 			])),
 		A2(
 		$mdgriffith$elm_ui$Internal$Style$Child,
-		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fV),
-		_List_fromArray(
-			[
-				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
-			])),
-		A2(
-		$mdgriffith$elm_ui$Internal$Style$Child,
-		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hM),
-		_List_fromArray(
-			[
-				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
-			])),
-		A2(
-		$mdgriffith$elm_ui$Internal$Style$Child,
 		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fU),
+		_List_fromArray(
+			[
+				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
+			])),
+		A2(
+		$mdgriffith$elm_ui$Internal$Style$Child,
+		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hL),
+		_List_fromArray(
+			[
+				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
+			])),
+		A2(
+		$mdgriffith$elm_ui$Internal$Style$Child,
+		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fT),
 		_List_fromArray(
 			[
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'align-self', 'flex-start')
@@ -33015,7 +33096,7 @@ var $mdgriffith$elm_ui$Internal$Style$elDescription = _List_fromArray(
 							[
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin-top', 'auto'),
@@ -33036,7 +33117,7 @@ var $mdgriffith$elm_ui$Internal$Style$gridAlignments = function (values) {
 			[
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Child,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 				_List_fromArray(
 					[
 						A2(
@@ -33090,24 +33171,24 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 		A2(
 		$mdgriffith$elm_ui$Internal$Style$Class,
 		_Utils_ap(
-			$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+			$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 			_Utils_ap(
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lE),
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jH))),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lD),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jG))),
 		_List_fromArray(
 			[
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'block')
 			])),
 		A2(
 		$mdgriffith$elm_ui$Internal$Style$Class,
-		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4) + ':focus',
+		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3) + ':focus',
 		_List_fromArray(
 			[
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'outline', 'none')
 			])),
 		A2(
 		$mdgriffith$elm_ui$Internal$Style$Class,
-		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.Y),
+		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.Z),
 		_List_fromArray(
 			[
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%'),
@@ -33117,7 +33198,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
 				_Utils_ap(
-					$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+					$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 					$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fk)),
 				_List_fromArray(
 					[
@@ -33132,12 +33213,12 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Child,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jO),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jN),
 				_List_fromArray(
 					[
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Descriptor,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.dc),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.db),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'fixed')
@@ -33146,7 +33227,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 			])),
 		A2(
 		$mdgriffith$elm_ui$Internal$Style$Class,
-		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.dc),
+		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.db),
 		_List_fromArray(
 			[
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'relative'),
@@ -33156,7 +33237,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-basis', 'auto'),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lE),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lD),
 				$mdgriffith$elm_ui$Internal$Style$elDescription),
 				$mdgriffith$elm_ui$Internal$Style$Batch(
 				function (fn) {
@@ -33167,7 +33248,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							case 0:
 								return A2(
 									$mdgriffith$elm_ui$Internal$Style$Descriptor,
-									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hO),
+									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hN),
 									_List_fromArray(
 										[
 											A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'absolute'),
@@ -33185,7 +33266,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 												])),
 											A2(
 											$mdgriffith$elm_ui$Internal$Style$Child,
-											$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fV),
+											$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fU),
 											_List_fromArray(
 												[
 													A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
@@ -33202,7 +33283,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							case 1:
 								return A2(
 									$mdgriffith$elm_ui$Internal$Style$Descriptor,
-									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ib),
+									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ia),
 									_List_fromArray(
 										[
 											A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'absolute'),
@@ -33231,7 +33312,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							case 2:
 								return A2(
 									$mdgriffith$elm_ui$Internal$Style$Descriptor,
-									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kH),
+									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kG),
 									_List_fromArray(
 										[
 											A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'absolute'),
@@ -33252,7 +33333,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							case 3:
 								return A2(
 									$mdgriffith$elm_ui$Internal$Style$Descriptor,
-									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kG),
+									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kF),
 									_List_fromArray(
 										[
 											A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'absolute'),
@@ -33273,7 +33354,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							case 4:
 								return A2(
 									$mdgriffith$elm_ui$Internal$Style$Descriptor,
-									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jO),
+									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jN),
 									_List_fromArray(
 										[
 											A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'absolute'),
@@ -33294,7 +33375,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							default:
 								return A2(
 									$mdgriffith$elm_ui$Internal$Style$Descriptor,
-									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ia),
+									$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h9),
 									_List_fromArray(
 										[
 											A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'absolute'),
@@ -33318,7 +33399,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 			])),
 		A2(
 		$mdgriffith$elm_ui$Internal$Style$Class,
-		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+		$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 		_List_fromArray(
 			[
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'position', 'relative'),
@@ -33343,14 +33424,14 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-style', 'inherit'),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fW),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fV),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-wrap', 'wrap')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gW),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gV),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, '-moz-user-select', 'none'),
@@ -33360,21 +33441,21 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iR),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iQ),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'cursor', 'pointer')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iS),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iR),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'cursor', 'text')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kS),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kR),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'pointer-events', 'none !important')
@@ -33403,7 +33484,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
 				$mdgriffith$elm_ui$Internal$Style$dot(
-					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.jB, $mdgriffith$elm_ui$Internal$Style$classes.cV)) + ':hover',
+					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.jA, $mdgriffith$elm_ui$Internal$Style$classes.cV)) + ':hover',
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'opacity', '0')
@@ -33411,7 +33492,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
 				$mdgriffith$elm_ui$Internal$Style$dot(
-					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.jB, $mdgriffith$elm_ui$Internal$Style$classes.cO)) + ':hover',
+					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.jA, $mdgriffith$elm_ui$Internal$Style$classes.cO)) + ':hover',
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'opacity', '1')
@@ -33419,7 +33500,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
 				$mdgriffith$elm_ui$Internal$Style$dot(
-					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.gm, $mdgriffith$elm_ui$Internal$Style$classes.cV)) + ':focus',
+					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.gl, $mdgriffith$elm_ui$Internal$Style$classes.cV)) + ':focus',
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'opacity', '0')
@@ -33427,7 +33508,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
 				$mdgriffith$elm_ui$Internal$Style$dot(
-					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.gm, $mdgriffith$elm_ui$Internal$Style$classes.cO)) + ':focus',
+					_Utils_ap($mdgriffith$elm_ui$Internal$Style$classes.gl, $mdgriffith$elm_ui$Internal$Style$classes.cO)) + ':focus',
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'opacity', '1')
@@ -33450,7 +33531,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hF),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hE),
 				_List_fromArray(
 					[
 						A2(
@@ -33469,7 +33550,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lg),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lf),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'overflow', 'auto'),
@@ -33477,13 +33558,13 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lh),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lg),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'overflow-x', 'auto'),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Descriptor,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hj),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hi),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-shrink', '1')
@@ -33491,7 +33572,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.li),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lh),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'overflow-y', 'auto'),
@@ -33504,7 +33585,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Descriptor,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lE),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lD),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-shrink', '1')
@@ -33512,28 +33593,28 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iy),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ix),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'overflow', 'hidden')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iz),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iy),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'overflow-x', 'hidden')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iA),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.iz),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'overflow-y', 'hidden')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fU),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fT),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', 'auto')
@@ -33547,21 +33628,21 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ig),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.$8),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'border-style', 'dashed')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ih),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ig),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'border-style', 'dotted')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ii),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ih),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'border-style', 'solid')
@@ -33576,7 +33657,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jU),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jT),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'line-height', '1.05'),
@@ -33584,24 +33665,24 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lE),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lD),
 				$mdgriffith$elm_ui$Internal$Style$elDescription),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hj),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hi),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex'),
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-direction', 'row'),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-basis', '0%'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Descriptor,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hL),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hK),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-basis', 'auto')
@@ -33623,14 +33704,14 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gy),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gw),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'align-self', 'stretch !important')
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fV),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fU),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '100000')
@@ -33646,20 +33727,20 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						'u:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.h$,
+						'u:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.h_,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1')
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ,
+						's:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hY,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hV),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin-left', 'auto !important')
@@ -33667,13 +33748,13 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:last-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ,
+						's:last-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hY,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hV),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin-right', 'auto !important')
@@ -33681,13 +33762,13 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:only-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ,
+						's:only-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hY,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hX),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin-top', 'auto !important'),
@@ -33696,14 +33777,14 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:last-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.hZ + ' ~ u'),
+						's:last-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.hY + ' ~ u'),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '0')
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						'u:first-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.h$ + (' ~ s.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ)),
+						'u:first-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.h_ + (' ~ s.' + $mdgriffith$elm_ui$Internal$Style$classes.hY)),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '0')
@@ -33766,7 +33847,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 						}),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Descriptor,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lI),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lH),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'justify-content', 'space-between')
@@ -33781,13 +33862,13 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-direction', 'column'),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-basis', '0%'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Descriptor,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gx),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.gv),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-basis', 'auto')
@@ -33809,41 +33890,41 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fV),
-						_List_fromArray(
-							[
-								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
-							])),
-						A2(
-						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hM),
-						_List_fromArray(
-							[
-								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
-							])),
-						A2(
-						$mdgriffith$elm_ui$Internal$Style$Child,
 						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fU),
+						_List_fromArray(
+							[
+								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
+							])),
+						A2(
+						$mdgriffith$elm_ui$Internal$Style$Child,
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hL),
+						_List_fromArray(
+							[
+								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
+							])),
+						A2(
+						$mdgriffith$elm_ui$Internal$Style$Child,
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.fT),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'align-self', 'flex-start')
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						'u:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hY,
+						'u:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hX,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1')
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.h_,
+						's:first-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hX),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin-top', 'auto !important'),
@@ -33852,13 +33933,13 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:last-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.h_,
+						's:last-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hX),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin-bottom', 'auto !important'),
@@ -33867,13 +33948,13 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:only-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.h_,
+						's:only-of-type.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ,
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '1'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hX),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hW),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin-top', 'auto !important'),
@@ -33882,14 +33963,14 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						's:last-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.h_ + ' ~ u'),
+						's:last-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.hZ + ' ~ u'),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '0')
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						'u:first-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.hY + (' ~ s.' + $mdgriffith$elm_ui$Internal$Style$classes.h_)),
+						'u:first-of-type.' + ($mdgriffith$elm_ui$Internal$Style$classes.hX + (' ~ s.' + $mdgriffith$elm_ui$Internal$Style$classes.hZ)),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-grow', '0')
@@ -33968,7 +34049,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Descriptor,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lI),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lH),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'justify-content', 'space-between')
@@ -33976,7 +34057,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ju),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jt),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', '-ms-grid'),
@@ -33987,7 +34068,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							[
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'width', '100%')
@@ -34038,13 +34119,13 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.g4),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.g3),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'block'),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4 + ':first-child'),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3 + ':first-child'),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin', '0 !important')
@@ -34052,7 +34133,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
 						$mdgriffith$elm_ui$Internal$Style$dot(
-							$mdgriffith$elm_ui$Internal$Style$classes.h4 + ($mdgriffith$elm_ui$Internal$Style$selfName(3) + (':first-child + .' + $mdgriffith$elm_ui$Internal$Style$classes.h4))),
+							$mdgriffith$elm_ui$Internal$Style$classes.h3 + ($mdgriffith$elm_ui$Internal$Style$selfName(3) + (':first-child + .' + $mdgriffith$elm_ui$Internal$Style$classes.h3))),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin', '0 !important')
@@ -34060,7 +34141,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
 						$mdgriffith$elm_ui$Internal$Style$dot(
-							$mdgriffith$elm_ui$Internal$Style$classes.h4 + ($mdgriffith$elm_ui$Internal$Style$selfName(2) + (':first-child + .' + $mdgriffith$elm_ui$Internal$Style$classes.h4))),
+							$mdgriffith$elm_ui$Internal$Style$classes.h3 + ($mdgriffith$elm_ui$Internal$Style$selfName(2) + (':first-child + .' + $mdgriffith$elm_ui$Internal$Style$classes.h3))),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'margin', '0 !important')
@@ -34113,7 +34194,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jQ),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jP),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'white-space', 'pre-wrap'),
@@ -34123,12 +34204,12 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jT),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jS),
 				_List_fromArray(
 					[
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Descriptor,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lE),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lD),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'flex-basis', 'auto')
@@ -34136,14 +34217,14 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jS),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jR),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'white-space', 'pre-wrap'),
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'cursor', 'text'),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jR),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jQ),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'white-space', 'pre-wrap'),
@@ -34152,7 +34233,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.g5),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.g4),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'block'),
@@ -34165,7 +34246,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'z-index', '0'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ia),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h9),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'z-index', '-1')
@@ -34181,14 +34262,28 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lE),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lD),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'inline'),
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'white-space', 'normal'),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Descriptor,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jO),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jN),
+								_List_fromArray(
+									[
+										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
+									])),
+								A2(
+								$mdgriffith$elm_ui$Internal$Style$Descriptor,
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h9),
+								_List_fromArray(
+									[
+										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
+									])),
+								A2(
+								$mdgriffith$elm_ui$Internal$Style$Descriptor,
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hN),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
@@ -34202,28 +34297,14 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 									])),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Descriptor,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hO),
-								_List_fromArray(
-									[
-										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
-									])),
-								A2(
-								$mdgriffith$elm_ui$Internal$Style$Descriptor,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ib),
-								_List_fromArray(
-									[
-										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
-									])),
-								A2(
-								$mdgriffith$elm_ui$Internal$Style$Descriptor,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kH),
-								_List_fromArray(
-									[
-										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
-									])),
-								A2(
-								$mdgriffith$elm_ui$Internal$Style$Descriptor,
 								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kG),
+								_List_fromArray(
+									[
+										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
+									])),
+								A2(
+								$mdgriffith$elm_ui$Internal$Style$Descriptor,
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.kF),
 								_List_fromArray(
 									[
 										A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'flex')
@@ -34238,7 +34319,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 									])),
 								A2(
 								$mdgriffith$elm_ui$Internal$Style$Child,
-								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lE),
+								$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lD),
 								_List_fromArray(
 									[
 										A2(
@@ -34253,7 +34334,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hj),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hi),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'inline-flex')
@@ -34267,7 +34348,7 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 							])),
 						A2(
 						$mdgriffith$elm_ui$Internal$Style$Child,
-						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ju),
+						$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jt),
 						_List_fromArray(
 							[
 								A2($mdgriffith$elm_ui$Internal$Style$Prop, 'display', 'inline-grid')
@@ -34309,84 +34390,84 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.me),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.md),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '100')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l4),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l3),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '200')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l8),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l7),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '300')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ma),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l9),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '400')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l9),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l8),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '500')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.mc),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.mb),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '600')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ie),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.id),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '700')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l3),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l2),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '800')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l5),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l4),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-weight', '900')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jX),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.jW),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-style', 'italic')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lR),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lQ),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'text-decoration', 'line-through')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hG),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hF),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'text-decoration', 'underline'),
@@ -34396,8 +34477,8 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
 				_Utils_ap(
-					$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hG),
-					$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lR)),
+					$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hF),
+					$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.lQ)),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'text-decoration', 'line-through underline'),
@@ -34406,14 +34487,14 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.mf),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.me),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'font-style', 'normal')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l6),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l5),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'text-align', 'justify')
@@ -34427,21 +34508,21 @@ var $mdgriffith$elm_ui$Internal$Style$baseSheet = _List_fromArray(
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l1),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l0),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'text-align', 'center')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.mb),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.ma),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'text-align', 'right')
 					])),
 				A2(
 				$mdgriffith$elm_ui$Internal$Style$Descriptor,
-				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l7),
+				$mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.l6),
 				_List_fromArray(
 					[
 						A2($mdgriffith$elm_ui$Internal$Style$Prop, 'text-align', 'left')
@@ -34553,16 +34634,16 @@ var $mdgriffith$elm_ui$Internal$Style$commonValues = $elm$core$List$concat(
 			$mdgriffith$elm_ui$Internal$Style$fontVariant('afrc'),
 			$mdgriffith$elm_ui$Internal$Style$fontVariant('frac')
 		]));
-var $mdgriffith$elm_ui$Internal$Style$explainer = '\n.explain {\n    border: 6px solid rgb(174, 121, 15) !important;\n}\n.explain > .' + ($mdgriffith$elm_ui$Internal$Style$classes.h4 + (' {\n    border: 4px dashed rgb(0, 151, 167) !important;\n}\n\n.ctr {\n    border: none !important;\n}\n.explain > .ctr > .' + ($mdgriffith$elm_ui$Internal$Style$classes.h4 + ' {\n    border: 4px dashed rgb(0, 151, 167) !important;\n}\n\n')));
+var $mdgriffith$elm_ui$Internal$Style$explainer = '\n.explain {\n    border: 6px solid rgb(174, 121, 15) !important;\n}\n.explain > .' + ($mdgriffith$elm_ui$Internal$Style$classes.h3 + (' {\n    border: 4px dashed rgb(0, 151, 167) !important;\n}\n\n.ctr {\n    border: none !important;\n}\n.explain > .ctr > .' + ($mdgriffith$elm_ui$Internal$Style$classes.h3 + ' {\n    border: 4px dashed rgb(0, 151, 167) !important;\n}\n\n')));
 var $mdgriffith$elm_ui$Internal$Style$inputTextReset = '\ninput[type="search"],\ninput[type="search"]::-webkit-search-decoration,\ninput[type="search"]::-webkit-search-cancel-button,\ninput[type="search"]::-webkit-search-results-button,\ninput[type="search"]::-webkit-search-results-decoration {\n  -webkit-appearance:none;\n}\n';
 var $mdgriffith$elm_ui$Internal$Style$sliderReset = '\ninput[type=range] {\n  -webkit-appearance: none; \n  background: transparent;\n  position:absolute;\n  left:0;\n  top:0;\n  z-index:10;\n  width: 100%;\n  outline: dashed 1px;\n  height: 100%;\n  opacity: 0;\n}\n';
 var $mdgriffith$elm_ui$Internal$Style$thumbReset = '\ninput[type=range]::-webkit-slider-thumb {\n    -webkit-appearance: none;\n    opacity: 0.5;\n    width: 80px;\n    height: 80px;\n    background-color: black;\n    border:none;\n    border-radius: 5px;\n}\ninput[type=range]::-moz-range-thumb {\n    opacity: 0.5;\n    width: 80px;\n    height: 80px;\n    background-color: black;\n    border:none;\n    border-radius: 5px;\n}\ninput[type=range]::-ms-thumb {\n    opacity: 0.5;\n    width: 80px;\n    height: 80px;\n    background-color: black;\n    border:none;\n    border-radius: 5px;\n}\ninput[type=range][orient=vertical]{\n    writing-mode: bt-lr; /* IE */\n    -webkit-appearance: slider-vertical;  /* WebKit */\n}\n';
 var $mdgriffith$elm_ui$Internal$Style$trackReset = '\ninput[type=range]::-moz-range-track {\n    background: transparent;\n    cursor: pointer;\n}\ninput[type=range]::-ms-track {\n    background: transparent;\n    cursor: pointer;\n}\ninput[type=range]::-webkit-slider-runnable-track {\n    background: transparent;\n    cursor: pointer;\n}\n';
-var $mdgriffith$elm_ui$Internal$Style$overrides = '@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4) + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hj) + (' > ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4) + (' { flex-basis: auto !important; } ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4) + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hj) + (' > ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h4) + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.d9) + (' { flex-basis: auto !important; }}' + ($mdgriffith$elm_ui$Internal$Style$inputTextReset + ($mdgriffith$elm_ui$Internal$Style$sliderReset + ($mdgriffith$elm_ui$Internal$Style$trackReset + ($mdgriffith$elm_ui$Internal$Style$thumbReset + $mdgriffith$elm_ui$Internal$Style$explainer)))))))))))))));
+var $mdgriffith$elm_ui$Internal$Style$overrides = '@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3) + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hi) + (' > ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3) + (' { flex-basis: auto !important; } ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3) + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.hi) + (' > ' + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.h3) + ($mdgriffith$elm_ui$Internal$Style$dot($mdgriffith$elm_ui$Internal$Style$classes.d9) + (' { flex-basis: auto !important; }}' + ($mdgriffith$elm_ui$Internal$Style$inputTextReset + ($mdgriffith$elm_ui$Internal$Style$sliderReset + ($mdgriffith$elm_ui$Internal$Style$trackReset + ($mdgriffith$elm_ui$Internal$Style$thumbReset + $mdgriffith$elm_ui$Internal$Style$explainer)))))))))))))));
 var $mdgriffith$elm_ui$Internal$Style$Intermediate = $elm$core$Basics$identity;
 var $mdgriffith$elm_ui$Internal$Style$emptyIntermediate = F2(
 	function (selector, closing) {
-		return {d8: closing, ag: _List_Nil, ci: _List_Nil, a$: selector};
+		return {d8: closing, ah: _List_Nil, ci: _List_Nil, a$: selector};
 	});
 var $mdgriffith$elm_ui$Internal$Style$renderRules = F2(
 	function (_v0, rulesToRender) {
@@ -34589,10 +34670,10 @@ var $mdgriffith$elm_ui$Internal$Style$renderRules = F2(
 						return _Utils_update(
 							rendered,
 							{
-								ag: A2(
+								ah: A2(
 									$elm$core$List$cons,
-									{d8: '\n}', ag: _List_Nil, ci: props, a$: '@supports (' + (prop + (':' + (value + (') {' + parent.a$))))},
-									rendered.ag)
+									{d8: '\n}', ah: _List_Nil, ci: props, a$: '@supports (' + (prop + (':' + (value + (') {' + parent.a$))))},
+									rendered.ah)
 							});
 					case 4:
 						var selector = rule.a;
@@ -34600,13 +34681,13 @@ var $mdgriffith$elm_ui$Internal$Style$renderRules = F2(
 						return _Utils_update(
 							rendered,
 							{
-								ag: A2(
+								ah: A2(
 									$elm$core$List$cons,
 									A2(
 										$mdgriffith$elm_ui$Internal$Style$renderRules,
 										A2($mdgriffith$elm_ui$Internal$Style$emptyIntermediate, parent.a$ + (' + ' + selector), ''),
 										adjRules),
-									rendered.ag)
+									rendered.ah)
 							});
 					case 1:
 						var child = rule.a;
@@ -34614,13 +34695,13 @@ var $mdgriffith$elm_ui$Internal$Style$renderRules = F2(
 						return _Utils_update(
 							rendered,
 							{
-								ag: A2(
+								ah: A2(
 									$elm$core$List$cons,
 									A2(
 										$mdgriffith$elm_ui$Internal$Style$renderRules,
 										A2($mdgriffith$elm_ui$Internal$Style$emptyIntermediate, parent.a$ + (' > ' + child), ''),
 										childRules),
-									rendered.ag)
+									rendered.ah)
 							});
 					case 3:
 						var descriptor = rule.a;
@@ -34628,7 +34709,7 @@ var $mdgriffith$elm_ui$Internal$Style$renderRules = F2(
 						return _Utils_update(
 							rendered,
 							{
-								ag: A2(
+								ah: A2(
 									$elm$core$List$cons,
 									A2(
 										$mdgriffith$elm_ui$Internal$Style$renderRules,
@@ -34637,20 +34718,20 @@ var $mdgriffith$elm_ui$Internal$Style$renderRules = F2(
 											_Utils_ap(parent.a$, descriptor),
 											''),
 										descriptorRules),
-									rendered.ag)
+									rendered.ah)
 							});
 					default:
 						var batched = rule.a;
 						return _Utils_update(
 							rendered,
 							{
-								ag: A2(
+								ah: A2(
 									$elm$core$List$cons,
 									A2(
 										$mdgriffith$elm_ui$Internal$Style$renderRules,
 										A2($mdgriffith$elm_ui$Internal$Style$emptyIntermediate, parent.a$, ''),
 										batched),
-									rendered.ag)
+									rendered.ah)
 							});
 				}
 			});
@@ -34681,7 +34762,7 @@ var $mdgriffith$elm_ui$Internal$Style$renderCompact = function (styleClasses) {
 		return _Utils_ap(
 			renderClass(rule),
 			$elm$core$String$concat(
-				A2($elm$core$List$map, renderIntermediate, rule.ag)));
+				A2($elm$core$List$map, renderIntermediate, rule.ah)));
 	};
 	return $elm$core$String$concat(
 		A2(
@@ -34781,7 +34862,7 @@ var $mdgriffith$elm_ui$Internal$Model$isSmallCaps = function (_var) {
 var $mdgriffith$elm_ui$Internal$Model$hasSmallCaps = function (typeface) {
 	if (typeface.$ === 5) {
 		var font = typeface.a;
-		return A2($elm$core$List$any, $mdgriffith$elm_ui$Internal$Model$isSmallCaps, font.hI);
+		return A2($elm$core$List$any, $mdgriffith$elm_ui$Internal$Model$isSmallCaps, font.hH);
 	} else {
 		return false;
 	}
@@ -34811,7 +34892,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderStyle = F4(
 			var pseudo = maybePseudo.a;
 			switch (pseudo) {
 				case 1:
-					var _v2 = options.jB;
+					var _v2 = options.jA;
 					switch (_v2) {
 						case 0:
 							return _List_Nil;
@@ -34841,7 +34922,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderStyle = F4(
 						'',
 						props);
 					return _List_fromArray(
-						[selector + ('-fs:focus {' + (renderedProps + '\n}')), '.' + ($mdgriffith$elm_ui$Internal$Style$classes.h4 + (':focus ~ ' + (selector + ('-fs:not(.focus)  {' + (renderedProps + '\n}'))))), '.' + ($mdgriffith$elm_ui$Internal$Style$classes.h4 + (':focus ' + (selector + ('-fs  {' + (renderedProps + '\n}'))))), selector + ('-fs:focus-within {' + (renderedProps + '\n}')), '.focusable-parent:focus ~ ' + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + (selector + ('-fs {' + (renderedProps + '\n}'))))))]);
+						[selector + ('-fs:focus {' + (renderedProps + '\n}')), '.' + ($mdgriffith$elm_ui$Internal$Style$classes.h3 + (':focus ~ ' + (selector + ('-fs:not(.focus)  {' + (renderedProps + '\n}'))))), '.' + ($mdgriffith$elm_ui$Internal$Style$classes.h3 + (':focus ' + (selector + ('-fs  {' + (renderedProps + '\n}'))))), selector + ('-fs:focus-within {' + (renderedProps + '\n}')), '.focusable-parent:focus ~ ' + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + (selector + ('-fs {' + (renderedProps + '\n}'))))))]);
 				default:
 					return _List_fromArray(
 						[
@@ -34875,7 +34956,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderVariants = function (typeface) {
 			A2(
 				$elm$core$String$join,
 				', ',
-				A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$renderVariant, font.hI)));
+				A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$renderVariant, font.hH)));
 	} else {
 		return $elm$core$Maybe$Nothing;
 	}
@@ -35021,18 +35102,18 @@ var $mdgriffith$elm_ui$Internal$Model$renderStyleRule = F3(
 				var y = rule.c;
 				var yPx = $elm$core$String$fromInt(y) + 'px';
 				var xPx = $elm$core$String$fromInt(x) + 'px';
-				var single = '.' + $mdgriffith$elm_ui$Internal$Style$classes.lE;
-				var row = '.' + $mdgriffith$elm_ui$Internal$Style$classes.hj;
-				var wrappedRow = '.' + ($mdgriffith$elm_ui$Internal$Style$classes.fW + row);
-				var right = '.' + $mdgriffith$elm_ui$Internal$Style$classes.f1;
-				var paragraph = '.' + $mdgriffith$elm_ui$Internal$Style$classes.g5;
-				var page = '.' + $mdgriffith$elm_ui$Internal$Style$classes.g4;
-				var left = '.' + $mdgriffith$elm_ui$Internal$Style$classes.f0;
+				var single = '.' + $mdgriffith$elm_ui$Internal$Style$classes.lD;
+				var row = '.' + $mdgriffith$elm_ui$Internal$Style$classes.hi;
+				var wrappedRow = '.' + ($mdgriffith$elm_ui$Internal$Style$classes.fV + row);
+				var right = '.' + $mdgriffith$elm_ui$Internal$Style$classes.f0;
+				var paragraph = '.' + $mdgriffith$elm_ui$Internal$Style$classes.g4;
+				var page = '.' + $mdgriffith$elm_ui$Internal$Style$classes.g3;
+				var left = '.' + $mdgriffith$elm_ui$Internal$Style$classes.f$;
 				var halfY = $elm$core$String$fromFloat(y / 2) + 'px';
 				var halfX = $elm$core$String$fromFloat(x / 2) + 'px';
 				var column = '.' + $mdgriffith$elm_ui$Internal$Style$classes.e0;
 				var _class = '.' + cls;
-				var any = '.' + $mdgriffith$elm_ui$Internal$Style$classes.h4;
+				var any = '.' + $mdgriffith$elm_ui$Internal$Style$classes.h3;
 				return $elm$core$List$concat(
 					_List_fromArray(
 						[
@@ -35290,45 +35371,45 @@ var $mdgriffith$elm_ui$Internal$Model$renderStyleRule = F3(
 				var toGridLength = function (x) {
 					return A3(toGridLengthHelper, $elm$core$Maybe$Nothing, $elm$core$Maybe$Nothing, x);
 				};
-				var xSpacing = toGridLength(template.lJ.a);
-				var ySpacing = toGridLength(template.lJ.b);
+				var xSpacing = toGridLength(template.lI.a);
+				var ySpacing = toGridLength(template.lI.b);
 				var rows = function (x) {
 					return 'grid-template-rows: ' + (x + ';');
 				}(
 					A2(
 						$elm$core$String$join,
 						' ',
-						A2($elm$core$List$map, toGridLength, template.le)));
+						A2($elm$core$List$map, toGridLength, template.ld)));
 				var msRows = function (x) {
 					return '-ms-grid-rows: ' + (x + ';');
 				}(
 					A2(
 						$elm$core$String$join,
 						ySpacing,
-						A2($elm$core$List$map, toGridLength, template.iD)));
+						A2($elm$core$List$map, toGridLength, template.iC)));
 				var msColumns = function (x) {
 					return '-ms-grid-columns: ' + (x + ';');
 				}(
 					A2(
 						$elm$core$String$join,
 						ySpacing,
-						A2($elm$core$List$map, toGridLength, template.iD)));
-				var gapY = 'grid-row-gap:' + (toGridLength(template.lJ.b) + ';');
-				var gapX = 'grid-column-gap:' + (toGridLength(template.lJ.a) + ';');
+						A2($elm$core$List$map, toGridLength, template.iC)));
+				var gapY = 'grid-row-gap:' + (toGridLength(template.lI.b) + ';');
+				var gapX = 'grid-column-gap:' + (toGridLength(template.lI.a) + ';');
 				var columns = function (x) {
 					return 'grid-template-columns: ' + (x + ';');
 				}(
 					A2(
 						$elm$core$String$join,
 						' ',
-						A2($elm$core$List$map, toGridLength, template.iD)));
+						A2($elm$core$List$map, toGridLength, template.iC)));
 				var _class = '.grid-rows-' + (A2(
 					$elm$core$String$join,
 					'-',
-					A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.le)) + ('-cols-' + (A2(
+					A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.ld)) + ('-cols-' + (A2(
 					$elm$core$String$join,
 					'-',
-					A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.iD)) + ('-space-x-' + ($mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lJ.a) + ('-space-y-' + $mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lJ.b)))))));
+					A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$lengthClassName, template.iC)) + ('-space-x-' + ($mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lI.a) + ('-space-y-' + $mdgriffith$elm_ui$Internal$Model$lengthClassName(template.lI.b)))))));
 				var modernGrid = _class + ('{' + (columns + (rows + (gapX + (gapY + '}')))));
 				var supports = '@supports (display:grid) {' + (modernGrid + '}');
 				var base = _class + ('{' + (msColumns + (msRows + '}')));
@@ -35341,20 +35422,20 @@ var $mdgriffith$elm_ui$Internal$Model$renderStyleRule = F3(
 					' ',
 					_List_fromArray(
 						[
-							'-ms-grid-row: ' + ($elm$core$String$fromInt(position.hj) + ';'),
-							'-ms-grid-row-span: ' + ($elm$core$String$fromInt(position.jy) + ';'),
-							'-ms-grid-column: ' + ($elm$core$String$fromInt(position.gc) + ';'),
-							'-ms-grid-column-span: ' + ($elm$core$String$fromInt(position.mu) + ';')
+							'-ms-grid-row: ' + ($elm$core$String$fromInt(position.hi) + ';'),
+							'-ms-grid-row-span: ' + ($elm$core$String$fromInt(position.jx) + ';'),
+							'-ms-grid-column: ' + ($elm$core$String$fromInt(position.gb) + ';'),
+							'-ms-grid-column-span: ' + ($elm$core$String$fromInt(position.mt) + ';')
 						]));
 				var modernPosition = A2(
 					$elm$core$String$join,
 					' ',
 					_List_fromArray(
 						[
-							'grid-row: ' + ($elm$core$String$fromInt(position.hj) + (' / ' + ($elm$core$String$fromInt(position.hj + position.jy) + ';'))),
-							'grid-column: ' + ($elm$core$String$fromInt(position.gc) + (' / ' + ($elm$core$String$fromInt(position.gc + position.mu) + ';')))
+							'grid-row: ' + ($elm$core$String$fromInt(position.hi) + (' / ' + ($elm$core$String$fromInt(position.hi + position.jx) + ';'))),
+							'grid-column: ' + ($elm$core$String$fromInt(position.gb) + (' / ' + ($elm$core$String$fromInt(position.gb + position.mt) + ';')))
 						]));
-				var _class = '.grid-pos-' + ($elm$core$String$fromInt(position.hj) + ('-' + ($elm$core$String$fromInt(position.gc) + ('-' + ($elm$core$String$fromInt(position.mu) + ('-' + $elm$core$String$fromInt(position.jy)))))));
+				var _class = '.grid-pos-' + ($elm$core$String$fromInt(position.hi) + ('-' + ($elm$core$String$fromInt(position.gb) + ('-' + ($elm$core$String$fromInt(position.mt) + ('-' + $elm$core$String$fromInt(position.jx)))))));
 				var modernGrid = _class + ('{' + (modernPosition + '}'));
 				var supports = '@supports (display:grid) {' + (modernGrid + '}');
 				var base = _class + ('{' + (msPosition + '}'));
@@ -35437,8 +35518,8 @@ var $mdgriffith$elm_ui$Internal$Model$renderFontAdjustmentRule = F3(
 			$elm$core$String$join,
 			' ',
 			_Utils_ap(
-				A3($mdgriffith$elm_ui$Internal$Model$fontRule, name, $mdgriffith$elm_ui$Internal$Style$classes.lG, capital),
-				A3($mdgriffith$elm_ui$Internal$Model$fontRule, name, $mdgriffith$elm_ui$Internal$Style$classes.jl, full)));
+				A3($mdgriffith$elm_ui$Internal$Model$fontRule, name, $mdgriffith$elm_ui$Internal$Style$classes.lF, capital),
+				A3($mdgriffith$elm_ui$Internal$Model$fontRule, name, $mdgriffith$elm_ui$Internal$Style$classes.jk, full)));
 	});
 var $mdgriffith$elm_ui$Internal$Model$renderNullAdjustmentRule = F2(
 	function (fontToAdjust, otherFontName) {
@@ -35450,14 +35531,14 @@ var $mdgriffith$elm_ui$Internal$Model$renderNullAdjustmentRule = F2(
 				[
 					A2(
 					$mdgriffith$elm_ui$Internal$Model$bracket,
-					'.' + (name + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.lG + (', ' + ('.' + (name + (' .' + $mdgriffith$elm_ui$Internal$Style$classes.lG))))))),
+					'.' + (name + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.lF + (', ' + ('.' + (name + (' .' + $mdgriffith$elm_ui$Internal$Style$classes.lF))))))),
 					_List_fromArray(
 						[
 							_Utils_Tuple2('line-height', '1')
 						])),
 					A2(
 					$mdgriffith$elm_ui$Internal$Model$bracket,
-					'.' + (name + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.lG + ('> .' + ($mdgriffith$elm_ui$Internal$Style$classes.dW + (', .' + (name + (' .' + ($mdgriffith$elm_ui$Internal$Style$classes.lG + (' > .' + $mdgriffith$elm_ui$Internal$Style$classes.dW)))))))))),
+					'.' + (name + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.lF + ('> .' + ($mdgriffith$elm_ui$Internal$Style$classes.dW + (', .' + (name + (' .' + ($mdgriffith$elm_ui$Internal$Style$classes.lF + (' > .' + $mdgriffith$elm_ui$Internal$Style$classes.dW)))))))))),
 					_List_fromArray(
 						[
 							_Utils_Tuple2('vertical-align', '0'),
@@ -35467,7 +35548,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderNullAdjustmentRule = F2(
 	});
 var $mdgriffith$elm_ui$Internal$Model$adjust = F3(
 	function (size, height, vertical) {
-		return {jy: height / size, fK: size, hJ: vertical};
+		return {jx: height / size, fJ: size, hI: vertical};
 	});
 var $elm$core$List$maximum = function (list) {
 	if (list.b) {
@@ -35491,17 +35572,17 @@ var $elm$core$List$minimum = function (list) {
 };
 var $mdgriffith$elm_ui$Internal$Model$convertAdjustment = function (adjustment) {
 	var lines = _List_fromArray(
-		[adjustment.im, adjustment.h9, adjustment.i_, adjustment.kb]);
+		[adjustment.il, adjustment.h8, adjustment.iZ, adjustment.ka]);
 	var lineHeight = 1.5;
 	var normalDescender = (lineHeight - 1) / 2;
 	var oldMiddle = lineHeight / 2;
 	var descender = A2(
 		$elm$core$Maybe$withDefault,
-		adjustment.i_,
+		adjustment.iZ,
 		$elm$core$List$minimum(lines));
 	var newBaseline = A2(
 		$elm$core$Maybe$withDefault,
-		adjustment.h9,
+		adjustment.h8,
 		$elm$core$List$minimum(
 			A2(
 				$elm$core$List$filter,
@@ -35512,7 +35593,7 @@ var $mdgriffith$elm_ui$Internal$Model$convertAdjustment = function (adjustment) 
 	var base = lineHeight;
 	var ascender = A2(
 		$elm$core$Maybe$withDefault,
-		adjustment.im,
+		adjustment.il,
 		$elm$core$List$maximum(lines));
 	var capitalSize = 1 / (ascender - newBaseline);
 	var capitalVertical = 1 - ascender;
@@ -35521,8 +35602,8 @@ var $mdgriffith$elm_ui$Internal$Model$convertAdjustment = function (adjustment) 
 	var newCapitalMiddle = ((ascender - newBaseline) / 2) + newBaseline;
 	var newFullMiddle = ((ascender - descender) / 2) + descender;
 	return {
-		im: A3($mdgriffith$elm_ui$Internal$Model$adjust, capitalSize, ascender - newBaseline, capitalVertical),
-		gp: A3($mdgriffith$elm_ui$Internal$Model$adjust, fullSize, ascender - descender, fullVertical)
+		il: A3($mdgriffith$elm_ui$Internal$Model$adjust, capitalSize, ascender - newBaseline, capitalVertical),
+		go: A3($mdgriffith$elm_ui$Internal$Model$adjust, fullSize, ascender - descender, fullVertical)
 	};
 };
 var $mdgriffith$elm_ui$Internal$Model$fontAdjustmentRules = function (converted) {
@@ -35536,13 +35617,13 @@ var $mdgriffith$elm_ui$Internal$Model$fontAdjustmentRules = function (converted)
 				_Utils_Tuple2('display', 'inline-block'),
 				_Utils_Tuple2(
 				'line-height',
-				$elm$core$String$fromFloat(converted.jy)),
+				$elm$core$String$fromFloat(converted.jx)),
 				_Utils_Tuple2(
 				'vertical-align',
-				$elm$core$String$fromFloat(converted.hJ) + 'em'),
+				$elm$core$String$fromFloat(converted.hI) + 'em'),
 				_Utils_Tuple2(
 				'font-size',
-				$elm$core$String$fromFloat(converted.fK) + 'em')
+				$elm$core$String$fromFloat(converted.fJ) + 'em')
 			]));
 };
 var $mdgriffith$elm_ui$Internal$Model$typefaceAdjustment = function (typefaces) {
@@ -35553,7 +35634,7 @@ var $mdgriffith$elm_ui$Internal$Model$typefaceAdjustment = function (typefaces) 
 				if (found.$ === 1) {
 					if (face.$ === 5) {
 						var _with = face.a;
-						var _v2 = _with.hT;
+						var _v2 = _with.hS;
 						if (_v2.$ === 1) {
 							return found;
 						} else {
@@ -35562,12 +35643,12 @@ var $mdgriffith$elm_ui$Internal$Model$typefaceAdjustment = function (typefaces) 
 								_Utils_Tuple2(
 									$mdgriffith$elm_ui$Internal$Model$fontAdjustmentRules(
 										function ($) {
-											return $.gp;
+											return $.go;
 										}(
 											$mdgriffith$elm_ui$Internal$Model$convertAdjustment(adjustment))),
 									$mdgriffith$elm_ui$Internal$Model$fontAdjustmentRules(
 										function ($) {
-											return $.im;
+											return $.il;
 										}(
 											$mdgriffith$elm_ui$Internal$Model$convertAdjustment(adjustment)))));
 						}
@@ -35735,7 +35816,7 @@ var $mdgriffith$elm_ui$Internal$Model$embedKeyed = F4(
 				$mdgriffith$elm_ui$Internal$Model$reduceStyles,
 				_Utils_Tuple2(
 					$elm$core$Set$empty,
-					$mdgriffith$elm_ui$Internal$Model$renderFocusStyle(opts.gm)),
+					$mdgriffith$elm_ui$Internal$Model$renderFocusStyle(opts.gl)),
 				styles).b);
 		return _static ? A2(
 			$elm$core$List$cons,
@@ -35760,7 +35841,7 @@ var $mdgriffith$elm_ui$Internal$Model$embedWith = F4(
 				$mdgriffith$elm_ui$Internal$Model$reduceStyles,
 				_Utils_Tuple2(
 					$elm$core$Set$empty,
-					$mdgriffith$elm_ui$Internal$Model$renderFocusStyle(opts.gm)),
+					$mdgriffith$elm_ui$Internal$Model$renderFocusStyle(opts.gl)),
 				styles).b);
 		return _static ? A2(
 			$elm$core$List$cons,
@@ -35865,7 +35946,7 @@ var $mdgriffith$elm_ui$Internal$Model$finalizeNode = F6(
 								internal,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$class($mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.lE))
+										$elm$html$Html$Attributes$class($mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.lD))
 									]))
 							]));
 			}
@@ -35881,7 +35962,7 @@ var $mdgriffith$elm_ui$Internal$Model$finalizeNode = F6(
 								$elm$core$String$join,
 								' ',
 								_List_fromArray(
-									[$mdgriffith$elm_ui$Internal$Style$classes.h4, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.bU, $mdgriffith$elm_ui$Internal$Style$classes.h$])))
+									[$mdgriffith$elm_ui$Internal$Style$classes.h3, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.bU, $mdgriffith$elm_ui$Internal$Style$classes.h_])))
 						]),
 					_List_fromArray(
 						[html])) : (A2($mdgriffith$elm_ui$Internal$Flag$present, $mdgriffith$elm_ui$Internal$Flag$centerX, has) ? A2(
@@ -35893,7 +35974,7 @@ var $mdgriffith$elm_ui$Internal$Model$finalizeNode = F6(
 								$elm$core$String$join,
 								' ',
 								_List_fromArray(
-									[$mdgriffith$elm_ui$Internal$Style$classes.h4, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.bU, $mdgriffith$elm_ui$Internal$Style$classes.hZ])))
+									[$mdgriffith$elm_ui$Internal$Style$classes.h3, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.bU, $mdgriffith$elm_ui$Internal$Style$classes.hY])))
 						]),
 					_List_fromArray(
 						[html])) : html));
@@ -35907,7 +35988,7 @@ var $mdgriffith$elm_ui$Internal$Model$finalizeNode = F6(
 								$elm$core$String$join,
 								' ',
 								_List_fromArray(
-									[$mdgriffith$elm_ui$Internal$Style$classes.h4, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.h_])))
+									[$mdgriffith$elm_ui$Internal$Style$classes.h3, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.hZ])))
 						]),
 					_List_fromArray(
 						[html])) : (A2($mdgriffith$elm_ui$Internal$Flag$present, $mdgriffith$elm_ui$Internal$Flag$alignBottom, has) ? A2(
@@ -35919,7 +36000,7 @@ var $mdgriffith$elm_ui$Internal$Model$finalizeNode = F6(
 								$elm$core$String$join,
 								' ',
 								_List_fromArray(
-									[$mdgriffith$elm_ui$Internal$Style$classes.h4, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.hY])))
+									[$mdgriffith$elm_ui$Internal$Style$classes.h3, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.d9, $mdgriffith$elm_ui$Internal$Style$classes.hX])))
 						]),
 					_List_fromArray(
 						[html])) : html));
@@ -35928,7 +36009,7 @@ var $mdgriffith$elm_ui$Internal$Model$finalizeNode = F6(
 		}
 	});
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $mdgriffith$elm_ui$Internal$Model$textElementClasses = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.dW + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.fU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fj)))));
+var $mdgriffith$elm_ui$Internal$Model$textElementClasses = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.dW + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.fT + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fj)))));
 var $mdgriffith$elm_ui$Internal$Model$textElement = function (str) {
 	return A2(
 		$elm$html$Html$div,
@@ -35941,7 +36022,7 @@ var $mdgriffith$elm_ui$Internal$Model$textElement = function (str) {
 				$elm$html$Html$text(str)
 			]));
 };
-var $mdgriffith$elm_ui$Internal$Model$textElementFillClasses = $mdgriffith$elm_ui$Internal$Style$classes.h4 + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.dW + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.fV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fk)))));
+var $mdgriffith$elm_ui$Internal$Model$textElementFillClasses = $mdgriffith$elm_ui$Internal$Style$classes.h3 + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.dW + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.fU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fk)))));
 var $mdgriffith$elm_ui$Internal$Model$textElementFill = function (str) {
 	return A2(
 		$elm$html$Html$div,
@@ -35987,16 +36068,16 @@ var $mdgriffith$elm_ui$Internal$Model$createElement = F3(
 								$elm$core$List$cons,
 								_Utils_Tuple2(
 									key,
-									A2(styled.fl, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context)),
+									A2(styled.gA, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context)),
 								htmls),
-							$elm$core$List$isEmpty(existingStyles) ? styled.hv : _Utils_ap(styled.hv, existingStyles)) : _Utils_Tuple2(
+							$elm$core$List$isEmpty(existingStyles) ? styled.hu : _Utils_ap(styled.hu, existingStyles)) : _Utils_Tuple2(
 							A2(
 								$elm$core$List$cons,
 								_Utils_Tuple2(
 									key,
-									A2(styled.fl, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context)),
+									A2(styled.gA, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context)),
 								htmls),
-							$elm$core$List$isEmpty(existingStyles) ? styled.hv : _Utils_ap(styled.hv, existingStyles));
+							$elm$core$List$isEmpty(existingStyles) ? styled.hu : _Utils_ap(styled.hu, existingStyles));
 					case 2:
 						var str = child.a;
 						return _Utils_Tuple2(
@@ -36034,14 +36115,14 @@ var $mdgriffith$elm_ui$Internal$Model$createElement = F3(
 						return _Utils_eq(context, $mdgriffith$elm_ui$Internal$Model$asParagraph) ? _Utils_Tuple2(
 							A2(
 								$elm$core$List$cons,
-								A2(styled.fl, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context),
+								A2(styled.gA, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context),
 								htmls),
-							$elm$core$List$isEmpty(existingStyles) ? styled.hv : _Utils_ap(styled.hv, existingStyles)) : _Utils_Tuple2(
+							$elm$core$List$isEmpty(existingStyles) ? styled.hu : _Utils_ap(styled.hu, existingStyles)) : _Utils_Tuple2(
 							A2(
 								$elm$core$List$cons,
-								A2(styled.fl, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context),
+								A2(styled.gA, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, context),
 								htmls),
-							$elm$core$List$isEmpty(existingStyles) ? styled.hv : _Utils_ap(styled.hv, existingStyles));
+							$elm$core$List$isEmpty(existingStyles) ? styled.hu : _Utils_ap(styled.hu, existingStyles));
 					case 2:
 						var str = child.a;
 						return _Utils_Tuple2(
@@ -36063,29 +36144,29 @@ var $mdgriffith$elm_ui$Internal$Model$createElement = F3(
 				keyedChildren);
 			var keyed = _v1.a;
 			var styles = _v1.b;
-			var newStyles = $elm$core$List$isEmpty(styles) ? rendered.hv : _Utils_ap(rendered.hv, styles);
+			var newStyles = $elm$core$List$isEmpty(styles) ? rendered.hu : _Utils_ap(rendered.hu, styles);
 			if (!newStyles.b) {
 				return $mdgriffith$elm_ui$Internal$Model$Unstyled(
 					A5(
 						$mdgriffith$elm_ui$Internal$Model$finalizeNode,
 						rendered.cD,
-						rendered.gX,
+						rendered.gW,
 						rendered.cs,
 						$mdgriffith$elm_ui$Internal$Model$Keyed(
-							A3($mdgriffith$elm_ui$Internal$Model$addKeyedChildren, 'nearby-element-pls', keyed, rendered.iv)),
+							A3($mdgriffith$elm_ui$Internal$Model$addKeyedChildren, 'nearby-element-pls', keyed, rendered.iu)),
 						$mdgriffith$elm_ui$Internal$Model$NoStyleSheet));
 			} else {
 				var allStyles = newStyles;
 				return $mdgriffith$elm_ui$Internal$Model$Styled(
 					{
-						fl: A4(
+						gA: A4(
 							$mdgriffith$elm_ui$Internal$Model$finalizeNode,
 							rendered.cD,
-							rendered.gX,
+							rendered.gW,
 							rendered.cs,
 							$mdgriffith$elm_ui$Internal$Model$Keyed(
-								A3($mdgriffith$elm_ui$Internal$Model$addKeyedChildren, 'nearby-element-pls', keyed, rendered.iv))),
-						hv: allStyles
+								A3($mdgriffith$elm_ui$Internal$Model$addKeyedChildren, 'nearby-element-pls', keyed, rendered.iu))),
+						hu: allStyles
 					});
 			}
 		} else {
@@ -36097,29 +36178,29 @@ var $mdgriffith$elm_ui$Internal$Model$createElement = F3(
 				unkeyedChildren);
 			var unkeyed = _v3.a;
 			var styles = _v3.b;
-			var newStyles = $elm$core$List$isEmpty(styles) ? rendered.hv : _Utils_ap(rendered.hv, styles);
+			var newStyles = $elm$core$List$isEmpty(styles) ? rendered.hu : _Utils_ap(rendered.hu, styles);
 			if (!newStyles.b) {
 				return $mdgriffith$elm_ui$Internal$Model$Unstyled(
 					A5(
 						$mdgriffith$elm_ui$Internal$Model$finalizeNode,
 						rendered.cD,
-						rendered.gX,
+						rendered.gW,
 						rendered.cs,
 						$mdgriffith$elm_ui$Internal$Model$Unkeyed(
-							A2($mdgriffith$elm_ui$Internal$Model$addChildren, unkeyed, rendered.iv)),
+							A2($mdgriffith$elm_ui$Internal$Model$addChildren, unkeyed, rendered.iu)),
 						$mdgriffith$elm_ui$Internal$Model$NoStyleSheet));
 			} else {
 				var allStyles = newStyles;
 				return $mdgriffith$elm_ui$Internal$Model$Styled(
 					{
-						fl: A4(
+						gA: A4(
 							$mdgriffith$elm_ui$Internal$Model$finalizeNode,
 							rendered.cD,
-							rendered.gX,
+							rendered.gW,
 							rendered.cs,
 							$mdgriffith$elm_ui$Internal$Model$Unkeyed(
-								A2($mdgriffith$elm_ui$Internal$Model$addChildren, unkeyed, rendered.iv))),
-						hv: allStyles
+								A2($mdgriffith$elm_ui$Internal$Model$addChildren, unkeyed, rendered.iu))),
+						hu: allStyles
 					});
 			}
 		}
@@ -36171,37 +36252,37 @@ var $mdgriffith$elm_ui$Internal$Model$nearbyElement = F2(
 									$elm$core$String$join,
 									' ',
 									_List_fromArray(
-										[$mdgriffith$elm_ui$Internal$Style$classes.dc, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.hO]));
+										[$mdgriffith$elm_ui$Internal$Style$classes.db, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.hN]));
 							case 1:
 								return A2(
 									$elm$core$String$join,
 									' ',
 									_List_fromArray(
-										[$mdgriffith$elm_ui$Internal$Style$classes.dc, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.ib]));
+										[$mdgriffith$elm_ui$Internal$Style$classes.db, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.ia]));
 							case 2:
 								return A2(
 									$elm$core$String$join,
 									' ',
 									_List_fromArray(
-										[$mdgriffith$elm_ui$Internal$Style$classes.dc, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.kH]));
+										[$mdgriffith$elm_ui$Internal$Style$classes.db, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.kG]));
 							case 3:
 								return A2(
 									$elm$core$String$join,
 									' ',
 									_List_fromArray(
-										[$mdgriffith$elm_ui$Internal$Style$classes.dc, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.kG]));
+										[$mdgriffith$elm_ui$Internal$Style$classes.db, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.kF]));
 							case 4:
 								return A2(
 									$elm$core$String$join,
 									' ',
 									_List_fromArray(
-										[$mdgriffith$elm_ui$Internal$Style$classes.dc, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.jO]));
+										[$mdgriffith$elm_ui$Internal$Style$classes.db, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.jN]));
 							default:
 								return A2(
 									$elm$core$String$join,
 									' ',
 									_List_fromArray(
-										[$mdgriffith$elm_ui$Internal$Style$classes.dc, $mdgriffith$elm_ui$Internal$Style$classes.lE, $mdgriffith$elm_ui$Internal$Style$classes.ia]));
+										[$mdgriffith$elm_ui$Internal$Style$classes.db, $mdgriffith$elm_ui$Internal$Style$classes.lD, $mdgriffith$elm_ui$Internal$Style$classes.h9]));
 						}
 					}())
 				]),
@@ -36219,7 +36300,7 @@ var $mdgriffith$elm_ui$Internal$Model$nearbyElement = F2(
 							return html($mdgriffith$elm_ui$Internal$Model$asEl);
 						default:
 							var styled = elem.a;
-							return A2(styled.fl, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, $mdgriffith$elm_ui$Internal$Model$asEl);
+							return A2(styled.gA, $mdgriffith$elm_ui$Internal$Model$NoStyleSheet, $mdgriffith$elm_ui$Internal$Model$asEl);
 					}
 				}()
 				]));
@@ -36302,21 +36383,21 @@ var $mdgriffith$elm_ui$Internal$Model$addNodeName = F2(
 var $mdgriffith$elm_ui$Internal$Model$alignXName = function (align) {
 	switch (align) {
 		case 0:
-			return $mdgriffith$elm_ui$Internal$Style$classes.eU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.f0);
+			return $mdgriffith$elm_ui$Internal$Style$classes.eU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.f$);
 		case 2:
-			return $mdgriffith$elm_ui$Internal$Style$classes.eU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.f1);
+			return $mdgriffith$elm_ui$Internal$Style$classes.eU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.f0);
 		default:
-			return $mdgriffith$elm_ui$Internal$Style$classes.eU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hW);
+			return $mdgriffith$elm_ui$Internal$Style$classes.eU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hV);
 	}
 };
 var $mdgriffith$elm_ui$Internal$Model$alignYName = function (align) {
 	switch (align) {
 		case 0:
-			return $mdgriffith$elm_ui$Internal$Style$classes.eV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.h0);
+			return $mdgriffith$elm_ui$Internal$Style$classes.eV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.h$);
 		case 2:
-			return $mdgriffith$elm_ui$Internal$Style$classes.eV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hV);
+			return $mdgriffith$elm_ui$Internal$Style$classes.eV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hU);
 		default:
-			return $mdgriffith$elm_ui$Internal$Style$classes.eV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hX);
+			return $mdgriffith$elm_ui$Internal$Style$classes.eV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.hW);
 	}
 };
 var $elm$virtual_dom$VirtualDom$attribute = F2(
@@ -36475,7 +36556,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderHeight = function (h) {
 			var name = 'height-px-' + val;
 			return _Utils_Tuple3(
 				$mdgriffith$elm_ui$Internal$Flag$none,
-				$mdgriffith$elm_ui$Internal$Style$classes.gx + (' ' + name),
+				$mdgriffith$elm_ui$Internal$Style$classes.gv + (' ' + name),
 				_List_fromArray(
 					[
 						A3($mdgriffith$elm_ui$Internal$Model$Single, name, 'height', val + 'px')
@@ -36492,12 +36573,12 @@ var $mdgriffith$elm_ui$Internal$Model$renderHeight = function (h) {
 				$mdgriffith$elm_ui$Internal$Style$classes.fk,
 				_List_Nil) : _Utils_Tuple3(
 				A2($mdgriffith$elm_ui$Internal$Flag$add, $mdgriffith$elm_ui$Internal$Flag$heightFill, $mdgriffith$elm_ui$Internal$Flag$none),
-				$mdgriffith$elm_ui$Internal$Style$classes.gy + (' height-fill-' + $elm$core$String$fromInt(portion)),
+				$mdgriffith$elm_ui$Internal$Style$classes.gw + (' height-fill-' + $elm$core$String$fromInt(portion)),
 				_List_fromArray(
 					[
 						A3(
 						$mdgriffith$elm_ui$Internal$Model$Single,
-						$mdgriffith$elm_ui$Internal$Style$classes.h4 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.e0 + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
+						$mdgriffith$elm_ui$Internal$Style$classes.h3 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.e0 + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
 							'height-fill-' + $elm$core$String$fromInt(portion))))),
 						'flex-grow',
 						$elm$core$String$fromInt(portion * 100000))
@@ -36545,7 +36626,7 @@ var $mdgriffith$elm_ui$Internal$Model$renderWidth = function (w) {
 			var px = w.a;
 			return _Utils_Tuple3(
 				$mdgriffith$elm_ui$Internal$Flag$none,
-				$mdgriffith$elm_ui$Internal$Style$classes.hL + (' width-px-' + $elm$core$String$fromInt(px)),
+				$mdgriffith$elm_ui$Internal$Style$classes.hK + (' width-px-' + $elm$core$String$fromInt(px)),
 				_List_fromArray(
 					[
 						A3(
@@ -36557,21 +36638,21 @@ var $mdgriffith$elm_ui$Internal$Model$renderWidth = function (w) {
 		case 1:
 			return _Utils_Tuple3(
 				A2($mdgriffith$elm_ui$Internal$Flag$add, $mdgriffith$elm_ui$Internal$Flag$widthContent, $mdgriffith$elm_ui$Internal$Flag$none),
-				$mdgriffith$elm_ui$Internal$Style$classes.fU,
+				$mdgriffith$elm_ui$Internal$Style$classes.fT,
 				_List_Nil);
 		case 2:
 			var portion = w.a;
 			return (portion === 1) ? _Utils_Tuple3(
 				A2($mdgriffith$elm_ui$Internal$Flag$add, $mdgriffith$elm_ui$Internal$Flag$widthFill, $mdgriffith$elm_ui$Internal$Flag$none),
-				$mdgriffith$elm_ui$Internal$Style$classes.fV,
+				$mdgriffith$elm_ui$Internal$Style$classes.fU,
 				_List_Nil) : _Utils_Tuple3(
 				A2($mdgriffith$elm_ui$Internal$Flag$add, $mdgriffith$elm_ui$Internal$Flag$widthFill, $mdgriffith$elm_ui$Internal$Flag$none),
-				$mdgriffith$elm_ui$Internal$Style$classes.hM + (' width-fill-' + $elm$core$String$fromInt(portion)),
+				$mdgriffith$elm_ui$Internal$Style$classes.hL + (' width-fill-' + $elm$core$String$fromInt(portion)),
 				_List_fromArray(
 					[
 						A3(
 						$mdgriffith$elm_ui$Internal$Model$Single,
-						$mdgriffith$elm_ui$Internal$Style$classes.h4 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.hj + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
+						$mdgriffith$elm_ui$Internal$Style$classes.h3 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.hi + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
 							'width-fill-' + $elm$core$String$fromInt(portion))))),
 						'flex-grow',
 						$elm$core$String$fromInt(portion * 100000))
@@ -36670,10 +36751,10 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 							$elm$core$List$cons,
 							$elm$html$Html$Attributes$class(classes),
 							attrs),
-						iv: children,
+						iu: children,
 						cD: has,
-						gX: node,
-						hv: styles
+						gW: node,
+						hu: styles
 					};
 				} else {
 					var _class = _v1.a;
@@ -36682,10 +36763,10 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 							$elm$core$List$cons,
 							$elm$html$Html$Attributes$class(classes + (' ' + _class)),
 							attrs),
-						iv: children,
+						iu: children,
 						cD: has,
-						gX: node,
-						hv: A2(
+						gW: node,
+						hu: A2(
 							$elm$core$List$cons,
 							$mdgriffith$elm_ui$Internal$Model$Transform(transform),
 							styles)
@@ -36876,7 +36957,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 							switch (width.$) {
 								case 0:
 									var px = width.a;
-									var $temp$classes = ($mdgriffith$elm_ui$Internal$Style$classes.hL + (' width-px-' + $elm$core$String$fromInt(px))) + (' ' + classes),
+									var $temp$classes = ($mdgriffith$elm_ui$Internal$Style$classes.hK + (' width-px-' + $elm$core$String$fromInt(px))) + (' ' + classes),
 										$temp$node = node,
 										$temp$has = A2($mdgriffith$elm_ui$Internal$Flag$add, $mdgriffith$elm_ui$Internal$Flag$width, has),
 										$temp$transform = transform,
@@ -36901,7 +36982,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 									elementAttrs = $temp$elementAttrs;
 									continue gatherAttrRecursive;
 								case 1:
-									var $temp$classes = classes + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fU),
+									var $temp$classes = classes + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fT),
 										$temp$node = node,
 										$temp$has = A2(
 										$mdgriffith$elm_ui$Internal$Flag$add,
@@ -36924,7 +37005,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 								case 2:
 									var portion = width.a;
 									if (portion === 1) {
-										var $temp$classes = classes + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fV),
+										var $temp$classes = classes + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fU),
 											$temp$node = node,
 											$temp$has = A2(
 											$mdgriffith$elm_ui$Internal$Flag$add,
@@ -36945,7 +37026,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 										elementAttrs = $temp$elementAttrs;
 										continue gatherAttrRecursive;
 									} else {
-										var $temp$classes = classes + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.hM + (' width-fill-' + $elm$core$String$fromInt(portion)))),
+										var $temp$classes = classes + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.hL + (' width-fill-' + $elm$core$String$fromInt(portion)))),
 											$temp$node = node,
 											$temp$has = A2(
 											$mdgriffith$elm_ui$Internal$Flag$add,
@@ -36956,7 +37037,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 											$elm$core$List$cons,
 											A3(
 												$mdgriffith$elm_ui$Internal$Model$Single,
-												$mdgriffith$elm_ui$Internal$Style$classes.h4 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.hj + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
+												$mdgriffith$elm_ui$Internal$Style$classes.h3 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.hi + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
 													'width-fill-' + $elm$core$String$fromInt(portion))))),
 												'flex-grow',
 												$elm$core$String$fromInt(portion * 100000)),
@@ -37027,7 +37108,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 									var px = height.a;
 									var val = $elm$core$String$fromInt(px) + 'px';
 									var name = 'height-px-' + val;
-									var $temp$classes = $mdgriffith$elm_ui$Internal$Style$classes.gx + (' ' + (name + (' ' + classes))),
+									var $temp$classes = $mdgriffith$elm_ui$Internal$Style$classes.gv + (' ' + (name + (' ' + classes))),
 										$temp$node = node,
 										$temp$has = A2($mdgriffith$elm_ui$Internal$Flag$add, $mdgriffith$elm_ui$Internal$Flag$height, has),
 										$temp$transform = transform,
@@ -37092,7 +37173,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 										elementAttrs = $temp$elementAttrs;
 										continue gatherAttrRecursive;
 									} else {
-										var $temp$classes = classes + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.gy + (' height-fill-' + $elm$core$String$fromInt(portion)))),
+										var $temp$classes = classes + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.gw + (' height-fill-' + $elm$core$String$fromInt(portion)))),
 											$temp$node = node,
 											$temp$has = A2(
 											$mdgriffith$elm_ui$Internal$Flag$add,
@@ -37103,7 +37184,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 											$elm$core$List$cons,
 											A3(
 												$mdgriffith$elm_ui$Internal$Model$Single,
-												$mdgriffith$elm_ui$Internal$Style$classes.h4 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.e0 + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
+												$mdgriffith$elm_ui$Internal$Style$classes.h3 + ('.' + ($mdgriffith$elm_ui$Internal$Style$classes.e0 + (' > ' + $mdgriffith$elm_ui$Internal$Style$dot(
 													'height-fill-' + $elm$core$String$fromInt(portion))))),
 												'flex-grow',
 												$elm$core$String$fromInt(portion * 100000)),
@@ -37404,7 +37485,7 @@ var $mdgriffith$elm_ui$Internal$Model$gatherAttrRecursive = F8(
 									return styles;
 								default:
 									var styled = elem.a;
-									return _Utils_ap(styles, styled.hv);
+									return _Utils_ap(styles, styled.hu);
 							}
 						}();
 						var $temp$classes = classes,
@@ -37623,7 +37704,7 @@ var $mdgriffith$elm_ui$Internal$Model$Class = F2(
 		return {$: 3, a: a, b: b};
 	});
 var $mdgriffith$elm_ui$Internal$Flag$cursor = $mdgriffith$elm_ui$Internal$Flag$flag(21);
-var $mdgriffith$elm_ui$Element$pointer = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$cursor, $mdgriffith$elm_ui$Internal$Style$classes.iR);
+var $mdgriffith$elm_ui$Element$pointer = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$cursor, $mdgriffith$elm_ui$Internal$Style$classes.iQ);
 var $mdgriffith$elm_ui$Internal$Model$Content = {$: 1};
 var $mdgriffith$elm_ui$Element$shrink = $mdgriffith$elm_ui$Internal$Model$Content;
 var $elm$html$Html$Attributes$tabindex = function (n) {
@@ -37634,7 +37715,7 @@ var $elm$html$Html$Attributes$tabindex = function (n) {
 };
 var $mdgriffith$elm_ui$Element$Input$button = F2(
 	function (attrs, _v0) {
-		var onPress = _v0.aG;
+		var onPress = _v0.aI;
 		var label = _v0.N;
 		return A4(
 			$mdgriffith$elm_ui$Internal$Model$element,
@@ -37648,7 +37729,7 @@ var $mdgriffith$elm_ui$Element$Input$button = F2(
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
 					A2(
 						$elm$core$List$cons,
-						$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.eb + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.lj + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.gW)))))),
+						$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.eb + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.li + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.gV)))))),
 						A2(
 							$elm$core$List$cons,
 							$mdgriffith$elm_ui$Element$pointer,
@@ -37685,7 +37766,7 @@ var $mdgriffith$elm_ui$Element$Input$button = F2(
 					[label])));
 	});
 var $mdgriffith$elm_ui$Internal$Flag$fontAlignment = $mdgriffith$elm_ui$Internal$Flag$flag(12);
-var $mdgriffith$elm_ui$Element$Font$center = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.l1);
+var $mdgriffith$elm_ui$Element$Font$center = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.l0);
 var $mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
 	return {$: 5, a: a};
 };
@@ -37731,14 +37812,14 @@ var $mdgriffith$elm_ui$Internal$Model$map = F2(
 				var styled = el.a;
 				return $mdgriffith$elm_ui$Internal$Model$Styled(
 					{
-						fl: F2(
+						gA: F2(
 							function (add, context) {
 								return A2(
 									$elm$virtual_dom$VirtualDom$map,
 									fn,
-									A2(styled.fl, add, context));
+									A2(styled.gA, add, context));
 							}),
-						hv: styled.hv
+						hu: styled.hu
 					});
 			case 0:
 				var html = el.a;
@@ -37850,17 +37931,17 @@ var $mdgriffith$elm_ui$Internal$Model$boxShadowClass = function (shadow) {
 	return $elm$core$String$concat(
 		_List_fromArray(
 			[
-				shadow.gE ? 'box-inset' : 'box-',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kE.a) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kE.b) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.id) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.fK) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$formatColorClass(shadow.iB)
+				shadow.gD ? 'box-inset' : 'box-',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kD.a) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kD.b) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.ic) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.fJ) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$formatColorClass(shadow.iA)
 			]));
 };
 var $mdgriffith$elm_ui$Internal$Flag$shadows = $mdgriffith$elm_ui$Internal$Flag$flag(19);
 var $mdgriffith$elm_ui$Element$Border$shadow = function (almostShade) {
-	var shade = {id: almostShade.id, iB: almostShade.iB, gE: false, kE: almostShade.kE, fK: almostShade.fK};
+	var shade = {ic: almostShade.ic, iA: almostShade.iA, gD: false, kD: almostShade.kD, fJ: almostShade.fJ};
 	return A2(
 		$mdgriffith$elm_ui$Internal$Model$StyleClass,
 		$mdgriffith$elm_ui$Internal$Flag$shadows,
@@ -37874,10 +37955,10 @@ var $mdgriffith$elm_ui$Element$Border$glow = F2(
 	function (clr, size) {
 		return $mdgriffith$elm_ui$Element$Border$shadow(
 			{
-				id: size * 2,
-				iB: clr,
-				kE: _Utils_Tuple2(0, 0),
-				fK: size
+				ic: size * 2,
+				iA: clr,
+				kD: _Utils_Tuple2(0, 0),
+				fJ: size
 			});
 	});
 var $mdgriffith$elm_ui$Element$htmlAttribute = $mdgriffith$elm_ui$Internal$Model$Attr;
@@ -37972,7 +38053,7 @@ var $mdgriffith$elm_ui$Element$column = F2(
 			$mdgriffith$elm_ui$Internal$Model$div,
 			A2(
 				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.iK + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.du)),
+				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.iJ + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.dt)),
 				A2(
 					$elm$core$List$cons,
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
@@ -38019,14 +38100,14 @@ var $mdgriffith$elm_ui$Internal$Model$StaticRootAndDynamic = F2(
 var $mdgriffith$elm_ui$Internal$Model$AllowHover = 1;
 var $mdgriffith$elm_ui$Internal$Model$Layout = 0;
 var $mdgriffith$elm_ui$Internal$Model$focusDefaultStyle = {
-	h7: $elm$core$Maybe$Nothing,
-	$8: $elm$core$Maybe$Nothing,
-	lD: $elm$core$Maybe$Just(
+	h6: $elm$core$Maybe$Nothing,
+	ie: $elm$core$Maybe$Nothing,
+	lC: $elm$core$Maybe$Just(
 		{
-			id: 0,
-			iB: A4($mdgriffith$elm_ui$Internal$Model$Rgba, 155 / 255, 203 / 255, 1, 1),
-			kE: _Utils_Tuple2(0, 0),
-			fK: 3
+			ic: 0,
+			iA: A4($mdgriffith$elm_ui$Internal$Model$Rgba, 155 / 255, 203 / 255, 1, 1),
+			kD: _Utils_Tuple2(0, 0),
+			fJ: 3
 		})
 };
 var $mdgriffith$elm_ui$Internal$Model$optionsToRecord = function (options) {
@@ -38035,24 +38116,24 @@ var $mdgriffith$elm_ui$Internal$Model$optionsToRecord = function (options) {
 			switch (opt.$) {
 				case 0:
 					var hoverable = opt.a;
-					var _v4 = record.jB;
+					var _v4 = record.jA;
 					if (_v4.$ === 1) {
 						return _Utils_update(
 							record,
 							{
-								jB: $elm$core$Maybe$Just(hoverable)
+								jA: $elm$core$Maybe$Just(hoverable)
 							});
 					} else {
 						return record;
 					}
 				case 1:
 					var focusStyle = opt.a;
-					var _v5 = record.gm;
+					var _v5 = record.gl;
 					if (_v5.$ === 1) {
 						return _Utils_update(
 							record,
 							{
-								gm: $elm$core$Maybe$Just(focusStyle)
+								gl: $elm$core$Maybe$Just(focusStyle)
 							});
 					} else {
 						return record;
@@ -38073,8 +38154,8 @@ var $mdgriffith$elm_ui$Internal$Model$optionsToRecord = function (options) {
 		});
 	var andFinally = function (record) {
 		return {
-			gm: function () {
-				var _v0 = record.gm;
+			gl: function () {
+				var _v0 = record.gl;
 				if (_v0.$ === 1) {
 					return $mdgriffith$elm_ui$Internal$Model$focusDefaultStyle;
 				} else {
@@ -38082,8 +38163,8 @@ var $mdgriffith$elm_ui$Internal$Model$optionsToRecord = function (options) {
 					return focusable;
 				}
 			}(),
-			jB: function () {
-				var _v1 = record.jB;
+			jA: function () {
+				var _v1 = record.jA;
 				if (_v1.$ === 1) {
 					return 1;
 				} else {
@@ -38106,7 +38187,7 @@ var $mdgriffith$elm_ui$Internal$Model$optionsToRecord = function (options) {
 		A3(
 			$elm$core$List$foldr,
 			combine,
-			{gm: $elm$core$Maybe$Nothing, jB: $elm$core$Maybe$Nothing, g: $elm$core$Maybe$Nothing},
+			{gl: $elm$core$Maybe$Nothing, jA: $elm$core$Maybe$Nothing, g: $elm$core$Maybe$Nothing},
 			options));
 };
 var $mdgriffith$elm_ui$Internal$Model$toHtml = F2(
@@ -38116,8 +38197,8 @@ var $mdgriffith$elm_ui$Internal$Model$toHtml = F2(
 				var html = el.a;
 				return html($mdgriffith$elm_ui$Internal$Model$asEl);
 			case 1:
-				var styles = el.a.hv;
-				var html = el.a.fl;
+				var styles = el.a.hu;
+				var html = el.a.gA;
 				return A2(
 					html,
 					mode(styles),
@@ -38245,7 +38326,7 @@ var $mdgriffith$elm_ui$Internal$Model$rootStyle = function () {
 }();
 var $mdgriffith$elm_ui$Element$layoutWith = F3(
 	function (_v0, attrs, child) {
-		var options = _v0.g3;
+		var options = _v0.g2;
 		return A3(
 			$mdgriffith$elm_ui$Internal$Model$renderRoot,
 			options,
@@ -38256,7 +38337,7 @@ var $mdgriffith$elm_ui$Element$layoutWith = F3(
 						$elm$core$String$join,
 						' ',
 						_List_fromArray(
-							[$mdgriffith$elm_ui$Internal$Style$classes.Y, $mdgriffith$elm_ui$Internal$Style$classes.h4, $mdgriffith$elm_ui$Internal$Style$classes.lE]))),
+							[$mdgriffith$elm_ui$Internal$Style$classes.Z, $mdgriffith$elm_ui$Internal$Style$classes.h3, $mdgriffith$elm_ui$Internal$Style$classes.lD]))),
 				_Utils_ap($mdgriffith$elm_ui$Internal$Model$rootStyle, attrs)),
 			child);
 	});
@@ -38270,7 +38351,7 @@ var $author$project$NewsEditor$NewsEditor$loadingStatus = function (model) {
 	return model.b4;
 };
 var $author$project$PageTreeEditor$PageTreeEditor$loadingStatus = function (model) {
-	var _v0 = _Utils_Tuple3(model.dd, model.cw, model.c8);
+	var _v0 = _Utils_Tuple3(model.dc, model.cw, model.c7);
 	_v0$2:
 	while (true) {
 		_v0$3:
@@ -38334,7 +38415,7 @@ var $mdgriffith$elm_ui$Element$row = F2(
 			$mdgriffith$elm_ui$Internal$Model$div,
 			A2(
 				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.du + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.bU)),
+				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.dt + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.bU)),
 				A2(
 					$elm$core$List$cons,
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
@@ -38562,10 +38643,10 @@ var $mdgriffith$elm_ui$Internal$Model$paddingName = F4(
 		return 'pad-' + ($elm$core$String$fromInt(top) + ('-' + ($elm$core$String$fromInt(right) + ('-' + ($elm$core$String$fromInt(bottom) + ('-' + $elm$core$String$fromInt(left)))))));
 	});
 var $mdgriffith$elm_ui$Element$paddingEach = function (_v0) {
-	var top = _v0.bo;
-	var right = _v0.bk;
+	var top = _v0.bq;
+	var right = _v0.bl;
 	var bottom = _v0.a2;
-	var left = _v0.bb;
+	var left = _v0.bc;
 	return (_Utils_eq(top, right) && (_Utils_eq(top, bottom) && _Utils_eq(top, left))) ? A2(
 		$mdgriffith$elm_ui$Internal$Model$StyleClass,
 		$mdgriffith$elm_ui$Internal$Flag$padding,
@@ -38649,7 +38730,7 @@ var $author$project$NewsEditor$NewsEditor$status = function (model) {
 var $author$project$PageTreeEditor$PageTreeEditor$status = function (model) {
 	return $author$project$Internals$CommonHelpers$combineStatus(
 		_List_fromArray(
-			[model.dd, model.cw, model.c8, model.cc]));
+			[model.dc, model.cw, model.c7, model.cc]));
 };
 var $author$project$MurolAdmin$savingStatus = function (model) {
 	return $author$project$Internals$CommonHelpers$combineStatus(
@@ -38658,10 +38739,10 @@ var $author$project$MurolAdmin$savingStatus = function (model) {
 				$author$project$Auth$AuthPlugin$status(model.p),
 				$author$project$PageTreeEditor$PageTreeEditor$status(model.I),
 				$author$project$FileExplorer$FileExplorer$status(model.fe),
-				$author$project$NewsEditor$NewsEditor$status(model.aF)
+				$author$project$NewsEditor$NewsEditor$status(model.aH)
 			]));
 };
-var $author$project$Internals$CommonStyleHelpers$sides = {a2: 0, bb: 0, bk: 0, bo: 0};
+var $author$project$Internals$CommonStyleHelpers$sides = {a2: 0, bc: 0, bl: 0, bq: 0};
 var $elm$svg$Svg$line = $elm$svg$Svg$trustedNode('line');
 var $elm$svg$Svg$Attributes$x1 = _VirtualDom_attribute('x1');
 var $elm$svg$Svg$Attributes$x2 = _VirtualDom_attribute('x2');
@@ -38782,13 +38863,13 @@ var $author$project$MurolAdmin$comsMonitorView = function (model) {
 				$mdgriffith$elm_ui$Element$paddingEach(
 				_Utils_update(
 					$author$project$Internals$CommonStyleHelpers$sides,
-					{bk: 15})),
+					{bl: 15})),
 				$mdgriffith$elm_ui$Element$Border$color(
 				A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8)),
 				$mdgriffith$elm_ui$Element$Border$widthEach(
 				_Utils_update(
 					$author$project$Internals$CommonStyleHelpers$sides,
-					{bb: 2})),
+					{bc: 2})),
 				A2($mdgriffith$elm_ui$Element$paddingXY, 15, 0)
 			]),
 		_List_fromArray(
@@ -38819,12 +38900,12 @@ var $author$project$MurolAdmin$comsMonitorView = function (model) {
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$Font$color(
-						$author$project$Auth$AuthPlugin$isLogged(model.p.bd) ? $author$project$Internals$CommonStyleHelpers$green4 : $author$project$Internals$CommonStyleHelpers$red6),
+						$author$project$Auth$AuthPlugin$isLogged(model.p.be) ? $author$project$Internals$CommonStyleHelpers$green4 : $author$project$Internals$CommonStyleHelpers$red6),
 						$mdgriffith$elm_ui$Element$width(
 						$mdgriffith$elm_ui$Element$px(20))
 					]),
 				$mdgriffith$elm_ui$Element$html(
-					$author$project$Auth$AuthPlugin$isLogged(model.p.bd) ? $author$project$Internals$Icons$wifi(18) : $author$project$Internals$Icons$wifiOff(18)))
+					$author$project$Auth$AuthPlugin$isLogged(model.p.be) ? $author$project$Internals$Icons$wifi(18) : $author$project$Internals$Icons$wifiOff(18)))
 			]));
 };
 var $author$project$Internals$CommonHelpers$formatTime = A2(
@@ -38852,8 +38933,8 @@ var $author$project$Internals$CommonHelpers$logTitleView = F2(
 						]),
 					$mdgriffith$elm_ui$Element$text(
 						$author$project$Internals$CommonHelpers$formatTime(
-							A2($elm$time$Time$toHour, zone, l.dn)) + (':' + $author$project$Internals$CommonHelpers$formatTime(
-							A2($elm$time$Time$toMinute, zone, l.dn))))),
+							A2($elm$time$Time$toHour, zone, l.dm)) + (':' + $author$project$Internals$CommonHelpers$formatTime(
+							A2($elm$time$Time$toMinute, zone, l.dm))))),
 					A2(
 					$mdgriffith$elm_ui$Element$el,
 					_List_fromArray(
@@ -38865,7 +38946,7 @@ var $author$project$Internals$CommonHelpers$logTitleView = F2(
 				]));
 	});
 var $mdgriffith$elm_ui$Internal$Flag$fontWeight = $mdgriffith$elm_ui$Internal$Flag$flag(13);
-var $mdgriffith$elm_ui$Element$Font$bold = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontWeight, $mdgriffith$elm_ui$Internal$Style$classes.ie);
+var $mdgriffith$elm_ui$Element$Font$bold = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontWeight, $mdgriffith$elm_ui$Internal$Style$classes.id);
 var $author$project$Internals$CommonStyleHelpers$grey7 = A3($mdgriffith$elm_ui$Element$rgb255, 248, 249, 250);
 var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
 var $mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 9};
@@ -38903,7 +38984,7 @@ var $author$project$Internals$CommonHelpers$logsDictView = F3(
 				var message = log.dH;
 				var mbDetails = log.es;
 				var isError = log.dy;
-				var timeStamp = log.dn;
+				var timeStamp = log.dm;
 				var isOpen = _v2.b;
 				return A2(
 					$mdgriffith$elm_ui$Element$column,
@@ -38938,7 +39019,7 @@ var $author$project$Internals$CommonHelpers$logsDictView = F3(
 											$mdgriffith$elm_ui$Element$paddingEach(
 											_Utils_update(
 												$author$project$Internals$CommonStyleHelpers$sides,
-												{bb: 20})),
+												{bc: 20})),
 											$mdgriffith$elm_ui$Element$Font$size(12)
 										]),
 									_List_fromArray(
@@ -38962,7 +39043,7 @@ var $mdgriffith$elm_ui$Element$moveUp = function (y) {
 		$mdgriffith$elm_ui$Internal$Model$MoveY(-y));
 };
 var $mdgriffith$elm_ui$Internal$Flag$overflow = $mdgriffith$elm_ui$Internal$Flag$flag(20);
-var $mdgriffith$elm_ui$Element$scrollbarY = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.li);
+var $mdgriffith$elm_ui$Element$scrollbarY = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.lh);
 var $author$project$MurolAdmin$logsViewPanel = F4(
 	function (logsOpen, logs, zone, toogleLog) {
 		return logsOpen ? A2(
@@ -38975,7 +39056,7 @@ var $author$project$MurolAdmin$logsViewPanel = F4(
 					$mdgriffith$elm_ui$Element$Border$widthEach(
 					_Utils_update(
 						$author$project$Internals$CommonStyleHelpers$sides,
-						{bo: 2})),
+						{bq: 2})),
 					$mdgriffith$elm_ui$Element$Background$color(
 					A3($mdgriffith$elm_ui$Element$rgb, 1, 1, 1)),
 					$mdgriffith$elm_ui$Element$moveUp(2)
@@ -39037,7 +39118,7 @@ var $author$project$MurolAdmin$notificationsPanelView = function (model) {
 						$elm$core$Basics$composeL,
 						$elm$time$Time$posixToMillis,
 						function ($) {
-							return $.dn;
+							return $.dm;
 						}),
 					$elm$core$Tuple$first),
 				$elm$core$Tuple$second),
@@ -39049,7 +39130,7 @@ var $author$project$MurolAdmin$notificationsPanelView = function (model) {
 				var _v4 = _v3.b;
 				var l = _v4.a;
 				return function ($) {
-					return $.gH;
+					return $.gG;
 				}(l);
 			},
 			logs));
@@ -39065,9 +39146,9 @@ var $author$project$MurolAdmin$notificationsPanelView = function (model) {
 				$mdgriffith$elm_ui$Element$Border$widthEach(
 				_Utils_update(
 					$author$project$Internals$CommonStyleHelpers$sides,
-					{bo: 2})),
+					{bq: 2})),
 				$mdgriffith$elm_ui$Element$above(
-				A4($author$project$MurolAdmin$logsViewPanel, model.da, logs, model.fZ, $author$project$MurolAdmin$ToogleLog)),
+				A4($author$project$MurolAdmin$logsViewPanel, model.c9, logs, model.fY, $author$project$MurolAdmin$ToogleLog)),
 				$mdgriffith$elm_ui$Element$spacing(15),
 				$mdgriffith$elm_ui$Element$alignBottom
 			]),
@@ -39082,7 +39163,7 @@ var $author$project$MurolAdmin$notificationsPanelView = function (model) {
 						$mdgriffith$elm_ui$Element$Border$widthEach(
 						_Utils_update(
 							$author$project$Internals$CommonStyleHelpers$sides,
-							{bk: 2})),
+							{bl: 2})),
 						A2($mdgriffith$elm_ui$Element$paddingXY, 10, 0)
 					]),
 				$mdgriffith$elm_ui$Element$html(
@@ -39092,7 +39173,7 @@ var $author$project$MurolAdmin$notificationsPanelView = function (model) {
 					var _v1 = newest.a;
 					var _v2 = _v1.b;
 					var l = _v2.a;
-					return A2($author$project$Internals$CommonHelpers$logTitleView, l, model.fZ);
+					return A2($author$project$Internals$CommonHelpers$logTitleView, l, model.fY);
 				} else {
 					return $mdgriffith$elm_ui$Element$none;
 				}
@@ -39104,7 +39185,7 @@ var $author$project$MurolAdmin$notificationsPanelView = function (model) {
 						$mdgriffith$elm_ui$Element$alignRight,
 						$mdgriffith$elm_ui$Element$Events$onClick($author$project$MurolAdmin$ToogleLogs)
 					]),
-				model.da ? $mdgriffith$elm_ui$Element$html(
+				model.c9 ? $mdgriffith$elm_ui$Element$html(
 					$author$project$Internals$Icons$chevronsDown(22)) : $mdgriffith$elm_ui$Element$html(
 					$author$project$Internals$Icons$chevronsUp(22))),
 				$author$project$MurolAdmin$comsMonitorView(model)
@@ -39120,10 +39201,10 @@ var $mdgriffith$elm_ui$Element$moveDown = function (y) {
 		$mdgriffith$elm_ui$Internal$Model$MoveY(y));
 };
 var $mdgriffith$elm_ui$Element$Border$roundEach = function (_v0) {
-	var topLeft = _v0.hB;
-	var topRight = _v0.hC;
-	var bottomLeft = _v0.f6;
-	var bottomRight = _v0.f7;
+	var topLeft = _v0.hA;
+	var topRight = _v0.hB;
+	var bottomLeft = _v0.f5;
+	var bottomRight = _v0.f6;
 	return A2(
 		$mdgriffith$elm_ui$Internal$Model$StyleClass,
 		$mdgriffith$elm_ui$Internal$Flag$borderRound,
@@ -39143,9 +39224,9 @@ var $author$project$MurolAdmin$tabView = F3(
 						$mdgriffith$elm_ui$Element$Events$onClick(
 						$author$project$MurolAdmin$SetCurrentTool(tool)),
 						$mdgriffith$elm_ui$Element$Border$widthEach(
-						{a2: 0, bb: 2, bk: 2, bo: 2}),
+						{a2: 0, bc: 2, bl: 2, bq: 2}),
 						$mdgriffith$elm_ui$Element$Border$roundEach(
-						{f6: 0, f7: 0, hB: 8, hC: 8}),
+						{f5: 0, f6: 0, hA: 8, hB: 8}),
 						_Utils_eq(currentTool, tool) ? $mdgriffith$elm_ui$Element$Background$color(
 						A3($mdgriffith$elm_ui$Element$rgb, 1, 1, 1)) : $mdgriffith$elm_ui$Element$Background$color(
 						A3($mdgriffith$elm_ui$Element$rgb, 0.9, 0.9, 0.9))
@@ -39173,9 +39254,9 @@ var $author$project$MurolAdmin$tabView = F3(
 					_Utils_eq(currentTool, tool) ? _List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$Border$roundEach(
-							{f6: 0, f7: 0, hB: 8, hC: 8}),
+							{f5: 0, f6: 0, hA: 8, hB: 8}),
 							$mdgriffith$elm_ui$Element$paddingEach(
-							{a2: 7, bb: 12, bk: 12, bo: 3}),
+							{a2: 7, bc: 12, bl: 12, bq: 3}),
 							$mdgriffith$elm_ui$Element$Border$color(
 							A3($mdgriffith$elm_ui$Element$rgb, 1, 1, 1)),
 							$mdgriffith$elm_ui$Element$moveDown(2),
@@ -39184,7 +39265,7 @@ var $author$project$MurolAdmin$tabView = F3(
 						]) : _List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$paddingEach(
-							{a2: 5, bb: 12, bk: 12, bo: 5})
+							{a2: 5, bc: 12, bl: 12, bq: 5})
 						])),
 				$mdgriffith$elm_ui$Element$text(s)));
 	});
@@ -39304,7 +39385,7 @@ var $mdgriffith$elm_ui$Element$Input$calcMoveToCompensateForPadding = function (
 			$elm$core$Basics$floor(vSpace / 2));
 	}
 };
-var $mdgriffith$elm_ui$Element$clip = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.iy);
+var $mdgriffith$elm_ui$Element$clip = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.ix);
 var $mdgriffith$elm_ui$Element$Input$darkGrey = A3($mdgriffith$elm_ui$Element$rgb, 186 / 255, 189 / 255, 182 / 255);
 var $mdgriffith$elm_ui$Element$Input$defaultTextPadding = A2($mdgriffith$elm_ui$Element$paddingXY, 12, 12);
 var $mdgriffith$elm_ui$Element$Input$white = A3($mdgriffith$elm_ui$Element$rgb, 1, 1, 1);
@@ -39389,7 +39470,7 @@ var $mdgriffith$elm_ui$Element$Input$isStacked = function (label) {
 	}
 };
 var $mdgriffith$elm_ui$Element$Input$negateBox = function (box) {
-	return {a2: -box.a2, bb: -box.bb, bk: -box.bk, bo: -box.bo};
+	return {a2: -box.a2, bc: -box.bc, bl: -box.bl, bq: -box.bq};
 };
 var $elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
@@ -39479,7 +39560,7 @@ var $mdgriffith$elm_ui$Element$Input$redistributeOver = F4(
 					els,
 					{
 						t: A2($elm$core$List$cons, attr, els.t),
-						V: A2($elm$core$List$cons, attr, els.V),
+						W: A2($elm$core$List$cons, attr, els.W),
 						eF: A2($elm$core$List$cons, attr, els.eF)
 					}) : (stacked ? _Utils_update(
 					els,
@@ -39531,9 +39612,9 @@ var $mdgriffith$elm_ui$Element$Input$redistributeOver = F4(
 							els,
 							{
 								t: A2($elm$core$List$cons, attr, els.t),
-								V: A2($elm$core$List$cons, attr, els.V),
+								W: A2($elm$core$List$cons, attr, els.W),
 								eF: A2($elm$core$List$cons, attr, els.eF),
-								dp: A2($elm$core$List$cons, attr, els.dp)
+								$7: A2($elm$core$List$cons, attr, els.$7)
 							});
 					case 7:
 						var cls = attr.a;
@@ -39547,16 +39628,16 @@ var $mdgriffith$elm_ui$Element$Input$redistributeOver = F4(
 							return _Utils_update(
 								els,
 								{
-									iN: A2($elm$core$List$cons, attr, els.iN),
+									iM: A2($elm$core$List$cons, attr, els.iM),
 									eF: A2($elm$core$List$cons, attr, els.eF)
 								});
 						} else {
 							var reducedVerticalPadding = $mdgriffith$elm_ui$Element$paddingEach(
 								{
 									a2: b - A2($elm$core$Basics$min, t, b),
-									bb: l,
-									bk: r,
-									bo: t - A2($elm$core$Basics$min, t, b)
+									bc: l,
+									bl: r,
+									bq: t - A2($elm$core$Basics$min, t, b)
 								});
 							var newLineHeight = $mdgriffith$elm_ui$Element$htmlAttribute(
 								A2(
@@ -39573,11 +39654,11 @@ var $mdgriffith$elm_ui$Element$Input$redistributeOver = F4(
 							return _Utils_update(
 								els,
 								{
-									iN: A2($elm$core$List$cons, attr, els.iN),
-									V: A2(
+									iM: A2($elm$core$List$cons, attr, els.iM),
+									W: A2(
 										$elm$core$List$cons,
 										newHeight,
-										A2($elm$core$List$cons, newLineHeight, els.V)),
+										A2($elm$core$List$cons, newLineHeight, els.W)),
 									eF: A2($elm$core$List$cons, reducedVerticalPadding, els.eF)
 								});
 						}
@@ -39586,14 +39667,14 @@ var $mdgriffith$elm_ui$Element$Input$redistributeOver = F4(
 						return _Utils_update(
 							els,
 							{
-								iN: A2($elm$core$List$cons, attr, els.iN),
+								iM: A2($elm$core$List$cons, attr, els.iM),
 								eF: A2($elm$core$List$cons, attr, els.eF)
 							});
 					case 10:
 						return _Utils_update(
 							els,
 							{
-								iN: A2($elm$core$List$cons, attr, els.iN),
+								iM: A2($elm$core$List$cons, attr, els.iM),
 								eF: A2($elm$core$List$cons, attr, els.eF)
 							});
 					case 2:
@@ -39625,13 +39706,13 @@ var $mdgriffith$elm_ui$Element$Input$redistributeOver = F4(
 				return _Utils_update(
 					els,
 					{
-						V: A2($elm$core$List$cons, attr, els.V)
+						W: A2($elm$core$List$cons, attr, els.W)
 					});
 			case 2:
 				return _Utils_update(
 					els,
 					{
-						V: A2($elm$core$List$cons, attr, els.V)
+						W: A2($elm$core$List$cons, attr, els.W)
 					});
 			case 3:
 				return _Utils_update(
@@ -39643,7 +39724,7 @@ var $mdgriffith$elm_ui$Element$Input$redistributeOver = F4(
 				return _Utils_update(
 					els,
 					{
-						V: A2($elm$core$List$cons, attr, els.V)
+						W: A2($elm$core$List$cons, attr, els.W)
 					});
 		}
 	});
@@ -39651,24 +39732,24 @@ var $mdgriffith$elm_ui$Element$Input$redistribute = F3(
 	function (isMultiline, stacked, attrs) {
 		return function (redist) {
 			return {
-				iN: $elm$core$List$reverse(redist.iN),
+				iM: $elm$core$List$reverse(redist.iM),
 				t: $elm$core$List$reverse(redist.t),
-				V: $elm$core$List$reverse(redist.V),
+				W: $elm$core$List$reverse(redist.W),
 				eF: $elm$core$List$reverse(redist.eF),
-				dp: $elm$core$List$reverse(redist.dp)
+				$7: $elm$core$List$reverse(redist.$7)
 			};
 		}(
 			A3(
 				$elm$core$List$foldl,
 				A2($mdgriffith$elm_ui$Element$Input$redistributeOver, isMultiline, stacked),
-				{iN: _List_Nil, t: _List_Nil, V: _List_Nil, eF: _List_Nil, dp: _List_Nil},
+				{iM: _List_Nil, t: _List_Nil, W: _List_Nil, eF: _List_Nil, $7: _List_Nil},
 				attrs));
 	});
 var $mdgriffith$elm_ui$Element$Input$renderBox = function (_v0) {
-	var top = _v0.bo;
-	var right = _v0.bk;
+	var top = _v0.bq;
+	var right = _v0.bl;
 	var bottom = _v0.a2;
-	var left = _v0.bb;
+	var left = _v0.bc;
 	return $elm$core$String$fromInt(top) + ('px ' + ($elm$core$String$fromInt(right) + ('px ' + ($elm$core$String$fromInt(bottom) + ('px ' + ($elm$core$String$fromInt(left) + 'px'))))));
 };
 var $mdgriffith$elm_ui$Internal$Model$Transparency = F2(
@@ -39705,7 +39786,7 @@ var $mdgriffith$elm_ui$Element$Input$renderPlaceholder = F3(
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$Font$color($mdgriffith$elm_ui$Element$Input$charcoal),
-							$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.gW + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.kS)),
+							$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.gV + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.kR)),
 							$mdgriffith$elm_ui$Element$clip,
 							$mdgriffith$elm_ui$Element$Border$color(
 							A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0)),
@@ -39730,7 +39811,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 		var withDefaults = _Utils_ap($mdgriffith$elm_ui$Element$Input$defaultTextBoxStyle, attrs);
 		var redistributed = A3(
 			$mdgriffith$elm_ui$Element$Input$redistribute,
-			_Utils_eq(textInput.ai, $mdgriffith$elm_ui$Element$Input$TextArea),
+			_Utils_eq(textInput.aj, $mdgriffith$elm_ui$Element$Input$TextArea),
 			$mdgriffith$elm_ui$Element$Input$isStacked(textOptions.N),
 			withDefaults);
 		var onlySpacing = function (attr) {
@@ -39742,7 +39823,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 			}
 		};
 		var heightConstrained = function () {
-			var _v7 = textInput.ai;
+			var _v7 = textInput.aj;
 			if (!_v7.$) {
 				var inputType = _v7.a;
 				return false;
@@ -39773,15 +39854,15 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 							$elm$core$Basics$max,
 							0,
 							$elm$core$Basics$floor(b - 3)),
-						bb: A2(
+						bc: A2(
 							$elm$core$Basics$max,
 							0,
 							$elm$core$Basics$floor(l - 3)),
-						bk: A2(
+						bl: A2(
 							$elm$core$Basics$max,
 							0,
 							$elm$core$Basics$floor(r - 3)),
-						bo: A2(
+						bq: A2(
 							$elm$core$Basics$max,
 							0,
 							$elm$core$Basics$floor(t - 3))
@@ -39792,7 +39873,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 		};
 		var parentPadding = A2(
 			$elm$core$Maybe$withDefault,
-			{a2: 0, bb: 0, bk: 0, bo: 0},
+			{a2: 0, bc: 0, bl: 0, bq: 0},
 			$elm$core$List$head(
 				$elm$core$List$reverse(
 					A2($elm$core$List$filterMap, getPadding, withDefaults))));
@@ -39800,7 +39881,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 			$mdgriffith$elm_ui$Internal$Model$element,
 			$mdgriffith$elm_ui$Internal$Model$asEl,
 			function () {
-				var _v3 = textInput.ai;
+				var _v3 = textInput.aj;
 				if (!_v3.$) {
 					var inputType = _v3.a;
 					return $mdgriffith$elm_ui$Internal$Model$NodeName('input');
@@ -39810,21 +39891,21 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 			}(),
 			_Utils_ap(
 				function () {
-					var _v4 = textInput.ai;
+					var _v4 = textInput.aj;
 					if (!_v4.$) {
 						var inputType = _v4.a;
 						return _List_fromArray(
 							[
 								$mdgriffith$elm_ui$Internal$Model$Attr(
 								$elm$html$Html$Attributes$type_(inputType)),
-								$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jU)
+								$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jT)
 							]);
 					} else {
 						return _List_fromArray(
 							[
 								$mdgriffith$elm_ui$Element$clip,
 								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-								$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jQ),
+								$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jP),
 								$mdgriffith$elm_ui$Element$Input$calcMoveToCompensateForPadding(withDefaults),
 								$mdgriffith$elm_ui$Element$paddingEach(parentPadding),
 								$mdgriffith$elm_ui$Internal$Model$Attr(
@@ -39845,16 +39926,16 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 							$mdgriffith$elm_ui$Internal$Model$Attr(
 							$elm$html$Html$Events$onInput(textOptions.dK)),
 							$mdgriffith$elm_ui$Element$Input$hiddenLabelAttribute(textOptions.N),
-							$mdgriffith$elm_ui$Element$Input$spellcheck(textInput.bm),
+							$mdgriffith$elm_ui$Element$Input$spellcheck(textInput.bn),
 							A2(
 							$elm$core$Maybe$withDefault,
 							$mdgriffith$elm_ui$Internal$Model$NoAttribute,
 							A2($elm$core$Maybe$map, $mdgriffith$elm_ui$Element$Input$autofill, textInput.a0))
 						]),
-					redistributed.V)),
+					redistributed.W)),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(_List_Nil));
 		var wrappedInput = function () {
-			var _v0 = textInput.ai;
+			var _v0 = textInput.aj;
 			if (_v0.$ === 1) {
 				return A4(
 					$mdgriffith$elm_ui$Internal$Model$element,
@@ -39865,8 +39946,8 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 							_List_fromArray(
 								[
 									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									A2($elm$core$List$any, $mdgriffith$elm_ui$Element$Input$hasFocusStyle, withDefaults) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.gn),
-									$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jT)
+									A2($elm$core$List$any, $mdgriffith$elm_ui$Element$Input$hasFocusStyle, withDefaults) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.gm),
+									$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jS)
 								])),
 						redistributed.eF),
 					$mdgriffith$elm_ui$Internal$Model$Unkeyed(
@@ -39887,8 +39968,8 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 											$mdgriffith$elm_ui$Element$inFront(inputElement),
 											A2(
 												$elm$core$List$cons,
-												$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jS),
-												redistributed.dp)))),
+												$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jR),
+												redistributed.$7)))),
 								$mdgriffith$elm_ui$Internal$Model$Unkeyed(
 									function () {
 										if (textOptions.dW === '') {
@@ -39913,7 +39994,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 														$elm$html$Html$span,
 														_List_fromArray(
 															[
-																$elm$html$Html$Attributes$class($mdgriffith$elm_ui$Internal$Style$classes.jR)
+																$elm$html$Html$Attributes$class($mdgriffith$elm_ui$Internal$Style$classes.jQ)
 															]),
 														_List_fromArray(
 															[
@@ -39934,7 +40015,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						A2(
 							$elm$core$List$cons,
-							A2($elm$core$List$any, $mdgriffith$elm_ui$Element$Input$hasFocusStyle, withDefaults) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.gn),
+							A2($elm$core$List$any, $mdgriffith$elm_ui$Element$Input$hasFocusStyle, withDefaults) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.gm),
 							$elm$core$List$concat(
 								_List_fromArray(
 									[
@@ -39948,7 +40029,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 											return _List_fromArray(
 												[
 													$mdgriffith$elm_ui$Element$behindContent(
-													A3($mdgriffith$elm_ui$Element$Input$renderPlaceholder, place, redistributed.iN, textOptions.dW === ''))
+													A3($mdgriffith$elm_ui$Element$Input$renderPlaceholder, place, redistributed.iM, textOptions.dW === ''))
 												]);
 										}
 									}()
@@ -39962,7 +40043,7 @@ var $mdgriffith$elm_ui$Element$Input$textHelper = F3(
 			$mdgriffith$elm_ui$Element$Input$applyLabel,
 			A2(
 				$elm$core$List$cons,
-				A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$cursor, $mdgriffith$elm_ui$Internal$Style$classes.iS),
+				A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$cursor, $mdgriffith$elm_ui$Internal$Style$classes.iR),
 				A2(
 					$elm$core$List$cons,
 					$mdgriffith$elm_ui$Element$Input$isHiddenLabel(textOptions.N) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Element$spacing(5),
@@ -39976,9 +40057,9 @@ var $mdgriffith$elm_ui$Element$Input$currentPassword = F2(
 			$mdgriffith$elm_ui$Element$Input$textHelper,
 			{
 				a0: $elm$core$Maybe$Just('current-password'),
-				bm: false,
-				ai: $mdgriffith$elm_ui$Element$Input$TextInputNode(
-					pass.fJ ? 'text' : 'password')
+				bn: false,
+				aj: $mdgriffith$elm_ui$Element$Input$TextInputNode(
+					pass.fI ? 'text' : 'password')
 			},
 			attrs,
 			{N: pass.N, dK: pass.dK, dP: pass.dP, dW: pass.dW});
@@ -39992,8 +40073,8 @@ var $mdgriffith$elm_ui$Element$Input$labelLeft = $mdgriffith$elm_ui$Element$Inpu
 var $mdgriffith$elm_ui$Element$Input$text = $mdgriffith$elm_ui$Element$Input$textHelper(
 	{
 		a0: $elm$core$Maybe$Nothing,
-		bm: false,
-		ai: $mdgriffith$elm_ui$Element$Input$TextInputNode('text')
+		bn: false,
+		aj: $mdgriffith$elm_ui$Element$Input$TextInputNode('text')
 	});
 var $author$project$Internals$CommonStyleHelpers$textInputStyle = _List_fromArray(
 	[
@@ -40044,7 +40125,7 @@ var $author$project$Auth$AuthPlugin$loginView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Deconnexion'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$LogoutMode(0)))
 							})
@@ -40096,7 +40177,7 @@ var $author$project$Auth$AuthPlugin$loginView = F3(
 								$mdgriffith$elm_ui$Element$text('Mot de passe: '))),
 						dK: $author$project$Auth$AuthPlugin$SetPassword,
 						dP: $elm$core$Maybe$Nothing,
-						fJ: false,
+						fI: false,
 						dW: model.cd
 					}),
 					A2(
@@ -40112,14 +40193,14 @@ var $author$project$Auth$AuthPlugin$loginView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Connexion'),
-								aG: $elm$core$Maybe$Just($author$project$Auth$AuthPlugin$Login)
+								aI: $elm$core$Maybe$Just($author$project$Auth$AuthPlugin$Login)
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Nouvel utilisateur'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$SignUpMode(0)))
 							})
@@ -40147,7 +40228,7 @@ var $author$project$Auth$AuthPlugin$loginView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Réessayer'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$LoginMode(0)))
 							})
@@ -40214,7 +40295,7 @@ var $author$project$Auth$AuthPlugin$logoutView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Connexion'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$LoginMode(0)))
 							})
@@ -40233,7 +40314,7 @@ var $author$project$Auth$AuthPlugin$logoutView = F3(
 					$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 					{
 						N: $mdgriffith$elm_ui$Element$text('Se déconnecter'),
-						aG: $elm$core$Maybe$Just($author$project$Auth$AuthPlugin$Logout)
+						aI: $elm$core$Maybe$Just($author$project$Auth$AuthPlugin$Logout)
 					})
 				]));
 		var failureView = A2(
@@ -40258,7 +40339,7 @@ var $author$project$Auth$AuthPlugin$logoutView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Réessayer'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$LogoutMode(0)))
 							})
@@ -40301,9 +40382,9 @@ var $mdgriffith$elm_ui$Element$Input$newPassword = F2(
 			$mdgriffith$elm_ui$Element$Input$textHelper,
 			{
 				a0: $elm$core$Maybe$Just('new-password'),
-				bm: false,
-				ai: $mdgriffith$elm_ui$Element$Input$TextInputNode(
-					pass.fJ ? 'text' : 'password')
+				bn: false,
+				aj: $mdgriffith$elm_ui$Element$Input$TextInputNode(
+					pass.fI ? 'text' : 'password')
 			},
 			attrs,
 			{N: pass.N, dK: pass.dK, dP: pass.dP, dW: pass.dW});
@@ -40342,7 +40423,7 @@ var $author$project$Auth$AuthPlugin$signUpView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Connexion'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$LoginMode(0)))
 							})
@@ -40394,7 +40475,7 @@ var $author$project$Auth$AuthPlugin$signUpView = F3(
 								$mdgriffith$elm_ui$Element$text('Mot de passe: '))),
 						dK: $author$project$Auth$AuthPlugin$SetPassword,
 						dP: $elm$core$Maybe$Nothing,
-						fJ: false,
+						fI: false,
 						dW: model.cd
 					}),
 					A2(
@@ -40415,8 +40496,8 @@ var $author$project$Auth$AuthPlugin$signUpView = F3(
 								$mdgriffith$elm_ui$Element$text('Confirmation: '))),
 						dK: $author$project$Auth$AuthPlugin$SetConfirmPassword,
 						dP: $elm$core$Maybe$Nothing,
-						fJ: false,
-						dW: model.dt
+						fI: false,
+						dW: model.ds
 					}),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
@@ -40431,14 +40512,14 @@ var $author$project$Auth$AuthPlugin$signUpView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Envoyer'),
-								aG: $elm$core$Maybe$Just($author$project$Auth$AuthPlugin$SignUp)
+								aI: $elm$core$Maybe$Just($author$project$Auth$AuthPlugin$SignUp)
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$LoginMode(0)))
 							})
@@ -40466,7 +40547,7 @@ var $author$project$Auth$AuthPlugin$signUpView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Réessayer'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$SignUpMode(0)))
 							}),
@@ -40475,7 +40556,7 @@ var $author$project$Auth$AuthPlugin$signUpView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									$author$project$Auth$AuthPlugin$ChangePluginMode(
 										$author$project$Auth$AuthPlugin$LoginMode(0)))
 							})
@@ -40721,7 +40802,7 @@ var $author$project$FileExplorer$FileExplorer$filesysView = F2(
 												$author$project$FileExplorer$FileExplorer$getPath(fsItem),
 												path);
 										},
-										model.n);
+										model.o);
 									if ((!_v9.$) && _v9.a) {
 										return _List_Nil;
 									} else {
@@ -40743,7 +40824,7 @@ var $author$project$FileExplorer$FileExplorer$filesysView = F2(
 											$author$project$FileExplorer$FileExplorer$getPath(fsItem),
 											path);
 									},
-									model.n);
+									model.o);
 								if ((!_v10.$) && _v10.a) {
 									return $mdgriffith$elm_ui$Element$Background$color(
 										A4($mdgriffith$elm_ui$Element$rgba, 0.3, 0.4, 0.6, 0.5));
@@ -40817,7 +40898,7 @@ var $author$project$FileExplorer$FileExplorer$filesysView = F2(
 												$author$project$FileExplorer$FileExplorer$getPath(fsItem),
 												path);
 										},
-										model.n);
+										model.o);
 									if ((!_v5.$) && _v5.a) {
 										return _List_Nil;
 									} else {
@@ -40837,7 +40918,7 @@ var $author$project$FileExplorer$FileExplorer$filesysView = F2(
 											$author$project$FileExplorer$FileExplorer$getPath(fsItem),
 											path);
 									},
-									model.n);
+									model.o);
 								if ((!_v6.$) && _v6.a) {
 									return $mdgriffith$elm_ui$Element$Background$color(
 										A4($mdgriffith$elm_ui$Element$rgba, 0.3, 0.4, 0.6, 0.5));
@@ -41115,7 +41196,7 @@ var $mdgriffith$elm_ui$Element$wrappedRow = F2(
 				$mdgriffith$elm_ui$Internal$Model$div,
 				A2(
 					$elm$core$List$cons,
-					$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.du + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fW)))),
+					$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.dt + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fV)))),
 					A2(
 						$elm$core$List$cons,
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
@@ -41139,7 +41220,7 @@ var $mdgriffith$elm_ui$Element$wrappedRow = F2(
 					var l = _v5.e;
 					return ((_Utils_cmp(r, (x / 2) | 0) > -1) && (_Utils_cmp(b, (y / 2) | 0) > -1)) ? $elm$core$Maybe$Just(
 						$mdgriffith$elm_ui$Element$paddingEach(
-							{a2: b - ((y / 2) | 0), bb: l - ((x / 2) | 0), bk: r - ((x / 2) | 0), bo: t - ((y / 2) | 0)})) : $elm$core$Maybe$Nothing;
+							{a2: b - ((y / 2) | 0), bc: l - ((x / 2) | 0), bl: r - ((x / 2) | 0), bq: t - ((y / 2) | 0)})) : $elm$core$Maybe$Nothing;
 				} else {
 					return $elm$core$Maybe$Nothing;
 				}
@@ -41152,7 +41233,7 @@ var $mdgriffith$elm_ui$Element$wrappedRow = F2(
 					$mdgriffith$elm_ui$Internal$Model$div,
 					A2(
 						$elm$core$List$cons,
-						$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.du + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fW)))),
+						$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.dt + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fV)))),
 						A2(
 							$elm$core$List$cons,
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
@@ -41181,7 +41262,7 @@ var $mdgriffith$elm_ui$Element$wrappedRow = F2(
 								$mdgriffith$elm_ui$Internal$Model$div,
 								A2(
 									$elm$core$List$cons,
-									$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.du + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fW)))),
+									$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.dt + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.bU + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.fV)))),
 									A2(
 										$elm$core$List$cons,
 										$mdgriffith$elm_ui$Internal$Model$Attr(
@@ -41452,20 +41533,20 @@ var $author$project$Internals$CommonStyleHelpers$toogleButtonStyle = F2(
 						A3($mdgriffith$elm_ui$Element$rgb, 0.9, 0.9, 0.9)),
 						$mdgriffith$elm_ui$Element$Border$shadow(
 						{
-							id: 0.5,
-							iB: A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5),
-							kE: _Utils_Tuple2(1, 1),
-							fK: 1
+							ic: 0.5,
+							iA: A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5),
+							kD: _Utils_Tuple2(1, 1),
+							fJ: 1
 						}),
 						$mdgriffith$elm_ui$Element$focused(
 						_List_fromArray(
 							[
 								$mdgriffith$elm_ui$Element$Border$shadow(
 								{
-									id: 0.5,
-									iB: A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5),
-									kE: _Utils_Tuple2(1, 1),
-									fK: 1
+									ic: 0.5,
+									iA: A3($mdgriffith$elm_ui$Element$rgb, 0.5, 0.5, 0.5),
+									kD: _Utils_Tuple2(1, 1),
+									fJ: 1
 								})
 							]))
 					]) : _List_fromArray(
@@ -41505,7 +41586,7 @@ var $author$project$FileExplorer$FileExplorer$mainInterface = F2(
 				[
 					_Utils_eq(config.g, $author$project$FileExplorer$FileExplorer$Full) ? A2(
 					$mdgriffith$elm_ui$Element$Input$button,
-					A2($author$project$Internals$CommonStyleHelpers$toogleButtonStyle, model.Y === 1, true),
+					A2($author$project$Internals$CommonStyleHelpers$toogleButtonStyle, model.Z === 1, true),
 					{
 						N: A2(
 							$mdgriffith$elm_ui$Element$row,
@@ -41518,12 +41599,12 @@ var $author$project$FileExplorer$FileExplorer$mainInterface = F2(
 									$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$fileText(iconSize))
 								])),
-						aG: $elm$core$Maybe$Just(
+						aI: $elm$core$Maybe$Just(
 							$author$project$FileExplorer$FileExplorer$SetRoot(1))
 					}) : $mdgriffith$elm_ui$Element$none,
 					_Utils_eq(config.g, $author$project$FileExplorer$FileExplorer$Full) ? A2(
 					$mdgriffith$elm_ui$Element$Input$button,
-					A2($author$project$Internals$CommonStyleHelpers$toogleButtonStyle, !model.Y, true),
+					A2($author$project$Internals$CommonStyleHelpers$toogleButtonStyle, !model.Z, true),
 					{
 						N: A2(
 							$mdgriffith$elm_ui$Element$row,
@@ -41536,7 +41617,7 @@ var $author$project$FileExplorer$FileExplorer$mainInterface = F2(
 									$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$imageIcon(iconSize))
 								])),
-						aG: $elm$core$Maybe$Just(
+						aI: $elm$core$Maybe$Just(
 							$author$project$FileExplorer$FileExplorer$SetRoot(0))
 					}) : $mdgriffith$elm_ui$Element$none,
 					A2(
@@ -41554,13 +41635,13 @@ var $author$project$FileExplorer$FileExplorer$mainInterface = F2(
 									$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$chevronLeft(iconSize))
 								])),
-						aG: $elm$core$Maybe$Just(
+						aI: $elm$core$Maybe$Just(
 							$author$project$FileExplorer$FileExplorer$GoPrev(config.g))
 					}),
 					A2(
 					$mdgriffith$elm_ui$Element$Input$button,
 					$author$project$Internals$CommonStyleHelpers$buttonStyle(
-						!_Utils_eq(model.bE, $elm$core$Maybe$Nothing)),
+						!_Utils_eq(model.bF, $elm$core$Maybe$Nothing)),
 					{
 						N: A2(
 							$mdgriffith$elm_ui$Element$row,
@@ -41573,7 +41654,7 @@ var $author$project$FileExplorer$FileExplorer$mainInterface = F2(
 									$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$chevronRight(iconSize))
 								])),
-						aG: (!_Utils_eq(model.bE, $elm$core$Maybe$Nothing)) ? $elm$core$Maybe$Just(
+						aI: (!_Utils_eq(model.bF, $elm$core$Maybe$Nothing)) ? $elm$core$Maybe$Just(
 							$author$project$FileExplorer$FileExplorer$GoNext(config.g)) : $elm$core$Maybe$Nothing
 					}),
 					A2(
@@ -41591,7 +41672,7 @@ var $author$project$FileExplorer$FileExplorer$mainInterface = F2(
 									$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$home(iconSize))
 								])),
-						aG: $elm$core$Maybe$Just(
+						aI: $elm$core$Maybe$Just(
 							$author$project$FileExplorer$FileExplorer$GoHome(config.g))
 					}),
 					A2($author$project$FileExplorer$FileExplorer$clickablePath, config, model)
@@ -41632,7 +41713,7 @@ var $author$project$FileExplorer$FileExplorer$compileFolderInfo = function (fsIt
 	var helper = F2(
 		function (fsItem_, acc) {
 			var nbrFiles = acc.ex;
-			var size = acc.fK;
+			var size = acc.fJ;
 			var nbrFolders = acc.dJ;
 			if (fsItem_.$ === 1) {
 				var fileSize = fsItem_.a.b$;
@@ -41640,7 +41721,7 @@ var $author$project$FileExplorer$FileExplorer$compileFolderInfo = function (fsIt
 					acc,
 					{
 						ex: nbrFiles + 1,
-						fK: A2($elm$core$Maybe$withDefault, 0, fileSize) + size
+						fJ: A2($elm$core$Maybe$withDefault, 0, fileSize) + size
 					});
 			} else {
 				var children = fsItem_.b;
@@ -41659,7 +41740,7 @@ var $author$project$FileExplorer$FileExplorer$compileFolderInfo = function (fsIt
 	return A2(
 		helper,
 		fsItem,
-		{ex: 0, dJ: -1, fK: 0});
+		{ex: 0, dJ: -1, fJ: 0});
 };
 var $author$project$Internals$CommonStyleHelpers$red4 = A3($mdgriffith$elm_ui$Element$rgb255, 220, 48, 48);
 var $author$project$Internals$CommonStyleHelpers$red5 = A3($mdgriffith$elm_ui$Element$rgb255, 228, 100, 100);
@@ -41805,22 +41886,22 @@ var $basti1302$elm_human_readable_filesize$Filesize$Base10 = 0;
 var $basti1302$elm_human_readable_filesize$Filesize$defaultSettings = {e7: 2, ei: '.', d$: 0};
 var $basti1302$elm_human_readable_filesize$Filesize$base10UnitList = _List_fromArray(
 	[
-		{R: 'B', P: 1},
-		{R: 'kB', P: 1000},
-		{R: 'MB', P: 1000000},
-		{R: 'GB', P: 1000000000},
-		{R: 'TB', P: 1000000000000},
-		{R: 'PB', P: 1000000000000000},
-		{R: 'EB', P: 1000000000000000000}
+		{S: 'B', P: 1},
+		{S: 'kB', P: 1000},
+		{S: 'MB', P: 1000000},
+		{S: 'GB', P: 1000000000},
+		{S: 'TB', P: 1000000000000},
+		{S: 'PB', P: 1000000000000000},
+		{S: 'EB', P: 1000000000000000000}
 	]);
 var $basti1302$elm_human_readable_filesize$Filesize$base2UnitList = _List_fromArray(
 	[
-		{R: 'B', P: 1},
-		{R: 'KiB', P: 1024},
-		{R: 'MiB', P: 1048576},
-		{R: 'GiB', P: 1073741824},
-		{R: 'TiB', P: 1099511627776},
-		{R: 'PiB', P: 1125899906842624}
+		{S: 'B', P: 1},
+		{S: 'KiB', P: 1024},
+		{S: 'MiB', P: 1048576},
+		{S: 'GiB', P: 1073741824},
+		{S: 'TiB', P: 1099511627776},
+		{S: 'PiB', P: 1125899906842624}
 	]);
 var $basti1302$elm_human_readable_filesize$Filesize$getUnitDefinitionList = function (units) {
 	if (!units) {
@@ -42032,7 +42113,7 @@ var $basti1302$elm_human_readable_filesize$Filesize$roundToDecimalPlaces = F2(
 			1,
 			$basti1302$elm_human_readable_filesize$Filesize$removeTrailingZeroesRegex,
 			function (_v1) {
-				var submatches = _v1.lT;
+				var submatches = _v1.lS;
 				return A2(
 					$elm$core$String$join,
 					'',
@@ -42052,7 +42133,7 @@ var $basti1302$elm_human_readable_filesize$Filesize$roundToDecimalPlaces = F2(
 			},
 			withoutTrailingDot);
 	});
-var $basti1302$elm_human_readable_filesize$Filesize$unknownUnit = {R: '?', P: 1};
+var $basti1302$elm_human_readable_filesize$Filesize$unknownUnit = {S: '?', P: 1};
 var $basti1302$elm_human_readable_filesize$Filesize$formatWithSplit = F2(
 	function (settings, num) {
 		if (!num) {
@@ -42076,7 +42157,7 @@ var $basti1302$elm_human_readable_filesize$Filesize$formatWithSplit = F2(
 			var formattedNumber = A2($basti1302$elm_human_readable_filesize$Filesize$roundToDecimalPlaces, settings, num2 / unitDefinition.P);
 			return _Utils_Tuple2(
 				_Utils_ap(negativePrefix, formattedNumber),
-				unitDefinition.R);
+				unitDefinition.S);
 		}
 	});
 var $basti1302$elm_human_readable_filesize$Filesize$format = function (num) {
@@ -42192,7 +42273,7 @@ var $author$project$Internals$Icons$scissors = function (size) {
 			]));
 };
 var $mdgriffith$elm_ui$Element$Font$typeface = $mdgriffith$elm_ui$Internal$Model$Typeface;
-var $mdgriffith$elm_ui$Element$Font$underline = $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.hG);
+var $mdgriffith$elm_ui$Element$Font$underline = $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.hF);
 var $author$project$Internals$Icons$upload = function (size) {
 	return A3(
 		$author$project$Internals$Icons$customSvgFeatherIcon,
@@ -42340,7 +42421,7 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 							_List_fromArray(
 								[$mdgriffith$elm_ui$Element$Font$center]),
 							$mdgriffith$elm_ui$Element$text(
-								$elm$core$String$fromInt(imgSize.mu) + ('x' + ($elm$core$String$fromInt(imgSize.jy) + 'px')))),
+								$elm$core$String$fromInt(imgSize.mt) + ('x' + ($elm$core$String$fromInt(imgSize.jx) + 'px')))),
 							A2(
 							$elm$core$Maybe$withDefault,
 							$mdgriffith$elm_ui$Element$none,
@@ -42414,12 +42495,12 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 												$mdgriffith$elm_ui$Element$Input$placeholder,
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$text('Nouveau dossier'))),
-										dW: model.be
+										dW: model.bf
 									}))),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							_Utils_ap(
-								$author$project$Internals$CommonStyleHelpers$buttonStyle(model.be !== ''),
+								$author$project$Internals$CommonStyleHelpers$buttonStyle(model.bf !== ''),
 								_List_fromArray(
 									[$mdgriffith$elm_ui$Element$alignRight])),
 							{
@@ -42434,7 +42515,7 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 											$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$folderPlus(iconSize))
 										])),
-								aG: (model.be !== '') ? A2(
+								aI: (model.bf !== '') ? A2(
 									$elm$core$Maybe$map,
 									$author$project$FileExplorer$FileExplorer$NewFolder(config.g),
 									A2(
@@ -42478,13 +42559,13 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 														$author$project$Internals$Icons$upload(iconSize))),
 													$mdgriffith$elm_ui$Element$text('Mettre en ligne')
 												])),
-										aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
+										aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
 									}),
 									_Utils_eq(config.g, $author$project$FileExplorer$FileExplorer$Full) ? A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									_Utils_ap(
 										$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
-											!_Utils_eq(model.bt, $elm$core$Maybe$Nothing)),
+											!_Utils_eq(model.bv, $elm$core$Maybe$Nothing)),
 										_List_fromArray(
 											[$mdgriffith$elm_ui$Element$alignRight])),
 									{
@@ -42498,7 +42579,7 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 												[
 													$mdgriffith$elm_ui$Element$text('Coller')
 												])),
-										aG: (!_Utils_eq(model.bt, $elm$core$Maybe$Nothing)) ? A2(
+										aI: (!_Utils_eq(model.bv, $elm$core$Maybe$Nothing)) ? A2(
 											$elm$core$Maybe$map,
 											A2(
 												$elm$core$Basics$composeL,
@@ -42536,7 +42617,7 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 												$mdgriffith$elm_ui$Element$text(s)
 											]));
 								},
-								A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$getName, model.n)));
+								A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$getName, model.o)));
 					} else {
 						return A2(
 							$mdgriffith$elm_ui$Element$row,
@@ -42573,8 +42654,8 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 													A2(
 														$elm$core$Maybe$map,
 														$mdgriffith$elm_ui$Element$text,
-														A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$getName, model.n))),
-												dW: model.bI
+														A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$getName, model.o))),
+												dW: model.bJ
 											}))),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
@@ -42585,9 +42666,9 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 											A2(
 												$elm$core$Maybe$map,
 												function (n) {
-													return !_Utils_eq(n, model.bI);
+													return !_Utils_eq(n, model.bJ);
 												},
-												A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$getName, model.n)))),
+												A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$getName, model.o)))),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$row,
@@ -42599,10 +42680,10 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 												[
 													$mdgriffith$elm_ui$Element$text('Renommer')
 												])),
-										aG: (model.bI !== '') ? A2(
+										aI: (model.bJ !== '') ? A2(
 											$elm$core$Maybe$map,
 											$author$project$FileExplorer$FileExplorer$Rename(config.g),
-											model.n) : $elm$core$Maybe$Nothing
+											model.o) : $elm$core$Maybe$Nothing
 									})
 								]));
 					}
@@ -42637,16 +42718,16 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 												$author$project$Internals$Icons$xSquare(iconSize))),
 											$mdgriffith$elm_ui$Element$text('Supprimer')
 										])),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									$author$project$FileExplorer$FileExplorer$Delete(config.g),
-									model.n)
+									model.o)
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							_Utils_ap(
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(
-									_Utils_eq(model.bt, $elm$core$Maybe$Nothing)),
+									_Utils_eq(model.bv, $elm$core$Maybe$Nothing)),
 								_List_fromArray(
 									[$mdgriffith$elm_ui$Element$alignRight])),
 							{
@@ -42665,10 +42746,10 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 												$author$project$Internals$Icons$scissors(iconSize))),
 											$mdgriffith$elm_ui$Element$text('Couper')
 										])),
-								aG: function () {
-									var _v5 = model.bt;
+								aI: function () {
+									var _v5 = model.bv;
 									if (_v5.$ === 1) {
-										return A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$Cut, model.n);
+										return A2($elm$core$Maybe$map, $author$project$FileExplorer$FileExplorer$Cut, model.o);
 									} else {
 										return $elm$core$Maybe$Nothing;
 									}
@@ -42691,7 +42772,7 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 						_List_fromArray(
 							[$mdgriffith$elm_ui$Element$Font$center]),
 						$mdgriffith$elm_ui$Element$text(
-							$basti1302$elm_human_readable_filesize$Filesize$format(folderInfo.fK))),
+							$basti1302$elm_human_readable_filesize$Filesize$format(folderInfo.fJ))),
 						A2(
 						$mdgriffith$elm_ui$Element$el,
 						_List_fromArray(
@@ -42724,7 +42805,7 @@ var $author$project$FileExplorer$FileExplorer$sidePanelView = F2(
 				if (_v0 === 1) {
 					return _List_Nil;
 				} else {
-					var _v1 = model.n;
+					var _v1 = model.o;
 					if (_v1.$ === 1) {
 						return _List_fromArray(
 							[noSelectionControlsPanel]);
@@ -42794,7 +42875,7 @@ var $author$project$Internals$CommonStyleHelpers$okMark = A2(
 	$mdgriffith$elm_ui$Element$text('✓'));
 var $mdgriffith$elm_ui$Element$fillPortion = $mdgriffith$elm_ui$Internal$Model$Fill;
 var $mdgriffith$elm_ui$Element$Border$innerShadow = function (almostShade) {
-	var shade = {id: almostShade.id, iB: almostShade.iB, gE: true, kE: almostShade.kE, fK: almostShade.fK};
+	var shade = {ic: almostShade.ic, iA: almostShade.iA, gD: true, kD: almostShade.kD, fJ: almostShade.fJ};
 	return A2(
 		$mdgriffith$elm_ui$Internal$Model$StyleClass,
 		$mdgriffith$elm_ui$Internal$Flag$shadows,
@@ -42815,10 +42896,10 @@ var $author$project$Internals$CommonStyleHelpers$progressBar = function (n) {
 				$mdgriffith$elm_ui$Element$px(25)),
 				$mdgriffith$elm_ui$Element$Border$innerShadow(
 				{
-					id: 1,
-					iB: A3($mdgriffith$elm_ui$Element$rgb255, 127, 127, 127),
-					kE: _Utils_Tuple2(0, 1),
-					fK: 1
+					ic: 1,
+					iA: A3($mdgriffith$elm_ui$Element$rgb255, 127, 127, 127),
+					kD: _Utils_Tuple2(0, 1),
+					fJ: 1
 				}),
 				$mdgriffith$elm_ui$Element$Background$color(
 				A3($mdgriffith$elm_ui$Element$rgb255, 245, 245, 245)),
@@ -42998,7 +43079,7 @@ var $author$project$FileExplorer$FileExplorer$bulkImageUploadView_ = F2(
 														$mdgriffith$elm_ui$Element$height(
 														$mdgriffith$elm_ui$Element$px(105)),
 														$mdgriffith$elm_ui$Element$centerX,
-														$mdgriffith$elm_ui$Element$Background$uncropped(p.iJ),
+														$mdgriffith$elm_ui$Element$Background$uncropped(p.iI),
 														$mdgriffith$elm_ui$Element$alignLeft
 													]),
 												$mdgriffith$elm_ui$Element$none)),
@@ -43027,7 +43108,7 @@ var $author$project$FileExplorer$FileExplorer$bulkImageUploadView_ = F2(
 															$basti1302$elm_human_readable_filesize$Filesize$format,
 															A2($elm$core$Dict$get, p.D, model.b0)))),
 													$mdgriffith$elm_ui$Element$text(
-													'Nouvelle taille: ' + $basti1302$elm_human_readable_filesize$Filesize$format(p.fK)),
+													'Nouvelle taille: ' + $basti1302$elm_human_readable_filesize$Filesize$format(p.fJ)),
 													A2(
 													$mdgriffith$elm_ui$Element$row,
 													_List_fromArray(
@@ -43089,7 +43170,7 @@ var $author$project$FileExplorer$FileExplorer$bulkImageUploadView_ = F2(
 																		$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 																		{
 																			N: $mdgriffith$elm_ui$Element$text('Réessayer'),
-																			aG: $elm$core$Maybe$Just(
+																			aI: $elm$core$Maybe$Just(
 																				$author$project$FileExplorer$FileExplorer$ManualUpload(p.D))
 																		});
 																} else {
@@ -43122,7 +43203,7 @@ var $author$project$FileExplorer$FileExplorer$bulkImageUploadView_ = F2(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$Reset)
+								aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$Reset)
 							})
 						]))
 				]));
@@ -43309,7 +43390,7 @@ var $author$project$FileExplorer$FileExplorer$bulkUploadView_ = F2(
 																				$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 																				{
 																					N: $mdgriffith$elm_ui$Element$text('Réessayer'),
-																					aG: $elm$core$Maybe$Just(
+																					aI: $elm$core$Maybe$Just(
 																						$author$project$FileExplorer$FileExplorer$ManualFileUpload(filename))
 																				});
 																		} else {
@@ -43341,7 +43422,7 @@ var $author$project$FileExplorer$FileExplorer$bulkUploadView_ = F2(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$Reset)
+								aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$Reset)
 							})
 						]))
 				]));
@@ -43354,7 +43435,7 @@ var $author$project$FileExplorer$FileExplorer$ImageRead = function (a) {
 };
 var $author$project$FileExplorer$FileExplorer$ImageFromFile = F5(
 	function (contents, filename, width, height, filesize) {
-		return {cv: contents, D: filename, cB: filesize, jy: height, mu: width};
+		return {cv: contents, D: filename, cB: filesize, jx: height, mt: width};
 	});
 var $author$project$FileExplorer$FileExplorer$decodeImageData = function (msg) {
 	return A2(
@@ -43409,7 +43490,7 @@ var $elm$html$Html$Attributes$src = function (url) {
 };
 var $mdgriffith$elm_ui$Element$image = F2(
 	function (attrs, _v0) {
-		var src = _v0.fL;
+		var src = _v0.fK;
 		var description = _v0.fa;
 		var imageAttributes = A2(
 			$elm$core$List$filter,
@@ -43430,7 +43511,7 @@ var $mdgriffith$elm_ui$Element$image = F2(
 			$mdgriffith$elm_ui$Internal$Model$div,
 			A2(
 				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jH),
+				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jG),
 				attrs),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
 				_List_fromArray(
@@ -43497,7 +43578,7 @@ var $author$project$Internals$Icons$rotateCw = function (size) {
 				_List_Nil)
 			]));
 };
-var $mdgriffith$elm_ui$Element$scrollbars = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.lg);
+var $mdgriffith$elm_ui$Element$scrollbars = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.lf);
 var $mdgriffith$elm_ui$Internal$Flag$active = $mdgriffith$elm_ui$Internal$Flag$flag(32);
 var $mdgriffith$elm_ui$Internal$Model$getHeight = function (attrs) {
 	return A3(
@@ -43750,8 +43831,8 @@ var $mdgriffith$elm_ui$Element$Input$slider = F2(
 			}
 			return false;
 		}();
-		var factor = (input.hH - input.kh) / (input.ke - input.kh);
-		var _v0 = input.mg;
+		var factor = (input.hG - input.kg) / (input.kd - input.kg);
+		var _v0 = input.mf;
 		var thumbAttributes = _v0;
 		var height = $mdgriffith$elm_ui$Internal$Model$getHeight(thumbAttributes);
 		var thumbHeightString = function () {
@@ -43876,7 +43957,7 @@ var $mdgriffith$elm_ui$Element$Input$slider = F2(
 								$mdgriffith$elm_ui$Internal$Model$Attr(
 								$elm$html$Html$Attributes$step(
 									function () {
-										var _v5 = input.lP;
+										var _v5 = input.lO;
 										if (_v5.$ === 1) {
 											return 'any';
 										} else {
@@ -43886,13 +43967,13 @@ var $mdgriffith$elm_ui$Element$Input$slider = F2(
 									}())),
 								$mdgriffith$elm_ui$Internal$Model$Attr(
 								$elm$html$Html$Attributes$min(
-									$elm$core$String$fromFloat(input.kh))),
+									$elm$core$String$fromFloat(input.kg))),
 								$mdgriffith$elm_ui$Internal$Model$Attr(
 								$elm$html$Html$Attributes$max(
-									$elm$core$String$fromFloat(input.ke))),
+									$elm$core$String$fromFloat(input.kd))),
 								$mdgriffith$elm_ui$Internal$Model$Attr(
 								$elm$html$Html$Attributes$value(
-									$elm$core$String$fromFloat(input.hH))),
+									$elm$core$String$fromFloat(input.hG))),
 								vertical ? $mdgriffith$elm_ui$Internal$Model$Attr(
 								A2($elm$html$Html$Attributes$attribute, 'orient', 'vertical')) : $mdgriffith$elm_ui$Internal$Model$NoAttribute,
 								$mdgriffith$elm_ui$Element$width(
@@ -43933,7 +44014,7 @@ var $mdgriffith$elm_ui$Element$Input$slider = F2(
 var $author$project$FileExplorer$FileExplorer$editView = F2(
 	function (config, model) {
 		var iconSize = 18;
-		var _v0 = _Utils_Tuple3(model.bF, model.aY, model.aX);
+		var _v0 = _Utils_Tuple3(model.bG, model.aY, model.aX);
 		if (((!_v0.a.$) && (!_v0.b.$)) && (!_v0.c.$)) {
 			var f = _v0.a.a;
 			var oriW = _v0.b.a;
@@ -43994,7 +44075,7 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$rotateCcw(iconSize))),
-									aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$RotateLeft)
+									aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$RotateLeft)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -44005,7 +44086,7 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$rotateCw(iconSize))),
-									aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$RotateRight)
+									aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$RotateRight)
 								})
 							])),
 						A2(
@@ -44063,12 +44144,12 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 												_List_fromArray(
 													[$mdgriffith$elm_ui$Element$centerY]),
 												$mdgriffith$elm_ui$Element$none),
-											ke: 100,
-											kh: 0,
+											kd: 100,
+											kg: 0,
 											dK: $author$project$FileExplorer$FileExplorer$Resize,
-											lP: $elm$core$Maybe$Just(1),
-											mg: $mdgriffith$elm_ui$Element$Input$defaultThumb,
-											hH: model.dj
+											lO: $elm$core$Maybe$Just(1),
+											mf: $mdgriffith$elm_ui$Element$Input$defaultThumb,
+											hG: model.di
 										}),
 										A2(
 										$mdgriffith$elm_ui$Element$el,
@@ -44091,7 +44172,7 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(model.bT),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Redimensionner'),
-									aG: model.bT ? $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$SetResize) : $elm$core$Maybe$Nothing
+									aI: model.bT ? $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$SetResize) : $elm$core$Maybe$Nothing
 								})
 							])),
 						A2(
@@ -44121,7 +44202,7 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 											A2(
 												$elm$core$Maybe$withDefault,
 												'Erreur',
-												A2($elm$core$Maybe$map, $basti1302$elm_human_readable_filesize$Filesize$format, model.db))))
+												A2($elm$core$Maybe$map, $basti1302$elm_human_readable_filesize$Filesize$format, model.da))))
 									])),
 								A2(
 								$mdgriffith$elm_ui$Element$row,
@@ -44150,7 +44231,7 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 														function ($) {
 															return $.cB;
 														},
-														model.bF)))))
+														model.bG)))))
 									]))
 							])),
 						A2(
@@ -44166,21 +44247,21 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Nouveau fichier'),
-									aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ResetImageController)
+									aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ResetImageController)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Retour'),
-									aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
+									aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$saveButtonStyle(true),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Valider et envoyer'),
-									aG: A2(
+									aI: A2(
 										$elm$core$Maybe$map,
 										$author$project$FileExplorer$FileExplorer$UploadImage,
 										A2(
@@ -44204,7 +44285,7 @@ var $author$project$FileExplorer$FileExplorer$editView = F2(
 							$mdgriffith$elm_ui$Element$image,
 							_List_fromArray(
 								[$mdgriffith$elm_ui$Element$centerY, $mdgriffith$elm_ui$Element$centerX]),
-							{fa: f.D, fL: f.cv}))
+							{fa: f.D, fK: f.cv}))
 					]));
 		} else {
 			return $mdgriffith$elm_ui$Element$text('no file data');
@@ -44321,7 +44402,7 @@ var $author$project$FileExplorer$FileExplorer$imageControllerView = F3(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
+								aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
 							});
 					} else {
 						return $mdgriffith$elm_ui$Element$none;
@@ -44407,14 +44488,14 @@ var $author$project$FileExplorer$FileExplorer$imageProcessingView = F2(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Annuler'),
-								aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$Reset)
+								aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$Reset)
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(canUpload),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Continuer'),
-								aG: canUpload ? $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$GoToUpload) : $elm$core$Maybe$Nothing
+								aI: canUpload ? $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$GoToUpload) : $elm$core$Maybe$Nothing
 							})
 						]))
 				]));
@@ -44635,7 +44716,7 @@ var $mdgriffith$elm_ui$Element$Input$radioHelper = F3(
 					case 0:
 						return _Utils_eq(
 							$elm$core$Maybe$Just(val),
-							input.hn) ? _Utils_Tuple3(1, prev, nxt) : _Utils_Tuple3(found, val, nxt);
+							input.hm) ? _Utils_Tuple3(1, prev, nxt) : _Utils_Tuple3(found, val, nxt);
 					case 1:
 						return _Utils_Tuple3(2, prev, val);
 					default:
@@ -44647,7 +44728,7 @@ var $mdgriffith$elm_ui$Element$Input$radioHelper = F3(
 			var view = _v11.b;
 			var status = _Utils_eq(
 				$elm$core$Maybe$Just(val),
-				input.hn) ? 2 : 0;
+				input.hm) ? 2 : 0;
 			return A2(
 				$mdgriffith$elm_ui$Element$el,
 				_List_fromArray(
@@ -44677,7 +44758,7 @@ var $mdgriffith$elm_ui$Element$Input$radioHelper = F3(
 				view(status));
 		};
 		var prevNext = function () {
-			var _v5 = input.g3;
+			var _v5 = input.g2;
 			if (!_v5.b) {
 				return $elm$core$Maybe$Nothing;
 			} else {
@@ -44703,7 +44784,7 @@ var $mdgriffith$elm_ui$Element$Input$radioHelper = F3(
 						$elm$core$List$foldl,
 						track,
 						_Utils_Tuple3(0, val, val),
-						input.g3));
+						input.g2));
 			}
 		}();
 		var optionArea = function () {
@@ -44714,7 +44795,7 @@ var $mdgriffith$elm_ui$Element$Input$radioHelper = F3(
 						$elm$core$List$cons,
 						$mdgriffith$elm_ui$Element$Input$hiddenLabelAttribute(input.N),
 						attrs),
-					A2($elm$core$List$map, renderOption, input.g3));
+					A2($elm$core$List$map, renderOption, input.g2));
 			} else {
 				return A2(
 					$mdgriffith$elm_ui$Element$Input$column,
@@ -44722,7 +44803,7 @@ var $mdgriffith$elm_ui$Element$Input$radioHelper = F3(
 						$elm$core$List$cons,
 						$mdgriffith$elm_ui$Element$Input$hiddenLabelAttribute(input.N),
 						attrs),
-					A2($elm$core$List$map, renderOption, input.g3));
+					A2($elm$core$List$map, renderOption, input.g2));
 			}
 		}();
 		var events = A2(
@@ -44796,7 +44877,7 @@ var $mdgriffith$elm_ui$Element$Input$radioHelper = F3(
 																input.dK(next));
 														} else {
 															if (_Utils_eq(code, $mdgriffith$elm_ui$Element$Input$space)) {
-																var _v2 = input.hn;
+																var _v2 = input.hm;
 																if (_v2.$ === 1) {
 																	return $elm$core$Maybe$Just(
 																		input.dK(prev));
@@ -44830,7 +44911,7 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 			_List_fromArray(
 				[
 					function () {
-					var _v3 = model.ds;
+					var _v3 = model.dr;
 					if (!_v3) {
 						return A2(
 							$mdgriffith$elm_ui$Element$column,
@@ -44853,14 +44934,14 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 											$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 											{
 												N: $mdgriffith$elm_ui$Element$text('Retour'),
-												aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
+												aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
 											}),
 											A2(
 											$mdgriffith$elm_ui$Element$Input$button,
 											$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 											{
 												N: $mdgriffith$elm_ui$Element$text('Choix fichiers'),
-												aG: A2(
+												aI: A2(
 													$elm$core$Maybe$map,
 													$author$project$FileExplorer$FileExplorer$FilesRequested,
 													A2(
@@ -44904,7 +44985,7 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 										{
 											N: A2($mdgriffith$elm_ui$Element$Input$labelLeft, _List_Nil, $mdgriffith$elm_ui$Element$none),
 											dK: $author$project$FileExplorer$FileExplorer$SetImageSize,
-											g3: _List_fromArray(
+											g2: _List_fromArray(
 												[
 													A2(
 													$mdgriffith$elm_ui$Element$Input$option,
@@ -44923,7 +45004,7 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 													3,
 													$mdgriffith$elm_ui$Element$text('image(s) page'))
 												]),
-											hn: $elm$core$Maybe$Just(model.dr)
+											hm: $elm$core$Maybe$Just(model.dq)
 										}),
 										A2(
 										$mdgriffith$elm_ui$Element$row,
@@ -44938,14 +45019,14 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 												$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 												{
 													N: $mdgriffith$elm_ui$Element$text('Retour'),
-													aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
+													aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ToogleUploadView)
 												}),
 												A2(
 												$mdgriffith$elm_ui$Element$Input$button,
 												$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 												{
 													N: $mdgriffith$elm_ui$Element$text('Choix fichiers'),
-													aG: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ImagesRequested)
+													aI: $elm$core$Maybe$Just($author$project$FileExplorer$FileExplorer$ImagesRequested)
 												})
 											]))
 									]));
@@ -44973,7 +45054,7 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 					{
 						N: A2($mdgriffith$elm_ui$Element$Input$labelLeft, _List_Nil, $mdgriffith$elm_ui$Element$none),
 						dK: $author$project$FileExplorer$FileExplorer$SetImageUploadType,
-						g3: _List_fromArray(
+						g2: _List_fromArray(
 							[
 								A2(
 								$mdgriffith$elm_ui$Element$Input$option,
@@ -44984,7 +45065,7 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 								1,
 								$mdgriffith$elm_ui$Element$text('Mise à l\'échelle manuelle'))
 							]),
-						hn: $elm$core$Maybe$Just(model.dw)
+						hm: $elm$core$Maybe$Just(model.dw)
 					}),
 					function () {
 					var _v1 = model.dw;
@@ -45023,7 +45104,7 @@ var $author$project$FileExplorer$FileExplorer$uploadView = F2(
 			_List_fromArray(
 				[
 					function () {
-					var _v0 = A2($author$project$FileExplorer$FileExplorer$modeRoot, config.g, model.Y);
+					var _v0 = A2($author$project$FileExplorer$FileExplorer$modeRoot, config.g, model.Z);
 					if (!_v0) {
 						return imagesUploadView;
 					} else {
@@ -45058,7 +45139,7 @@ var $author$project$FileExplorer$FileExplorer$view = F2(
 						$mdgriffith$elm_ui$Element$padding(15),
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$height(
-						A2($mdgriffith$elm_ui$Element$maximum, config.fs, $mdgriffith$elm_ui$Element$fill))
+						A2($mdgriffith$elm_ui$Element$maximum, config.fr, $mdgriffith$elm_ui$Element$fill))
 					]),
 				_List_fromArray(
 					[
@@ -45142,7 +45223,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView = F
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorView = function (model) {
 	var nameFilterFun = function () {
-		var _v10 = model.kn;
+		var _v10 = model.km;
 		if (!_v10.$) {
 			if (_v10.a === '') {
 				return $elm$core$Basics$always(true);
@@ -45154,7 +45235,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 					return A2(
 						$elm$core$String$contains,
 						$elm$core$String$toLower(name),
-						$elm$core$String$toLower(f.kC));
+						$elm$core$String$toLower(f.kB));
 				};
 			}
 		} else {
@@ -45162,7 +45243,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 		}
 	}();
 	var labelFilterFun = function () {
-		var _v8 = model.j$;
+		var _v8 = model.j_;
 		if (!_v8.$) {
 			var label = _v8.a;
 			return function (_v9) {
@@ -45171,7 +45252,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 				return A2(
 					$elm$core$List$any,
 					function (l) {
-						return _Utils_eq(l.kB, label);
+						return _Utils_eq(l.kA, label);
 					},
 					f.N);
 			};
@@ -45180,7 +45261,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 		}
 	}();
 	var isSelected = function (name) {
-		var _v7 = model.lu;
+		var _v7 = model.lt;
 		if (_v7.$ === 1) {
 			return false;
 		} else {
@@ -45191,9 +45272,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 				A2(
 					$elm$core$Maybe$map,
 					function (f) {
-						return _Utils_eq(f.kC, name);
+						return _Utils_eq(f.kB, name);
 					},
-					A2($elm$core$Dict$get, id, model.jh)));
+					A2($elm$core$Dict$get, id, model.jg)));
 		}
 	};
 	var filterView = F3(
@@ -45216,7 +45297,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 					$mdgriffith$elm_ui$Element$text(entry)));
 		});
 	var catFilterFun = function () {
-		var _v5 = model.ip;
+		var _v5 = model.io;
 		if (!_v5.$) {
 			var cat = _v5.a;
 			return function (_v6) {
@@ -45229,13 +45310,13 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 		}
 	}();
 	var activFilterFun = function () {
-		var _v3 = model.hQ;
+		var _v3 = model.hP;
 		if (!_v3.$) {
 			var activ = _v3.a;
 			return function (_v4) {
 				var k = _v4.a;
 				var f = _v4.b;
-				return A2($elm$core$List$member, activ, f.kp);
+				return A2($elm$core$List$member, activ, f.ko);
 			};
 		} else {
 			return $elm$core$Basics$always(true);
@@ -45246,7 +45327,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 		function (_v2) {
 			var k = _v2.a;
 			var f = _v2.b;
-			return $elm$core$String$toLower(f.kC);
+			return $elm$core$String$toLower(f.kB);
 		},
 		A2(
 			$elm$core$List$filter,
@@ -45260,7 +45341,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 					A2(
 						$elm$core$List$filter,
 						nameFilterFun,
-						$elm$core$Dict$toList(model.jh))))));
+						$elm$core$Dict$toList(model.jg))))));
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		_List_fromArray(
@@ -45268,11 +45349,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 				$mdgriffith$elm_ui$Element$spacing(15),
 				$mdgriffith$elm_ui$Element$alignTop,
 				$mdgriffith$elm_ui$Element$Border$widthEach(
-				{a2: 0, bb: 0, bk: 2, bo: 0}),
+				{a2: 0, bc: 0, bl: 2, bq: 0}),
 				$mdgriffith$elm_ui$Element$Border$color(
 				A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8)),
 				$mdgriffith$elm_ui$Element$paddingEach(
-				{a2: 0, bb: 0, bk: 15, bo: 0}),
+				{a2: 0, bc: 0, bl: 15, bq: 0}),
 				$mdgriffith$elm_ui$Element$width(
 				$mdgriffith$elm_ui$Element$px(780)),
 				$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
@@ -45314,7 +45395,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 										$mdgriffith$elm_ui$Element$Input$placeholder,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Filtrer par nom entité'))),
-								dW: A2($elm$core$Maybe$withDefault, '', model.kn)
+								dW: A2($elm$core$Maybe$withDefault, '', model.km)
 							})
 						]))),
 				A2(
@@ -45364,7 +45445,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 										return A4(
 											$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 											false,
-											model.ip,
+											model.io,
 											$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$FilterByCat(e),
 											e);
 									},
@@ -45407,11 +45488,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 										return A4(
 											$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 											false,
-											model.hQ,
+											model.hP,
 											$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$FilterByActiv(e),
 											e);
 									},
-									$elm$core$Set$toList(model.hR)))
+									$elm$core$Set$toList(model.hQ)))
 							])),
 						A2(
 						$mdgriffith$elm_ui$Element$column,
@@ -45450,16 +45531,16 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 										return A4(
 											$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 											false,
-											model.j$,
+											model.j_,
 											$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$FilterByLabel(e),
 											e);
 									},
 									A2(
 										$elm$core$List$map,
 										function ($) {
-											return $.kB;
+											return $.kA;
 										},
-										model.j2)))
+										model.j1)))
 							]))
 					])),
 				A2(
@@ -45506,7 +45587,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 										var n = _v1.b;
 										return A3(
 											filterView,
-											model.lu,
+											model.lt,
 											$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectFiche(k),
 											n);
 									},
@@ -45515,7 +45596,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorV
 										function (_v0) {
 											var k = _v0.a;
 											var v = _v0.b;
-											return _Utils_Tuple2(k, v.kC);
+											return _Utils_Tuple2(k, v.kB);
 										},
 										filteredFiches)))
 							]))
@@ -45601,11 +45682,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 											return A4(
 												$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 												false,
-												model.lo,
+												model.ln,
 												$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectAvailableActiv(e),
 												e);
 										},
-										$elm$core$Set$toList(model.hR)))
+										$elm$core$Set$toList(model.hQ)))
 								])),
 							A2(
 							$mdgriffith$elm_ui$Element$column,
@@ -45650,7 +45731,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 												$mdgriffith$elm_ui$Element$Input$placeholder,
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$text('Nouvelle activité'))),
-										dW: A2($elm$core$Maybe$withDefault, '', model.hP)
+										dW: A2($elm$core$Maybe$withDefault, '', model.hO)
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$column,
@@ -45670,11 +45751,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 											return A4(
 												$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 												true,
-												model.ln,
+												model.lm,
 												$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectActivInFiche(e),
 												e);
 										},
-										model.jg.kp))
+										model.jf.ko))
 								]))
 						])),
 					A2(
@@ -45684,9 +45765,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 							$mdgriffith$elm_ui$Element$spacing(15)
 						]),
 					function () {
-						var canRemove = (!_Utils_eq(model.ln, $elm$core$Maybe$Nothing)) && _Utils_eq(model.lo, $elm$core$Maybe$Nothing);
+						var canRemove = (!_Utils_eq(model.lm, $elm$core$Maybe$Nothing)) && _Utils_eq(model.ln, $elm$core$Maybe$Nothing);
 						var canModify = function () {
-							var _v2 = _Utils_Tuple2(model.lo, model.hP);
+							var _v2 = _Utils_Tuple2(model.ln, model.hO);
 							if ((!_v2.a.$) && (!_v2.b.$)) {
 								var avActiv = _v2.a.a;
 								var newActiv = _v2.b.a;
@@ -45696,7 +45777,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 							}
 						}();
 						var canAdd = function () {
-							var _v0 = _Utils_Tuple2(model.lo, model.hP);
+							var _v0 = _Utils_Tuple2(model.ln, model.hO);
 							_v0$2:
 							while (true) {
 								if (!_v0.a.$) {
@@ -45729,7 +45810,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Ajouter activité')),
-									aG: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddActivToFiche) : $elm$core$Maybe$Nothing
+									aI: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddActivToFiche) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -45739,7 +45820,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Supprimer activité')),
-									aG: canRemove ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveActivFromFiche) : $elm$core$Maybe$Nothing
+									aI: canRemove ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveActivFromFiche) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -45749,7 +45830,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setActivs = F2
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Modifier activité')),
-									aG: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyActiv) : $elm$core$Maybe$Nothing
+									aI: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyActiv) : $elm$core$Maybe$Nothing
 								})
 							]);
 					}())
@@ -45822,7 +45903,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 											return A4(
 												$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 												false,
-												model.lp,
+												model.lo,
 												$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectAvailableCat(e),
 												e);
 										},
@@ -45871,7 +45952,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 												$mdgriffith$elm_ui$Element$Input$placeholder,
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$text('Nouvelle catégorie'))),
-										dW: A2($elm$core$Maybe$withDefault, '', model.io)
+										dW: A2($elm$core$Maybe$withDefault, '', model.$9)
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$column,
@@ -45891,11 +45972,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 											return A4(
 												$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 												true,
-												model.lr,
+												model.lq,
 												$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectCatInFiche(e),
 												e);
 										},
-										model.jg.cZ))
+										model.jf.cZ))
 								]))
 						])),
 					A2(
@@ -45905,9 +45986,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 							$mdgriffith$elm_ui$Element$spacing(15)
 						]),
 					function () {
-						var canRemove = (!_Utils_eq(model.lr, $elm$core$Maybe$Nothing)) && _Utils_eq(model.lp, $elm$core$Maybe$Nothing);
+						var canRemove = (!_Utils_eq(model.lq, $elm$core$Maybe$Nothing)) && _Utils_eq(model.lo, $elm$core$Maybe$Nothing);
 						var canModify = function () {
-							var _v2 = _Utils_Tuple2(model.lp, model.io);
+							var _v2 = _Utils_Tuple2(model.lo, model.$9);
 							if ((!_v2.a.$) && (!_v2.b.$)) {
 								var avCat = _v2.a.a;
 								var newCat = _v2.b.a;
@@ -45917,7 +45998,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 							}
 						}();
 						var canAdd = function () {
-							var _v0 = _Utils_Tuple2(model.lp, model.io);
+							var _v0 = _Utils_Tuple2(model.lo, model.$9);
 							_v0$2:
 							while (true) {
 								if (!_v0.a.$) {
@@ -45950,7 +46031,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Ajouter catégorie')),
-									aG: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddCatToFiche) : $elm$core$Maybe$Nothing
+									aI: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddCatToFiche) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -45960,7 +46041,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Supprimer catégorie')),
-									aG: canRemove ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveCatFromFiche) : $elm$core$Maybe$Nothing
+									aI: canRemove ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveCatFromFiche) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -45970,7 +46051,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setCats = F2(
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Modifier catégorie')),
-									aG: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyCat) : $elm$core$Maybe$Nothing
+									aI: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyCat) : $elm$core$Maybe$Nothing
 								})
 							]);
 					}())
@@ -46042,7 +46123,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setAdresse = F
 									]))),
 						dK: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SetAddress,
 						dP: $elm$core$Maybe$Nothing,
-						dW: model.jg.hU
+						dW: model.jf.hT
 					})
 				]));
 	});
@@ -46102,11 +46183,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setEmails = F2
 									return A4(
 										$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 										true,
-										model.lt,
+										model.ls,
 										$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectEmailInFiche(s),
 										s);
 								},
-								model.jg.i5))
+								model.jf.i4))
 						])),
 					A2(
 					$mdgriffith$elm_ui$Element$column,
@@ -46119,15 +46200,15 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setEmails = F2
 							A2(
 								$elm$core$Maybe$map,
 								function (e) {
-									return A2($elm$core$List$member, e, model.jg.i5);
+									return A2($elm$core$List$member, e, model.jf.i4);
 								},
-								model.i6),
+								model.i5),
 							$elm$core$Maybe$Just(true));
-						var canModify = (!_Utils_eq(model.lt, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
-							model.i6,
+						var canModify = (!_Utils_eq(model.ls, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
+							model.i5,
 							$elm$core$Maybe$Just(''))) && (!isExistingEmail));
-						var canDeleteEmail = (!_Utils_eq(model.lt, $elm$core$Maybe$Nothing)) && isExistingEmail;
-						var canAddEmail = (!_Utils_eq(model.i6, $elm$core$Maybe$Nothing)) && (_Utils_eq(model.lt, $elm$core$Maybe$Nothing) && (!isExistingEmail));
+						var canDeleteEmail = (!_Utils_eq(model.ls, $elm$core$Maybe$Nothing)) && isExistingEmail;
+						var canAddEmail = (!_Utils_eq(model.i5, $elm$core$Maybe$Nothing)) && (_Utils_eq(model.ls, $elm$core$Maybe$Nothing) && (!isExistingEmail));
 						return _List_fromArray(
 							[
 								A2(
@@ -46149,7 +46230,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setEmails = F2
 											$mdgriffith$elm_ui$Element$Input$placeholder,
 											_List_Nil,
 											$mdgriffith$elm_ui$Element$text('Nouvel Email'))),
-									dW: A2($elm$core$Maybe$withDefault, '', model.i6)
+									dW: A2($elm$core$Maybe$withDefault, '', model.i5)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -46159,7 +46240,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setEmails = F2
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Modifier email')),
-									aG: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyEmail) : $elm$core$Maybe$Nothing
+									aI: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyEmail) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -46169,7 +46250,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setEmails = F2
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Ajouter email')),
-									aG: canAddEmail ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddEmail) : $elm$core$Maybe$Nothing
+									aI: canAddEmail ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddEmail) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -46179,7 +46260,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setEmails = F2
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Supprimer email')),
-									aG: canDeleteEmail ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveEmail) : $elm$core$Maybe$Nothing
+									aI: canDeleteEmail ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveEmail) : $elm$core$Maybe$Nothing
 								})
 							]);
 					}())
@@ -46215,7 +46296,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setFax = F2(
 						$mdgriffith$elm_ui$Element$text('Fax'))),
 				dK: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SetFax,
 				dP: $elm$core$Maybe$Nothing,
-				dW: A2($elm$core$Maybe$withDefault, '', model.jg.jf)
+				dW: A2($elm$core$Maybe$withDefault, '', model.jf.je)
 			});
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddResp = {$: 38};
@@ -46318,9 +46399,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.kB;
+												return $.kA;
 											},
-											model.lx),
+											model.lw),
 										$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectRespInFiche(r),
 										e);
 								},
@@ -46330,10 +46411,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 										return _Utils_Tuple2(
 											r,
 											function ($) {
-												return $.kB;
+												return $.kA;
 											}(r));
 									},
-									model.jg.la)))
+									model.jf.k9)))
 						])),
 					A2(
 					$mdgriffith$elm_ui$Element$column,
@@ -46367,9 +46448,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 									A2(
 										$elm$core$Maybe$map,
 										function ($) {
-											return $.kB;
+											return $.kA;
 										},
-										model.k9))
+										model.k8))
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$text,
@@ -46395,9 +46476,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 									A2(
 										$elm$core$Maybe$map,
 										function ($) {
-											return $.kZ;
+											return $.kY;
 										},
-										model.k9))
+										model.k8))
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$text,
@@ -46426,9 +46507,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.l$;
+												return $.l_;
 											},
-											model.k9)))
+											model.k8)))
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$text,
@@ -46457,9 +46538,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.l$;
+												return $.l_;
 											},
-											model.k9)))
+											model.k8)))
 							})
 						])),
 					A2(
@@ -46473,15 +46554,15 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 							A2(
 								$elm$core$Maybe$map,
 								function (r) {
-									return A2($elm$core$List$member, r, model.jg.la);
+									return A2($elm$core$List$member, r, model.jf.k9);
 								},
-								model.k9),
+								model.k8),
 							$elm$core$Maybe$Just(true));
-						var canModify = (!_Utils_eq(model.lx, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
-							model.k9,
+						var canModify = (!_Utils_eq(model.lw, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
+							model.k8,
 							$elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyResp))) && (!isExistingResp));
-						var canDeleteResp = (!_Utils_eq(model.lx, $elm$core$Maybe$Nothing)) && isExistingResp;
-						var canAddResp = (!_Utils_eq(model.k9, $elm$core$Maybe$Nothing)) && (_Utils_eq(model.lx, $elm$core$Maybe$Nothing) && (!isExistingResp));
+						var canDeleteResp = (!_Utils_eq(model.lw, $elm$core$Maybe$Nothing)) && isExistingResp;
+						var canAddResp = (!_Utils_eq(model.k8, $elm$core$Maybe$Nothing)) && (_Utils_eq(model.lw, $elm$core$Maybe$Nothing) && (!isExistingResp));
 						return _List_fromArray(
 							[
 								A2(
@@ -46492,7 +46573,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Modifier responsable')),
-									aG: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyResp) : $elm$core$Maybe$Nothing
+									aI: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyResp) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -46502,7 +46583,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Ajouter responsable')),
-									aG: canAddResp ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddResp) : $elm$core$Maybe$Nothing
+									aI: canAddResp ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddResp) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -46512,7 +46593,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setResponsable
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Supprimer responsable')),
-									aG: canDeleteResp ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveResp) : $elm$core$Maybe$Nothing
+									aI: canDeleteResp ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveResp) : $elm$core$Maybe$Nothing
 								})
 							]);
 					}())
@@ -46565,7 +46646,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setSite = F2(
 						dW: A2(
 							$elm$core$Maybe$withDefault,
 							'',
-							A2($elm$core$Maybe$map, $elm$core$Tuple$first, model.jg.lF))
+							A2($elm$core$Maybe$map, $elm$core$Tuple$first, model.jf.lE))
 					}),
 					A2(
 					$mdgriffith$elm_ui$Element$Input$text,
@@ -46595,7 +46676,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setSite = F2(
 						dW: A2(
 							$elm$core$Maybe$withDefault,
 							'',
-							A2($elm$core$Maybe$map, $elm$core$Tuple$second, model.jg.lF))
+							A2($elm$core$Maybe$map, $elm$core$Tuple$second, model.jf.lE))
 					})
 				]));
 	});
@@ -46650,7 +46731,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setTel = F2(
 						dW: A2(
 							$elm$core$Maybe$withDefault,
 							'',
-							A2($elm$core$Maybe$andThen, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$getTFixe, model.jg.l0))
+							A2($elm$core$Maybe$andThen, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$getTFixe, model.jf.l$))
 					}),
 					$mdgriffith$elm_ui$Element$text('et / ou'),
 					A2(
@@ -46681,7 +46762,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setTel = F2(
 						dW: A2(
 							$elm$core$Maybe$withDefault,
 							'',
-							A2($elm$core$Maybe$andThen, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$getTPortable, model.jg.l0))
+							A2($elm$core$Maybe$andThen, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$getTPortable, model.jf.l$))
 					})
 				]));
 	});
@@ -46739,7 +46820,7 @@ var $mdgriffith$elm_ui$Element$Input$multiline = F2(
 	function (attrs, multi) {
 		return A3(
 			$mdgriffith$elm_ui$Element$Input$textHelper,
-			{a0: $elm$core$Maybe$Nothing, bm: multi.lK, ai: $mdgriffith$elm_ui$Element$Input$TextArea},
+			{a0: $elm$core$Maybe$Nothing, bn: multi.lJ, aj: $mdgriffith$elm_ui$Element$Input$TextArea},
 			attrs,
 			{N: multi.N, dK: multi.dK, dP: multi.dP, dW: multi.dW});
 	});
@@ -46790,11 +46871,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 									return A4(
 										$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 										true,
-										model.ls,
+										model.lr,
 										$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectDescrInFiche(d),
 										d);
 								},
-								model.jg.fa))
+								model.jf.fa))
 						])),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
@@ -46815,9 +46896,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 										function (s) {
 											return _Utils_ap(
 												s,
-												A2($elm$core$Maybe$withDefault, '', model.ls));
+												A2($elm$core$Maybe$withDefault, '', model.lr));
 										}(
-											A2($elm$core$String$join, '', model.jg.fa)))),
+											A2($elm$core$String$join, '', model.jf.fa)))),
 								A2(
 									$mdgriffith$elm_ui$Element$Input$multiline,
 									_List_fromArray(
@@ -46834,8 +46915,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 												$mdgriffith$elm_ui$Element$Input$placeholder,
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$text('Ajouter un paragraphe'))),
-										lK: false,
-										dW: A2($elm$core$Maybe$withDefault, '', model.i0)
+										lJ: false,
+										dW: A2($elm$core$Maybe$withDefault, '', model.i$)
 									}))),
 							A2(
 							$mdgriffith$elm_ui$Element$column,
@@ -46848,36 +46929,36 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$buttonStyle(
-										!_Utils_eq(model.ls, $elm$core$Maybe$Nothing)),
+										!_Utils_eq(model.lr, $elm$core$Maybe$Nothing)),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$el,
 											_List_Nil,
 											$mdgriffith$elm_ui$Element$html(
 												$author$project$Internals$Icons$chevronsUp(18))),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											function (_v0) {
 												return $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$MoveDescrUp;
 											},
-											model.ls)
+											model.lr)
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$buttonStyle(
-										!_Utils_eq(model.ls, $elm$core$Maybe$Nothing)),
+										!_Utils_eq(model.lr, $elm$core$Maybe$Nothing)),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$el,
 											_List_Nil,
 											$mdgriffith$elm_ui$Element$html(
 												$author$project$Internals$Icons$chevronsDown(18))),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											function (_v1) {
 												return $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$MoveDescrDown;
 											},
-											model.ls)
+											model.lr)
 									})
 								]))
 						])),
@@ -46892,15 +46973,15 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 							A2(
 								$elm$core$Maybe$map,
 								function (r) {
-									return A2($elm$core$List$member, r, model.jg.fa);
+									return A2($elm$core$List$member, r, model.jf.fa);
 								},
-								model.i0),
+								model.i$),
 							$elm$core$Maybe$Just(true));
-						var canModify = (!_Utils_eq(model.ls, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
-							model.i0,
+						var canModify = (!_Utils_eq(model.lr, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
+							model.i$,
 							$elm$core$Maybe$Just(''))) && (!isExisting));
-						var canDelete = (!_Utils_eq(model.ls, $elm$core$Maybe$Nothing)) && isExisting;
-						var canAdd = (!_Utils_eq(model.i0, $elm$core$Maybe$Nothing)) && (_Utils_eq(model.ls, $elm$core$Maybe$Nothing) && (!isExisting));
+						var canDelete = (!_Utils_eq(model.lr, $elm$core$Maybe$Nothing)) && isExisting;
+						var canAdd = (!_Utils_eq(model.i$, $elm$core$Maybe$Nothing)) && (_Utils_eq(model.lr, $elm$core$Maybe$Nothing) && (!isExisting));
 						return _List_fromArray(
 							[
 								A2(
@@ -46911,7 +46992,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Modifier description')),
-									aG: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyDescr) : $elm$core$Maybe$Nothing
+									aI: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyDescr) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -46921,7 +47002,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Ajouter description')),
-									aG: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddDescription) : $elm$core$Maybe$Nothing
+									aI: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddDescription) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -46931,7 +47012,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setDescription
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Supprimer description')),
-									aG: canDelete ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveDescription) : $elm$core$Maybe$Nothing
+									aI: canDelete ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveDescription) : $elm$core$Maybe$Nothing
 								})
 							]);
 					}())
@@ -46956,7 +47037,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$descrCont = F2
 					])));
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirHelpers$isValidFiche = function (f) {
-	return ($elm$core$List$length(f.cZ) >= 1) && (($elm$core$List$length(f.kp) >= 1) && ((f.kC !== '') && ((f.hU !== '') && (((!_Utils_eq(f.l0, $elm$core$Maybe$Nothing)) || ($elm$core$List$length(f.la) >= 1)) && (f.ms !== '')))));
+	return ($elm$core$List$length(f.cZ) >= 1) && (($elm$core$List$length(f.ko) >= 1) && ((f.kB !== '') && ((f.hT !== '') && (((!_Utils_eq(f.l$, $elm$core$Maybe$Nothing)) || ($elm$core$List$length(f.k9) >= 1)) && (f.mr !== '')))));
 };
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddLabelToFiche = {$: 24};
 var $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyLabel = {$: 26};
@@ -46991,7 +47072,7 @@ var $author$project$FileExplorer$FileExplorer$ReadWrite = function (a) {
 	return {$: 1, a: a};
 };
 var $author$project$FileExplorer$FileExplorer$getSelectedDoc = function (model) {
-	var _v0 = model.n;
+	var _v0 = model.o;
 	if ((!_v0.$) && (_v0.a.$ === 1)) {
 		var path = _v0.a.a.J;
 		var name = _v0.a.a.H;
@@ -47008,20 +47089,20 @@ var $author$project$FileExplorer$FileExplorer$getSelectedDoc = function (model) 
 	}
 };
 var $author$project$FileExplorer$FileExplorer$getSelectedImage = function (model) {
-	var _v0 = model.n;
+	var _v0 = model.o;
 	if ((!_v0.$) && (_v0.a.$ === 1)) {
 		var path = _v0.a.a.J;
 		var name = _v0.a.a.H;
 		var fileType = _v0.a.a.cA;
 		var fileSize = _v0.a.a.b$;
 		if (!fileType.$) {
-			var width = fileType.a.mu;
-			var height = fileType.a.jy;
+			var width = fileType.a.mt;
+			var height = fileType.a.jx;
 			return $elm$core$Maybe$Just(
 				{
-					jy: height,
-					fL: '/' + A2($elm$core$String$join, '/', path),
-					mu: width
+					jx: height,
+					fK: '/' + A2($elm$core$String$join, '/', path),
+					mt: width
 				});
 		} else {
 			return $elm$core$Maybe$Nothing;
@@ -47037,11 +47118,11 @@ var $author$project$FileExplorer$FileExplorer$pickerView = F5(
 				return A2(
 					$elm$core$Maybe$map,
 					function (_v1) {
-						var src = _v1.fL;
-						var width = _v1.mu;
-						var height = _v1.jy;
+						var src = _v1.fK;
+						var width = _v1.mt;
+						var height = _v1.jx;
 						return $author$project$Internals$CommonHelpers$PickedImage(
-							{jy: height, d0: src, mu: width});
+							{jx: height, d0: src, mt: width});
 					},
 					$author$project$FileExplorer$FileExplorer$getSelectedImage(m));
 			} else {
@@ -47057,17 +47138,17 @@ var $author$project$FileExplorer$FileExplorer$pickerView = F5(
 				[
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0})
+					{a2: 15, bc: 0, bl: 0, bq: 0})
 				]),
 			_List_fromArray(
 				[
 					A2(
 					$author$project$FileExplorer$FileExplorer$view,
 					{
-						bd: config.bd,
-						fs: (config.fs < 800) ? 400 : 500,
+						be: config.be,
+						fr: (config.fr < 800) ? 400 : 500,
 						g: $author$project$FileExplorer$FileExplorer$ReadWrite(root),
-						fZ: config.fZ
+						fY: config.fY
 					},
 					config.fe),
 					A2(
@@ -47084,7 +47165,7 @@ var $author$project$FileExplorer$FileExplorer$pickerView = F5(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									externalMsg(backMsg))
 							}),
 							A2(
@@ -47095,7 +47176,7 @@ var $author$project$FileExplorer$FileExplorer$pickerView = F5(
 									$elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									A2($elm$core$Basics$composeL, externalMsg, confirmMsg),
 									selector(config.fe))
@@ -47157,9 +47238,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabelVisual
 												return $.d0;
 											},
 											function ($) {
-												return $.ka;
+												return $.j9;
 											}),
-										model.j_))),
+										model.jZ))),
 								$mdgriffith$elm_ui$Element$centerX,
 								$mdgriffith$elm_ui$Element$centerY
 							]),
@@ -47172,7 +47253,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabelVisual
 							$mdgriffith$elm_ui$Element$el,
 							_List_Nil,
 							$mdgriffith$elm_ui$Element$text('Choisir visuel')),
-						aG: $elm$core$Maybe$Just(
+						aI: $elm$core$Maybe$Just(
 							model.bY($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$OpenLabelVisualPicker))
 					})
 				]));
@@ -47194,7 +47275,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$below(
-							(!model.j1) ? $mdgriffith$elm_ui$Element$none : A2(
+							(!model.j0) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$el,
 								_List_fromArray(
 									[
@@ -47207,10 +47288,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 											A2($mdgriffith$elm_ui$Element$maximum, 920, $mdgriffith$elm_ui$Element$shrink))),
 										$mdgriffith$elm_ui$Element$Border$shadow(
 										{
-											id: 10,
-											iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-											kE: _Utils_Tuple2(4, 4),
-											fK: 5
+											ic: 10,
+											iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+											kD: _Utils_Tuple2(4, 4),
+											fJ: 5
 										})
 									]),
 								A2($author$project$GeneralDirectoryEditor$GeneralDirMainFormView$labelVisualPickerView, config, model)))
@@ -47262,16 +47343,16 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 												return A4(
 													$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 													false,
-													model.lq,
+													model.lp,
 													$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectAvailableLabel(e),
 													e);
 											},
 											A2(
 												$elm$core$List$map,
 												function ($) {
-													return $.kB;
+													return $.kA;
 												},
-												model.j2)))
+												model.j1)))
 									]))),
 							A2(
 							$mdgriffith$elm_ui$Element$map,
@@ -47311,16 +47392,16 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 												return A4(
 													$author$project$GeneralDirectoryEditor$GeneralDirMainFormView$selectView,
 													true,
-													model.lv,
+													model.lu,
 													$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SelectLabelInFiche(e),
 													e);
 											},
 											A2(
 												$elm$core$List$map,
 												function ($) {
-													return $.kB;
+													return $.kA;
 												},
-												model.jg.N)))
+												model.jf.N)))
 									]))),
 							A2(
 							$mdgriffith$elm_ui$Element$column,
@@ -47367,9 +47448,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 												A2(
 													$elm$core$Maybe$map,
 													function ($) {
-														return $.kB;
+														return $.kA;
 													},
-													model.j_))
+													model.jZ))
 										})),
 									A2(
 									$mdgriffith$elm_ui$Element$map,
@@ -47399,9 +47480,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 												A2(
 													$elm$core$Maybe$map,
 													function ($) {
-														return $.j3;
+														return $.j2;
 													},
-													model.j_))
+													model.jZ))
 										})),
 									A2($author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabelVisual, config, model)
 								]))
@@ -47417,11 +47498,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 							]),
 						function () {
-							var canRemove = (!_Utils_eq(model.lv, $elm$core$Maybe$Nothing)) && _Utils_eq(model.lq, $elm$core$Maybe$Nothing);
+							var canRemove = (!_Utils_eq(model.lu, $elm$core$Maybe$Nothing)) && _Utils_eq(model.lp, $elm$core$Maybe$Nothing);
 							var canModify = function () {
 								var _v2 = _Utils_Tuple2(
-									A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lq),
-									model.j_);
+									A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lp),
+									model.jZ);
 								if ((!_v2.a.$) && (!_v2.b.$)) {
 									var avLabel = _v2.a.a;
 									var newLabel = _v2.b.a;
@@ -47432,8 +47513,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 							}();
 							var canAdd = function () {
 								var _v0 = _Utils_Tuple2(
-									A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lq),
-									model.j_);
+									A2($author$project$GeneralDirectoryEditor$GeneralDirHelpers$extractLabel, model, model.lp),
+									model.jZ);
 								_v0$2:
 								while (true) {
 									if (!_v0.a.$) {
@@ -47466,7 +47547,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 											$mdgriffith$elm_ui$Element$el,
 											_List_Nil,
 											$mdgriffith$elm_ui$Element$text('Ajouter label')),
-										aG: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddLabelToFiche) : $elm$core$Maybe$Nothing
+										aI: canAdd ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddLabelToFiche) : $elm$core$Maybe$Nothing
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
@@ -47476,7 +47557,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 											$mdgriffith$elm_ui$Element$el,
 											_List_Nil,
 											$mdgriffith$elm_ui$Element$text('Supprimer label')),
-										aG: canRemove ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveLabelFromFiche) : $elm$core$Maybe$Nothing
+										aI: canRemove ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveLabelFromFiche) : $elm$core$Maybe$Nothing
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
@@ -47486,7 +47567,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLabels = F2
 											$mdgriffith$elm_ui$Element$el,
 											_List_Nil,
 											$mdgriffith$elm_ui$Element$text('Modifier label')),
-										aG: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyLabel) : $elm$core$Maybe$Nothing
+										aI: canModify ? $elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyLabel) : $elm$core$Maybe$Nothing
 									})
 								]);
 						}()))
@@ -47541,7 +47622,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setOt = F2(
 							A2(
 								$elm$core$Maybe$map,
 								$elm$core$String$fromInt,
-								A2($elm$core$Maybe$map, $elm$core$Tuple$first, model.jg.k4)))
+								A2($elm$core$Maybe$map, $elm$core$Tuple$first, model.jf.k3)))
 					}),
 					A2(
 					$mdgriffith$elm_ui$Element$Input$text,
@@ -47571,7 +47652,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setOt = F2(
 						dW: A2(
 							$elm$core$Maybe$withDefault,
 							'',
-							A2($elm$core$Maybe$map, $elm$core$Tuple$second, model.jg.k4))
+							A2($elm$core$Maybe$map, $elm$core$Tuple$second, model.jf.k3))
 					})
 				]));
 	});
@@ -47623,7 +47704,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setRank = F2(
 						dW: A2(
 							$elm$core$Maybe$withDefault,
 							'',
-							A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.jg.k1.lL))
+							A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.jf.k0.lK))
 					}),
 					A2(
 					$mdgriffith$elm_ui$Element$Input$text,
@@ -47653,7 +47734,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setRank = F2(
 						dW: A2(
 							$elm$core$Maybe$withDefault,
 							'',
-							A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.jg.k1.gi))
+							A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.jf.k0.gh))
 					})
 				]));
 	});
@@ -47720,7 +47801,7 @@ var $mdgriffith$elm_ui$Element$Keyed$column = F2(
 			$mdgriffith$elm_ui$Internal$Model$div,
 			A2(
 				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.iK + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.du)),
+				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.iJ + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.dt)),
 				A2(
 					$elm$core$List$cons,
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
@@ -47732,9 +47813,9 @@ var $mdgriffith$elm_ui$Element$Keyed$column = F2(
 	});
 var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$hashLinkedDoc = function (_v0) {
 	var url = _v0.d0;
-	var descr = _v0.i$;
+	var descr = _v0.i_;
 	var label = _v0.N;
-	var expiryDate = _v0.ja;
+	var expiryDate = _v0.i9;
 	return $elm$core$String$fromInt(
 		A2(
 			$Skinney$murmur3$Murmur3$hashString,
@@ -47753,9 +47834,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$hashLinkedDoc 
 var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$linkedDocView = F4(
 	function (externalMsg, zone, selected, ld) {
 		var url = ld.d0;
-		var descr = ld.i$;
+		var descr = ld.i_;
 		var label = ld.N;
-		var expiryDate = ld.ja;
+		var expiryDate = ld.i9;
 		var key = function (res) {
 			return _Utils_ap(
 				res,
@@ -47914,9 +47995,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 							A2(
 								$elm$core$List$map,
 								function (ld) {
-									return A4($author$project$GeneralDirectoryEditor$GeneralDirMainFormView$linkedDocView, model.bY, config.fZ, model.lw, ld);
+									return A4($author$project$GeneralDirectoryEditor$GeneralDirMainFormView$linkedDocView, model.bY, config.fY, model.lv, ld);
 								},
-								model.jg.j5)),
+								model.jf.j4)),
 							A2(
 							$mdgriffith$elm_ui$Element$column,
 							_List_fromArray(
@@ -47952,7 +48033,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 												function ($) {
 													return $.N;
 												},
-												model.j4))
+												model.j3))
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$text,
@@ -47979,9 +48060,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 											A2(
 												$elm$core$Maybe$andThen,
 												function ($) {
-													return $.i$;
+													return $.i_;
 												},
-												model.j4))
+												model.j3))
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$text,
@@ -47995,9 +48076,9 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 												A2(
 													$elm$core$Maybe$andThen,
 													function ($) {
-														return $.ja;
+														return $.i9;
 													},
-													model.j4),
+													model.j3),
 												$elm$core$Maybe$Nothing)) ? $mdgriffith$elm_ui$Element$Font$color($author$project$Internals$CommonStyleHelpers$green4) : $mdgriffith$elm_ui$Element$Font$color($author$project$Internals$CommonStyleHelpers$red4),
 												A2($mdgriffith$elm_ui$Element$spacingXY, 0, 15)
 											])),
@@ -48013,14 +48094,14 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 											var _v0 = A2(
 												$elm$core$Maybe$andThen,
 												function ($) {
-													return $.ja;
+													return $.i9;
 												},
-												model.j4);
+												model.j3);
 											if (_v0.$ === 1) {
-												return A2($elm$core$Maybe$withDefault, '', model.jb);
+												return A2($elm$core$Maybe$withDefault, '', model.ja);
 											} else {
 												var t = _v0.a;
-												return A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, t);
+												return A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, t);
 											}
 										}()
 									}),
@@ -48035,7 +48116,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 												$mdgriffith$elm_ui$Element$el,
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$text('Sélectionner document')),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												model.bY($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$OpenDocPicker))
 										}))
 								]))
@@ -48046,7 +48127,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 						[
 							$mdgriffith$elm_ui$Element$spacing(15),
 							$mdgriffith$elm_ui$Element$above(
-							(!model.i2) ? $mdgriffith$elm_ui$Element$none : A2(
+							(!model.i1) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$el,
 								_List_fromArray(
 									[
@@ -48059,10 +48140,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 											A2($mdgriffith$elm_ui$Element$maximum, 920, $mdgriffith$elm_ui$Element$shrink))),
 										$mdgriffith$elm_ui$Element$Border$shadow(
 										{
-											id: 10,
-											iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-											kE: _Utils_Tuple2(4, 4),
-											fK: 5
+											ic: 10,
+											iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+											kD: _Utils_Tuple2(4, 4),
+											fJ: 5
 										})
 									]),
 								A2($author$project$GeneralDirectoryEditor$GeneralDirMainFormView$docPickerView, config, model)))
@@ -48072,20 +48153,20 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 							A2(
 								$elm$core$Maybe$map,
 								function (ld) {
-									return A2($elm$core$List$member, ld, model.jg.j5);
+									return A2($elm$core$List$member, ld, model.jf.j4);
 								},
-								model.j4),
+								model.j3),
 							$elm$core$Maybe$Just(true));
-						var canModify = (!_Utils_eq(model.lw, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
-							model.j4,
+						var canModify = (!_Utils_eq(model.lv, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
+							model.j3,
 							$elm$core$Maybe$Just($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$emptyLinkedDoc))) && (!isExisting));
-						var canDelete = (!_Utils_eq(model.lw, $elm$core$Maybe$Nothing)) && isExisting;
+						var canDelete = (!_Utils_eq(model.lv, $elm$core$Maybe$Nothing)) && isExisting;
 						var canAdd = function (res) {
 							return _Utils_eq(
 								res,
 								$elm$core$Maybe$Just(true));
 						}(
-							A2($elm$core$Maybe$map, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$validLinkedDoc, model.j4)) && (_Utils_eq(model.lw, $elm$core$Maybe$Nothing) && (!isExisting));
+							A2($elm$core$Maybe$map, $author$project$GeneralDirectoryEditor$GeneralDirHelpers$validLinkedDoc, model.j3)) && (_Utils_eq(model.lv, $elm$core$Maybe$Nothing) && (!isExisting));
 						return _List_fromArray(
 							[
 								A2(
@@ -48096,7 +48177,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Modifier document')),
-									aG: canModify ? $elm$core$Maybe$Just(
+									aI: canModify ? $elm$core$Maybe$Just(
 										model.bY($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$ModifyLinkedDoc)) : $elm$core$Maybe$Nothing
 								}),
 								A2(
@@ -48107,7 +48188,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Ajouter document')),
-									aG: canAdd ? $elm$core$Maybe$Just(
+									aI: canAdd ? $elm$core$Maybe$Just(
 										model.bY($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$AddLinkedDoc)) : $elm$core$Maybe$Nothing
 								}),
 								A2(
@@ -48118,7 +48199,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setLinkedDocs 
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Supprimer document')),
-									aG: canDelete ? $elm$core$Maybe$Just(
+									aI: canDelete ? $elm$core$Maybe$Just(
 										model.bY($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveLinkedDoc)) : $elm$core$Maybe$Nothing
 								})
 							]);
@@ -48188,7 +48269,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setNomEntite =
 									]))),
 						dK: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SetNomEntite,
 						dP: $elm$core$Maybe$Nothing,
-						dW: model.jg.kC
+						dW: model.jf.kB
 					})
 				]));
 	});
@@ -48228,7 +48309,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setVisual = F2
 								$mdgriffith$elm_ui$Element$px(138)),
 								$mdgriffith$elm_ui$Element$height(
 								$mdgriffith$elm_ui$Element$px(104)),
-								$mdgriffith$elm_ui$Element$Background$image(model.jg.ms),
+								$mdgriffith$elm_ui$Element$Background$image(model.jf.mr),
 								$mdgriffith$elm_ui$Element$centerX,
 								$mdgriffith$elm_ui$Element$centerY
 							]),
@@ -48248,7 +48329,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setVisual = F2
 									$mdgriffith$elm_ui$Element$text('Choisir visuel')),
 									$author$project$Internals$CommonStyleHelpers$redStar
 								])),
-						aG: $elm$core$Maybe$Just(
+						aI: $elm$core$Maybe$Just(
 							model.bY($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$OpenVisualPicker))
 					})
 				]));
@@ -48305,7 +48386,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setOuverture =
 					{
 						N: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
 						dK: $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SetOuverture,
-						g3: _List_fromArray(
+						g2: _List_fromArray(
 							[
 								A2(
 								$mdgriffith$elm_ui$Element$Input$option,
@@ -48316,8 +48397,8 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$setOuverture =
 								0,
 								$mdgriffith$elm_ui$Element$text('Saisonniere'))
 							]),
-						hn: function () {
-							var _v0 = model.jg.kO;
+						hm: function () {
+							var _v0 = model.jf.kN;
 							if (!_v0.$) {
 								var o = _v0.a;
 								return $elm$core$Maybe$Just(o);
@@ -48382,7 +48463,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$editFicheView 
 								]),
 							$mdgriffith$elm_ui$Element$text('Modification/création fiche')),
 							(!_Utils_eq(
-							model.jg.dz,
+							model.jf.dz,
 							$elm$time$Time$millisToPosix(0))) ? A2(
 							$mdgriffith$elm_ui$Element$row,
 							_List_fromArray(
@@ -48401,7 +48482,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$editFicheView 
 									$mdgriffith$elm_ui$Element$el,
 									_List_Nil,
 									$mdgriffith$elm_ui$Element$text(
-										A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, model.jg.dz)))
+										A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, model.jf.dz)))
 								])) : $mdgriffith$elm_ui$Element$none
 						])),
 					A2(
@@ -48409,11 +48490,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$editFicheView 
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$height(
-							A2($mdgriffith$elm_ui$Element$maximum, config.fs - 120, $mdgriffith$elm_ui$Element$fill)),
+							A2($mdgriffith$elm_ui$Element$maximum, config.fr - 120, $mdgriffith$elm_ui$Element$fill)),
 							$mdgriffith$elm_ui$Element$scrollbarY,
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 							$mdgriffith$elm_ui$Element$inFront(
-							(!model.mr) ? $mdgriffith$elm_ui$Element$none : A2(
+							(!model.mq) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$el,
 								_List_fromArray(
 									[
@@ -48426,10 +48507,10 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$editFicheView 
 											A2($mdgriffith$elm_ui$Element$maximum, 920, $mdgriffith$elm_ui$Element$shrink))),
 										$mdgriffith$elm_ui$Element$Border$shadow(
 										{
-											id: 10,
-											iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-											kE: _Utils_Tuple2(4, 4),
-											fK: 5
+											ic: 10,
+											iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+											kD: _Utils_Tuple2(4, 4),
+											fJ: 5
 										})
 									]),
 								A2($author$project$GeneralDirectoryEditor$GeneralDirMainFormView$visualPickerView, config, model)))
@@ -48469,20 +48550,20 @@ var $author$project$GeneralDirectoryEditor$GeneralDirMainFormView$editFicheView 
 									$mdgriffith$elm_ui$Element$el,
 									_List_Nil,
 									$mdgriffith$elm_ui$Element$text('Annuler')),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY(
 										$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SetRightPanelDisplay(0)))
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
-								$author$project$GeneralDirectoryEditor$GeneralDirHelpers$isValidFiche(model.jg)),
+								$author$project$GeneralDirectoryEditor$GeneralDirHelpers$isValidFiche(model.jf)),
 							{
 								N: A2(
 									$mdgriffith$elm_ui$Element$el,
 									_List_Nil,
 									$mdgriffith$elm_ui$Element$text('Sauvegarder fiche')),
-								aG: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$isValidFiche(model.jg) ? $elm$core$Maybe$Just(
+								aI: $author$project$GeneralDirectoryEditor$GeneralDirHelpers$isValidFiche(model.jf) ? $elm$core$Maybe$Just(
 									model.bY($author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SaveFiche)) : $elm$core$Maybe$Nothing
 							})
 						]))
@@ -48498,7 +48579,7 @@ var $author$project$GeneralDirectoryEditor$FichePreview$subBlockStyle = _List_fr
 		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 	]);
 var $author$project$GeneralDirectoryEditor$FichePreview$activView = function (_v0) {
-	var natureActiv = _v0.kp;
+	var natureActiv = _v0.ko;
 	return A2(
 		$mdgriffith$elm_ui$Element$paragraph,
 		_Utils_ap(
@@ -48638,9 +48719,9 @@ var $author$project$GeneralDirectoryEditor$FichePreview$telPreview = function (t
 };
 var $author$project$GeneralDirectoryEditor$FichePreview$responsablesView = function (responsables) {
 	var respView = function (_v1) {
-		var nom = _v1.kB;
-		var poste = _v1.kZ;
-		var tel = _v1.l$;
+		var nom = _v1.kA;
+		var poste = _v1.kY;
+		var tel = _v1.l_;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -48712,12 +48793,12 @@ var $author$project$GeneralDirectoryEditor$FichePreview$responsablesView = funct
 };
 var $author$project$Internals$CommonStyleHelpers$teal4 = A3($mdgriffith$elm_ui$Element$rgb255, 60, 174, 163);
 var $author$project$GeneralDirectoryEditor$FichePreview$contactView = function (_v0) {
-	var adresse = _v0.hU;
-	var telNumber = _v0.l0;
-	var fax = _v0.jf;
-	var email = _v0.i5;
-	var site = _v0.lF;
-	var responsables = _v0.la;
+	var adresse = _v0.hT;
+	var telNumber = _v0.l$;
+	var fax = _v0.je;
+	var email = _v0.i4;
+	var site = _v0.lE;
+	var responsables = _v0.k9;
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		_Utils_ap(
@@ -48849,7 +48930,7 @@ var $author$project$GeneralDirectoryEditor$FichePreview$contactView = function (
 				$author$project$GeneralDirectoryEditor$FichePreview$responsablesView(responsables)
 			]));
 };
-var $mdgriffith$elm_ui$Element$Font$italic = $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jX);
+var $mdgriffith$elm_ui$Element$Font$italic = $mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.jW);
 var $elm_community$string_extra$String$Extra$changeCase = F2(
 	function (mutator, word) {
 		return A2(
@@ -48873,7 +48954,7 @@ var $elm_community$string_extra$String$Extra$toSentenceCase = function (word) {
 };
 var $author$project$GeneralDirectoryEditor$FichePreview$descriptionView = function (_v0) {
 	var description = _v0.fa;
-	var ouverture = _v0.kO;
+	var ouverture = _v0.kN;
 	var _v1 = function () {
 		if ((!ouverture.$) && (!ouverture.a)) {
 			var _v3 = ouverture.a;
@@ -48926,7 +49007,7 @@ var $author$project$GeneralDirectoryEditor$FichePreview$descriptionView = functi
 };
 var $author$project$GeneralDirectoryEditor$FichePreview$linkedDocsView = F2(
 	function (currentTime, _v0) {
-		var linkedDocs = _v0.j5;
+		var linkedDocs = _v0.j4;
 		if (!linkedDocs.b) {
 			return $mdgriffith$elm_ui$Element$none;
 		} else {
@@ -48934,15 +49015,15 @@ var $author$project$GeneralDirectoryEditor$FichePreview$linkedDocsView = F2(
 			var ldView = function (_v3) {
 				var url = _v3.d0;
 				var label = _v3.N;
-				var descr = _v3.i$;
-				var expiryDate = _v3.ja;
+				var descr = _v3.i_;
+				var expiryDate = _v3.i9;
 				var resView = A2(
 					$mdgriffith$elm_ui$Element$column,
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$spacing(7),
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 1, bb: 0, bk: 0, bo: 0}),
+							{a2: 1, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$color($author$project$Internals$CommonStyleHelpers$grey6),
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 							A2($mdgriffith$elm_ui$Element$paddingXY, 0, 5)
@@ -49038,8 +49119,8 @@ var $elm$core$List$sort = function (xs) {
 };
 var $mdgriffith$elm_ui$Internal$Flag$bgGradient = $mdgriffith$elm_ui$Internal$Flag$flag(10);
 var $mdgriffith$elm_ui$Element$Background$gradient = function (_v0) {
-	var angle = _v0.h3;
-	var steps = _v0.lQ;
+	var angle = _v0.h2;
+	var steps = _v0.lP;
 	if (!steps.b) {
 		return $mdgriffith$elm_ui$Internal$Model$NoAttribute;
 	} else {
@@ -49083,10 +49164,10 @@ var $mdgriffith$elm_ui$Internal$Model$formatTextShadow = function (shadow) {
 		' ',
 		_List_fromArray(
 			[
-				$elm$core$String$fromFloat(shadow.kE.a) + 'px',
-				$elm$core$String$fromFloat(shadow.kE.b) + 'px',
-				$elm$core$String$fromFloat(shadow.id) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$formatColor(shadow.iB)
+				$elm$core$String$fromFloat(shadow.kD.a) + 'px',
+				$elm$core$String$fromFloat(shadow.kD.b) + 'px',
+				$elm$core$String$fromFloat(shadow.ic) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$formatColor(shadow.iA)
 			]));
 };
 var $mdgriffith$elm_ui$Internal$Model$textShadowClass = function (shadow) {
@@ -49094,10 +49175,10 @@ var $mdgriffith$elm_ui$Internal$Model$textShadowClass = function (shadow) {
 		_List_fromArray(
 			[
 				'txt',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kE.a) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kE.b) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.id) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$formatColorClass(shadow.iB)
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kD.a) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.kD.b) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.ic) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$formatColorClass(shadow.iA)
 			]));
 };
 var $mdgriffith$elm_ui$Internal$Flag$txtShadows = $mdgriffith$elm_ui$Internal$Flag$flag(18);
@@ -49122,8 +49203,8 @@ var $author$project$GeneralDirectoryEditor$FichePreview$starsView = function (n)
 				$mdgriffith$elm_ui$Element$px(50)),
 				$mdgriffith$elm_ui$Element$Background$gradient(
 				{
-					h3: 0,
-					lQ: _List_fromArray(
+					h2: 0,
+					lP: _List_fromArray(
 						[
 							A3($mdgriffith$elm_ui$Element$rgb255, 85, 112, 83),
 							A3($mdgriffith$elm_ui$Element$rgb255, 143, 188, 139),
@@ -49139,7 +49220,7 @@ var $author$project$GeneralDirectoryEditor$FichePreview$starsView = function (n)
 					[
 						$mdgriffith$elm_ui$Element$alignTop,
 						$mdgriffith$elm_ui$Element$paddingEach(
-						{a2: 0, bb: 0, bk: 0, bo: 5}),
+						{a2: 0, bc: 0, bl: 0, bq: 5}),
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$Font$center,
 						$mdgriffith$elm_ui$Element$Font$size(12),
@@ -49168,9 +49249,9 @@ var $author$project$GeneralDirectoryEditor$FichePreview$starsView = function (n)
 								A3($mdgriffith$elm_ui$Element$rgb255, 255, 215, 0)),
 								$mdgriffith$elm_ui$Element$Font$shadow(
 								{
-									id: 1,
-									iB: A3($mdgriffith$elm_ui$Element$rgb255, 25, 21, 0),
-									kE: _Utils_Tuple2(1, 0)
+									ic: 1,
+									iA: A3($mdgriffith$elm_ui$Element$rgb255, 25, 21, 0),
+									kD: _Utils_Tuple2(1, 0)
 								})
 							]),
 						$mdgriffith$elm_ui$Element$text(
@@ -49180,13 +49261,13 @@ var $author$project$GeneralDirectoryEditor$FichePreview$starsView = function (n)
 };
 var $author$project$GeneralDirectoryEditor$FichePreview$refView = F2(
 	function (maxWidth, _v0) {
-		var refOt = _v0.k4;
+		var refOt = _v0.k3;
 		var label = _v0.N;
-		var rank = _v0.k1;
+		var rank = _v0.k0;
 		var toImage = function (_v8) {
-			var lien = _v8.j3;
-			var logo = _v8.ka;
-			return {jy: logo.jy, dC: lien, d0: logo.d0, mu: logo.mu};
+			var lien = _v8.j2;
+			var logo = _v8.j9;
+			return {jx: logo.jx, dC: lien, d0: logo.d0, mt: logo.mt};
 		};
 		var refOtView = function () {
 			if (!refOt.$) {
@@ -49224,13 +49305,13 @@ var $author$project$GeneralDirectoryEditor$FichePreview$refView = F2(
 			}
 		}();
 		var _v1 = function () {
-			var _v2 = rank.lL;
+			var _v2 = rank.lK;
 			if (!_v2.$) {
 				var n = _v2.a;
 				return _Utils_Tuple2(
 					_List_fromArray(
 						[
-							{jy: 50, dC: 'https://etoiles-de-france.fr/', d0: 'stars', mu: 80}
+							{jx: 50, dC: 'https://etoiles-de-france.fr/', d0: 'stars', mt: 80}
 						]),
 					n);
 			} else {
@@ -49253,16 +49334,16 @@ var $author$project$GeneralDirectoryEditor$FichePreview$refView = F2(
 						A2(
 							$elm$core$List$map,
 							function ($) {
-								return $.jy;
+								return $.jx;
 							},
 							images)))));
 		var imgsScaledToMinHeight = function () {
 			var scale = function (_v5) {
 				var url = _v5.d0;
-				var width = _v5.mu;
-				var height = _v5.jy;
+				var width = _v5.mt;
+				var height = _v5.jx;
 				var link = _v5.dC;
-				return {jy: minHeight + 5, dC: link, d0: url, mu: (minHeight * width) / height};
+				return {jx: minHeight + 5, dC: link, d0: url, mt: (minHeight * width) / height};
 			};
 			return A2($elm$core$List$map, scale, images);
 		}();
@@ -49270,14 +49351,14 @@ var $author$project$GeneralDirectoryEditor$FichePreview$refView = F2(
 			$elm$core$List$foldr,
 			F2(
 				function (i, n) {
-					return i.mu + n;
+					return i.mt + n;
 				}),
 			0,
 			imgsScaledToMinHeight);
 		var logoView = function (_v4) {
 			var url = _v4.d0;
-			var width = _v4.mu;
-			var height = _v4.jy;
+			var width = _v4.mt;
+			var height = _v4.jx;
 			var link = _v4.dC;
 			return A2(
 				$mdgriffith$elm_ui$Element$el,
@@ -49299,7 +49380,7 @@ var $author$project$GeneralDirectoryEditor$FichePreview$refView = F2(
 								[
 									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 								]),
-							{fa: '', fL: url}),
+							{fa: '', fK: url}),
 						d0: link
 					}));
 		};
@@ -49351,9 +49432,9 @@ var $author$project$Internals$CommonStyleHelpers$unselectable = A2(
 		]));
 var $author$project$GeneralDirectoryEditor$FichePreview$visualPreview = F3(
 	function (handler, maxWidth, _v0) {
-		var uuid = _v0.fT;
-		var nomEntite = _v0.kC;
-		var visuel = _v0.ms;
+		var uuid = _v0.fS;
+		var nomEntite = _v0.kB;
+		var visuel = _v0.mr;
 		var w = $elm$core$Basics$round(maxWidth);
 		var h = $elm$core$Basics$round(maxWidth / 1.333333333);
 		return A2(
@@ -49491,13 +49572,13 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$previewFicheVi
 						function (_v0) {
 							return $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$NoOp;
 						},
-						model.iQ),
+						model.iP),
 					A2(
 						$elm$core$Maybe$andThen,
 						function (id) {
-							return A2($elm$core$Dict$get, id, model.jh);
+							return A2($elm$core$Dict$get, id, model.jg);
 						},
-						model.lu))),
+						model.lt))),
 				A2(
 				$mdgriffith$elm_ui$Element$row,
 				_List_fromArray(
@@ -49507,7 +49588,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$previewFicheVi
 				_List_fromArray(
 					[
 						function () {
-						var _v1 = model.lu;
+						var _v1 = model.lt;
 						if (_v1.$ === 1) {
 							return A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -49517,7 +49598,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$previewFicheVi
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Nouvelle fiche')),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SetRightPanelDisplay(1))
 								});
 						} else {
@@ -49529,7 +49610,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$previewFicheVi
 										$mdgriffith$elm_ui$Element$el,
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Modifier fiche')),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										$author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$SetRightPanelDisplay(1))
 								});
 						}
@@ -49537,18 +49618,18 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$previewFicheVi
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
 						$author$project$Internals$CommonStyleHelpers$deleteButtonStyle(
-							!_Utils_eq(model.lu, $elm$core$Maybe$Nothing)),
+							!_Utils_eq(model.lt, $elm$core$Maybe$Nothing)),
 						{
 							N: A2(
 								$mdgriffith$elm_ui$Element$el,
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$text('Supprimer fiche')),
-							aG: A2(
+							aI: A2(
 								$elm$core$Maybe$map,
 								function (_v2) {
 									return $author$project$GeneralDirectoryEditor$GeneralDirCommonTypes$RemoveFiche;
 								},
-								model.lu)
+								model.lt)
 						})
 					]))
 			]));
@@ -49567,7 +49648,7 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$formsView = F2
 			_List_fromArray(
 				[
 					function () {
-					var _v0 = model.lc;
+					var _v0 = model.lb;
 					if (!_v0) {
 						return A2(
 							$mdgriffith$elm_ui$Element$map,
@@ -49593,11 +49674,11 @@ var $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$view = F2(
 					$mdgriffith$elm_ui$Element$clip,
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 					$mdgriffith$elm_ui$Element$height(
-					A2($mdgriffith$elm_ui$Element$maximum, config.fs, $mdgriffith$elm_ui$Element$fill))
+					A2($mdgriffith$elm_ui$Element$maximum, config.fr, $mdgriffith$elm_ui$Element$fill))
 				]),
 			_List_fromArray(
 				[
-					(model.lc === 1) ? $mdgriffith$elm_ui$Element$none : A2(
+					(model.lb === 1) ? $mdgriffith$elm_ui$Element$none : A2(
 					$mdgriffith$elm_ui$Element$map,
 					model.bY,
 					$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$ficheSelectorView(model)),
@@ -49689,9 +49770,9 @@ var $turboMaCk$lazy_tree_with_zipper$Lazy$Tree$Zipper$openAll = function (_v0) {
 				A2(
 					$elm$core$List$cons,
 					{
-						bb: left,
+						bc: left,
 						eF: $turboMaCk$lazy_tree_with_zipper$Lazy$Tree$item(tree),
-						bk: right
+						bl: right
 					},
 					zipperBreadcrumbs));
 		},
@@ -49740,7 +49821,7 @@ var $author$project$Help$Help$indexView = F3(
 								]),
 							_List_fromArray(
 								[
-									$mdgriffith$elm_ui$Element$text(entry.fQ)
+									$mdgriffith$elm_ui$Element$text(entry.fP)
 								]))
 						])),
 					A2(
@@ -49780,9 +49861,9 @@ var $turboMaCk$lazy_tree_with_zipper$Lazy$Tree$Zipper$up = function (_v0) {
 	if (!zipperBreadcrumbs.b) {
 		return $elm$core$Maybe$Nothing;
 	} else {
-		var left = zipperBreadcrumbs.a.bb;
+		var left = zipperBreadcrumbs.a.bc;
 		var parent = zipperBreadcrumbs.a.eF;
-		var right = zipperBreadcrumbs.a.bk;
+		var right = zipperBreadcrumbs.a.bl;
 		var tail = zipperBreadcrumbs.b;
 		return $elm$core$Maybe$Just(
 			A2(
@@ -49813,7 +49894,7 @@ var $turboMaCk$lazy_tree_with_zipper$Lazy$Tree$Zipper$root = function (zipper) {
 		zipper);
 };
 var $mdgriffith$elm_ui$Internal$Flag$borderStyle = $mdgriffith$elm_ui$Internal$Flag$flag(11);
-var $mdgriffith$elm_ui$Element$Border$solid = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$borderStyle, $mdgriffith$elm_ui$Internal$Style$classes.ii);
+var $mdgriffith$elm_ui$Element$Border$solid = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$borderStyle, $mdgriffith$elm_ui$Internal$Style$classes.ih);
 var $author$project$Help$Help$leftPanelView = F2(
 	function (config, model) {
 		return A2(
@@ -49826,7 +49907,7 @@ var $author$project$Help$Help$leftPanelView = F2(
 					$mdgriffith$elm_ui$Element$alignTop,
 					$mdgriffith$elm_ui$Element$padding(15),
 					$mdgriffith$elm_ui$Element$height(
-					A2($mdgriffith$elm_ui$Element$maximum, config.fs, $mdgriffith$elm_ui$Element$fill))
+					A2($mdgriffith$elm_ui$Element$maximum, config.fr, $mdgriffith$elm_ui$Element$fill))
 				]),
 			_List_fromArray(
 				[
@@ -49845,12 +49926,12 @@ var $author$project$Help$Help$leftPanelView = F2(
 							$mdgriffith$elm_ui$Element$alignTop,
 							$mdgriffith$elm_ui$Element$Border$solid,
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 0, bb: 0, bk: 2, bo: 0}),
+							{a2: 0, bc: 0, bl: 2, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$color(
 							A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8))
 						]),
 					function () {
-						var _v0 = model.gC;
+						var _v0 = model.gB;
 						if (!_v0.$) {
 							var zipper = _v0.a;
 							return A2(
@@ -49926,7 +50007,7 @@ var $author$project$Help$Help$mainView = F2(
 								])),
 						{
 							fa: '',
-							fL: A2($elm$core$Set$member, url, model.dE) ? '/assets/images/loading.gif' : url
+							fK: A2($elm$core$Set$member, url, model.dE) ? '/assets/images/loading.gif' : url
 						}),
 						$mdgriffith$elm_ui$Element$html(
 						A2(
@@ -49975,9 +50056,9 @@ var $author$project$Help$Help$mainView = F2(
 							A2(
 								$elm$core$Maybe$map,
 								function ($) {
-									return $.fQ;
+									return $.fP;
 								},
-								A2($elm$core$Dict$get, currentId, model.de))))),
+								A2($elm$core$Dict$get, currentId, model.dd))))),
 					A2(
 					$mdgriffith$elm_ui$Element$column,
 					_List_fromArray(
@@ -49996,9 +50077,9 @@ var $author$project$Help$Help$mainView = F2(
 							A2(
 								$elm$core$Maybe$map,
 								function ($) {
-									return $.iJ;
+									return $.iI;
 								},
-								A2($elm$core$Dict$get, currentId, model.de)))))
+								A2($elm$core$Dict$get, currentId, model.dd)))))
 				]));
 	});
 var $author$project$Help$Help$view = F2(
@@ -50058,6 +50139,9 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenBackgroundC
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenDocPicker = {$: 8};
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenFontColorPicker = {$: 4};
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenInternalLinks = {$: 6};
+var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetAlignMent = function (a) {
+	return {$: 14, a: a};
+};
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetBackgroundColor = F2(
 	function (a, b) {
 		return {$: 11, a: a, b: b};
@@ -50066,9 +50150,9 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetFont = F2(
 	function (a, b) {
 		return {$: 12, a: a, b: b};
 	});
-var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetGlobalAttribute = F2(
+var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetFontSize = F2(
 	function (a, b) {
-		return {$: 14, a: a, b: b};
+		return {$: 13, a: a, b: b};
 	});
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetTextColor = F2(
 	function (a, b) {
@@ -50469,7 +50553,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$colorPicker = F
 									]),
 								$mdgriffith$elm_ui$Element$none)
 							])),
-					aG: isActive ? $elm$core$Maybe$Just(openMsg) : $elm$core$Maybe$Nothing
+					aI: isActive ? $elm$core$Maybe$Just(openMsg) : $elm$core$Maybe$Nothing
 				}));
 	});
 var $author$project$Internals$Icons$externalLink = function (size) {
@@ -50513,7 +50597,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseDocView =
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0}),
+					{a2: 15, bc: 0, bl: 0, bq: 0}),
 					$mdgriffith$elm_ui$Element$spacing(15)
 				]),
 			_List_fromArray(
@@ -50521,10 +50605,10 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseDocView =
 					A2(
 					$author$project$FileExplorer$FileExplorer$view,
 					{
-						bd: logInfo,
-						fs: 500,
+						be: logInfo,
+						fr: 500,
 						g: $author$project$FileExplorer$FileExplorer$ReadWrite(1),
-						fZ: zone
+						fY: zone
 					},
 					fileExplorer),
 					A2(
@@ -50561,7 +50645,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseDocView =
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Valider'))
 									])),
-							aG: A2(
+							aI: A2(
 								$elm$core$Maybe$map,
 								A2($elm$core$Basics$composeL, externalMsg, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$InsertDocLink),
 								$author$project$FileExplorer$FileExplorer$getSelectedDoc(fileExplorer))
@@ -50592,15 +50676,38 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docPicker = F8(
 									$mdgriffith$elm_ui$Element$px(850)),
 									$mdgriffith$elm_ui$Element$Border$shadow(
 									{
-										id: 10,
-										iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-										kE: _Utils_Tuple2(4, 4),
-										fK: 5
+										ic: 10,
+										iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+										kD: _Utils_Tuple2(4, 4),
+										fJ: 5
 									})
 								]),
 							_List_fromArray(
 								[
-									A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseDocView, externalMsg, config.fe, config.fZ, config.bd)
+									function () {
+									if (!currentLink.$) {
+										var path = currentLink.a;
+										return A2(
+											$mdgriffith$elm_ui$Element$row,
+											_List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$spacing(10),
+													$mdgriffith$elm_ui$Element$padding(15)
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$mdgriffith$elm_ui$Element$el,
+													_List_fromArray(
+														[$mdgriffith$elm_ui$Element$Font$bold]),
+													$mdgriffith$elm_ui$Element$text('Lien pour:')),
+													$mdgriffith$elm_ui$Element$text(path)
+												]));
+									} else {
+										return $mdgriffith$elm_ui$Element$none;
+									}
+								}(),
+									A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseDocView, externalMsg, config.fe, config.fY, config.be)
 								])) : $mdgriffith$elm_ui$Element$none)),
 					$mdgriffith$elm_ui$Element$htmlAttribute(
 					$elm$html$Html$Attributes$id(id))
@@ -50623,7 +50730,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docPicker = F8(
 								$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$fileText($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$iconSize)))
 							])),
-					aG: isActive ? $elm$core$Maybe$Just(
+					aI: isActive ? $elm$core$Maybe$Just(
 						externalMsg(openMsg)) : $elm$core$Maybe$Nothing
 				}));
 	});
@@ -50643,11 +50750,13 @@ var $author$project$Internals$Icons$droplet = function (size) {
 				_List_Nil)
 			]));
 };
+var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$fontSizes = _List_fromArray(
+	['6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '18', '20', '22', '24', '26', '28', '32', '36', '40', '44', '48', '54', '60', '66', '72', '80', '88', '96']);
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$fonts = _List_fromArray(
 	['Arial', 'Helvetica', 'Times New Roman', 'Times', 'Courier New', 'Courier', 'Verdana', 'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 'Trebuchet MS', 'Arial Black', 'Impact', 'Libre Baskerville']);
 var $author$project$PageTreeEditor$PageTreeEditor$Select = 4;
 var $author$project$PageTreeEditor$PageTreeEditor$internalPageSelectedPageInfo = function (model) {
-	var _v0 = model.c7;
+	var _v0 = model.c6;
 	if (_v0.$ === 1) {
 		return $elm$core$Maybe$Nothing;
 	} else {
@@ -50898,11 +51007,11 @@ var $elm$core$Set$map = F2(
 var $author$project$Internals$CommonHelpers$dateToW3c = function (d) {
 	var dateRec = $AdrianRibao$elm_derberos_date$Derberos$Date$Core$posixToCivil(
 		A2($AdrianRibao$elm_derberos_date$Derberos$Date$Core$addTimezoneMilliseconds, $elm$time$Time$utc, d));
-	return $elm$core$String$fromInt(dateRec.fY) + ('-' + (A3(
+	return $elm$core$String$fromInt(dateRec.fX) + ('-' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(dateRec.fu)) + ('-' + (A3(
+		$elm$core$String$fromInt(dateRec.ft)) + ('-' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
@@ -50910,19 +51019,19 @@ var $author$project$Internals$CommonHelpers$dateToW3c = function (d) {
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(dateRec.gB)) + (':' + (A3(
+		$elm$core$String$fromInt(dateRec.gz)) + (':' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(dateRec.gQ)) + (':' + (A3(
+		$elm$core$String$fromInt(dateRec.gP)) + (':' + (A3(
 		$elm$core$String$padLeft,
 		2,
 		'0',
-		$elm$core$String$fromInt(dateRec.ll)) + 'Z'))))))))));
+		$elm$core$String$fromInt(dateRec.lk)) + 'Z'))))))))));
 };
 var $author$project$PageTreeEditor$PageTreeEditor$siteMap = F2(
 	function (model, page) {
-		var _v0 = model.iQ;
+		var _v0 = model.iP;
 		if (!_v0.$) {
 			var ct = _v0.a;
 			var urlStr = function (loc) {
@@ -50954,13 +51063,13 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 			function (k) {
 				return A2(
 					$elm$core$String$contains,
-					A2($elm$core$Maybe$withDefault, '', model.aA),
+					A2($elm$core$Maybe$withDefault, '', model.aC),
 					k);
 			},
 			$elm$core$Set$toList(
-				A2($elm$core$Set$map, $elm$core$Tuple$first, model.W)));
+				A2($elm$core$Set$map, $elm$core$Tuple$first, model.X)));
 		var pageKeywords = function () {
-			var _v2 = A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn);
+			var _v2 = A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm);
 			if (_v2.$ === 1) {
 				return _List_Nil;
 			} else {
@@ -50978,7 +51087,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 									cId,
 									$TSFoster$elm_uuid$UUID$toString(contentId));
 							},
-							model.W)));
+							model.X)));
 			}
 		}();
 		var keywordView = F2(
@@ -50987,12 +51096,12 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 					$mdgriffith$elm_ui$Element$Events$onClick(
 						$author$project$PageTreeEditor$PageTreeEditor$SelectPageKeyword(k)),
 					_Utils_eq(
-						model.bK,
+						model.bL,
 						$elm$core$Maybe$Just(k))) : _Utils_Tuple2(
 					$mdgriffith$elm_ui$Element$Events$onClick(
 						$author$project$PageTreeEditor$PageTreeEditor$SelectKeyword(k)),
 					_Utils_eq(
-						model.aI,
+						model.aK,
 						$elm$core$Maybe$Just(k)));
 				var handler = _v1.a;
 				var selected = _v1.b;
@@ -51015,11 +51124,11 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 				[
 					$mdgriffith$elm_ui$Element$spacing(15),
 					$mdgriffith$elm_ui$Element$Border$widthEach(
-					{a2: 0, bb: 0, bk: 0, bo: 2}),
+					{a2: 0, bc: 0, bl: 0, bq: 2}),
 					$mdgriffith$elm_ui$Element$Border$color(
 					A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8)),
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 0, bb: 0, bk: 0, bo: 15}),
+					{a2: 0, bc: 0, bl: 0, bq: 15}),
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 				]),
 			_List_fromArray(
@@ -51029,11 +51138,11 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 2, bb: 0, bk: 0, bo: 0}),
+							{a2: 2, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$color(
 							A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8)),
 							$mdgriffith$elm_ui$Element$paddingEach(
-							{a2: 15, bb: 0, bk: 0, bo: 0}),
+							{a2: 15, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 						]),
 					function () {
@@ -51097,7 +51206,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 						N: A2($mdgriffith$elm_ui$Element$Input$labelLeft, _List_Nil, $mdgriffith$elm_ui$Element$none),
 						dK: $author$project$PageTreeEditor$PageTreeEditor$KeywordInput,
 						dP: $elm$core$Maybe$Nothing,
-						dW: _Utils_eq(model.aA, $elm$core$Maybe$Nothing) ? A2($elm$core$Maybe$withDefault, '', model.aI) : A2($elm$core$Maybe$withDefault, '', model.aA)
+						dW: _Utils_eq(model.aC, $elm$core$Maybe$Nothing) ? A2($elm$core$Maybe$withDefault, '', model.aK) : A2($elm$core$Maybe$withDefault, '', model.aC)
 					}),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
@@ -51155,8 +51264,8 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
 								(!_Utils_eq(
-									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn),
-									$elm$core$Maybe$Nothing)) && ((!_Utils_eq(model.aI, $elm$core$Maybe$Nothing)) || $author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.aA))),
+									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm),
+									$elm$core$Maybe$Nothing)) && ((!_Utils_eq(model.aK, $elm$core$Maybe$Nothing)) || $author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.aC))),
 							{
 								N: A2(
 									$mdgriffith$elm_ui$Element$row,
@@ -51168,18 +51277,18 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 										[
 											$mdgriffith$elm_ui$Element$text('Associer mot clé')
 										])),
-								aG: ((!_Utils_eq(
-									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn),
-									$elm$core$Maybe$Nothing)) && (!_Utils_eq(model.aI, $elm$core$Maybe$Nothing))) ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$SetKeyword) : (((!_Utils_eq(
-									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn),
-									$elm$core$Maybe$Nothing)) && $author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.aA)) ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$NewKeyword) : $elm$core$Maybe$Nothing)
+								aI: ((!_Utils_eq(
+									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm),
+									$elm$core$Maybe$Nothing)) && (!_Utils_eq(model.aK, $elm$core$Maybe$Nothing))) ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$SetKeyword) : (((!_Utils_eq(
+									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm),
+									$elm$core$Maybe$Nothing)) && $author$project$PageTreeEditor$PageTreeEditor$validMbStr(model.aC)) ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$NewKeyword) : $elm$core$Maybe$Nothing)
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
 								(!_Utils_eq(
-									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn),
-									$elm$core$Maybe$Nothing)) && (!_Utils_eq(model.bK, $elm$core$Maybe$Nothing))),
+									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm),
+									$elm$core$Maybe$Nothing)) && (!_Utils_eq(model.bL, $elm$core$Maybe$Nothing))),
 							{
 								N: A2(
 									$mdgriffith$elm_ui$Element$row,
@@ -51191,9 +51300,9 @@ var $author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView = F2(
 										[
 											$mdgriffith$elm_ui$Element$text('Dissocier mot clé')
 										])),
-								aG: ((!_Utils_eq(
-									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hn),
-									$elm$core$Maybe$Nothing)) && (!_Utils_eq(model.bK, $elm$core$Maybe$Nothing))) ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$UnsetKeyword) : $elm$core$Maybe$Nothing
+								aI: ((!_Utils_eq(
+									A2($elm$core$Maybe$andThen, $author$project$PageTreeEditor$PageTreeEditor$getMbContentId, model.hm),
+									$elm$core$Maybe$Nothing)) && (!_Utils_eq(model.bL, $elm$core$Maybe$Nothing))) ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$UnsetKeyword) : $elm$core$Maybe$Nothing
 							})
 						]))
 				]));
@@ -51379,7 +51488,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$pageTreeView_ = F6(
 						]);
 				case 2:
 					var fontColor = function () {
-						var _v3 = pageInfo.kg;
+						var _v3 = pageInfo.kf;
 						if (_v3.$ === 1) {
 							return $mdgriffith$elm_ui$Element$Font$color(
 								A4($mdgriffith$elm_ui$Element$rgba, 0.8, 0.8, 0.8, 1));
@@ -51435,9 +51544,9 @@ var $author$project$PageTreeEditor$PageTreeEditor$pageTreeView_ = F6(
 									$TSFoster$elm_uuid$UUID$toString(k),
 									contents);
 							},
-							pageInfo.kg));
+							pageInfo.kf));
 					var fontColor = function () {
-						var _v5 = pageInfo.kg;
+						var _v5 = pageInfo.kf;
 						if (_v5.$ === 1) {
 							return $mdgriffith$elm_ui$Element$Font$color(
 								A4($mdgriffith$elm_ui$Element$rgba, 0.8, 0.8, 0.8, 1));
@@ -51572,13 +51681,13 @@ var $author$project$PageTreeEditor$PageTreeEditor$pageTreeView = F2(
 			var _v0 = config.g;
 			switch (_v0) {
 				case 0:
-					return model.hn;
+					return model.hm;
 				case 4:
-					return model.c7;
+					return model.c6;
 				case 2:
-					return model.dh;
+					return model.dg;
 				default:
-					return model.am;
+					return model.an;
 			}
 		}();
 		return A2(
@@ -51629,14 +51738,14 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 							$mdgriffith$elm_ui$Element$alignTop,
 							$mdgriffith$elm_ui$Element$Border$solid,
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 0, bb: 0, bk: 2, bo: 0}),
+							{a2: 0, bc: 0, bl: 2, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$color(
 							A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8)),
 							$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 							$mdgriffith$elm_ui$Element$width(
 							$mdgriffith$elm_ui$Element$px(430)),
 							$mdgriffith$elm_ui$Element$paddingEach(
-							{a2: 0, bb: 0, bk: 15, bo: 0}),
+							{a2: 0, bc: 0, bl: 15, bq: 0}),
 							$mdgriffith$elm_ui$Element$scrollbarY
 						]),
 					_List_fromArray(
@@ -51671,15 +51780,15 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 										N: A2($mdgriffith$elm_ui$Element$Input$labelLeft, _List_Nil, $mdgriffith$elm_ui$Element$none),
 										dK: $author$project$PageTreeEditor$PageTreeEditor$RenamePageInput,
 										dP: $elm$core$Maybe$Nothing,
-										dW: _Utils_eq(model.bJ, $elm$core$Maybe$Nothing) ? A2(
+										dW: _Utils_eq(model.bK, $elm$core$Maybe$Nothing) ? A2(
 											$elm$core$Maybe$withDefault,
 											'',
-											A2($elm$core$Maybe$map, $author$project$PageTreeEditor$PageTreeEditor$getName, model.hn)) : A2($elm$core$Maybe$withDefault, '', model.bJ)
+											A2($elm$core$Maybe$map, $author$project$PageTreeEditor$PageTreeEditor$getName, model.hm)) : A2($elm$core$Maybe$withDefault, '', model.bK)
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
-										!_Utils_eq(model.hn, $elm$core$Maybe$Nothing)),
+										!_Utils_eq(model.hm, $elm$core$Maybe$Nothing)),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$row,
@@ -51691,12 +51800,12 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 												[
 													$mdgriffith$elm_ui$Element$text('Renommer')
 												])),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											function (_v0) {
 												return $author$project$PageTreeEditor$PageTreeEditor$RenamePage;
 											},
-											model.hn)
+											model.hm)
 									})
 								])),
 							A2(
@@ -51710,7 +51819,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
-										!_Utils_eq(model.hn, $elm$core$Maybe$Nothing)),
+										!_Utils_eq(model.hm, $elm$core$Maybe$Nothing)),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$row,
@@ -51727,17 +51836,17 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 														$author$project$Internals$Icons$chevronsUp(18))),
 													$mdgriffith$elm_ui$Element$text('Monter')
 												])),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											function (_v1) {
 												return $author$project$PageTreeEditor$PageTreeEditor$Swap(true);
 											},
-											model.hn)
+											model.hm)
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
-										!_Utils_eq(model.hn, $elm$core$Maybe$Nothing)),
+										!_Utils_eq(model.hm, $elm$core$Maybe$Nothing)),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$row,
@@ -51754,12 +51863,12 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 														$author$project$Internals$Icons$chevronsDown(18))),
 													$mdgriffith$elm_ui$Element$text('Descendre')
 												])),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											function (_v2) {
 												return $author$project$PageTreeEditor$PageTreeEditor$Swap(false);
 											},
-											model.hn)
+											model.hm)
 									})
 								])),
 							A2(
@@ -51773,7 +51882,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$buttonStyle(
-										(!_Utils_eq(model.hn, $elm$core$Maybe$Nothing)) && _Utils_eq(model.bh, $elm$core$Maybe$Nothing)),
+										(!_Utils_eq(model.hm, $elm$core$Maybe$Nothing)) && _Utils_eq(model.bi, $elm$core$Maybe$Nothing)),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$row,
@@ -51785,17 +51894,17 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 												[
 													$mdgriffith$elm_ui$Element$text('Couper')
 												])),
-										aG: _Utils_eq(model.bh, $elm$core$Maybe$Nothing) ? A2(
+										aI: _Utils_eq(model.bi, $elm$core$Maybe$Nothing) ? A2(
 											$elm$core$Maybe$map,
 											function (_v3) {
 												return $author$project$PageTreeEditor$PageTreeEditor$CutPage;
 											},
-											model.hn) : $elm$core$Maybe$Nothing
+											model.hm) : $elm$core$Maybe$Nothing
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
-										(!_Utils_eq(model.hn, $elm$core$Maybe$Nothing)) && (!_Utils_eq(model.bh, $elm$core$Maybe$Nothing))),
+										(!_Utils_eq(model.hm, $elm$core$Maybe$Nothing)) && (!_Utils_eq(model.bi, $elm$core$Maybe$Nothing))),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$row,
@@ -51807,17 +51916,17 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 												[
 													$mdgriffith$elm_ui$Element$text('Coller')
 												])),
-										aG: (!_Utils_eq(model.bh, $elm$core$Maybe$Nothing)) ? A2(
+										aI: (!_Utils_eq(model.bi, $elm$core$Maybe$Nothing)) ? A2(
 											$elm$core$Maybe$map,
 											function (_v4) {
 												return $author$project$PageTreeEditor$PageTreeEditor$PastePage;
 											},
-											model.hn) : $elm$core$Maybe$Nothing
+											model.hm) : $elm$core$Maybe$Nothing
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$deleteButtonStyle(
-										!_Utils_eq(model.hn, $elm$core$Maybe$Nothing)),
+										!_Utils_eq(model.hm, $elm$core$Maybe$Nothing)),
 									{
 										N: A2(
 											$mdgriffith$elm_ui$Element$row,
@@ -51829,12 +51938,12 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 												[
 													$mdgriffith$elm_ui$Element$text('Supprimer')
 												])),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											function (_v5) {
 												return $author$project$PageTreeEditor$PageTreeEditor$DeletePage;
 											},
-											model.hn)
+											model.hm)
 									})
 								])),
 							A2($author$project$PageTreeEditor$PageTreeEditor$keywordsAdminView, config, model)
@@ -51915,7 +52024,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$fullView = F2(
 												A2(
 													$elm$core$Maybe$map,
 													$elm$core$List$map($mdgriffith$elm_ui$Element$text),
-													A2($elm$core$Maybe$map, $author$project$PageTreeEditor$PageTreeEditor$getPath, model.hn))))))
+													A2($elm$core$Maybe$map, $author$project$PageTreeEditor$PageTreeEditor$getPath, model.hm))))))
 								])),
 							A2($author$project$PageTreeEditor$PageTreeEditor$pageTreeView, config, model)
 						]))
@@ -51953,7 +52062,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$NewPageInput = function (a) {
 };
 var $author$project$PageTreeEditor$PageTreeEditor$saveNewView = F2(
 	function (config, model) {
-		var canSave = (!_Utils_eq(model.dh, $elm$core$Maybe$Nothing)) && (model.ca !== '');
+		var canSave = (!_Utils_eq(model.dg, $elm$core$Maybe$Nothing)) && (model.ca !== '');
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -52038,7 +52147,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$saveNewView = F2(
 								[
 									$mdgriffith$elm_ui$Element$text('Enregistrer')
 								])),
-						aG: canSave ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$NewPage) : $elm$core$Maybe$Nothing
+						aI: canSave ? $elm$core$Maybe$Just($author$project$PageTreeEditor$PageTreeEditor$NewPage) : $elm$core$Maybe$Nothing
 					})
 				]));
 	});
@@ -52070,7 +52179,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$saveView = F2(
 					A2(
 					$mdgriffith$elm_ui$Element$Input$button,
 					$author$project$Internals$CommonStyleHelpers$saveButtonStyle(
-						!_Utils_eq(model.am, $elm$core$Maybe$Nothing)),
+						!_Utils_eq(model.an, $elm$core$Maybe$Nothing)),
 					{
 						N: A2(
 							$mdgriffith$elm_ui$Element$row,
@@ -52082,7 +52191,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$saveView = F2(
 								[
 									$mdgriffith$elm_ui$Element$text('Valider')
 								])),
-						aG: A2($elm$core$Maybe$map, $author$project$PageTreeEditor$PageTreeEditor$SaveContent, model.am)
+						aI: A2($elm$core$Maybe$map, $author$project$PageTreeEditor$PageTreeEditor$SaveContent, model.an)
 					})
 				]));
 	});
@@ -52119,7 +52228,7 @@ var $author$project$PageTreeEditor$PageTreeEditor$view = F2(
 						$mdgriffith$elm_ui$Element$padding(10),
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$height(
-						A2($mdgriffith$elm_ui$Element$maximum, config.fs, $mdgriffith$elm_ui$Element$fill))
+						A2($mdgriffith$elm_ui$Element$maximum, config.fr, $mdgriffith$elm_ui$Element$fill))
 					]),
 				_List_fromArray(
 					[
@@ -52147,7 +52256,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseInternalP
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0}),
+					{a2: 15, bc: 0, bl: 0, bq: 0}),
 					$mdgriffith$elm_ui$Element$spacing(15),
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 				]),
@@ -52155,7 +52264,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseInternalP
 				[
 					A2(
 					$author$project$PageTreeEditor$PageTreeEditor$view,
-					{bd: logInfo, fs: 500, g: 4, fZ: zone},
+					{be: logInfo, fr: 500, g: 4, fY: zone},
 					pageTreeEditor),
 					A2(
 					$mdgriffith$elm_ui$Element$el,
@@ -52191,7 +52300,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseInternalP
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$text('Valider'))
 									])),
-							aG: A2(
+							aI: A2(
 								$elm$core$Maybe$map,
 								A2($elm$core$Basics$composeL, externalMsg, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$InsertInternalLink),
 								A2(
@@ -52200,7 +52309,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseInternalP
 									A2(
 										$elm$core$Maybe$andThen,
 										function ($) {
-											return $.kg;
+											return $.kf;
 										},
 										$author$project$PageTreeEditor$PageTreeEditor$internalPageSelectedPageInfo(pageTreeEditor))))
 						}))
@@ -52256,10 +52365,10 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$linkPicker = F8
 									$mdgriffith$elm_ui$Element$px(850)),
 									$mdgriffith$elm_ui$Element$Border$shadow(
 									{
-										id: 10,
-										iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-										kE: _Utils_Tuple2(4, 4),
-										fK: 5
+										ic: 10,
+										iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+										kD: _Utils_Tuple2(4, 4),
+										fJ: 5
 									}),
 									$mdgriffith$elm_ui$Element$spacing(15)
 								]),
@@ -52296,7 +52405,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$linkPicker = F8
 										return $mdgriffith$elm_ui$Element$none;
 									}
 								}(),
-									A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseInternalPageView, externalMsg, config.I, config.fZ, config.bd)
+									A4($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$chooseInternalPageView, externalMsg, config.I, config.fY, config.be)
 								])) : $mdgriffith$elm_ui$Element$none)),
 					$mdgriffith$elm_ui$Element$htmlAttribute(
 					$elm$html$Html$Attributes$id(id))
@@ -52319,7 +52428,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$linkPicker = F8
 								$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$link2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$iconSize)))
 							])),
-					aG: isActive ? $elm$core$Maybe$Just(
+					aI: isActive ? $elm$core$Maybe$Just(
 						externalMsg(openMsg)) : $elm$core$Maybe$Nothing
 				}));
 	});
@@ -52377,12 +52486,12 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$webColorsRevers
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar = F2(
 	function (config, model) {
 		var selectionCollapsed = function () {
-			var _v1 = model.aJ;
+			var _v1 = model.ap;
 			if (_v1.$ === 1) {
 				return $elm$core$Maybe$Nothing;
 			} else {
-				var start = _v1.a.bL;
-				var end = _v1.a.by;
+				var start = _v1.a.bo;
+				var end = _v1.a.a4;
 				return $elm$core$Maybe$Just(
 					_Utils_eq(start, end));
 			}
@@ -52392,7 +52501,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 			function ($) {
 				return $.x;
 			},
-			model.aJ);
+			model.ap);
 		var textFont = A2(
 			$elm$core$Maybe$andThen,
 			$elm$core$Dict$get('textFont'),
@@ -52401,6 +52510,38 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 			$elm$core$Maybe$andThen,
 			$elm$core$Dict$get('href'),
 			selectionAttrs);
+		var fontSizeOptionView = F2(
+			function (selectedSize, fs) {
+				var selected = A2(
+					$elm$core$Maybe$withDefault,
+					false,
+					A2(
+						$elm$core$Maybe$map,
+						function (fs_) {
+							return _Utils_eq(
+								selectedSize,
+								$elm$core$Maybe$Just(fs_));
+						},
+						$elm$core$String$toInt(fs)));
+				return A2(
+					$elm$html$Html$option,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$value(fs),
+							$elm$html$Html$Attributes$selected(selected)
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(fs)
+						]));
+			});
+		var fontSize = A2(
+			$elm$core$Maybe$andThen,
+			$elm$core$String$toInt,
+			A2(
+				$elm$core$Maybe$andThen,
+				$elm$core$Dict$get('fontSize'),
+				selectionAttrs));
 		var fontOptionView = F2(
 			function (selectedFont, f) {
 				return A2(
@@ -52431,12 +52572,12 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 					$elm$core$Dict$get('foregroundColor'),
 					selectionAttrs)));
 		var canUpdateGlobalAttr = function () {
-			var _v0 = model.aJ;
+			var _v0 = model.ap;
 			if (_v0.$ === 1) {
 				return true;
 			} else {
-				var start = _v0.a.bL;
-				var end = _v0.a.by;
+				var start = _v0.a.bo;
+				var end = _v0.a.a4;
 				return _Utils_eq(start, end);
 			}
 		}();
@@ -52470,7 +52611,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 						selectionCollapsed,
 						$elm$core$Maybe$Just(false)),
 					_Utils_eq(
-						model.o,
+						model.n,
 						$elm$core$Maybe$Just(2)),
 					href,
 					$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenInternalLinks,
@@ -52484,7 +52625,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 						selectionCollapsed,
 						$elm$core$Maybe$Just(false)),
 					_Utils_eq(
-						model.o,
+						model.n,
 						$elm$core$Maybe$Just(4)),
 					href,
 					$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenDocPicker,
@@ -52497,7 +52638,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 						'fontColorPicker',
 						true,
 						_Utils_eq(
-							model.o,
+							model.n,
 							$elm$core$Maybe$Just(0)),
 						fontColor,
 						$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenFontColorPicker,
@@ -52518,7 +52659,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 						'backgroundColorPicker',
 						true,
 						_Utils_eq(
-							model.o,
+							model.n,
 							$elm$core$Maybe$Just(1)),
 						backgroundColor,
 						$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$OpenBackgroundColorPicker,
@@ -52556,6 +52697,34 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 					$mdgriffith$elm_ui$Element$map,
 					model.bY,
 					A2(
+						$mdgriffith$elm_ui$Element$el,
+						_List_Nil,
+						$mdgriffith$elm_ui$Element$html(
+							A2(
+								$elm$html$Html$select,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onInput(
+										function (n) {
+											return A2(
+												$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetFontSize,
+												_Utils_eq(
+													selectionCollapsed,
+													$elm$core$Maybe$Just(true)) || _Utils_eq(selectionCollapsed, $elm$core$Maybe$Nothing),
+												A2(
+													$elm$core$Maybe$withDefault,
+													16,
+													$elm$core$String$toInt(n)));
+										})
+									]),
+								A2(
+									$elm$core$List$map,
+									fontSizeOptionView(fontSize),
+									$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$fontSizes))))),
+					A2(
+					$mdgriffith$elm_ui$Element$map,
+					model.bY,
+					A2(
 						$mdgriffith$elm_ui$Element$row,
 						_List_fromArray(
 							[
@@ -52572,11 +52741,8 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$alignLeft($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$iconSize))),
-									aG: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
-										A2(
-											$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetGlobalAttribute,
-											true,
-											_Utils_Tuple2('text-align', 'left'))) : $elm$core$Maybe$Nothing
+									aI: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
+										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetAlignMent($author$project$Document$Document$FontAlignLeft)) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -52587,11 +52753,8 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$alignCenter($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$iconSize))),
-									aG: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
-										A2(
-											$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetGlobalAttribute,
-											true,
-											_Utils_Tuple2('text-align', 'center'))) : $elm$core$Maybe$Nothing
+									aI: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
+										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetAlignMent($author$project$Document$Document$Center)) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -52602,11 +52765,8 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$alignRight($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$iconSize))),
-									aG: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
-										A2(
-											$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetGlobalAttribute,
-											true,
-											_Utils_Tuple2('text-align', 'right'))) : $elm$core$Maybe$Nothing
+									aI: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
+										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetAlignMent($author$project$Document$Document$FontAlignRight)) : $elm$core$Maybe$Nothing
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -52617,11 +52777,8 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$alignJustify($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$iconSize))),
-									aG: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
-										A2(
-											$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetGlobalAttribute,
-											true,
-											_Utils_Tuple2('text-align', 'justify'))) : $elm$core$Maybe$Nothing
+									aI: canUpdateGlobalAttr ? $elm$core$Maybe$Just(
+										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SetAlignMent($author$project$Document$Document$Justify)) : $elm$core$Maybe$Nothing
 								})
 							]))),
 					A2(
@@ -52638,8 +52795,12 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$customToolbar =
 								$mdgriffith$elm_ui$Element$alignRight,
 								$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$buttonStyle(canUndoStyle)),
 							{
-								N: $mdgriffith$elm_ui$Element$text('undo style'),
-								aG: canUndoStyle ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$UndoStyle) : $elm$core$Maybe$Nothing
+								N: A2(
+									$mdgriffith$elm_ui$Element$el,
+									_List_Nil,
+									$mdgriffith$elm_ui$Element$html(
+										$author$project$Internals$Icons$xSquare($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$iconSize))),
+								aI: canUndoStyle ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$UndoStyle) : $elm$core$Maybe$Nothing
 							});
 					}())
 				]));
@@ -52675,12 +52836,6 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$trixEditor = F2
 						$mdgriffith$elm_ui$Element$paragraph,
 						_List_fromArray(
 							[
-								$mdgriffith$elm_ui$Element$Font$family(
-								_List_fromArray(
-									[
-										$mdgriffith$elm_ui$Element$Font$typeface('Arial')
-									])),
-								$mdgriffith$elm_ui$Element$Font$size(16),
 								$mdgriffith$elm_ui$Element$width(
 								$mdgriffith$elm_ui$Element$px(700))
 							]),
@@ -52746,23 +52901,246 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$editor = F2(
 				]),
 			_List_fromArray(
 				[
-					A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$trixEditor, config, model),
+					A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$trixEditor, config, model)
+				]));
+	});
+var $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheetCss = function (config) {
+	var tags = $elm$core$Dict$fromList(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'p',
+				_List_fromArray(
+					[
+						_Utils_Tuple2('width', '100%')
+					])),
+				_Utils_Tuple2(
+				'a',
+				_List_fromArray(
+					[
+						_Utils_Tuple2('color', 'rgb(0,127,127)'),
+						_Utils_Tuple2('text-decoration', 'none')
+					]))
+			]));
+	var headings = function () {
+		var seasonAttr = function () {
+			var _v1 = config.lj;
+			switch (_v1) {
+				case 0:
+					return $elm$core$Dict$fromList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'h1',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(102 153 140)'),
+										_Utils_Tuple2('color', 'rgb(240 248 255)')
+									])),
+								_Utils_Tuple2(
+								'h2',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(102 153 140)'),
+										_Utils_Tuple2('color', 'rgb(240 248 255)')
+									])),
+								_Utils_Tuple2('h3', _List_Nil)
+							]));
+				case 1:
+					return $elm$core$Dict$fromList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'h1',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(186 172 145)'),
+										_Utils_Tuple2('color', 'rgb(0 0 0)')
+									])),
+								_Utils_Tuple2(
+								'h2',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(255 193 58)'),
+										_Utils_Tuple2('color', 'rgb(0 0 0)')
+									])),
+								_Utils_Tuple2('h3', _List_Nil)
+							]));
+				case 2:
+					return $elm$core$Dict$fromList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'h1',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(205 133 63)'),
+										_Utils_Tuple2('color', 'rgb(67 46 42)')
+									])),
+								_Utils_Tuple2(
+								'h2',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(205 133 63)'),
+										_Utils_Tuple2('color', 'rgb(67 46 42)')
+									])),
+								_Utils_Tuple2('h3', _List_Nil)
+							]));
+				default:
+					return $elm$core$Dict$fromList(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								'h1',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(51 51 102)'),
+										_Utils_Tuple2('color', 'rgb(240 248 255)')
+									])),
+								_Utils_Tuple2(
+								'h2',
+								_List_fromArray(
+									[
+										_Utils_Tuple2('background-color', 'rgb(51 51 102)'),
+										_Utils_Tuple2('color', 'rgb(240 248 255)')
+									])),
+								_Utils_Tuple2('h3', _List_Nil)
+							]));
+			}
+		}();
+		var commonAttr = $elm$core$Dict$fromList(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'h1',
+					_List_fromArray(
+						[
+							_Utils_Tuple2('font-size', '18px'),
+							_Utils_Tuple2('text-align', 'center'),
+							_Utils_Tuple2('font-weight', 'bold'),
+							_Utils_Tuple2('padding', '10px 0px'),
+							_Utils_Tuple2('width', '100%')
+						])),
+					_Utils_Tuple2(
+					'h2',
+					_List_fromArray(
+						[
+							_Utils_Tuple2('font-size', '16px'),
+							_Utils_Tuple2('text-align', 'center'),
+							_Utils_Tuple2('font-weight', 'bold'),
+							_Utils_Tuple2('padding', '2px 0px'),
+							_Utils_Tuple2('width', '100%')
+						])),
+					_Utils_Tuple2(
+					'h3',
+					_List_fromArray(
+						[
+							_Utils_Tuple2('font-size', '16px'),
+							_Utils_Tuple2('color', 'rgb(0 127 0)'),
+							_Utils_Tuple2('font-weight', 'bold')
+						]))
+				]));
+		return A3(
+			$elm$core$Dict$foldr,
+			F3(
+				function (k, v, acc) {
+					return A3(
+						$elm$core$Dict$update,
+						k,
+						function (mbSeasonAttr) {
+							if (!mbSeasonAttr.$) {
+								var attrs = mbSeasonAttr.a;
+								return $elm$core$Maybe$Just(
+									_Utils_ap(v, attrs));
+							} else {
+								return $elm$core$Maybe$Just(v);
+							}
+						},
+						acc);
+				}),
+			commonAttr,
+			seasonAttr);
+	}();
+	return A3(
+		$elm$core$List$foldr,
+		$elm$core$Dict$union,
+		$elm$core$Dict$empty,
+		_List_fromArray(
+			[headings, tags]));
+};
+var $author$project$Document$DocumentViews$StyleSheets$stringifyAttributes = function (attributes) {
+	return A2(
+		$elm$core$String$join,
+		' ',
+		A2(
+			$elm$core$List$map,
+			function (_v0) {
+				var attr = _v0.a;
+				var value = _v0.b;
+				return attr + (': ' + (value + ';'));
+			},
+			attributes));
+};
+var $author$project$Document$DocumentViews$StyleSheets$embeddedStyleSheet = F2(
+	function (renderConfig, wholeTextBlocAttr) {
+		var templateStylesheet = function () {
+			var className = renderConfig.av ? '.trix-content-editor ' : '.trix-content ';
+			var tagStyle = function (_v1) {
+				var tag = _v1.a;
+				var styles = _v1.b;
+				return function (s) {
+					return className + (tag + ('{' + (s + '}')));
+				}(
 					A2(
-					$mdgriffith$elm_ui$Element$paragraph,
+						$elm$core$String$join,
+						' ',
+						A2(
+							$elm$core$List$map,
+							function (_v0) {
+								var a = _v0.a;
+								var v = _v0.b;
+								return a + (':' + (v + ';'));
+							},
+							styles)));
+			};
+			return A2(
+				$elm$core$String$join,
+				' ',
+				A2(
+					$elm$core$List$map,
+					tagStyle,
+					$elm$core$Dict$toList(
+						$author$project$Document$DocumentViews$StyleSheets$defaultStyleSheetCss(renderConfig))));
+		}();
+		var styleSheet = A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A3(
+					$elm$html$Html$node,
+					'style',
 					_List_Nil,
 					_List_fromArray(
 						[
-							$mdgriffith$elm_ui$Element$text(model.c5.fl)
+							$elm$html$Html$text(
+							templateStylesheet + (' .trix-content{' + ($author$project$Document$DocumentViews$StyleSheets$stringifyAttributes(
+								A2($elm$core$List$concatMap, $author$project$Document$DocumentViews$StyleSheets$docAttrToCss, wholeTextBlocAttr)) + (' \n                        \n                        }\n                    ' + ' \n\n                            .trix-content p {\n                                display: block;\n                                margin: 0;\n                                padding : 0;\n                            }\n                    '))))
 						]))
 				]));
+		return A2(
+			$mdgriffith$elm_ui$Element$el,
+			_List_Nil,
+			$mdgriffith$elm_ui$Element$html(styleSheet));
 	});
-var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$newsEditorView = F2(
-	function (config, model) {
+var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$newsEditorView = F3(
+	function (config, renderConfig, model) {
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_Nil,
 			_List_fromArray(
 				[
+					A2($author$project$Document$DocumentViews$StyleSheets$embeddedStyleSheet, renderConfig, model.R),
 					A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$editor, config, model)
 				]));
 	});
@@ -52770,27 +53148,27 @@ var $author$project$NewsEditor$NewsEditor$NoOp = {$: 16};
 var $author$project$NewsEditor$NewsEditor$renderConfig = function (externalMsg) {
 	return {
 		e1: false,
-		iQ: $elm$time$Time$millisToPosix(0),
-		iT: $elm$core$Dict$empty,
-		at: true,
-		jh: $elm$core$Dict$empty,
-		jm: $elm$core$Dict$empty,
-		jy: 1080,
-		kc: 75,
-		gU: $elm$core$Dict$empty,
+		iP: $elm$time$Time$millisToPosix(0),
+		iS: $elm$core$Dict$empty,
+		av: true,
+		jg: $elm$core$Dict$empty,
+		jl: $elm$core$Dict$empty,
+		jx: 1080,
+		kb: 75,
+		gT: $elm$core$Dict$empty,
+		kK: $elm$core$Basics$always(
+			externalMsg($author$project$NewsEditor$NewsEditor$NoOp)),
 		kL: $elm$core$Basics$always(
 			externalMsg($author$project$NewsEditor$NewsEditor$NoOp)),
-		kM: $elm$core$Basics$always(
-			externalMsg($author$project$NewsEditor$NewsEditor$NoOp)),
-		kN: $elm$core$Set$empty,
-		g2: $elm$core$Set$empty,
+		kM: $elm$core$Set$empty,
+		g1: $elm$core$Set$empty,
 		dN: $elm$core$Dict$empty,
 		eH: 1,
-		fC: $elm$core$Maybe$Nothing,
-		lk: 0,
-		mu: 1920,
-		mx: $elm$core$Maybe$Nothing,
-		fZ: $elm$time$Time$utc
+		fB: $elm$core$Maybe$Nothing,
+		lj: 0,
+		mt: 1920,
+		mw: $elm$core$Maybe$Nothing,
+		fY: $elm$time$Time$utc
 	};
 };
 var $author$project$NewsEditor$NewsEditor$OpenPicPicker = {$: 9};
@@ -52852,7 +53230,7 @@ var $author$project$NewsEditor$NewsEditor$setVisual = F2(
 										A2(
 											$elm$core$Maybe$andThen,
 											function ($) {
-												return $.kT;
+												return $.kS;
 											},
 											model.e)))),
 								$mdgriffith$elm_ui$Element$centerX,
@@ -52873,12 +53251,12 @@ var $author$project$NewsEditor$NewsEditor$setVisual = F2(
 									_List_Nil,
 									$mdgriffith$elm_ui$Element$text('Choisir'))
 								])),
-						aG: $elm$core$Maybe$Just(
+						aI: $elm$core$Maybe$Just(
 							model.bY($author$project$NewsEditor$NewsEditor$OpenPicPicker))
 					})
 				]));
 	});
-var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$spacing, $mdgriffith$elm_ui$Internal$Style$classes.lI);
+var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$spacing, $mdgriffith$elm_ui$Internal$Style$classes.lH);
 var $mdgriffith$elm_ui$Element$BigDesktop = 3;
 var $mdgriffith$elm_ui$Element$Desktop = 2;
 var $mdgriffith$elm_ui$Element$Landscape = 1;
@@ -52888,11 +53266,11 @@ var $mdgriffith$elm_ui$Element$Tablet = 1;
 var $mdgriffith$elm_ui$Element$classifyDevice = function (window) {
 	return {
 		c$: function () {
-			var shortSide = A2($elm$core$Basics$min, window.mu, window.jy);
-			var longSide = A2($elm$core$Basics$max, window.mu, window.jy);
+			var shortSide = A2($elm$core$Basics$min, window.mt, window.jx);
+			var longSide = A2($elm$core$Basics$max, window.mt, window.jx);
 			return (shortSide < 600) ? 0 : ((longSide <= 1200) ? 1 : (((longSide > 1200) && (longSide <= 1920)) ? 2 : 3));
 		}(),
-		eD: (_Utils_cmp(window.mu, window.jy) < 0) ? 0 : 1
+		eD: (_Utils_cmp(window.mt, window.jx) < 0) ? 0 : 1
 	};
 };
 var $author$project$Document$DocumentViews$StyleSheets$docMaxWidth = F3(
@@ -52900,7 +53278,7 @@ var $author$project$Document$DocumentViews$StyleSheets$docMaxWidth = F3(
 		var winWidth = _v0.a;
 		var winHeight = _v0.b;
 		var device = $mdgriffith$elm_ui$Element$classifyDevice(
-			{jy: winHeight, mu: winWidth});
+			{jx: winHeight, mt: winWidth});
 		if (editMode) {
 			switch (previewMode) {
 				case 0:
@@ -53080,14 +53458,14 @@ var $author$project$Document$DocumentViews$StyleSheets$headingStyles = F3(
 	});
 var $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet = function (config) {
 	return {
-		ic: _List_Nil,
-		iC: _List_fromArray(
+		ib: _List_Nil,
+		iB: _List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$spacing(15),
 				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 			]),
-		iU: {
-			bp: $elm$core$Dict$fromList(
+		iT: {
+			br: $elm$core$Dict$fromList(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
@@ -53101,14 +53479,14 @@ var $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet = funct
 							[
 								$mdgriffith$elm_ui$Element$Border$shadow(
 								{
-									id: 10,
-									iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-									kE: _Utils_Tuple2(4, 4),
-									fK: 5
+									ic: 10,
+									iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+									kD: _Utils_Tuple2(4, 4),
+									fJ: 5
 								})
 							]))
 					])),
-			jE: $elm$core$Dict$fromList(
+			jD: $elm$core$Dict$fromList(
 				_List_fromArray(
 					[
 						_Utils_Tuple2(
@@ -53128,8 +53506,8 @@ var $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet = funct
 									$mdgriffith$elm_ui$Element$maximum,
 									A3(
 										$author$project$Document$DocumentViews$StyleSheets$docMaxWidth,
-										_Utils_Tuple2(config.mu, config.jy),
-										config.at,
+										_Utils_Tuple2(config.mt, config.jx),
+										config.av,
 										config.eH),
 									$mdgriffith$elm_ui$Element$fill)),
 								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
@@ -53137,23 +53515,23 @@ var $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet = funct
 							]))
 					]))
 		},
-		jw: A3(
+		jv: A3(
 			$author$project$Document$DocumentViews$StyleSheets$headingStyles,
-			config.lk,
-			_Utils_Tuple2(config.mu, config.jy),
-			config.at),
-		jI: _List_Nil,
-		gO: _List_fromArray(
+			config.lj,
+			_Utils_Tuple2(config.mt, config.jx),
+			config.av),
+		jH: _List_Nil,
+		gN: _List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$Font$color(
 				A3($mdgriffith$elm_ui$Element$rgb, 0, 0.5, 0.5))
 			]),
-		kR: _List_fromArray(
+		kQ: _List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 			]),
-		kV: function () {
-			var _v0 = config.lk;
+		kU: function () {
+			var _v0 = config.lj;
 			switch (_v0) {
 				case 0:
 					return _List_fromArray(
@@ -53181,18 +53559,18 @@ var $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet = funct
 						]);
 			}
 		}(),
-		k8: _List_Nil,
-		ld: _List_fromArray(
+		k7: _List_Nil,
+		lc: _List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 				$mdgriffith$elm_ui$Element$spacing(15)
 			]),
-		l2: _List_fromArray(
+		l1: _List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$spacing(15),
 				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 			]),
-		md: _List_Nil
+		mc: _List_Nil
 	};
 };
 var $mdgriffith$elm_ui$Internal$Model$Heading = function (a) {
@@ -53201,11 +53579,11 @@ var $mdgriffith$elm_ui$Internal$Model$Heading = function (a) {
 var $mdgriffith$elm_ui$Element$Region$heading = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Describe, $mdgriffith$elm_ui$Internal$Model$Heading);
 var $author$project$Document$DocumentViews$DocumentView$idStyle = F2(
 	function (_v0, _v1) {
-		var customStyles = _v0.iU;
+		var customStyles = _v0.iT;
 		var uid = _v1.cW;
-		var docStyleId = _v1.bv;
-		var htmlId = _v1.bD;
-		var classes = _v1.bp;
+		var docStyleId = _v1.bx;
+		var htmlId = _v1.bE;
+		var classes = _v1.br;
 		return _Utils_ap(
 			A2(
 				$elm$core$Maybe$withDefault,
@@ -53213,7 +53591,7 @@ var $author$project$Document$DocumentViews$DocumentView$idStyle = F2(
 				A2(
 					$elm$core$Maybe$andThen,
 					function (id) {
-						return A2($elm$core$Dict$get, id, customStyles.jE);
+						return A2($elm$core$Dict$get, id, customStyles.jD);
 					},
 					docStyleId)),
 			_Utils_ap(
@@ -53234,7 +53612,7 @@ var $author$project$Document$DocumentViews$DocumentView$idStyle = F2(
 					A2(
 						$elm$core$List$filterMap,
 						function (c) {
-							return A2($elm$core$Dict$get, c, customStyles.bp);
+							return A2($elm$core$Dict$get, c, customStyles.br);
 						},
 						$elm$core$Set$toList(classes)))));
 	});
@@ -53332,10 +53710,10 @@ var $author$project$Document$DocumentViews$DocumentView$processLinks = F2(
 				return $hecrj$html_parser$Html$Parser$Comment(value);
 		}
 	});
-var $mdgriffith$elm_ui$Element$Font$alignLeft = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.l7);
-var $mdgriffith$elm_ui$Element$Font$alignRight = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.mb);
+var $mdgriffith$elm_ui$Element$Font$alignLeft = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.l6);
+var $mdgriffith$elm_ui$Element$Font$alignRight = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.ma);
 var $author$project$Document$DocumentViews$StyleSheets$getDevice = function (config) {
-	if (config.at) {
+	if (config.av) {
 		var _v0 = config.eH;
 		switch (_v0) {
 			case 0:
@@ -53349,10 +53727,10 @@ var $author$project$Document$DocumentViews$StyleSheets$getDevice = function (con
 		}
 	} else {
 		return $mdgriffith$elm_ui$Element$classifyDevice(
-			{jy: config.jy, mu: config.mu});
+			{jx: config.jx, mt: config.mt});
 	}
 };
-var $mdgriffith$elm_ui$Element$Font$justify = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.l6);
+var $mdgriffith$elm_ui$Element$Font$justify = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.l5);
 var $elm$html$Html$Events$onDoubleClick = function (msg) {
 	return A2(
 		$elm$html$Html$Events$on,
@@ -53391,9 +53769,9 @@ var $author$project$Document$DocumentViews$DocumentView$renderAttrs = F2(
 							[
 								$mdgriffith$elm_ui$Element$alignRight,
 								$mdgriffith$elm_ui$Element$paddingEach(
-								{a2: 0, bb: 15, bk: 0, bo: 0})
+								{a2: 0, bc: 15, bl: 0, bq: 0})
 							]),
-						config.at ? _List_fromArray(
+						config.av ? _List_fromArray(
 							[
 								$mdgriffith$elm_ui$Element$htmlAttribute(
 								A2($elm$html$Html$Attributes$style, 'z-index', '1'))
@@ -53405,9 +53783,9 @@ var $author$project$Document$DocumentViews$DocumentView$renderAttrs = F2(
 							[
 								$mdgriffith$elm_ui$Element$alignLeft,
 								$mdgriffith$elm_ui$Element$paddingEach(
-								{a2: 0, bb: 0, bk: 15, bo: 0})
+								{a2: 0, bc: 0, bl: 15, bq: 0})
 							]),
-						config.at ? _List_fromArray(
+						config.av ? _List_fromArray(
 							[
 								$mdgriffith$elm_ui$Element$htmlAttribute(
 								A2($elm$html$Html$Attributes$style, 'z-index', '1'))
@@ -53515,7 +53893,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderAttrs = F2(
 				default:
 					var uid = attr.a;
 					var zipperEventHandler = attr.b;
-					var _v2 = config.mx;
+					var _v2 = config.mw;
 					if (_v2.$ === 1) {
 						return _List_Nil;
 					} else {
@@ -53525,13 +53903,13 @@ var $author$project$Document$DocumentViews$DocumentView$renderAttrs = F2(
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$Events$onClick(
-										handlers.iF(uid))
+										handlers.iE(uid))
 									]);
 							case 1:
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$Events$onDoubleClick(
-										handlers.iG(uid))
+										handlers.iF(uid))
 									]);
 							case 2:
 								return _List_fromArray(
@@ -53558,13 +53936,13 @@ var $author$project$Document$DocumentViews$DocumentView$renderAttrs = F2(
 											])),
 										$mdgriffith$elm_ui$Element$htmlAttribute(
 										A2($elm$html$Html$Attributes$style, 'transition', '0.3s')),
-										$mdgriffith$elm_ui$Element$Events$onDoubleClick(handlers.iq)
+										$mdgriffith$elm_ui$Element$Events$onDoubleClick(handlers.ip)
 									]);
 							default:
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$Events$onClick(
-										handlers.ks(uid)),
+										handlers.kr(uid)),
 										$mdgriffith$elm_ui$Element$pointer
 									]);
 						}
@@ -53612,14 +53990,14 @@ var $author$project$Document$DocumentViews$DocumentView$renderTextBlockPrimitive
 			return A2(
 				$mdgriffith$elm_ui$Element$el,
 				_Utils_ap(
-					styleSheet.md,
+					styleSheet.mc,
 					_Utils_ap(
 						A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, tbAttrs),
 						A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs))),
 				$mdgriffith$elm_ui$Element$text(s));
 		} else {
 			var attrs = p.a;
-			var targetBlank = p.b.hz;
+			var targetBlank = p.b.hy;
 			var url = p.b.d0;
 			var label = p.b.N;
 			var url_ = targetBlank ? url : A2(
@@ -53627,17 +54005,17 @@ var $author$project$Document$DocumentViews$DocumentView$renderTextBlockPrimitive
 				'',
 				A2($elm$core$Dict$get, url, config.dN));
 			var linkFun = targetBlank ? $mdgriffith$elm_ui$Element$newTabLink : $mdgriffith$elm_ui$Element$link;
-			return config.at ? A2(
+			return config.av ? A2(
 				$mdgriffith$elm_ui$Element$el,
 				_Utils_ap(
-					styleSheet.gO,
+					styleSheet.gN,
 					_Utils_ap(
 						A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, tbAttrs),
 						A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs))),
 				$mdgriffith$elm_ui$Element$text(label)) : A2(
 				linkFun,
 				_Utils_ap(
-					styleSheet.gO,
+					styleSheet.gN,
 					_Utils_ap(
 						A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, tbAttrs),
 						A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs))),
@@ -53655,7 +54033,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderLi = F3(
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$paddingEach(
-						{a2: 0, bb: 20, bk: 0, bo: 0})
+						{a2: 0, bc: 20, bl: 0, bq: 0})
 					]),
 				A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, tbAttrs)),
 			_Utils_ap(
@@ -53671,170 +54049,6 @@ var $author$project$Document$DocumentViews$DocumentView$renderLi = F3(
 					A2($author$project$Document$DocumentViews$DocumentView$renderTextBlockPrimitive, config, tbAttrs),
 					li)));
 	});
-var $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheetCss = function (config) {
-	var tags = $elm$core$Dict$fromList(
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				'p',
-				_List_fromArray(
-					[
-						_Utils_Tuple2('width', '100%')
-					])),
-				_Utils_Tuple2(
-				'a',
-				_List_fromArray(
-					[
-						_Utils_Tuple2('color', 'rgb(0,127,127)'),
-						_Utils_Tuple2('text-decoration', 'none')
-					]))
-			]));
-	var headings = function () {
-		var seasonAttr = function () {
-			var _v1 = config.lk;
-			switch (_v1) {
-				case 0:
-					return $elm$core$Dict$fromList(
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								'h1',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(102 153 140)'),
-										_Utils_Tuple2('color', 'rgb(240 248 255)')
-									])),
-								_Utils_Tuple2(
-								'h2',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(102 153 140)'),
-										_Utils_Tuple2('color', 'rgb(240 248 255)')
-									])),
-								_Utils_Tuple2('h3', _List_Nil)
-							]));
-				case 1:
-					return $elm$core$Dict$fromList(
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								'h1',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(186 172 145)'),
-										_Utils_Tuple2('color', 'rgb(0 0 0)')
-									])),
-								_Utils_Tuple2(
-								'h2',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(255 193 58)'),
-										_Utils_Tuple2('color', 'rgb(0 0 0)')
-									])),
-								_Utils_Tuple2('h3', _List_Nil)
-							]));
-				case 2:
-					return $elm$core$Dict$fromList(
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								'h1',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(205 133 63)'),
-										_Utils_Tuple2('color', 'rgb(67 46 42)')
-									])),
-								_Utils_Tuple2(
-								'h2',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(205 133 63)'),
-										_Utils_Tuple2('color', 'rgb(67 46 42)')
-									])),
-								_Utils_Tuple2('h3', _List_Nil)
-							]));
-				default:
-					return $elm$core$Dict$fromList(
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								'h1',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(51 51 102)'),
-										_Utils_Tuple2('color', 'rgb(240 248 255)')
-									])),
-								_Utils_Tuple2(
-								'h2',
-								_List_fromArray(
-									[
-										_Utils_Tuple2('background-color', 'rgb(51 51 102)'),
-										_Utils_Tuple2('color', 'rgb(240 248 255)')
-									])),
-								_Utils_Tuple2('h3', _List_Nil)
-							]));
-			}
-		}();
-		var commonAttr = $elm$core$Dict$fromList(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'h1',
-					_List_fromArray(
-						[
-							_Utils_Tuple2('font-size', '18px'),
-							_Utils_Tuple2('text-align', 'center'),
-							_Utils_Tuple2('font-weight', 'bold'),
-							_Utils_Tuple2('padding', '10px 0px'),
-							_Utils_Tuple2('width', '100%')
-						])),
-					_Utils_Tuple2(
-					'h2',
-					_List_fromArray(
-						[
-							_Utils_Tuple2('font-size', '16px'),
-							_Utils_Tuple2('text-align', 'center'),
-							_Utils_Tuple2('font-weight', 'bold'),
-							_Utils_Tuple2('padding', '2px 0px'),
-							_Utils_Tuple2('width', '100%')
-						])),
-					_Utils_Tuple2(
-					'h3',
-					_List_fromArray(
-						[
-							_Utils_Tuple2('font-size', '16px'),
-							_Utils_Tuple2('color', 'rgb(0 127 0)'),
-							_Utils_Tuple2('font-weight', 'bold')
-						]))
-				]));
-		return A3(
-			$elm$core$Dict$foldr,
-			F3(
-				function (k, v, acc) {
-					return A3(
-						$elm$core$Dict$update,
-						k,
-						function (mbSeasonAttr) {
-							if (!mbSeasonAttr.$) {
-								var attrs = mbSeasonAttr.a;
-								return $elm$core$Maybe$Just(
-									_Utils_ap(v, attrs));
-							} else {
-								return $elm$core$Maybe$Just(v);
-							}
-						},
-						acc);
-				}),
-			commonAttr,
-			seasonAttr);
-	}();
-	return A3(
-		$elm$core$List$foldr,
-		$elm$core$Dict$union,
-		$elm$core$Dict$empty,
-		_List_fromArray(
-			[headings, tags]));
-};
 var $author$project$Document$DocumentViews$DocumentView$toHtml = F3(
 	function (config, level, node) {
 		switch (node.$) {
@@ -53899,7 +54113,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTextBlockElement =
 				return A2(
 					$mdgriffith$elm_ui$Element$paragraph,
 					_Utils_ap(
-						styleSheet.kR,
+						styleSheet.kQ,
 						_Utils_ap(
 							A2($author$project$Document$DocumentViews$DocumentView$idStyle, styleSheet, id),
 							_Utils_ap(
@@ -53936,7 +54150,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTextBlockElement =
 				var headingStyle = A2(
 					$elm$core$Maybe$withDefault,
 					_List_Nil,
-					A2($elm$core$Dict$get, level, styleSheet.jw));
+					A2($elm$core$Dict$get, level, styleSheet.jv));
 				return A2(
 					$mdgriffith$elm_ui$Element$paragraph,
 					_Utils_ap(
@@ -53976,6 +54190,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTextBlockElement =
 								A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, tbAttrs))),
 						_List_fromArray(
 							[
+								A2($author$project$Document$DocumentViews$StyleSheets$embeddedStyleSheet, config, tbAttrs),
 								$mdgriffith$elm_ui$Element$html(r)
 							]));
 				}(
@@ -54023,42 +54238,36 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPrevie
 					$mdgriffith$elm_ui$Element$alignTop,
 					$mdgriffith$elm_ui$Element$Border$shadow(
 					{
-						id: 10,
-						iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.16),
-						kE: _Utils_Tuple2(4, 4),
-						fK: 5
+						ic: 10,
+						iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.16),
+						kD: _Utils_Tuple2(4, 4),
+						fJ: 5
 					}),
-					$mdgriffith$elm_ui$Element$padding(15),
-					$mdgriffith$elm_ui$Element$Font$family(
-					_List_fromArray(
-						[
-							$mdgriffith$elm_ui$Element$Font$typeface('Arial')
-						])),
-					$mdgriffith$elm_ui$Element$Font$size(16)
+					$mdgriffith$elm_ui$Element$padding(15)
 				]),
 			A4(
 				$author$project$Document$DocumentViews$DocumentView$renderTextBlock,
 				config,
-				{bp: $elm$core$Set$empty, bv: $elm$core$Maybe$Nothing, bD: $elm$core$Maybe$Nothing, cW: -1},
-				model.aL,
+				{br: $elm$core$Set$empty, bx: $elm$core$Maybe$Nothing, bE: $elm$core$Maybe$Nothing, cW: -1},
+				model.R,
 				model.q));
 	});
 var $author$project$NewsEditor$NewsEditor$validNews = function (_v0) {
-	var title = _v0.fQ;
-	var content = _v0.iJ;
-	var expiry = _v0.i9;
+	var title = _v0.fP;
+	var content = _v0.iI;
+	var expiry = _v0.i8;
 	return (title !== '') && ((!_Utils_eq(content, $elm$core$Maybe$Nothing)) && ((!_Utils_eq(
 		A2(
 			$elm$core$Maybe$map,
 			function ($) {
-				return $.l_;
+				return $.lZ;
 			},
 			content),
 		$elm$core$Maybe$Nothing)) && ((!_Utils_eq(
 		A2(
 			$elm$core$Maybe$map,
 			function ($) {
-				return $.l_;
+				return $.lZ;
 			},
 			content),
 		$elm$core$Maybe$Just(_List_Nil))) && (!_Utils_eq(
@@ -54075,7 +54284,7 @@ var $author$project$NewsEditor$NewsEditor$visualPickerView = F2(
 	});
 var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 	function (config, model) {
-		var textBlockConfig = {fe: config.fe, bd: config.bd, fs: 400, I: config.I, fZ: config.fZ};
+		var textBlockConfig = {fe: config.fe, be: config.be, fr: 400, I: config.I, fY: config.fY};
 		return A2(
 			$mdgriffith$elm_ui$Element$row,
 			_Utils_ap(
@@ -54110,7 +54319,7 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 									_List_fromArray(
 										[
 											$mdgriffith$elm_ui$Element$below(
-											(!model.bH) ? $mdgriffith$elm_ui$Element$none : A2(
+											(!model.bI) ? $mdgriffith$elm_ui$Element$none : A2(
 												$mdgriffith$elm_ui$Element$el,
 												_List_fromArray(
 													[
@@ -54123,10 +54332,10 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 															A2($mdgriffith$elm_ui$Element$maximum, 920, $mdgriffith$elm_ui$Element$shrink))),
 														$mdgriffith$elm_ui$Element$Border$shadow(
 														{
-															id: 10,
-															iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-															kE: _Utils_Tuple2(4, 4),
-															fK: 5
+															ic: 10,
+															iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+															kD: _Utils_Tuple2(4, 4),
+															fJ: 5
 														})
 													]),
 												A2($author$project$NewsEditor$NewsEditor$visualPickerView, config, model)))
@@ -54165,7 +54374,7 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 													A2(
 														$elm$core$Maybe$map,
 														function ($) {
-															return $.fQ;
+															return $.fP;
 														},
 														model.e))
 											})
@@ -54196,7 +54405,7 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 														A2(
 															$elm$core$Maybe$map,
 															function ($) {
-																return $.i9;
+																return $.i8;
 															},
 															model.e),
 														$elm$core$Maybe$Just(
@@ -54215,16 +54424,16 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 													var _v0 = A2(
 														$elm$core$Maybe$map,
 														function ($) {
-															return $.i9;
+															return $.i8;
 														},
 														model.e);
 													if (_v0.$ === 1) {
-														return model.bz;
+														return model.bA;
 													} else {
 														var t = _v0.a;
 														return _Utils_eq(
 															t,
-															$elm$time$Time$millisToPosix(0)) ? model.bz : A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, t);
+															$elm$time$Time$millisToPosix(0)) ? model.bA : A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, t);
 													}
 												}()
 											})
@@ -54260,12 +54469,12 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 												_List_fromArray(
 													[$mdgriffith$elm_ui$Element$alignRight])),
 											{
-												N: model.br ? $mdgriffith$elm_ui$Element$text('Edition') : $mdgriffith$elm_ui$Element$text('Aperçu'),
-												aG: $elm$core$Maybe$Just(
+												N: model.bt ? $mdgriffith$elm_ui$Element$text('Edition') : $mdgriffith$elm_ui$Element$text('Aperçu'),
+												aI: $elm$core$Maybe$Just(
 													model.bY($author$project$NewsEditor$NewsEditor$ToogleContentPreview))
 											})
 										])),
-									model.br ? A2(
+									model.bt ? A2(
 									$mdgriffith$elm_ui$Element$el,
 									_List_fromArray(
 										[
@@ -54277,7 +54486,11 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 									A2(
 										$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPreview,
 										model.co,
-										$author$project$NewsEditor$NewsEditor$renderConfig(model.bY))) : A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$newsEditorView, textBlockConfig, model.co)
+										$author$project$NewsEditor$NewsEditor$renderConfig(model.bY))) : A3(
+									$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$newsEditorView,
+									textBlockConfig,
+									$author$project$NewsEditor$NewsEditor$renderConfig(model.bY),
+									model.co)
 								]))
 						])),
 					A2(
@@ -54312,7 +54525,7 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 											A2($elm$core$Maybe$map, $author$project$NewsEditor$NewsEditor$validNews, model.e))),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Sauvegarder'),
-										aG: function () {
+										aI: function () {
 											var _v1 = A2($elm$core$Maybe$map, $author$project$NewsEditor$NewsEditor$validNews, model.e);
 											if ((!_v1.$) && _v1.a) {
 												return $elm$core$Maybe$Just(
@@ -54327,7 +54540,7 @@ var $author$project$NewsEditor$NewsEditor$newsEditorView = F2(
 									$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Retour'),
-										aG: $elm$core$Maybe$Just(
+										aI: $elm$core$Maybe$Just(
 											model.bY($author$project$NewsEditor$NewsEditor$ToNewsSelector))
 									})
 								]))
@@ -54370,7 +54583,7 @@ var $mdgriffith$elm_ui$Element$Keyed$row = F2(
 			$mdgriffith$elm_ui$Internal$Model$div,
 			A2(
 				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.du + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.bU)),
+				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.dt + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.bU)),
 				A2(
 					$elm$core$List$cons,
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
@@ -54518,7 +54731,7 @@ var $author$project$NewsEditor$NewsEditor$newsSelectorView = F2(
 								_Utils_eq(model.e, $elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Créer actualité'),
-								aG: function () {
+								aI: function () {
 									var _v0 = model.e;
 									if (_v0.$ === 1) {
 										return $elm$core$Maybe$Just($author$project$NewsEditor$NewsEditor$EditContent);
@@ -54533,7 +54746,7 @@ var $author$project$NewsEditor$NewsEditor$newsSelectorView = F2(
 								!_Utils_eq(model.e, $elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Modifier actualité'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									$elm$core$Basics$always($author$project$NewsEditor$NewsEditor$EditContent),
 									model.e)
@@ -54541,14 +54754,14 @@ var $author$project$NewsEditor$NewsEditor$newsSelectorView = F2(
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$deleteButtonStyle(
-								!$elm$core$Set$isEmpty(model.Z)),
+								!$elm$core$Set$isEmpty(model._)),
 							{
 								N: $mdgriffith$elm_ui$Element$text(
 									function (n) {
 										return (n > 1) ? 'Supprimer actualités' : 'Supprimer actualité';
 									}(
-										$elm$core$Set$size(model.Z))),
-								aG: (!$elm$core$Set$isEmpty(model.Z)) ? $elm$core$Maybe$Just($author$project$NewsEditor$NewsEditor$RemoveNews) : $elm$core$Maybe$Nothing
+										$elm$core$Set$size(model._))),
+								aI: (!$elm$core$Set$isEmpty(model._)) ? $elm$core$Maybe$Just($author$project$NewsEditor$NewsEditor$RemoveNews) : $elm$core$Maybe$Nothing
 							})
 						])),
 					A2(
@@ -54617,23 +54830,23 @@ var $author$project$NewsEditor$NewsEditor$newsSelectorView = F2(
 									var n = _v1.b;
 									return A8(
 										$author$project$NewsEditor$NewsEditor$checkView,
-										A2($elm$core$Set$member, id, model.Z),
+										A2($elm$core$Set$member, id, model._),
 										_Utils_eq(
 											A2(
 												$elm$core$Maybe$map,
 												function (b) {
 													return _Utils_eq(
-														A2($elm$core$Maybe$map, $TSFoster$elm_uuid$UUID$toString, b.fT),
+														A2($elm$core$Maybe$map, $TSFoster$elm_uuid$UUID$toString, b.fS),
 														$elm$core$Maybe$Just(id));
 												},
 												model.e),
 											$elm$core$Maybe$Just(true)),
 										id,
-										n.fQ,
-										config.fZ,
+										n.fP,
+										config.fY,
 										n.eh,
-										n.i9,
-										model.iQ);
+										n.i8,
+										model.iP);
 								},
 								$elm$core$List$reverse(
 									A2(
@@ -54647,7 +54860,7 @@ var $author$project$NewsEditor$NewsEditor$newsSelectorView = F2(
 													return $.eh;
 												}),
 											$elm$core$Tuple$second),
-										$elm$core$Dict$toList(model.gU)))))
+										$elm$core$Dict$toList(model.gT)))))
 						]))
 				]));
 	});
@@ -54665,7 +54878,7 @@ var $author$project$NewsEditor$NewsEditor$view = F2(
 					$mdgriffith$elm_ui$Element$clip,
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 					$mdgriffith$elm_ui$Element$height(
-					A2($mdgriffith$elm_ui$Element$maximum, config.fs, $mdgriffith$elm_ui$Element$fill)),
+					A2($mdgriffith$elm_ui$Element$maximum, config.fr, $mdgriffith$elm_ui$Element$fill)),
 					$mdgriffith$elm_ui$Element$scrollbarY
 				]),
 			_List_fromArray(
@@ -54869,7 +55082,7 @@ var $author$project$PageEditor$EditorPlugins$SidePanels$DocumentStructView$docTr
 			A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 1)) : $mdgriffith$elm_ui$Element$Font$color(
 			A4($mdgriffith$elm_ui$Element$rgba, 0.8, 0.8, 0.8, 1));
 		if (!document.$) {
-			var containerLabel = document.a.bq;
+			var containerLabel = document.a.bs;
 			var id = document.a.a;
 			var attrs = document.a.x;
 			var xs = document.b;
@@ -54897,13 +55110,13 @@ var $author$project$PageEditor$EditorPlugins$SidePanels$DocumentStructView$docTr
 									_Utils_ap(
 										_List_fromArray(
 											[
-												(config.iI && sel) ? $mdgriffith$elm_ui$Element$Font$color(
+												(config.iH && sel) ? $mdgriffith$elm_ui$Element$Font$color(
 												$author$project$PageEditor$EditorPlugins$SidePanels$DocumentStructView$containerLabelToColor(containerLabel)) : labelFontColor
 											]),
-										config.gG ? _List_fromArray(
+										config.gF ? _List_fromArray(
 											[
 												$mdgriffith$elm_ui$Element$Events$onClick(
-												config.hN(id.cW)),
+												config.hM(id.cW)),
 												$mdgriffith$elm_ui$Element$pointer,
 												$mdgriffith$elm_ui$Element$mouseOver(
 												_List_fromArray(
@@ -54940,7 +55153,7 @@ var $author$project$PageEditor$EditorPlugins$SidePanels$DocumentStructView$docTr
 							_Utils_Tuple2(sContainer, sel)),
 						last)));
 		} else {
-			var cellContent = document.a.aq;
+			var cellContent = document.a.as;
 			var id = document.a.a;
 			var attrs = document.a.x;
 			return _List_fromArray(
@@ -54957,10 +55170,10 @@ var $author$project$PageEditor$EditorPlugins$SidePanels$DocumentStructView$docTr
 								_Utils_ap(
 									_List_fromArray(
 										[labelFontColor]),
-									config.gG ? _List_fromArray(
+									config.gF ? _List_fromArray(
 										[
 											$mdgriffith$elm_ui$Element$Events$onClick(
-											config.hN(id.cW)),
+											config.hM(id.cW)),
 											$mdgriffith$elm_ui$Element$pointer,
 											$mdgriffith$elm_ui$Element$mouseOver(
 											_List_fromArray(
@@ -55018,7 +55231,7 @@ var $author$project$PageEditor$EditorPlugins$SidePanels$DocumentStructView$docum
 						[$mdgriffith$elm_ui$Element$Font$monospace])),
 					$mdgriffith$elm_ui$Element$Border$solid,
 					$mdgriffith$elm_ui$Element$Border$widthEach(
-					{a2: 0, bb: 0, bk: 2, bo: 0}),
+					{a2: 0, bc: 0, bl: 2, bq: 0}),
 					$mdgriffith$elm_ui$Element$Border$color(
 					A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8))
 				]),
@@ -55041,7 +55254,7 @@ var $author$project$Document$Document$addAttrs = F2(
 	function (doc, newAttrs) {
 		if (doc.$ === 1) {
 			var lv = doc.a;
-			var cellContent = lv.aq;
+			var cellContent = lv.as;
 			var id = lv.a;
 			var attrs = lv.x;
 			return $author$project$Document$Document$Cell(
@@ -55052,7 +55265,7 @@ var $author$project$Document$Document$addAttrs = F2(
 					}));
 		} else {
 			var nv = doc.a;
-			var containerLabel = nv.bq;
+			var containerLabel = nv.bs;
 			var id = nv.a;
 			var attrs = nv.x;
 			var children = doc.b;
@@ -55132,7 +55345,7 @@ var $author$project$Document$Document$toogleClass = F2(
 			return _Utils_update(
 				id,
 				{
-					bp: A2($elm$core$Set$member, _class, id.bp) ? A2($elm$core$Set$remove, _class, id.bp) : A2($elm$core$Set$insert, _class, id.bp)
+					br: A2($elm$core$Set$member, _class, id.br) ? A2($elm$core$Set$remove, _class, id.br) : A2($elm$core$Set$insert, _class, id.br)
 				});
 		};
 		if (!document.$) {
@@ -55227,13 +55440,13 @@ var $author$project$PageEditor$Internals$DocumentZipper$addZipperHandlers = func
 	};
 	var _v0 = addHandlerToNeighbours(dz);
 	var current = _v0.a3;
-	var contexts = _v0.bs;
+	var contexts = _v0.bu;
 	var currentWithCssSelectors = A2($author$project$Document$Document$toogleClass, 'selected', current);
 	if (!currentWithCssSelectors.$) {
 		var nv = currentWithCssSelectors.a;
 		var children = currentWithCssSelectors.b;
 		return {
-			bs: contexts,
+			bu: contexts,
 			a3: A2(
 				$author$project$Document$Document$Container,
 				nv,
@@ -55241,7 +55454,7 @@ var $author$project$PageEditor$Internals$DocumentZipper$addZipperHandlers = func
 		};
 	} else {
 		var lv = currentWithCssSelectors.a;
-		var cellContent = lv.aq;
+		var cellContent = lv.as;
 		var id = lv.a;
 		var attrs = lv.x;
 		var newCell = $author$project$Document$Document$Cell(
@@ -55253,7 +55466,7 @@ var $author$project$PageEditor$Internals$DocumentZipper$addZipperHandlers = func
 						A2($author$project$Document$Document$ZipperAttr, id.cW, 4),
 						attrs)
 				}));
-		return {bs: contexts, a3: newCell};
+		return {bu: contexts, a3: newCell};
 	}
 };
 var $author$project$Document$DocumentViews$StyleSheets$chunkBy = F5(
@@ -55294,7 +55507,7 @@ var $author$project$Internals$CommonHelpers$chunks = F2(
 		return A2(helper, _List_Nil, xs);
 	});
 var $author$project$Document$DocumentViews$StyleSheets$getContainerWidth = function (config) {
-	if (config.at) {
+	if (config.av) {
 		var _v0 = config.eH;
 		switch (_v0) {
 			case 1:
@@ -55304,17 +55517,17 @@ var $author$project$Document$DocumentViews$StyleSheets$getContainerWidth = funct
 			case 3:
 				return 350;
 			default:
-				return config.mu;
+				return config.mt;
 		}
 	} else {
-		return config.mu;
+		return config.mt;
 	}
 };
 var $author$project$Document$DocumentViews$DocumentView$renderBlocksLinksMeta = F5(
 	function (nbrChunks, config, id, attrs, _v0) {
-		var image = _v0.jG;
+		var image = _v0.jF;
 		var label = _v0.N;
-		var targetBlank = _v0.hz;
+		var targetBlank = _v0.hy;
 		var url = _v0.d0;
 		var url_ = targetBlank ? url : A2(
 			$elm$core$Maybe$withDefault,
@@ -55333,7 +55546,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderBlocksLinksMeta = 
 		var block = A2(
 			$mdgriffith$elm_ui$Element$el,
 			_Utils_ap(
-				styleSheet.ic,
+				styleSheet.ib,
 				_Utils_ap(
 					A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs),
 					_List_fromArray(
@@ -55343,7 +55556,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderBlocksLinksMeta = 
 							$mdgriffith$elm_ui$Element$height(
 							$mdgriffith$elm_ui$Element$px(bh)),
 							$mdgriffith$elm_ui$Element$Background$color($author$project$Internals$CommonStyleHelpers$blockLinkGrey),
-							(!config.at) ? $mdgriffith$elm_ui$Element$mouseOver(
+							(!config.av) ? $mdgriffith$elm_ui$Element$mouseOver(
 							_List_fromArray(
 								[
 									$mdgriffith$elm_ui$Element$Background$color(
@@ -55405,7 +55618,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderBlocksLinksMeta = 
 									]))))
 					]),
 				$mdgriffith$elm_ui$Element$none));
-		return config.at ? A2(
+		return config.av ? A2(
 			$mdgriffith$elm_ui$Element$Keyed$el,
 			_List_Nil,
 			_Utils_Tuple2(
@@ -55442,8 +55655,8 @@ var $author$project$Document$DocumentViews$DocumentView$renderBlockLinks = F4(
 					meta)));
 		var maxWidth = A3(
 			$author$project$Document$DocumentViews$StyleSheets$docMaxWidth,
-			_Utils_Tuple2(config.mu, config.jy),
-			config.at,
+			_Utils_Tuple2(config.mt, config.jx),
+			config.av,
 			config.eH);
 		return _List_fromArray(
 			[
@@ -55523,11 +55736,11 @@ var $author$project$Publications$PublicationsView$indexView = F3(
 var $author$project$Publications$PublicationsView$maxWidth = function (config) {
 	return A2(
 		$elm$core$Basics$min,
-		config.mu,
+		config.mt,
 		A3(
 			$author$project$Document$DocumentViews$StyleSheets$docMaxWidth,
-			_Utils_Tuple2(config.mu, config.jy),
-			config.at,
+			_Utils_Tuple2(config.mt, config.jx),
+			config.av,
 			config.eH)) - 40;
 };
 var $author$project$Publications$PublicationsView$yearView = F3(
@@ -55551,9 +55764,9 @@ var $author$project$Publications$PublicationsView$yearView = F3(
 							$mdgriffith$elm_ui$Element$Font$bold,
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 							$mdgriffith$elm_ui$Element$paddingEach(
-							{a2: 5, bb: 0, bk: 0, bo: 0}),
+							{a2: 5, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$widthEach(
-							{a2: 1, bb: 0, bk: 0, bo: 0}),
+							{a2: 1, bc: 0, bl: 0, bq: 0}),
 							$mdgriffith$elm_ui$Element$Border$color($author$project$Internals$CommonStyleHelpers$grey4)
 						]),
 					$mdgriffith$elm_ui$Element$text(
@@ -55573,10 +55786,10 @@ var $author$project$Publications$PublicationsView$yearView = F3(
 	});
 var $author$project$Publications$PublicationsView$bulletinsView = function (config) {
 	var bulletinView = function (_v2) {
-		var issue = _v2.gI;
+		var issue = _v2.gH;
 		var date = _v2.eh;
-		var cover = _v2.iN;
-		var index = _v2.gC;
+		var cover = _v2.iM;
+		var index = _v2.gB;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -55616,7 +55829,7 @@ var $author$project$Publications$PublicationsView$bulletinsView = function (conf
 							_List_fromArray(
 								[$mdgriffith$elm_ui$Element$alignRight]),
 							$mdgriffith$elm_ui$Element$text(
-								A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date))),
+								A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date))),
 							A2(
 							$mdgriffith$elm_ui$Element$download,
 							_List_fromArray(
@@ -55663,7 +55876,7 @@ var $author$project$Publications$PublicationsView$bulletinsView = function (conf
 									A2($mdgriffith$elm_ui$Element$maximum, 595, $mdgriffith$elm_ui$Element$fill)),
 									$mdgriffith$elm_ui$Element$alignTop
 								]),
-							{fa: '', fL: cover}),
+							{fa: '', fK: cover}),
 							A2(
 							$mdgriffith$elm_ui$Element$column,
 							_List_fromArray(
@@ -55695,9 +55908,9 @@ var $author$project$Publications$PublicationsView$bulletinsView = function (conf
 						]))
 				]));
 	};
-	var _v0 = config.fC;
+	var _v0 = config.fB;
 	if (!_v0.$) {
-		var bulletins = _v0.a.ik;
+		var bulletins = _v0.a.ij;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -55721,7 +55934,7 @@ var $author$project$Publications$PublicationsView$bulletinsView = function (conf
 						function (k, acc) {
 							return A3(
 								$elm$core$Dict$update,
-								A2($elm$time$Time$toYear, config.fZ, k.eh),
+								A2($elm$time$Time$toYear, config.fY, k.eh),
 								function (mbVal) {
 									if (mbVal.$ === 1) {
 										return $elm$core$Maybe$Just(
@@ -55743,7 +55956,7 @@ var $author$project$Publications$PublicationsView$bulletinsView = function (conf
 };
 var $author$project$Document$DocumentViews$DocumentView$renderBulletin = F3(
 	function (config, id, attrs) {
-		var _v0 = config.fC;
+		var _v0 = config.fB;
 		if (_v0.$ === 1) {
 			return _List_fromArray(
 				[
@@ -55759,7 +55972,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderBulletin = F3(
 					$mdgriffith$elm_ui$Element$text('Bulletins municipaux'))
 				]);
 		} else {
-			var delibs = _v0.a.iX;
+			var delibs = _v0.a.iW;
 			return _List_fromArray(
 				[
 					$author$project$Publications$PublicationsView$bulletinsView(config)
@@ -55772,9 +55985,9 @@ var $author$project$Document$DocumentViews$DocumentView$customHeading = F4(
 			$author$project$Document$DocumentViews$DocumentView$renderTextBlockElement,
 			config,
 			{
-				bp: $elm$core$Set$empty,
-				bv: $elm$core$Maybe$Nothing,
-				bD: $elm$core$Maybe$Just(
+				br: $elm$core$Set$empty,
+				bx: $elm$core$Maybe$Nothing,
+				bE: $elm$core$Maybe$Just(
 					'defaultHtmlId' + $elm$core$String$fromInt(0)),
 				cW: 0
 			},
@@ -55797,10 +56010,10 @@ var $author$project$Document$DocumentViews$DocumentView$renderCalendar = F3(
 			$elm$core$Basics$min,
 			A3(
 				$author$project$Document$DocumentViews$StyleSheets$docMaxWidth,
-				_Utils_Tuple2(config.mu, config.jy),
-				config.at,
+				_Utils_Tuple2(config.mt, config.jx),
+				config.av,
 				config.eH),
-			config.mu) - 40;
+			config.mt) - 40;
 		return _List_fromArray(
 			[
 				A2(
@@ -55853,10 +56066,10 @@ var $author$project$Document$DocumentViews$DocumentView$renderCalendarSalleBeaun
 			$elm$core$Basics$min,
 			A3(
 				$author$project$Document$DocumentViews$StyleSheets$docMaxWidth,
-				_Utils_Tuple2(config.mu, config.jy),
-				config.at,
+				_Utils_Tuple2(config.mt, config.jx),
+				config.av,
 				config.eH),
-			config.mu) - 40;
+			config.mt) - 40;
 		return _List_fromArray(
 			[
 				A2(
@@ -55909,10 +56122,10 @@ var $author$project$Document$DocumentViews$DocumentView$renderCalendarSalleMurol
 			$elm$core$Basics$min,
 			A3(
 				$author$project$Document$DocumentViews$StyleSheets$docMaxWidth,
-				_Utils_Tuple2(config.mu, config.jy),
-				config.at,
+				_Utils_Tuple2(config.mt, config.jx),
+				config.av,
 				config.eH),
-			config.mu) - 40;
+			config.mt) - 40;
 		return _List_fromArray(
 			[
 				A2(
@@ -56020,7 +56233,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderCustomElement = F4
 				A2(
 				$elm$core$Maybe$withDefault,
 				$mdgriffith$elm_ui$Element$none,
-				A2($elm$core$Dict$get, s, config.iT))
+				A2($elm$core$Dict$get, s, config.iS))
 			]);
 	});
 var $author$project$Publications$PublicationsView$delibTopicView = F3(
@@ -56070,12 +56283,12 @@ var $author$project$Publications$PublicationsView$delibTopicView = F3(
 var $author$project$Publications$PublicationsView$delibsView = function (config) {
 	var delibView = function (_v2) {
 		var date = _v2.eh;
-		var index = _v2.gC;
+		var index = _v2.gB;
 		var issue = A3(
 			$elm$core$String$replace,
 			'/',
 			'-',
-			A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date));
+			A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date));
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -56099,7 +56312,7 @@ var $author$project$Publications$PublicationsView$delibsView = function (config)
 								$mdgriffith$elm_ui$Element$el,
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$text(
-									A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date))),
+									A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date))),
 								A2(
 								$mdgriffith$elm_ui$Element$newTabLink,
 								_List_fromArray(
@@ -56129,9 +56342,9 @@ var $author$project$Publications$PublicationsView$delibsView = function (config)
 					$author$project$Publications$PublicationsView$delibTopicView(issue),
 					index)));
 	};
-	var _v0 = config.fC;
+	var _v0 = config.fB;
 	if (!_v0.$) {
-		var delibs = _v0.a.iX;
+		var delibs = _v0.a.iW;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -56155,7 +56368,7 @@ var $author$project$Publications$PublicationsView$delibsView = function (config)
 						function (k, acc) {
 							return A3(
 								$elm$core$Dict$update,
-								A2($elm$time$Time$toYear, config.fZ, k.eh),
+								A2($elm$time$Time$toYear, config.fY, k.eh),
 								function (mbVal) {
 									if (mbVal.$ === 1) {
 										return $elm$core$Maybe$Just(
@@ -56177,7 +56390,7 @@ var $author$project$Publications$PublicationsView$delibsView = function (config)
 };
 var $author$project$Document$DocumentViews$DocumentView$renderDelib = F3(
 	function (config, id, attrs) {
-		var _v0 = config.fC;
+		var _v0 = config.fB;
 		if (_v0.$ === 1) {
 			return _List_fromArray(
 				[
@@ -56193,7 +56406,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderDelib = F3(
 					$mdgriffith$elm_ui$Element$text('Délibérations'))
 				]);
 		} else {
-			var delibs = _v0.a.iX;
+			var delibs = _v0.a.iW;
 			return _List_fromArray(
 				[
 					$author$project$Publications$PublicationsView$delibsView(config)
@@ -56345,7 +56558,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderFiches = F4(
 		var fiches = A2(
 			$elm$core$List$filterMap,
 			function (fId) {
-				return A2($elm$core$Dict$get, fId, config.jh);
+				return A2($elm$core$Dict$get, fId, config.jg);
 			},
 			fichesId);
 		var containerWidth = $author$project$Document$DocumentViews$StyleSheets$getContainerWidth(config);
@@ -56357,13 +56570,13 @@ var $author$project$Document$DocumentViews$DocumentView$renderFiches = F4(
 		var ficheView_ = function (f) {
 			return A5(
 				$author$project$GeneralDirectoryEditor$FichePreview$ficheView,
-				config.kL,
-				config.iQ,
+				config.kK,
+				config.iP,
 				maxWidth,
-				config.at || A2(
+				config.av || A2(
 					$elm$core$Set$member,
-					$TSFoster$elm_uuid$UUID$toString(f.fT),
-					config.kN),
+					$TSFoster$elm_uuid$UUID$toString(f.fS),
+					config.kM),
 				f);
 		};
 		var cols = A2(
@@ -56384,7 +56597,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderFiches = F4(
 					A2(
 						$elm$core$List$sortBy,
 						function ($) {
-							return $.kC;
+							return $.kB;
 						},
 						fiches))));
 		return _List_fromArray(
@@ -56405,7 +56618,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderFiches = F4(
 	});
 var $author$project$Internals$Streams$current = function (bs) {
 	return function ($) {
-		return $.hH;
+		return $.hG;
 	}(bs);
 };
 var $author$project$Gallery$Gallery$maxWidth = function (config) {
@@ -56414,17 +56627,17 @@ var $author$project$Gallery$Gallery$maxWidth = function (config) {
 		650,
 		A2(
 			$elm$core$Basics$min,
-			config.mu,
+			config.mt,
 			A3(
 				$author$project$Document$DocumentViews$StyleSheets$docMaxWidth,
-				_Utils_Tuple2(config.mu, config.jy),
-				config.at,
+				_Utils_Tuple2(config.mt, config.jx),
+				config.av,
 				config.eH)) - 40);
 };
 var $author$project$Gallery$Gallery$captionRow = F2(
 	function (config, model) {
 		var w = $author$project$Gallery$Gallery$maxWidth(config);
-		var _v0 = $author$project$Internals$Streams$current(model.ae);
+		var _v0 = $author$project$Internals$Streams$current(model.af);
 		if (((_v0.b && _v0.b.b) && _v0.b.b.b) && (!_v0.b.b.b.b)) {
 			var l = _v0.a;
 			var _v1 = _v0.b;
@@ -56448,10 +56661,10 @@ var $author$project$Gallery$Gallery$captionRow = F2(
 						_List_fromArray(
 							[
 								$mdgriffith$elm_ui$Element$text(
-								A2($elm$core$Maybe$withDefault, ' ', c.f8))
+								A2($elm$core$Maybe$withDefault, ' ', c.f7))
 							])),
 						function () {
-						var _v3 = _Utils_Tuple2(c.fL, model.fi);
+						var _v3 = _Utils_Tuple2(c.fK, model.fi);
 						if ((!_v3.a.$) && _v3.b) {
 							var src = _v3.a.a;
 							return A2(
@@ -56485,11 +56698,11 @@ var $author$project$Gallery$Gallery$captionRow = F2(
 								$elm$core$String$padLeft,
 								2,
 								'0',
-								$elm$core$String$fromInt(1 + model.ae.gC)) + ('/' + A3(
+								$elm$core$String$fromInt(1 + model.af.gB)) + ('/' + A3(
 								$elm$core$String$padLeft,
 								2,
 								'0',
-								$elm$core$String$fromInt(model.ae.fK)))))
+								$elm$core$String$fromInt(model.af.fJ)))))
 					]));
 		} else {
 			return $mdgriffith$elm_ui$Element$none;
@@ -56506,7 +56719,7 @@ var $author$project$Gallery$Gallery$DragStart = function (a) {
 };
 var $author$project$Gallery$GalleryHelpers$Position = F2(
 	function (x, y) {
-		return {aj: x, mw: y};
+		return {ak: x, mv: y};
 	});
 var $author$project$Gallery$GalleryHelpers$decodePosition = function () {
 	var decoder = A3(
@@ -56614,15 +56827,15 @@ var $mdgriffith$elm_ui$Element$Lazy$embed = function (x) {
 			return html;
 		case 1:
 			var styled = x.a;
-			return styled.fl(
+			return styled.gA(
 				A2(
 					$mdgriffith$elm_ui$Internal$Model$OnlyDynamic,
 					{
-						gm: {h7: $elm$core$Maybe$Nothing, $8: $elm$core$Maybe$Nothing, lD: $elm$core$Maybe$Nothing},
-						jB: 1,
+						gl: {h6: $elm$core$Maybe$Nothing, ie: $elm$core$Maybe$Nothing, lC: $elm$core$Maybe$Nothing},
+						jA: 1,
 						g: 0
 					},
-					styled.hv));
+					styled.hu));
 		case 2:
 			var text = x.a;
 			return $elm$core$Basics$always(
@@ -56664,13 +56877,13 @@ var $mgold$elm_animation$Animation$dur = F3(
 	});
 var $mgold$elm_animation$Animation$animate = F2(
 	function (clock, _v0) {
-		var start = _v0.bL;
-		var delay_ = _v0.al;
-		var dos = _v0.U;
-		var ramp = _v0.bj;
+		var start = _v0.bo;
+		var delay_ = _v0.am;
+		var dos = _v0.V;
+		var ramp = _v0.bk;
 		var from_ = _v0.E;
 		var to_ = _v0.w;
-		var ease_ = _v0.bx;
+		var ease_ = _v0.bz;
 		var duration_ = A3($mgold$elm_animation$Animation$dur, dos, from_, to_);
 		var fr = A3($elm$core$Basics$clamp, 0, 1, ((clock - start) - delay_) / duration_);
 		var eased = ease_(fr);
@@ -56725,15 +56938,15 @@ var $author$project$Gallery$Gallery$moveChunk = F2(
 				}
 			}
 		}();
-		var _v0 = model.aE;
+		var _v0 = model.aG;
 		if (_v0.$ === 1) {
 			return animFun;
 		} else {
 			var _v1 = _v0.a;
 			var start = _v1.a;
 			var stop = _v1.b;
-			return ((start.aj - stop.aj) <= 0) ? $mdgriffith$elm_ui$Element$moveRight(
-				((-1) * w) + $elm$core$Basics$abs(start.aj - stop.aj)) : $mdgriffith$elm_ui$Element$moveLeft((w + start.aj) - stop.aj);
+			return ((start.ak - stop.ak) <= 0) ? $mdgriffith$elm_ui$Element$moveRight(
+				((-1) * w) + $elm$core$Basics$abs(start.ak - stop.ak)) : $mdgriffith$elm_ui$Element$moveLeft((w + start.ak) - stop.ak);
 		}
 	});
 var $author$project$Gallery$Gallery$ImgLoaded = function (a) {
@@ -56741,8 +56954,8 @@ var $author$project$Gallery$Gallery$ImgLoaded = function (a) {
 };
 var $author$project$Gallery$Gallery$picView = F3(
 	function (config, model, _v0) {
-		var src = _v0.fL;
-		var size = _v0.fK;
+		var src = _v0.fK;
+		var size = _v0.fJ;
 		var w = $author$project$Gallery$Gallery$maxWidth(config);
 		var h = A2(
 			$elm$core$Basics$min,
@@ -56784,7 +56997,7 @@ var $author$project$Gallery$Gallery$picView = F3(
 						$mdgriffith$elm_ui$Element$image,
 						_List_fromArray(
 							[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY, $mdgriffith$elm_ui$Element$clip]),
-						{fa: 'chargement en cours', fL: '/assets/images/loading.gif'}),
+						{fa: 'chargement en cours', fK: '/assets/images/loading.gif'}),
 						$mdgriffith$elm_ui$Element$html(
 						A2(
 							$elm$html$Html$img,
@@ -56825,7 +57038,7 @@ var $author$project$Gallery$Gallery$chunkView = F3(
 						_Utils_ap(
 							A2(
 								$author$project$Gallery$GalleryHelpers$events,
-								model.aE,
+								model.aG,
 								_Utils_Tuple3($author$project$Gallery$Gallery$DragStart, $author$project$Gallery$Gallery$DragAt, $author$project$Gallery$Gallery$DragEnd)),
 							_List_fromArray(
 								[mc])),
@@ -56841,7 +57054,7 @@ var $author$project$Gallery$Gallery$chunkView = F3(
 			return $mdgriffith$elm_ui$Element$none;
 		}
 	});
-var $mdgriffith$elm_ui$Element$clipX = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.iz);
+var $mdgriffith$elm_ui$Element$clipX = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.iy);
 var $author$project$Gallery$Gallery$galleryView = F2(
 	function (config, model) {
 		var w = $author$project$Gallery$Gallery$maxWidth(config);
@@ -56856,7 +57069,7 @@ var $author$project$Gallery$Gallery$galleryView = F2(
 					_Utils_ap(
 						_List_fromArray(
 							[
-								(config.mu > 750) ? $mdgriffith$elm_ui$Element$width(
+								(config.mt > 750) ? $mdgriffith$elm_ui$Element$width(
 								$mdgriffith$elm_ui$Element$px((w / 3) | 0)) : $mdgriffith$elm_ui$Element$width(
 								$mdgriffith$elm_ui$Element$px(50)),
 								$mdgriffith$elm_ui$Element$height(
@@ -56888,7 +57101,7 @@ var $author$project$Gallery$Gallery$galleryView = F2(
 							attr),
 						$mdgriffith$elm_ui$Element$html(
 							icon(
-								(config.mu > 750) ? 55 : 40))));
+								(config.mt > 750) ? 55 : 40))));
 			});
 		return A2(
 			$mdgriffith$elm_ui$Element$el,
@@ -56913,7 +57126,7 @@ var $author$project$Gallery$Gallery$galleryView = F2(
 				$author$project$Gallery$Gallery$chunkView,
 				config,
 				model,
-				$author$project$Internals$Streams$current(model.ae)));
+				$author$project$Internals$Streams$current(model.af)));
 	});
 var $author$project$Gallery$Gallery$Select = function (a) {
 	return {$: 1, a: a};
@@ -57000,7 +57213,7 @@ var $author$project$Gallery$Gallery$gridView = F2(
 							$mdgriffith$elm_ui$Element$image,
 							_List_fromArray(
 								[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
-							{fa: 'chargement', fL: '/assets/images/loading.gif'})
+							{fa: 'chargement', fK: '/assets/images/loading.gif'})
 						]));
 			} else {
 				return $mdgriffith$elm_ui$Element$none;
@@ -57023,7 +57236,7 @@ var $author$project$Gallery$Gallery$gridView = F2(
 			A2(
 				$author$project$Internals$CommonHelpers$chunks,
 				chunkSize,
-				A2($elm$core$List$map, thumbView, model.fm)));
+				A2($elm$core$List$map, thumbView, model.fl)));
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -57113,7 +57326,7 @@ var $author$project$Gallery$Gallery$titleRow = F2(
 							$mdgriffith$elm_ui$Element$Font$bold
 						]),
 					$mdgriffith$elm_ui$Element$text(
-						$elm_community$string_extra$String$Extra$toSentenceCase(model.fQ))),
+						$elm_community$string_extra$String$Extra$toSentenceCase(model.fP))),
 					A2(
 					$mdgriffith$elm_ui$Element$Input$button,
 					_Utils_ap(
@@ -57136,7 +57349,7 @@ var $author$project$Gallery$Gallery$titleRow = F2(
 										return $author$project$Internals$Icons$imageIcon(22);
 									}
 								}())),
-						aG: $elm$core$Maybe$Just($author$project$Gallery$Gallery$ToogleDisplayMode)
+						aI: $elm$core$Maybe$Just($author$project$Gallery$Gallery$ToogleDisplayMode)
 					})
 				]));
 	});
@@ -57176,8 +57389,8 @@ var $author$project$Document$DocumentViews$DocumentView$renderGallery = F4(
 	function (config, id, attrs, galleryMeta) {
 		var _v0 = A2(
 			$elm$core$Dict$get,
-			$TSFoster$elm_uuid$UUID$toString(galleryMeta.fT),
-			config.jm);
+			$TSFoster$elm_uuid$UUID$toString(galleryMeta.fS),
+			config.jl);
 		if (!_v0.$) {
 			var gallery = _v0.a;
 			return _List_fromArray(
@@ -57185,7 +57398,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderGallery = F4(
 					A2($author$project$Gallery$Gallery$view, config, gallery)
 				]);
 		} else {
-			return config.at ? _List_fromArray(
+			return config.av ? _List_fromArray(
 				[
 					A2(
 					$mdgriffith$elm_ui$Element$column,
@@ -57220,14 +57433,14 @@ var $author$project$Document$DocumentViews$DocumentView$renderGallery = F4(
 											$mdgriffith$elm_ui$Element$Font$bold
 										]),
 									$mdgriffith$elm_ui$Element$text(
-										$elm_community$string_extra$String$Extra$toSentenceCase(galleryMeta.fQ))),
+										$elm_community$string_extra$String$Extra$toSentenceCase(galleryMeta.fP))),
 									A2(
 									$mdgriffith$elm_ui$Element$el,
 									_List_fromArray(
 										[$mdgriffith$elm_ui$Element$alignRight]),
 									$mdgriffith$elm_ui$Element$text(
 										$elm$core$String$fromInt(
-											$elm$core$List$length(galleryMeta.jJ)) + ' images'))
+											$elm$core$List$length(galleryMeta.jI)) + ' images'))
 								])),
 							A2(
 							$mdgriffith$elm_ui$Element$el,
@@ -57249,9 +57462,9 @@ var $author$project$Document$DocumentViews$DocumentView$renderGallery = F4(
 											var _v1 = A2(
 												$elm$core$Maybe$map,
 												function ($) {
-													return $.fL;
+													return $.fK;
 												},
-												$elm$core$List$head(galleryMeta.jJ));
+												$elm$core$List$head(galleryMeta.jI));
 											if ((!_v1.$) && (!_v1.a.$)) {
 												var src = _v1.a.a;
 												return src;
@@ -57268,11 +57481,11 @@ var $author$project$Document$DocumentViews$DocumentView$renderGallery = F4(
 var $author$project$Document$DocumentViews$DocumentView$renderImage = F4(
 	function (config, id, attrs, _v0) {
 		var uid = id.cW;
-		var docStyleId = id.bv;
-		var classes = id.bp;
-		var src = _v0.fL;
-		var caption = _v0.f8;
-		var size = _v0.fK;
+		var docStyleId = id.bx;
+		var classes = id.br;
+		var src = _v0.fK;
+		var caption = _v0.f7;
+		var size = _v0.fJ;
 		var styleSheet = $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet(config);
 		var src_ = function () {
 			if (src.$ === 1) {
@@ -57288,10 +57501,10 @@ var $author$project$Document$DocumentViews$DocumentView$renderImage = F4(
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$width(
-					A2($mdgriffith$elm_ui$Element$maximum, size.jM, $mdgriffith$elm_ui$Element$fill))
+					A2($mdgriffith$elm_ui$Element$maximum, size.jL, $mdgriffith$elm_ui$Element$fill))
 				]),
 			_Utils_ap(
-				styleSheet.jI,
+				styleSheet.jH,
 				_Utils_ap(
 					A2($author$project$Document$DocumentViews$DocumentView$idStyle, styleSheet, id),
 					A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs))));
@@ -57313,7 +57526,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderImage = F4(
 								]),
 							{
 								fa: A2($elm$core$Maybe$withDefault, '', caption),
-								fL: src_
+								fK: src_
 							}),
 							function () {
 							if (!caption.$) {
@@ -57359,9 +57572,9 @@ var $author$project$Publications$PublicationsView$topicView = F2(
 	});
 var $author$project$Publications$PublicationsView$murolInfosView = function (config) {
 	var murolInfoView = function (_v2) {
-		var issue = _v2.gI;
+		var issue = _v2.gH;
 		var date = _v2.eh;
-		var topics = _v2.mj;
+		var topics = _v2.mi;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -57405,7 +57618,7 @@ var $author$project$Publications$PublicationsView$murolInfosView = function (con
 									A2(
 										$elm$core$String$dropLeft,
 										3,
-										A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date)))),
+										A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date)))),
 								A2(
 								$mdgriffith$elm_ui$Element$newTabLink,
 								_List_fromArray(
@@ -57437,9 +57650,9 @@ var $author$project$Publications$PublicationsView$murolInfosView = function (con
 					]),
 				A2($elm$core$List$indexedMap, $author$project$Publications$PublicationsView$topicView, topics)));
 	};
-	var _v0 = config.fC;
+	var _v0 = config.fB;
 	if (!_v0.$) {
-		var murolInfos = _v0.a.km;
+		var murolInfos = _v0.a.kl;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -57464,7 +57677,7 @@ var $author$project$Publications$PublicationsView$murolInfosView = function (con
 							return A2(
 								$elm$core$List$sortBy,
 								function ($) {
-									return $.gI;
+									return $.gH;
 								},
 								v);
 						}),
@@ -57474,7 +57687,7 @@ var $author$project$Publications$PublicationsView$murolInfosView = function (con
 							function (k, acc) {
 								return A3(
 									$elm$core$Dict$update,
-									A2($elm$time$Time$toYear, config.fZ, k.eh),
+									A2($elm$time$Time$toYear, config.fY, k.eh),
 									function (mbVal) {
 										if (mbVal.$ === 1) {
 											return $elm$core$Maybe$Just(
@@ -57496,7 +57709,7 @@ var $author$project$Publications$PublicationsView$murolInfosView = function (con
 };
 var $author$project$Document$DocumentViews$DocumentView$renderMurolInfo = F3(
 	function (config, id, attrs) {
-		var _v0 = config.fC;
+		var _v0 = config.fB;
 		if (_v0.$ === 1) {
 			return _List_fromArray(
 				[
@@ -57512,7 +57725,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderMurolInfo = F3(
 					$mdgriffith$elm_ui$Element$text('Murol infos'))
 				]);
 		} else {
-			var murolInfos = _v0.a.km;
+			var murolInfos = _v0.a.kl;
 			return _List_fromArray(
 				[
 					$author$project$Publications$PublicationsView$murolInfosView(config)
@@ -57638,7 +57851,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 					function ($) {
 						return $.eh;
 					}),
-				$elm$core$Dict$values(config.gU)));
+				$elm$core$Dict$values(config.gT)));
 		var lastUpdate = A2(
 			$elm$core$Maybe$map,
 			$elm$time$Time$millisToPosix,
@@ -57653,7 +57866,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 								function ($) {
 									return $.eh;
 								}),
-							$elm$core$Dict$values(config.gU))))));
+							$elm$core$Dict$values(config.gT))))));
 		var device = $author$project$Document$DocumentViews$StyleSheets$getDevice(config);
 		var renderNewsBody = F3(
 			function (uuid, pic, content) {
@@ -57678,15 +57891,15 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 						$mdgriffith$elm_ui$Element$spacing(15),
 						$mdgriffith$elm_ui$Element$padding(10),
 						$mdgriffith$elm_ui$Element$Border$roundEach(
-						{f6: 5, f7: 5, hB: 0, hC: 0}),
+						{f5: 5, f6: 5, hA: 0, hB: 0}),
 						$mdgriffith$elm_ui$Element$Border$color($author$project$Internals$CommonStyleHelpers$grey4),
 						$mdgriffith$elm_ui$Element$Border$widthEach(
-						{a2: 1, bb: 1, bk: 1, bo: 0})
+						{a2: 1, bc: 1, bl: 1, bq: 0})
 					]);
 				if (A2(
 					$elm$core$Set$member,
 					$TSFoster$elm_uuid$UUID$toString(uuid),
-					config.g2)) {
+					config.g1)) {
 					var _v3 = _Utils_Tuple2(pic, device.c$);
 					if (!_v3.a.$) {
 						if (!_v3.b) {
@@ -57706,7 +57919,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 													[$mdgriffith$elm_ui$Element$centerX]),
 												picView(url))
 											]),
-										A4($author$project$Document$DocumentViews$DocumentView$renderTextBlock, config, id, content.x, content.l_)))
+										A4($author$project$Document$DocumentViews$DocumentView$renderTextBlock, config, id, content.x, content.lZ)))
 								]);
 						} else {
 							var url = _v3.a.a.d0;
@@ -57723,12 +57936,12 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 												_List_fromArray(
 													[
 														$mdgriffith$elm_ui$Element$paddingEach(
-														{a2: 0, bb: 0, bk: 10, bo: 0}),
+														{a2: 0, bc: 0, bl: 10, bq: 0}),
 														$mdgriffith$elm_ui$Element$alignLeft
 													]),
 												picView(url))
 											]),
-										A4($author$project$Document$DocumentViews$DocumentView$renderTextBlock, config, id, content.x, content.l_)))
+										A4($author$project$Document$DocumentViews$DocumentView$renderTextBlock, config, id, content.x, content.lZ)))
 								]);
 						}
 					} else {
@@ -57738,7 +57951,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 								A2(
 								$mdgriffith$elm_ui$Element$column,
 								bodyAttr,
-								A4($author$project$Document$DocumentViews$DocumentView$renderTextBlock, config, id, content.x, content.l_))
+								A4($author$project$Document$DocumentViews$DocumentView$renderTextBlock, config, id, content.x, content.lZ))
 							]);
 					}
 				} else {
@@ -57754,7 +57967,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 							$mdgriffith$elm_ui$Element$Font$color($author$project$Internals$CommonStyleHelpers$grey1),
 							$mdgriffith$elm_ui$Element$paddingEach(
-							{a2: 0, bb: 0, bk: 0, bo: 0})
+							{a2: 0, bc: 0, bl: 0, bq: 0})
 						]),
 					_List_fromArray(
 						[
@@ -57766,15 +57979,15 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 						$mdgriffith$elm_ui$Element$spacing(15),
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$Events$onClick(
-						config.kM(
+						config.kL(
 							$TSFoster$elm_uuid$UUID$toString(uuid))),
 						$mdgriffith$elm_ui$Element$pointer,
 						$mdgriffith$elm_ui$Element$paddingEach(
-						{a2: 5, bb: 5, bk: 0, bo: 5}),
+						{a2: 5, bc: 5, bl: 0, bq: 5}),
 						$mdgriffith$elm_ui$Element$Border$roundEach(
-						{f6: 0, f7: 0, hB: 2, hC: 2}),
+						{f5: 0, f6: 0, hA: 2, hB: 2}),
 						$mdgriffith$elm_ui$Element$Border$widthEach(
-						{a2: 1, bb: 0, bk: 0, bo: 0}),
+						{a2: 1, bc: 0, bl: 0, bq: 0}),
 						$mdgriffith$elm_ui$Element$Border$color($author$project$Internals$CommonStyleHelpers$grey6),
 						$mdgriffith$elm_ui$Element$Background$color($author$project$Internals$CommonStyleHelpers$grey5),
 						$mdgriffith$elm_ui$Element$mouseOver(
@@ -57787,9 +58000,9 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 					[
 						$mdgriffith$elm_ui$Element$Border$color($author$project$Internals$CommonStyleHelpers$grey6),
 						$mdgriffith$elm_ui$Element$Border$widthEach(
-						{a2: 0, bb: 1, bk: 0, bo: 0}),
+						{a2: 0, bc: 1, bl: 0, bq: 0}),
 						$mdgriffith$elm_ui$Element$paddingEach(
-						{a2: 5, bb: 9, bk: 5, bo: 5})
+						{a2: 5, bc: 9, bl: 5, bq: 5})
 					]);
 				var chevronsView = A2(
 					$mdgriffith$elm_ui$Element$el,
@@ -57802,7 +58015,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 						A2(
 							$elm$core$Set$member,
 							$TSFoster$elm_uuid$UUID$toString(uuid),
-							config.g2) ? $author$project$Internals$Icons$chevronsUp(18) : $author$project$Internals$Icons$chevronsDown(18)));
+							config.g1) ? $author$project$Internals$Icons$chevronsUp(18) : $author$project$Internals$Icons$chevronsDown(18)));
 				var _v2 = device.c$;
 				if (!_v2) {
 					return A2(
@@ -57823,7 +58036,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 										$mdgriffith$elm_ui$Element$el,
 										dateAttr,
 										$mdgriffith$elm_ui$Element$text(
-											A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date))),
+											A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date))),
 										chevronsView
 									]))
 							]));
@@ -57850,17 +58063,17 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 											_List_fromArray(
 												[$mdgriffith$elm_ui$Element$alignRight])),
 										$mdgriffith$elm_ui$Element$text(
-											A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date)))
+											A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date)))
 									]))
 							]));
 				}
 			});
 		var renderNewsItem = function (_v1) {
-			var uuid = _v1.fT;
-			var title = _v1.fQ;
-			var content = _v1.iJ;
+			var uuid = _v1.fS;
+			var title = _v1.fP;
+			var content = _v1.iI;
 			var date = _v1.eh;
-			var pic = _v1.kT;
+			var pic = _v1.kS;
 			return A2(
 				$mdgriffith$elm_ui$Element$column,
 				_List_fromArray(
@@ -57912,7 +58125,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderNews = F3(
 										_List_fromArray(
 											[
 												$mdgriffith$elm_ui$Element$text(
-												'Dernière mise à jour le ' + A2($author$project$Internals$CommonHelpers$dateToFrench, config.fZ, lastUp))
+												'Dernière mise à jour le ' + A2($author$project$Internals$CommonHelpers$dateToFrench, config.fY, lastUp))
 											]));
 								},
 								lastUpdate))
@@ -57938,27 +58151,27 @@ var $author$project$Document$DocumentViews$DocumentView$renderPictureLinks = F4(
 								A2(
 									$elm$core$Basics$composeL,
 									function ($) {
-										return $.jL;
+										return $.jK;
 									},
 									function ($) {
-										return $.fK;
+										return $.fJ;
 									}),
 								function ($) {
-									return $.jK;
+									return $.jJ;
 								}),
 							picLinks)))));
 		var imgsScaledToMinHeight = function () {
 			var scale = function (picLink) {
-				var img = picLink.jK;
+				var img = picLink.jJ;
 				return _Utils_update(
 					picLink,
 					{
-						jK: _Utils_update(
+						jJ: _Utils_update(
 							img,
 							{
-								fK: {
-									jL: minHeight + 5,
-									jM: $elm$core$Basics$round((minHeight * img.fK.jM) / img.fK.jL)
+								fJ: {
+									jK: minHeight + 5,
+									jL: $elm$core$Basics$round((minHeight * img.fJ.jL) / img.fJ.jK)
 								}
 							})
 					});
@@ -57969,20 +58182,20 @@ var $author$project$Document$DocumentViews$DocumentView$renderPictureLinks = F4(
 			$elm$core$List$foldr,
 			F2(
 				function (pl, n) {
-					return pl.jK.fK.jM + n;
+					return pl.jJ.fJ.jL + n;
 				}),
 			0,
 			imgsScaledToMinHeight);
 		var logoView = function (_v3) {
 			var url = _v3.d0;
-			var img = _v3.jK;
-			return config.at ? A2(
+			var img = _v3.jJ;
+			return config.av ? A2(
 				$mdgriffith$elm_ui$Element$el,
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$width(
 						$mdgriffith$elm_ui$Element$fillPortion(
-							$elm$core$Basics$floor((10000 * img.fK.jM) / totalImgWidth)))
+							$elm$core$Basics$floor((10000 * img.fJ.jL) / totalImgWidth)))
 					]),
 				A2(
 					$mdgriffith$elm_ui$Element$image,
@@ -57993,8 +58206,8 @@ var $author$project$Document$DocumentViews$DocumentView$renderPictureLinks = F4(
 						]),
 					{
 						fa: '',
-						fL: function () {
-							var _v1 = img.fL;
+						fK: function () {
+							var _v1 = img.fK;
 							if (!_v1.$) {
 								var urlSrc = _v1.a;
 								return urlSrc;
@@ -58008,7 +58221,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderPictureLinks = F4(
 					[
 						$mdgriffith$elm_ui$Element$width(
 						$mdgriffith$elm_ui$Element$fillPortion(
-							$elm$core$Basics$floor((10000 * img.fK.jM) / totalImgWidth)))
+							$elm$core$Basics$floor((10000 * img.fJ.jL) / totalImgWidth)))
 					]),
 				A2(
 					$mdgriffith$elm_ui$Element$newTabLink,
@@ -58035,8 +58248,8 @@ var $author$project$Document$DocumentViews$DocumentView$renderPictureLinks = F4(
 								]),
 							{
 								fa: '',
-								fL: function () {
-									var _v2 = img.fL;
+								fK: function () {
+									var _v2 = img.fK;
 									if (!_v2.$) {
 										var urlSrc = _v2.a;
 										return urlSrc;
@@ -58062,7 +58275,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderPictureLinks = F4(
 								$mdgriffith$elm_ui$Element$padding(10)
 							]),
 						_Utils_ap(
-							styleSheet.kV,
+							styleSheet.kU,
 							_Utils_ap(
 								A2($author$project$Document$DocumentViews$DocumentView$idStyle, styleSheet, id),
 								A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs)))),
@@ -58118,7 +58331,7 @@ var $mdgriffith$elm_ui$Element$tableHelper = F2(
 							$mdgriffith$elm_ui$Internal$Model$StyleClass,
 							$mdgriffith$elm_ui$Internal$Flag$gridPosition,
 							$mdgriffith$elm_ui$Internal$Model$GridPosition(
-								{gc: columnLevel, jy: 1, hj: rowLevel, mu: 1}))
+								{gb: columnLevel, jx: 1, hi: rowLevel, mt: 1}))
 						]),
 					$mdgriffith$elm_ui$Internal$Model$Unkeyed(
 						_List_fromArray(
@@ -58127,19 +58340,19 @@ var $mdgriffith$elm_ui$Element$tableHelper = F2(
 		var columnWidth = function (col) {
 			if (!col.$) {
 				var colConfig = col.a;
-				return colConfig.mu;
+				return colConfig.mt;
 			} else {
 				var colConfig = col.a;
-				return colConfig.mu;
+				return colConfig.mt;
 			}
 		};
 		var columnHeader = function (col) {
 			if (!col.$) {
 				var colConfig = col.a;
-				return colConfig.jv;
+				return colConfig.ju;
 			} else {
 				var colConfig = col.a;
-				return colConfig.jv;
+				return colConfig.ju;
 			}
 		};
 		var maybeHeaders = function (headers) {
@@ -58155,7 +58368,7 @@ var $mdgriffith$elm_ui$Element$tableHelper = F2(
 						}),
 					headers));
 		}(
-			A2($elm$core$List$map, columnHeader, config.iD));
+			A2($elm$core$List$map, columnHeader, config.iC));
 		var add = F3(
 			function (cell, columnConfig, cursor) {
 				if (!columnConfig.$) {
@@ -58164,31 +58377,31 @@ var $mdgriffith$elm_ui$Element$tableHelper = F2(
 						cursor,
 						{
 							e0: cursor.e0 + 1,
-							aa: A2(
+							ab: A2(
 								$elm$core$List$cons,
 								A3(
 									onGrid,
-									cursor.hj,
+									cursor.hi,
 									cursor.e0,
 									A2(
-										col.mq,
-										_Utils_eq(maybeHeaders, $elm$core$Maybe$Nothing) ? (cursor.hj - 1) : (cursor.hj - 2),
+										col.mp,
+										_Utils_eq(maybeHeaders, $elm$core$Maybe$Nothing) ? (cursor.hi - 1) : (cursor.hi - 2),
 										cell)),
-								cursor.aa)
+								cursor.ab)
 						});
 				} else {
 					var col = columnConfig.a;
 					return {
 						e0: cursor.e0 + 1,
-						aa: A2(
+						ab: A2(
 							$elm$core$List$cons,
 							A3(
 								onGrid,
-								cursor.hj,
+								cursor.hi,
 								cursor.e0,
-								col.mq(cell)),
-							cursor.aa),
-						hj: cursor.hj
+								col.mp(cell)),
+							cursor.ab),
+						hi: cursor.hi
 					};
 				}
 			});
@@ -58199,17 +58412,17 @@ var $mdgriffith$elm_ui$Element$tableHelper = F2(
 					add(rowData),
 					cursor,
 					columns);
-				return {e0: 1, aa: newCursor.aa, hj: cursor.hj + 1};
+				return {e0: 1, ab: newCursor.ab, hi: cursor.hi + 1};
 			});
 		var children = A3(
 			$elm$core$List$foldl,
-			build(config.iD),
+			build(config.iC),
 			{
 				e0: 1,
-				aa: _List_Nil,
-				hj: _Utils_eq(maybeHeaders, $elm$core$Maybe$Nothing) ? 1 : 2
+				ab: _List_Nil,
+				hi: _Utils_eq(maybeHeaders, $elm$core$Maybe$Nothing) ? 1 : 2
 			},
-			config.iV);
+			config.iU);
 		var _v0 = A2(
 			$mdgriffith$elm_ui$Internal$Model$getSpacing,
 			attrs,
@@ -58221,12 +58434,12 @@ var $mdgriffith$elm_ui$Element$tableHelper = F2(
 			$mdgriffith$elm_ui$Internal$Flag$gridTemplate,
 			$mdgriffith$elm_ui$Internal$Model$GridTemplateStyle(
 				{
-					iD: A2($elm$core$List$map, columnWidth, config.iD),
-					le: A2(
+					iC: A2($elm$core$List$map, columnWidth, config.iC),
+					ld: A2(
 						$elm$core$List$repeat,
-						$elm$core$List$length(config.iV),
+						$elm$core$List$length(config.iU),
 						$mdgriffith$elm_ui$Internal$Model$Content),
-					lJ: _Utils_Tuple2(
+					lI: _Utils_Tuple2(
 						$mdgriffith$elm_ui$Element$px(sX),
 						$mdgriffith$elm_ui$Element$px(sY))
 				}));
@@ -58241,12 +58454,12 @@ var $mdgriffith$elm_ui$Element$tableHelper = F2(
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
 				function () {
 					if (maybeHeaders.$ === 1) {
-						return children.aa;
+						return children.ab;
 					} else {
 						var renderedHeaders = maybeHeaders.a;
 						return _Utils_ap(
 							renderedHeaders,
-							$elm$core$List$reverse(children.aa));
+							$elm$core$List$reverse(children.ab));
 					}
 				}()));
 	});
@@ -58256,17 +58469,17 @@ var $mdgriffith$elm_ui$Element$indexedTable = F2(
 			$mdgriffith$elm_ui$Element$tableHelper,
 			attrs,
 			{
-				iD: A2($elm$core$List$map, $mdgriffith$elm_ui$Element$InternalIndexedColumn, config.iD),
-				iV: config.iV
+				iC: A2($elm$core$List$map, $mdgriffith$elm_ui$Element$InternalIndexedColumn, config.iC),
+				iU: config.iU
 			});
 	});
-var $mdgriffith$elm_ui$Element$scrollbarX = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.lh);
+var $mdgriffith$elm_ui$Element$scrollbarX = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.lg);
 var $author$project$Document$DocumentViews$DocumentView$renderTable = F4(
 	function (config, id, attrs, _v0) {
-		var style = _v0.lS;
-		var nbrRows = _v0.kr;
-		var nbrCols = _v0.kq;
-		var data = _v0.iV;
+		var style = _v0.lR;
+		var nbrRows = _v0.kq;
+		var nbrCols = _v0.kp;
+		var data = _v0.iU;
 		var styleSheet = $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet(config);
 		var containerWidth = $author$project$Document$DocumentViews$StyleSheets$getContainerWidth(config);
 		var maxWidth = containerWidth - 40;
@@ -58274,8 +58487,8 @@ var $author$project$Document$DocumentViews$DocumentView$renderTable = F4(
 			$elm$core$List$map,
 			function (ci) {
 				return {
-					jv: $mdgriffith$elm_ui$Element$none,
-					mq: F2(
+					ju: $mdgriffith$elm_ui$Element$none,
+					mp: F2(
 						function (ri, row) {
 							return A2(
 								$mdgriffith$elm_ui$Element$el,
@@ -58291,7 +58504,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTable = F4(
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.iH;
+												return $.iG;
 											},
 											A2($elm$core$Dict$get, style, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))),
 								A2(
@@ -58305,7 +58518,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTable = F4(
 											A2(
 												$elm$core$Maybe$map,
 												function ($) {
-													return $.ir;
+													return $.iq;
 												},
 												A2($elm$core$Dict$get, style, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))(ri),
 										_List_fromArray(
@@ -58326,7 +58539,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTable = F4(
 													A2($elm$core$Array$get, ci, row)))
 											]))));
 						}),
-					mu: $mdgriffith$elm_ui$Element$fill
+					mt: $mdgriffith$elm_ui$Element$fill
 				};
 			},
 			A2($elm$core$List$range, 0, nbrCols - 1));
@@ -58341,7 +58554,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTable = F4(
 						A2(
 							$elm$core$Maybe$map,
 							function ($) {
-								return $.lW;
+								return $.lV;
 							},
 							A2($elm$core$Dict$get, style, $author$project$Document$DocumentViews$StyleSheets$tableStyles))),
 					_Utils_ap(
@@ -58356,7 +58569,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTable = F4(
 						_Utils_ap(
 							A2($author$project$Document$DocumentViews$DocumentView$idStyle, styleSheet, id),
 							A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs)))),
-				{iD: columns, iV: data})
+				{iC: columns, iU: data})
 			]);
 	});
 var $author$project$PageEditor$Internals$DocumentEditorHelpers$buildYoutubeUrl = F2(
@@ -58377,13 +58590,13 @@ var $author$project$PageEditor$Internals$DocumentEditorHelpers$buildYoutubeUrl =
 							function (n) {
 								return 'start=' + $elm$core$String$fromInt(n);
 							},
-							videoMeta.lM),
-							(!videoMeta.jk) ? $elm$core$Maybe$Just('frameborder=0') : $elm$core$Maybe$Nothing,
-							(!videoMeta.lV) ? $elm$core$Maybe$Just('rel=0') : $elm$core$Maybe$Nothing,
-							(!videoMeta.iM) ? $elm$core$Maybe$Just('controls=0') : $elm$core$Maybe$Nothing,
-							(!videoMeta.fQ) ? $elm$core$Maybe$Just('showinfo=0') : $elm$core$Maybe$Nothing
+							videoMeta.lL),
+							(!videoMeta.jj) ? $elm$core$Maybe$Just('frameborder=0') : $elm$core$Maybe$Nothing,
+							(!videoMeta.lU) ? $elm$core$Maybe$Just('rel=0') : $elm$core$Maybe$Nothing,
+							(!videoMeta.iL) ? $elm$core$Maybe$Just('controls=0') : $elm$core$Maybe$Nothing,
+							(!videoMeta.fP) ? $elm$core$Maybe$Just('showinfo=0') : $elm$core$Maybe$Nothing
 						]))));
-		return 'https://www.youtube' + ((videoMeta.k$ ? '-nocookie' : '') + ('.com/embed/' + (src + params)));
+		return 'https://www.youtube' + ((videoMeta.k_ ? '-nocookie' : '') + ('.com/embed/' + (src + params)));
 	});
 var $elm$html$Html$Attributes$width = function (n) {
 	return A2(
@@ -58394,8 +58607,8 @@ var $elm$html$Html$Attributes$width = function (n) {
 var $author$project$Document$DocumentViews$DocumentView$renderVideo = F4(
 	function (config, id, attrs, vidMeta) {
 		var uid = id.cW;
-		var docStyleId = id.bv;
-		var classes = id.bp;
+		var docStyleId = id.bx;
+		var classes = id.br;
 		var styleSheet = $author$project$Document$DocumentViews$StyleSheets$defaultStyleSheet(config);
 		var attrs_ = _Utils_ap(
 			A2($author$project$Document$DocumentViews$DocumentView$idStyle, styleSheet, id),
@@ -58414,10 +58627,10 @@ var $author$project$Document$DocumentViews$DocumentView$renderVideo = F4(
 						_List_fromArray(
 							[
 								$elm$html$Html$Attributes$src(
-								A2($author$project$PageEditor$Internals$DocumentEditorHelpers$buildYoutubeUrl, vidMeta.fL, vidMeta)),
-								$elm$html$Html$Attributes$width(vidMeta.fK.mp),
-								$elm$html$Html$Attributes$height(vidMeta.fK.mo),
-								vidMeta.jk ? $author$project$Internals$CommonStyleHelpers$noHtmlAttr : A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
+								A2($author$project$PageEditor$Internals$DocumentEditorHelpers$buildYoutubeUrl, vidMeta.fK, vidMeta)),
+								$elm$html$Html$Attributes$width(vidMeta.fJ.mo),
+								$elm$html$Html$Attributes$height(vidMeta.fJ.mn),
+								vidMeta.jj ? $author$project$Internals$CommonStyleHelpers$noHtmlAttr : A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
 								A2($elm$html$Html$Attributes$attribute, 'allowfullscreen', 'true'),
 								A2($elm$html$Html$Attributes$attribute, 'allow', 'autoplay; encrypted-media')
 							]),
@@ -58487,7 +58700,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderColumn = F4(
 				A2(
 				$mdgriffith$elm_ui$Element$column,
 				_Utils_ap(
-					styleSheet.iC,
+					styleSheet.iB,
 					_Utils_ap(
 						config.e1 ? _List_fromArray(
 							[
@@ -58500,7 +58713,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderColumn = F4(
 								_List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$width(
-										A2($mdgriffith$elm_ui$Element$maximum, config.mu, $mdgriffith$elm_ui$Element$fill)),
+										A2($mdgriffith$elm_ui$Element$maximum, config.mt, $mdgriffith$elm_ui$Element$fill)),
 										$mdgriffith$elm_ui$Element$alignTop
 									]),
 								A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs))))),
@@ -58513,7 +58726,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderColumn = F4(
 var $author$project$Document$DocumentViews$DocumentView$renderDoc = F2(
 	function (config, document) {
 		if (!document.$) {
-			var containerLabel = document.a.bq;
+			var containerLabel = document.a.bs;
 			var id = document.a.a;
 			var attrs = document.a.x;
 			var children = document.b;
@@ -58528,7 +58741,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderDoc = F2(
 					return A4($author$project$Document$DocumentViews$DocumentView$renderResponsiveBloc, config, id, attrs, children);
 			}
 		} else {
-			var cellContent = document.a.aq;
+			var cellContent = document.a.as;
 			var id = document.a.a;
 			var attrs = document.a.x;
 			switch (cellContent.$) {
@@ -58592,7 +58805,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderResponsiveBloc = F
 				A2(
 				$mdgriffith$elm_ui$Element$row,
 				_Utils_ap(
-					styleSheet.k8,
+					styleSheet.k7,
 					_Utils_ap(
 						A2($author$project$Document$DocumentViews$DocumentView$idStyle, styleSheet, id),
 						A2($author$project$Document$DocumentViews$DocumentView$renderAttrs, config, attrs))),
@@ -58610,7 +58823,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderRow = F4(
 				A2(
 				$mdgriffith$elm_ui$Element$row,
 				_Utils_ap(
-					styleSheet.ld,
+					styleSheet.lc,
 					_Utils_ap(
 						config.e1 ? _List_fromArray(
 							[
@@ -58634,7 +58847,7 @@ var $author$project$Document$DocumentViews$DocumentView$renderTextColumn = F4(
 				A2(
 				$mdgriffith$elm_ui$Element$textColumn,
 				_Utils_ap(
-					styleSheet.l2,
+					styleSheet.l1,
 					_Utils_ap(
 						config.e1 ? _List_fromArray(
 							[
@@ -58668,10 +58881,10 @@ var $author$project$Document$Document$containsOnly = F2(
 		}
 	});
 var $author$project$Document$DocumentViews$DocumentResponsive$flipTable = function (_v0) {
-	var style = _v0.lS;
-	var nbrRows = _v0.kr;
-	var nbrCols = _v0.kq;
-	var data = _v0.iV;
+	var style = _v0.lR;
+	var nbrRows = _v0.kq;
+	var nbrCols = _v0.kp;
+	var data = _v0.iU;
 	var uncons = function (xs) {
 		if (xs.b) {
 			var x = xs.a;
@@ -58722,12 +58935,12 @@ var $author$project$Document$DocumentViews$DocumentResponsive$flipTable = functi
 			inverse,
 			_List_Nil,
 			A2($elm$core$List$map, $elm$core$Array$toList, data)));
-	return {iV: newData, kq: nbrRows, kr: nbrCols, lS: style};
+	return {iU: newData, kp: nbrRows, kq: nbrCols, lR: style};
 };
 var $author$project$Document$Document$isImage = function (document) {
 	if (document.$ === 1) {
 		var lv = document.a;
-		var _v1 = lv.aq;
+		var _v1 = lv.as;
 		if (!_v1.$) {
 			return true;
 		} else {
@@ -58748,7 +58961,7 @@ var $author$project$Document$DocumentViews$DocumentResponsive$renderSameHeightIm
 				return A2(
 					$elm$core$List$map,
 					function (i) {
-						return i.dI.fK;
+						return i.dI.fJ;
 					},
 					imgs);
 			};
@@ -58761,7 +58974,7 @@ var $author$project$Document$DocumentViews$DocumentResponsive$renderSameHeightIm
 							A2(
 								$elm$core$List$map,
 								function ($) {
-									return $.jL;
+									return $.jK;
 								},
 								imgSizes(imgs)))));
 			};
@@ -58773,15 +58986,15 @@ var $author$project$Document$DocumentViews$DocumentResponsive$renderSameHeightIm
 							return acc;
 						} else {
 							var lv = doc.a;
-							var _v3 = lv.aq;
+							var _v3 = lv.as;
 							if (!_v3.$) {
 								var meta = _v3.a;
-								var src = meta.fL;
-								var caption = meta.f8;
-								var size = meta.fK;
+								var src = meta.fK;
+								var caption = meta.f7;
+								var size = meta.fJ;
 								return A2(
 									$elm$core$List$cons,
-									{x: lv.x, a: lv.a, dI: meta, gT: 0, ey: 0},
+									{x: lv.x, a: lv.a, dI: meta, gS: 0, ey: 0},
 									acc);
 							} else {
 								return acc;
@@ -58796,7 +59009,7 @@ var $author$project$Document$DocumentViews$DocumentResponsive$renderSameHeightIm
 					var meta = _v1.dI;
 					var attrs = _v1.x;
 					var id = _v1.a;
-					return {x: attrs, a: id, dI: meta, gT: mh + 5, ey: (mh * meta.fK.jM) / meta.fK.jL};
+					return {x: attrs, a: id, dI: meta, gS: mh + 5, ey: (mh * meta.fJ.jL) / meta.fJ.jK};
 				};
 				return A2($elm$core$List$map, scale, images);
 			}();
@@ -58832,7 +59045,7 @@ var $author$project$Document$DocumentViews$DocumentResponsive$renderSameHeightIm
 											$elm$core$Basics$floor((10000 * im.ey) / totalImgWidth))
 										]),
 									im.x),
-								aq: $author$project$Document$Document$Image(im.dI),
+								as: $author$project$Document$Document$Image(im.dI),
 								a: im.a
 							});
 					},
@@ -58844,7 +59057,7 @@ var $author$project$Document$DocumentViews$DocumentResponsive$responsivePreForma
 		var device = $author$project$Document$DocumentViews$StyleSheets$getDevice(config);
 		if (!document.$) {
 			var nv = document.a;
-			var containerLabel = nv.bq;
+			var containerLabel = nv.bs;
 			var id = nv.a;
 			var attrs = nv.x;
 			var children = document.b;
@@ -58854,18 +59067,18 @@ var $author$project$Document$DocumentViews$DocumentResponsive$responsivePreForma
 						if (doc.$ === 1) {
 							var l = doc;
 							var lv = l.a;
-							var _v3 = lv.aq;
+							var _v3 = lv.as;
 							if (!_v3.$) {
 								var meta = _v3.a;
 								var lId = lv.a;
 								return $author$project$Document$Document$Cell(
 									{
 										x: lv.x,
-										aq: lv.aq,
+										as: lv.as,
 										a: _Utils_update(
 											lId,
 											{
-												bp: A2($elm$core$Set$insert, 'colImg', lId.bp)
+												br: A2($elm$core$Set$insert, 'colImg', lId.br)
 											})
 									});
 							} else {
@@ -58892,8 +59105,8 @@ var $author$project$Document$DocumentViews$DocumentResponsive$responsivePreForma
 							$author$project$Document$Document$Container,
 							_Utils_update(
 								nv,
-								{bq: 0}),
-							children)) : (A2($author$project$Document$Document$containsOnly, $author$project$Document$Document$isImage, document) ? A2($author$project$Document$DocumentViews$DocumentResponsive$renderSameHeightImgRow, config.mu, document) : A2(
+								{bs: 0}),
+							children)) : (A2($author$project$Document$Document$containsOnly, $author$project$Document$Document$isImage, document) ? A2($author$project$Document$DocumentViews$DocumentResponsive$renderSameHeightImgRow, config.mt, document) : A2(
 						$author$project$Document$Document$Container,
 						nv,
 						A2(
@@ -58908,7 +59121,7 @@ var $author$project$Document$DocumentViews$DocumentResponsive$responsivePreForma
 							$author$project$Document$Document$Container,
 							_Utils_update(
 								nv,
-								{bq: 0}),
+								{bs: 0}),
 							children)) : A2(
 						$author$project$Document$Document$Container,
 						nv,
@@ -58927,7 +59140,7 @@ var $author$project$Document$DocumentViews$DocumentResponsive$responsivePreForma
 			}
 		} else {
 			var l = document;
-			var cellContent = l.a.aq;
+			var cellContent = l.a.as;
 			var id = l.a.a;
 			var attrs = l.a.x;
 			switch (cellContent.$) {
@@ -58950,10 +59163,10 @@ var $author$project$Document$DocumentViews$DocumentResponsive$responsivePreForma
 					return l;
 				case 2:
 					var meta = cellContent.a;
-					return (((!device.c$) || (device.c$ === 1)) && (_Utils_cmp(meta.kq, meta.kr) > 0)) ? $author$project$Document$Document$Cell(
+					return (((!device.c$) || (device.c$ === 1)) && (_Utils_cmp(meta.kp, meta.kq) > 0)) ? $author$project$Document$Document$Cell(
 						{
 							x: attrs,
-							aq: $author$project$Document$Document$Table(
+							as: $author$project$Document$Document$Table(
 								$author$project$Document$DocumentViews$DocumentResponsive$flipTable(meta)),
 							a: id
 						}) : l;
@@ -59069,11 +59282,11 @@ var $author$project$PageEditor$PageEditor$documentView = F2(
 								model.k,
 								$author$project$PageEditor$Internals$DocumentZipper$extractDoc(
 									$author$project$PageEditor$Internals$DocumentZipper$rewind(
-										$author$project$PageEditor$Internals$DocumentZipper$addZipperHandlers(model.i3)))))))
+										$author$project$PageEditor$Internals$DocumentZipper$addZipperHandlers(model.i2)))))))
 				]));
 	});
 var $author$project$NewsEditor$NewsEditor$getNewsDict = function (model) {
-	return model.gU;
+	return model.gT;
 };
 var $author$project$Document$Document$isContainer = function (document) {
 	if (!document.$) {
@@ -59175,10 +59388,10 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 	var menuEntry = function (_v1) {
 		var label = _v1.N;
 		var msg = _v1.c;
-		var icon = _v1.jD;
-		var isActive = _v1.gG;
-		var isSelected = _v1.ay;
-		var isSelectable = _v1.ax;
+		var icon = _v1.jC;
+		var isActive = _v1.gF;
+		var isSelected = _v1.aA;
+		var isSelectable = _v1.az;
 		return A2(
 			$mdgriffith$elm_ui$Element$row,
 			_Utils_ap(
@@ -59279,7 +59492,7 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 											$mdgriffith$elm_ui$Element$Font$center,
 											$mdgriffith$elm_ui$Element$Border$widthEach(
-											{a2: 0, bb: 0, bk: 0, bo: 1}),
+											{a2: 0, bc: 0, bl: 0, bq: 1}),
 											$mdgriffith$elm_ui$Element$Border$color(
 											A3($mdgriffith$elm_ui$Element$rgb, 0.9, 0.9, 0.9))
 										]),
@@ -59294,7 +59507,7 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 					[$mdgriffith$elm_ui$Element$pointer]),
 				$mdgriffith$elm_ui$Element$text(label)));
 	};
-	var defEntry = {jD: $elm$core$Maybe$Nothing, gG: true, ax: false, ay: false, N: '', c: $author$project$PageEditor$PageEditor$NoOp};
+	var defEntry = {jC: $elm$core$Maybe$Nothing, gF: true, az: false, aA: false, N: '', c: $author$project$PageEditor$PageEditor$NoOp};
 	var menuData = _List_fromArray(
 		[
 			_Utils_Tuple2(
@@ -59306,7 +59519,7 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 						_Utils_update(
 						defEntry,
 						{
-							gG: !config.u,
+							gF: !config.u,
 							N: 'Ouvrir page',
 							c: $author$project$PageEditor$PageEditor$SetEditorPlugin(
 								$elm$core$Maybe$Just(
@@ -59315,7 +59528,7 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 						_Utils_update(
 						defEntry,
 						{
-							gG: !config.u,
+							gF: !config.u,
 							N: 'Synchroniser',
 							c: config.d6 ? $author$project$PageEditor$PageEditor$SetEditorPlugin(
 								$elm$core$Maybe$Just(
@@ -59328,17 +59541,17 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 					[
 						_Utils_update(
 						defEntry,
-						{gG: !config.u, N: 'Ouvrir fichier', c: $author$project$PageEditor$PageEditor$RequestLoad}),
+						{gF: !config.u, N: 'Ouvrir fichier', c: $author$project$PageEditor$PageEditor$RequestLoad}),
 						_Utils_update(
 						defEntry,
-						{gG: !config.u, N: 'Sauvegarde locale', c: $author$project$PageEditor$PageEditor$RequestDownload})
+						{gF: !config.u, N: 'Sauvegarde locale', c: $author$project$PageEditor$PageEditor$RequestDownload})
 					]),
 					_List_fromArray(
 					[
 						_Utils_update(
 						defEntry,
 						{
-							gG: !config.u,
+							gF: !config.u,
 							N: 'Administration avancée',
 							c: $author$project$PageEditor$PageEditor$SetEditorPlugin(
 								$elm$core$Maybe$Just($author$project$PageEditor$Internals$DocumentEditorHelpers$PersistencePlugin))
@@ -59353,28 +59566,28 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 					[
 						_Utils_update(
 						defEntry,
-						{gG: !config.u, N: 'Copier', c: $author$project$PageEditor$PageEditor$Copy}),
+						{gF: !config.u, N: 'Copier', c: $author$project$PageEditor$PageEditor$Copy}),
 						_Utils_update(
 						defEntry,
-						{gG: !config.u, N: 'Couper', c: $author$project$PageEditor$PageEditor$Cut}),
+						{gF: !config.u, N: 'Couper', c: $author$project$PageEditor$PageEditor$Cut}),
 						_Utils_update(
 						defEntry,
-						{gG: (!config.e$) && (!config.u), N: 'Coller', c: $author$project$PageEditor$PageEditor$Paste})
+						{gF: (!config.e$) && (!config.u), N: 'Coller', c: $author$project$PageEditor$PageEditor$Paste})
 					]),
 					_List_fromArray(
 					[
 						_Utils_update(
 						defEntry,
-						{gG: (!config.fR) && (!config.u), N: 'Annuler', c: $author$project$PageEditor$PageEditor$Undo})
+						{gF: (!config.fQ) && (!config.u), N: 'Annuler', c: $author$project$PageEditor$PageEditor$Undo})
 					]),
 					_List_fromArray(
 					[
 						_Utils_update(
 						defEntry,
-						{gG: (!config.u) && (!config.bl), N: 'Supprimer'}),
+						{gF: (!config.u) && (!config.bm), N: 'Supprimer'}),
 						_Utils_update(
 						defEntry,
-						{gG: (!config.u) && ((!config.dS) && (!config.bl)), N: 'Modifier selection', c: $author$project$PageEditor$PageEditor$EditCell})
+						{gF: (!config.u) && ((!config.dS) && (!config.bm)), N: 'Modifier selection', c: $author$project$PageEditor$PageEditor$EditCell})
 					])
 				])),
 			_Utils_Tuple2(
@@ -59386,32 +59599,32 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 						_Utils_update(
 						defEntry,
 						{
-							ax: true,
-							ay: !config.eH,
+							az: true,
+							aA: !config.eH,
 							N: 'Grand écran',
 							c: $author$project$PageEditor$PageEditor$SetPreviewMode(0)
 						}),
 						_Utils_update(
 						defEntry,
 						{
-							ax: true,
-							ay: config.eH === 1,
+							az: true,
+							aA: config.eH === 1,
 							N: 'Petit écran',
 							c: $author$project$PageEditor$PageEditor$SetPreviewMode(1)
 						}),
 						_Utils_update(
 						defEntry,
 						{
-							ax: true,
-							ay: config.eH === 2,
+							az: true,
+							aA: config.eH === 2,
 							N: 'Tablette',
 							c: $author$project$PageEditor$PageEditor$SetPreviewMode(2)
 						}),
 						_Utils_update(
 						defEntry,
 						{
-							ax: true,
-							ay: config.eH === 3,
+							az: true,
+							aA: config.eH === 3,
 							N: 'Téléphone',
 							c: $author$project$PageEditor$PageEditor$SetPreviewMode(3)
 						})
@@ -59420,49 +59633,49 @@ var $author$project$PageEditor$PageEditor$mainMenu = function (config) {
 					[
 						_Utils_update(
 						defEntry,
-						{ax: true, ay: config.aK, N: 'Afficher l\'interface avancée', c: $author$project$PageEditor$PageEditor$ToogleShowAdvancedControls})
+						{az: true, aA: config.aL, N: 'Afficher l\'interface avancée', c: $author$project$PageEditor$PageEditor$ToogleShowAdvancedControls})
 					]),
 					_List_fromArray(
 					[
 						_Utils_update(
 						defEntry,
-						{ax: true, ay: config.e1, N: 'Couleurs conteneurs', c: $author$project$PageEditor$PageEditor$ToogleCountainersColors})
+						{az: true, aA: config.e1, N: 'Couleurs conteneurs', c: $author$project$PageEditor$PageEditor$ToogleCountainersColors})
 					]),
 					_List_fromArray(
 					[
 						_Utils_update(
 						defEntry,
 						{
-							gG: true,
-							ax: true,
-							ay: !config.lk,
+							gF: true,
+							az: true,
+							aA: !config.lj,
 							N: 'Printemps',
 							c: $author$project$PageEditor$PageEditor$SetSeason(0)
 						}),
 						_Utils_update(
 						defEntry,
 						{
-							gG: true,
-							ax: true,
-							ay: config.lk === 1,
+							gF: true,
+							az: true,
+							aA: config.lj === 1,
 							N: 'Eté',
 							c: $author$project$PageEditor$PageEditor$SetSeason(1)
 						}),
 						_Utils_update(
 						defEntry,
 						{
-							gG: true,
-							ax: true,
-							ay: config.lk === 2,
+							gF: true,
+							az: true,
+							aA: config.lj === 2,
 							N: 'Automne',
 							c: $author$project$PageEditor$PageEditor$SetSeason(2)
 						}),
 						_Utils_update(
 						defEntry,
 						{
-							gG: true,
-							ax: true,
-							ay: config.lk === 3,
+							gF: true,
+							az: true,
+							aA: config.lj === 3,
 							N: 'Hiver',
 							c: $author$project$PageEditor$PageEditor$SetSeason(3)
 						})
@@ -59546,10 +59759,10 @@ var $author$project$PageEditor$PageEditor$mainInterface = function (config) {
 	var interfaceButton = function (buttonConfig) {
 		return A2(
 			$mdgriffith$elm_ui$Element$Input$button,
-			menuButtonStyle(buttonConfig.gG),
+			menuButtonStyle(buttonConfig.gF),
 			{
 				N: function () {
-					var _v0 = buttonConfig.a7;
+					var _v0 = buttonConfig.a8;
 					if (!_v0.b) {
 						return A2(
 							$mdgriffith$elm_ui$Element$el,
@@ -59581,10 +59794,10 @@ var $author$project$PageEditor$PageEditor$mainInterface = function (config) {
 								]));
 					}
 				}(),
-				aG: buttonConfig.gG ? buttonConfig.c : $elm$core$Maybe$Nothing
+				aI: buttonConfig.gF ? buttonConfig.c : $elm$core$Maybe$Nothing
 			});
 	};
-	var defButtonConfig = {a7: _List_Nil, gG: !config.u, aR: '', c: $elm$core$Maybe$Nothing};
+	var defButtonConfig = {a8: _List_Nil, gF: !config.u, aR: '', c: $elm$core$Maybe$Nothing};
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		_List_fromArray(
@@ -59615,90 +59828,90 @@ var $author$project$PageEditor$PageEditor$mainInterface = function (config) {
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$file($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && config.d6,
+								gF: (!config.u) && config.d6,
 								aR: 'Nouvelle page',
 								c: $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$NewPage)
 							}),
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$plusSquare($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && config.dS,
+								gF: (!config.u) && config.dS,
 								aR: 'Ajouter',
 								c: $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$AddNewInside)
 							}),
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$plusSquare($author$project$PageEditor$PageEditor$iconSize),
 										$author$project$Internals$Icons$chevronsUp($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && (!config.bl),
+								gF: (!config.u) && (!config.bm),
 								aR: 'Ajouter au dessus',
 								c: $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$AddNewLeft)
 							}),
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$plusSquare($author$project$PageEditor$PageEditor$iconSize),
 										$author$project$Internals$Icons$chevronsDown($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && (!config.bl),
+								gF: (!config.u) && (!config.bm),
 								aR: 'Ajouter en dessous',
 								c: $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$AddNewRight)
 							}),
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$edit($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && (!config.bl),
+								gF: (!config.u) && (!config.bm),
 								aR: 'Modifier',
 								c: config.dS ? $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$EditContainer) : $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$EditCell)
 							}),
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$xSquare($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && (!config.bl),
+								gF: (!config.u) && (!config.bm),
 								aR: 'Supprimer',
 								c: $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$DeleteSelected)
 							}),
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$chevronsUp($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && (!config.bl),
+								gF: (!config.u) && (!config.bm),
 								aR: 'Monter',
 								c: $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$SwapLeft)
 							}),
 							_Utils_update(
 							defButtonConfig,
 							{
-								a7: _List_fromArray(
+								a8: _List_fromArray(
 									[
 										$author$project$Internals$Icons$chevronsDown($author$project$PageEditor$PageEditor$iconSize)
 									]),
-								gG: (!config.u) && (!config.bl),
+								gF: (!config.u) && (!config.bm),
 								aR: 'Descendre',
 								c: $elm$core$Maybe$Just($author$project$PageEditor$PageEditor$SwapRight)
 							})
@@ -59746,7 +59959,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$blockLinksPreview 
 				[
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 					$mdgriffith$elm_ui$Element$height(
-					A2($mdgriffith$elm_ui$Element$maximum, config.jy - 300, $mdgriffith$elm_ui$Element$fill)),
+					A2($mdgriffith$elm_ui$Element$maximum, config.jx - 300, $mdgriffith$elm_ui$Element$fill)),
 					$mdgriffith$elm_ui$Element$scrollbarY
 				]),
 			A3(
@@ -59766,10 +59979,10 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$blockLinksPreview 
 										model.l,
 										$elm$core$Maybe$Just(id)) ? $mdgriffith$elm_ui$Element$Border$shadow(
 										{
-											id: 10,
-											iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-											kE: _Utils_Tuple2(4, 4),
-											fK: 5
+											ic: 10,
+											iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+											kD: _Utils_Tuple2(4, 4),
+											fJ: 5
 										}) : $author$project$Internals$CommonStyleHelpers$noAttr,
 										$mdgriffith$elm_ui$Element$padding(7)
 									]),
@@ -59777,7 +59990,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$blockLinksPreview 
 									$author$project$Document$DocumentViews$DocumentView$renderBlocksLinksMeta,
 									1,
 									config,
-									{bp: $elm$core$Set$empty, bv: $elm$core$Maybe$Nothing, bD: $elm$core$Maybe$Nothing, cW: 0},
+									{br: $elm$core$Set$empty, bx: $elm$core$Maybe$Nothing, bE: $elm$core$Maybe$Nothing, cW: 0},
 									_List_Nil,
 									block)),
 							acc);
@@ -59793,7 +60006,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$bottomInterfaceVie
 		[
 			$mdgriffith$elm_ui$Element$spacing(15),
 			$mdgriffith$elm_ui$Element$paddingEach(
-			{a2: 15, bb: 0, bk: 0, bo: 0})
+			{a2: 15, bc: 0, bl: 0, bq: 0})
 		]),
 	_List_fromArray(
 		[
@@ -59802,14 +60015,14 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$bottomInterfaceVie
 			$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 			{
 				N: $mdgriffith$elm_ui$Element$text('Quitter'),
-				aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$Quit)
+				aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$Quit)
 			}),
 			A2(
 			$mdgriffith$elm_ui$Element$Input$button,
 			$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 			{
 				N: $mdgriffith$elm_ui$Element$text('Valider et Quitter'),
-				aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SaveAndQuit)
+				aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SaveAndQuit)
 			})
 		]));
 var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$AddBlock = {$: 10};
@@ -59847,7 +60060,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseDocView = F5
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0}),
+					{a2: 15, bc: 0, bl: 0, bq: 0}),
 					$mdgriffith$elm_ui$Element$spacing(15)
 				]),
 			_List_fromArray(
@@ -59909,10 +60122,10 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseDocView = F5
 					A2(
 					$author$project$FileExplorer$FileExplorer$view,
 					{
-						bd: logInfo,
-						fs: A2($elm$core$Basics$max, 250, renderConfig.jy - 400),
+						be: logInfo,
+						fr: A2($elm$core$Basics$max, 250, renderConfig.jx - 400),
 						g: $author$project$FileExplorer$FileExplorer$ReadWrite(1),
-						fZ: zone
+						fY: zone
 					},
 					fileExplorer),
 					A2(
@@ -59928,7 +60141,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseDocView = F5
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY(
 										$author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SetSelector(0)))
 							}),
@@ -59966,7 +60179,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseDocView = F5
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$text('Valider'))
 											])),
-									aG: A2(
+									aI: A2(
 										$elm$core$Maybe$map,
 										A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$ConfirmDocUrl),
 										$author$project$FileExplorer$FileExplorer$getSelectedDoc(fileExplorer))
@@ -59984,7 +60197,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseInternalPage
 			_List_fromArray(
 				[
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0}),
+					{a2: 15, bc: 0, bl: 0, bq: 0}),
 					$mdgriffith$elm_ui$Element$spacing(15),
 					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 				]),
@@ -60034,10 +60247,10 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseInternalPage
 					A2(
 					$author$project$PageTreeEditor$PageTreeEditor$view,
 					{
-						bd: logInfo,
-						fs: A2($elm$core$Basics$max, 250, renderConfig.jy - 400),
+						be: logInfo,
+						fr: A2($elm$core$Basics$max, 250, renderConfig.jx - 400),
 						g: 4,
-						fZ: zone
+						fY: zone
 					},
 					pageTreeEditor),
 					A2(
@@ -60053,7 +60266,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseInternalPage
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY(
 										$author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SetSelector(0)))
 							}),
@@ -60091,7 +60304,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseInternalPage
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$text('Valider'))
 											])),
-									aG: A2(
+									aI: A2(
 										$elm$core$Maybe$map,
 										A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$ConfirmInternalPageUrl),
 										A2(
@@ -60100,7 +60313,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseInternalPage
 											A2(
 												$elm$core$Maybe$andThen,
 												function ($) {
-													return $.kg;
+													return $.kf;
 												},
 												$author$project$PageTreeEditor$PageTreeEditor$internalPageSelectedPageInfo(pageTreeEditor))))
 								}))
@@ -60118,17 +60331,17 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$imagePickerView = 
 				[
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0})
+					{a2: 15, bc: 0, bl: 0, bq: 0})
 				]),
 			_List_fromArray(
 				[
 					A2(
 					$author$project$FileExplorer$FileExplorer$view,
 					{
-						bd: config.bd,
-						fs: A2($elm$core$Basics$max, 250, renderConfig.jy - 400),
+						be: config.be,
+						fr: A2($elm$core$Basics$max, 250, renderConfig.jx - 400),
 						g: $author$project$FileExplorer$FileExplorer$ReadWrite(0),
-						fZ: config.fZ
+						fY: config.fY
 					},
 					config.fe),
 					A2(
@@ -60145,7 +60358,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$imagePickerView = 
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY(
 										$author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SetSelector(0)))
 							}),
@@ -60157,13 +60370,13 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$imagePickerView = 
 									$elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									A2(
 										$elm$core$Basics$composeL,
 										A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SelectImage),
 										function ($) {
-											return $.fL;
+											return $.fK;
 										}),
 									$author$project$FileExplorer$FileExplorer$getSelectedImage(config.fe))
 							})
@@ -60196,7 +60409,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$dropDownView = F3(
 							{
 								N: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
 								dK: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SetLinkType),
-								g3: _List_fromArray(
+								g2: _List_fromArray(
 									[
 										A2(
 										$mdgriffith$elm_ui$Element$Input$option,
@@ -60211,15 +60424,15 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$dropDownView = F3(
 										2,
 										$mdgriffith$elm_ui$Element$text('Lien externe'))
 									]),
-								hn: $elm$core$Maybe$Just(model.dD)
+								hm: $elm$core$Maybe$Just(model.dD)
 							}),
 							function () {
 							var _v1 = model.dD;
 							switch (_v1) {
 								case 0:
-									return A5($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseInternalPageView, model, renderConfig, config.I, config.fZ, config.bd);
+									return A5($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseInternalPageView, model, renderConfig, config.I, config.fY, config.be);
 								case 1:
-									return A5($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseDocView, model, renderConfig, config.fe, config.fZ, config.bd);
+									return A5($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$chooseDocView, model, renderConfig, config.fe, config.fY, config.be);
 								default:
 									return A2(
 										$mdgriffith$elm_ui$Element$column,
@@ -60258,20 +60471,20 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$dropDownView = F3(
 																	$mdgriffith$elm_ui$Element$text('Url lien externe: '))),
 															dK: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$ExternalLinkPromptInput),
 															dP: $elm$core$Maybe$Nothing,
-															dW: _Utils_eq(model.bA, $elm$core$Maybe$Nothing) ? A2(
+															dW: _Utils_eq(model.bB, $elm$core$Maybe$Nothing) ? A2(
 																$elm$core$Maybe$withDefault,
 																'',
 																A2(
 																	$elm$core$Maybe$map,
 																	function (block) {
-																		return block.hz ? block.d0 : '';
+																		return block.hy ? block.d0 : '';
 																	},
 																	A2(
 																		$elm$core$Maybe$andThen,
 																		function (id) {
 																			return A2($elm$core$Dict$get, id, model.j);
 																		},
-																		model.l))) : A2($elm$core$Maybe$withDefault, '', model.bA)
+																		model.l))) : A2($elm$core$Maybe$withDefault, '', model.bB)
 														})
 													])),
 												A2(
@@ -60287,22 +60500,22 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$dropDownView = F3(
 														$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 														{
 															N: $mdgriffith$elm_ui$Element$text('Retour'),
-															aG: $elm$core$Maybe$Just(
+															aI: $elm$core$Maybe$Just(
 																model.bY(
 																	$author$project$PageEditor$EditorPlugins$BlockLinksPlugin$SetSelector(0)))
 														}),
 														A2(
 														$mdgriffith$elm_ui$Element$Input$button,
 														$author$project$Internals$CommonStyleHelpers$buttonStyle(
-															!_Utils_eq(model.bA, $elm$core$Maybe$Nothing)),
+															!_Utils_eq(model.bB, $elm$core$Maybe$Nothing)),
 														{
 															N: $mdgriffith$elm_ui$Element$text('Valider'),
-															aG: A2(
+															aI: A2(
 																$elm$core$Maybe$map,
 																function (_v2) {
 																	return model.bY($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$ConfirmExternalLink);
 																},
-																model.bA)
+																model.bB)
 														})
 													]))
 											]));
@@ -60334,10 +60547,10 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 									A2($mdgriffith$elm_ui$Element$maximum, 920, $mdgriffith$elm_ui$Element$shrink))),
 								$mdgriffith$elm_ui$Element$Border$shadow(
 								{
-									id: 10,
-									iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-									kE: _Utils_Tuple2(4, 4),
-									fK: 5
+									ic: 10,
+									iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+									kD: _Utils_Tuple2(4, 4),
+									fJ: 5
 								})
 							]),
 						A3($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$dropDownView, config, renderConfig, model)))
@@ -60393,7 +60606,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 								!_Utils_eq(model.b3, $elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$UpdateLabel))
 							}),
 							A2(
@@ -60402,7 +60615,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 								(!_Utils_eq(model.l, $elm$core$Maybe$Nothing)) && (!model.a$)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Modifier Image'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									function (_v0) {
 										return model.bY(
@@ -60416,7 +60629,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 								(!_Utils_eq(model.l, $elm$core$Maybe$Nothing)) && (!model.a$)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Modifier lien'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									function (_v1) {
 										return model.bY(
@@ -60438,7 +60651,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Nouveau bloc'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$AddBlock))
 							}),
 							A2(
@@ -60447,7 +60660,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 								!_Utils_eq(model.l, $elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Supprimer bloc'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									function (_v2) {
 										return model.bY($author$project$PageEditor$EditorPlugins$BlockLinksPlugin$RemoveBlock);
@@ -60460,7 +60673,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 								!_Utils_eq(model.l, $elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Déplacer à gauche'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									function (_v3) {
 										return model.bY(
@@ -60474,7 +60687,7 @@ var $author$project$PageEditor$EditorPlugins$BlockLinksPlugin$topInterfaceView =
 								!_Utils_eq(model.l, $elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Déplacer à droite'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									function (_v4) {
 										return model.bY(
@@ -60523,7 +60736,7 @@ var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$itemStyle = _Li
 		$mdgriffith$elm_ui$Element$Border$rounded(5)
 	]);
 var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$changeContainerTypeView = function (config) {
-	var containerLabel = config.gf.bq;
+	var containerLabel = config.ge.bs;
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		$author$project$PageEditor$EditorPlugins$ContainerEditPlugin$itemStyle,
@@ -60558,8 +60771,8 @@ var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$changeContainer
 									[
 										$mdgriffith$elm_ui$Element$text('Colonne')
 									])),
-							aG: (!(!containerLabel)) ? $elm$core$Maybe$Just(
-								config.fP(0)) : $elm$core$Maybe$Nothing
+							aI: (!(!containerLabel)) ? $elm$core$Maybe$Just(
+								config.fO(0)) : $elm$core$Maybe$Nothing
 						}),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
@@ -60575,8 +60788,8 @@ var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$changeContainer
 									[
 										$mdgriffith$elm_ui$Element$text('Ligne')
 									])),
-							aG: (containerLabel !== 1) ? $elm$core$Maybe$Just(
-								config.fP(1)) : $elm$core$Maybe$Nothing
+							aI: (containerLabel !== 1) ? $elm$core$Maybe$Just(
+								config.fO(1)) : $elm$core$Maybe$Nothing
 						}),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
@@ -60592,14 +60805,14 @@ var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$changeContainer
 									[
 										$mdgriffith$elm_ui$Element$text('Colonne de texte')
 									])),
-							aG: (containerLabel !== 2) ? $elm$core$Maybe$Just(
-								config.fP(2)) : $elm$core$Maybe$Nothing
+							aI: (containerLabel !== 2) ? $elm$core$Maybe$Just(
+								config.fO(2)) : $elm$core$Maybe$Nothing
 						})
 					]))
 			]));
 };
 var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$changeContainerWidthView = function (config) {
-	var attrs = config.gf.x;
+	var attrs = config.ge.x;
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		_Utils_ap($author$project$PageEditor$EditorPlugins$ContainerEditPlugin$itemStyle, _List_Nil),
@@ -60618,8 +60831,8 @@ var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$changeContainer
 					]),
 				{
 					N: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
-					dK: config.mm,
-					g3: _List_fromArray(
+					dK: config.ml,
+					g2: _List_fromArray(
 						[
 							A2(
 							$mdgriffith$elm_ui$Element$Input$option,
@@ -60634,7 +60847,7 @@ var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$changeContainer
 								$elm$core$Maybe$Just($author$project$Document$Document$WidthShrink)),
 							$mdgriffith$elm_ui$Element$text('contenu'))
 						]),
-					hn: A2($elm$core$List$member, $author$project$Document$Document$WidthShrink, attrs) ? $elm$core$Maybe$Just(
+					hm: A2($elm$core$List$member, $author$project$Document$Document$WidthShrink, attrs) ? $elm$core$Maybe$Just(
 						_Utils_Tuple2(
 							$elm$core$Maybe$Just($author$project$Document$Document$WidthFill),
 							$elm$core$Maybe$Just($author$project$Document$Document$WidthShrink))) : $elm$core$Maybe$Just(
@@ -60685,7 +60898,7 @@ var $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$view = function
 								[
 									$mdgriffith$elm_ui$Element$text('Retour')
 								])),
-						aG: $elm$core$Maybe$Just(config.jt)
+						aI: $elm$core$Maybe$Just(config.js)
 					})
 				])));
 };
@@ -60721,7 +60934,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$selectView = F4(
 	});
 var $author$project$PageEditor$EditorPlugins$FichesPlugin$activSelector = F2(
 	function (_v0, model) {
-		var genDirEditor = _v0.gq;
+		var genDirEditor = _v0.gp;
 		var activites = $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeActivs(
 			$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$fichesData(genDirEditor));
 		return A2(
@@ -60761,7 +60974,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$activSelector = F2(
 							return A4(
 								$author$project$PageEditor$EditorPlugins$FichesPlugin$selectView,
 								false,
-								model.hQ,
+								model.hP,
 								$author$project$PageEditor$EditorPlugins$FichesPlugin$FilterByActiv(e),
 								e);
 						},
@@ -60773,7 +60986,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$FilterByCat = function
 };
 var $author$project$PageEditor$EditorPlugins$FichesPlugin$catSelector = F2(
 	function (_v0, model) {
-		var genDirEditor = _v0.gq;
+		var genDirEditor = _v0.gp;
 		var categories = $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeCats(
 			$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$fichesData(genDirEditor));
 		return A2(
@@ -60813,7 +61026,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$catSelector = F2(
 							return A4(
 								$author$project$PageEditor$EditorPlugins$FichesPlugin$selectView,
 								false,
-								model.ip,
+								model.io,
 								$author$project$PageEditor$EditorPlugins$FichesPlugin$FilterByCat(e),
 								e);
 						},
@@ -60886,7 +61099,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$checkView = F3(
 var $author$project$PageEditor$EditorPlugins$FichesPlugin$ficheSelector = F2(
 	function (config, model) {
 		var isChecked = function (fId) {
-			return A2($elm$core$Set$member, fId, model.ah);
+			return A2($elm$core$Set$member, fId, model.ai);
 		};
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
@@ -60936,7 +61149,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$ficheSelector = F2(
 									function (_v0) {
 										var k = _v0.a;
 										var v = _v0.b;
-										return _Utils_Tuple2(k, v.kC);
+										return _Utils_Tuple2(k, v.kB);
 									},
 									A2($author$project$PageEditor$EditorPlugins$FichesPlugin$filteredFiches, config, model))))
 						])),
@@ -60968,7 +61181,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$ficheSelector = F2(
 							{
 								N: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
 								dK: $author$project$PageEditor$EditorPlugins$FichesPlugin$GroupSel,
-								g3: _List_fromArray(
+								g2: _List_fromArray(
 									[
 										A2(
 										$mdgriffith$elm_ui$Element$Input$option,
@@ -60979,7 +61192,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$ficheSelector = F2(
 										1,
 										$mdgriffith$elm_ui$Element$text('Rien'))
 									]),
-								hn: model.a6
+								hm: model.a7
 							})
 						]))
 				]));
@@ -60989,7 +61202,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$FilterByLabel = functi
 };
 var $author$project$PageEditor$EditorPlugins$FichesPlugin$labelSelector = F2(
 	function (_v0, model) {
-		var genDirEditor = _v0.gq;
+		var genDirEditor = _v0.gp;
 		var labels = $author$project$GeneralDirectoryEditor$GeneralDirHelpers$computeLabels(
 			$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$fichesData(genDirEditor));
 		return A2(
@@ -61029,14 +61242,14 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$labelSelector = F2(
 							return A4(
 								$author$project$PageEditor$EditorPlugins$FichesPlugin$selectView,
 								false,
-								model.j$,
+								model.j_,
 								$author$project$PageEditor$EditorPlugins$FichesPlugin$FilterByLabel(e),
 								e);
 						},
 						A2(
 							$elm$core$List$map,
 							function ($) {
-								return $.kB;
+								return $.kA;
 							},
 							labels)))
 				]));
@@ -61046,7 +61259,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$FilterByName = functio
 };
 var $author$project$PageEditor$EditorPlugins$FichesPlugin$nameSelector = F2(
 	function (_v0, model) {
-		var genDirEditor = _v0.gq;
+		var genDirEditor = _v0.gp;
 		return A2(
 			$mdgriffith$elm_ui$Element$row,
 			$author$project$PageEditor$EditorPlugins$FichesPlugin$formItemStyle,
@@ -61070,7 +61283,7 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$nameSelector = F2(
 								$mdgriffith$elm_ui$Element$Input$placeholder,
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$text('Filtrer par nom entité'))),
-						dW: A2($elm$core$Maybe$withDefault, '', model.kn)
+						dW: A2($elm$core$Maybe$withDefault, '', model.km)
 					})
 				]));
 	});
@@ -61129,15 +61342,15 @@ var $author$project$PageEditor$EditorPlugins$FichesPlugin$view = F2(
 									$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Retour'),
-										aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$FichesPlugin$Quit)
+										aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$FichesPlugin$Quit)
 									}),
 									A2(
 									$mdgriffith$elm_ui$Element$Input$button,
 									$author$project$Internals$CommonStyleHelpers$buttonStyle(
-										!_Utils_eq(model.ah, $elm$core$Set$empty)),
+										!_Utils_eq(model.ai, $elm$core$Set$empty)),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Valider'),
-										aG: (!_Utils_eq(model.ah, $elm$core$Set$empty)) ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$FichesPlugin$SaveAndQuit) : $elm$core$Maybe$Nothing
+										aI: (!_Utils_eq(model.ai, $elm$core$Set$empty)) ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$FichesPlugin$SaveAndQuit) : $elm$core$Maybe$Nothing
 									})
 								]))
 						]))));
@@ -61168,8 +61381,8 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$SwapUp = function (a)
 };
 var $author$project$PageEditor$EditorPlugins$GalleryPlugin$captionEditorView = F3(
 	function (lockedPic, id, imgMeta) {
-		var src = imgMeta.fL;
-		var caption = imgMeta.f8;
+		var src = imgMeta.fK;
+		var caption = imgMeta.f7;
 		if (!src.$) {
 			var src_ = src.a;
 			var isLocked = _Utils_eq(
@@ -61245,7 +61458,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$captionEditorView = F
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$chevronsUp(18))),
-									aG: isLocked ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+									aI: isLocked ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
 										$author$project$PageEditor$EditorPlugins$GalleryPlugin$SwapUp(id))
 								}),
 								A2(
@@ -61257,7 +61470,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$captionEditorView = F
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$chevronsDown(18))),
-									aG: isLocked ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+									aI: isLocked ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
 										$author$project$PageEditor$EditorPlugins$GalleryPlugin$SwapDown(id))
 								}),
 								A2(
@@ -61269,7 +61482,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$captionEditorView = F
 										_List_Nil,
 										$mdgriffith$elm_ui$Element$html(
 											$author$project$Internals$Icons$xSquare(18))),
-									aG: isLocked ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+									aI: isLocked ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
 										$author$project$PageEditor$EditorPlugins$GalleryPlugin$DeletePic(id))
 								})
 							]))
@@ -61329,14 +61542,14 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$galleryEditorView = F
 												[$mdgriffith$elm_ui$Element$alignRight])),
 										{
 											N: $mdgriffith$elm_ui$Element$text('Ajouter images'),
-											aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$ImagesRequested)
+											aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$ImagesRequested)
 										})
 									]))
 							]),
 						A2(
 							$elm$core$List$indexedMap,
 							$author$project$PageEditor$EditorPlugins$GalleryPlugin$captionEditorView(model.cH),
-							output.jJ))),
+							output.jI))),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
 					_Utils_ap(
@@ -61348,26 +61561,26 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$galleryEditorView = F
 							])),
 					_List_fromArray(
 						[
-							(!model.fM) ? A2(
+							(!model.fL) ? A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Reset)
+								aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Reset)
 							}) : $mdgriffith$elm_ui$Element$none,
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Annuler'),
-								aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Quit)
+								aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Quit)
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider et quitter'),
-								aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$SaveAndQuit)
+								aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$SaveAndQuit)
 							})
 						]))
 				]);
@@ -61382,8 +61595,8 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$ToogleKeepHqAssets = 
 var $mdgriffith$elm_ui$Element$Input$checkbox = F2(
 	function (attrs, _v0) {
 		var label = _v0.N;
-		var icon = _v0.jD;
-		var checked = _v0.iu;
+		var icon = _v0.jC;
+		var checked = _v0.it;
 		var onChange = _v0.dK;
 		var attributes = _Utils_ap(
 			_List_fromArray(
@@ -61701,7 +61914,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$homeView = F2(
 											$mdgriffith$elm_ui$Element$Input$placeholder,
 											_List_Nil,
 											$mdgriffith$elm_ui$Element$text('Nom de l\'album'))),
-									dW: A2($elm$core$Maybe$withDefault, '', model.a4)
+									dW: A2($elm$core$Maybe$withDefault, '', model.a5)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$checkbox,
@@ -61710,8 +61923,8 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$homeView = F2(
 										$mdgriffith$elm_ui$Element$spacing(5)
 									]),
 								{
-									iu: model.a9,
-									jD: function (b) {
+									it: model.ba,
+									jC: function (b) {
 										return b ? A2(
 											$mdgriffith$elm_ui$Element$el,
 											_List_fromArray(
@@ -61737,10 +61950,10 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$homeView = F2(
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(
-									!_Utils_eq(model.a4, $elm$core$Maybe$Nothing)),
+									!_Utils_eq(model.a5, $elm$core$Maybe$Nothing)),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Nouvel album'),
-									aG: (!_Utils_eq(model.a4, $elm$core$Maybe$Nothing)) ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$ImagesRequested) : $elm$core$Maybe$Nothing
+									aI: (!_Utils_eq(model.a5, $elm$core$Maybe$Nothing)) ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$ImagesRequested) : $elm$core$Maybe$Nothing
 								})
 							]))
 					])),
@@ -61761,7 +61974,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$homeView = F2(
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Annuler'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Quit)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Quit)
 						})
 					]))
 			]);
@@ -61838,14 +62051,14 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$imageProcessingView =
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Annuler'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Reset)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Reset)
 						}),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(canUpload),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Continuer'),
-							aG: canUpload ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$GoToUpload) : $elm$core$Maybe$Nothing
+							aI: canUpload ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$GoToUpload) : $elm$core$Maybe$Nothing
 						})
 					]))
 			]);
@@ -61971,7 +62184,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$uploadView = F2(
 													$mdgriffith$elm_ui$Element$height(
 													$mdgriffith$elm_ui$Element$px(105)),
 													$mdgriffith$elm_ui$Element$centerX,
-													$mdgriffith$elm_ui$Element$Background$uncropped(p.iJ),
+													$mdgriffith$elm_ui$Element$Background$uncropped(p.iI),
 													$mdgriffith$elm_ui$Element$alignLeft
 												]),
 											$mdgriffith$elm_ui$Element$none)),
@@ -62000,7 +62213,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$uploadView = F2(
 														$basti1302$elm_human_readable_filesize$Filesize$format,
 														A2($elm$core$Dict$get, p.D, model.b0)))),
 												$mdgriffith$elm_ui$Element$text(
-												'Nouvelle taille: ' + $basti1302$elm_human_readable_filesize$Filesize$format(p.fK)),
+												'Nouvelle taille: ' + $basti1302$elm_human_readable_filesize$Filesize$format(p.fJ)),
 												A2(
 												$mdgriffith$elm_ui$Element$row,
 												_List_fromArray(
@@ -62062,7 +62275,7 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$uploadView = F2(
 																	$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 																	{
 																		N: $mdgriffith$elm_ui$Element$text('Réessayer'),
-																		aG: $elm$core$Maybe$Just(
+																		aI: $elm$core$Maybe$Just(
 																			$author$project$PageEditor$EditorPlugins$GalleryPlugin$ManualUpload(p.D))
 																	});
 															} else {
@@ -62095,14 +62308,14 @@ var $author$project$PageEditor$EditorPlugins$GalleryPlugin$uploadView = F2(
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Annuler'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Reset)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$Reset)
 						}),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(canEdit),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Continuer'),
-							aG: canEdit ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$GoToEdit) : $elm$core$Maybe$Nothing
+							aI: canEdit ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$GalleryPlugin$GoToEdit) : $elm$core$Maybe$Nothing
 						})
 					]))
 			]);
@@ -62190,7 +62403,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imageAttributeEditorVie
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$alignLeft($author$project$PageEditor$EditorPlugins$ImagePlugin$iconSize))),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$ImagePlugin$SetAlignment(2))
 						}),
 						A2(
@@ -62202,7 +62415,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imageAttributeEditorVie
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$alignCenter($author$project$PageEditor$EditorPlugins$ImagePlugin$iconSize))),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$ImagePlugin$SetAlignment(1))
 						}),
 						A2(
@@ -62214,7 +62427,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imageAttributeEditorVie
 								_List_Nil,
 								$mdgriffith$elm_ui$Element$html(
 									$author$project$Internals$Icons$alignRight($author$project$PageEditor$EditorPlugins$ImagePlugin$iconSize))),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$ImagePlugin$SetAlignment(0))
 						})
 					])),
@@ -62281,7 +62494,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imageAttributeEditorVie
 										$mdgriffith$elm_ui$Element$text('Remplacer Image'));
 								}
 							}(),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$ImagePlugin$ChangeMode(1))
 						})
 					])),
@@ -62301,7 +62514,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imageAttributeEditorVie
 						[$mdgriffith$elm_ui$Element$centerY, $mdgriffith$elm_ui$Element$centerX]),
 					{
 						fa: A2($elm$core$Maybe$withDefault, '', model.b6),
-						fL: A2(
+						fK: A2(
 							$elm$core$Maybe$withDefault,
 							'',
 							A2(
@@ -62318,7 +62531,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imageAttributeEditorVie
 								A2(
 									$elm$core$Maybe$map,
 									function ($) {
-										return $.fL;
+										return $.fK;
 									},
 									model.b7)))
 					})),
@@ -62335,14 +62548,14 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imageAttributeEditorVie
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Quitter'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$ImagePlugin$Quit)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$ImagePlugin$Quit)
 						}),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Valider et Quitter'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$ImagePlugin$SaveAndQuit)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$ImagePlugin$SaveAndQuit)
 						})
 					]))
 			]));
@@ -62358,17 +62571,17 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imagePickerView = F2(
 				[
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0})
+					{a2: 15, bc: 0, bl: 0, bq: 0})
 				]),
 			_List_fromArray(
 				[
 					A2(
 					$author$project$FileExplorer$FileExplorer$view,
 					{
-						bd: config.bd,
-						fs: config.fs - 50,
+						be: config.be,
+						fr: config.fr - 50,
 						g: $author$project$FileExplorer$FileExplorer$ReadWrite(0),
-						fZ: config.fZ
+						fY: config.fY
 					},
 					config.fe),
 					A2(
@@ -62385,7 +62598,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imagePickerView = F2(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY(
 										$author$project$PageEditor$EditorPlugins$ImagePlugin$ChangeMode(0)))
 							}),
@@ -62397,7 +62610,7 @@ var $author$project$PageEditor$EditorPlugins$ImagePlugin$imagePickerView = F2(
 									$elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$EditorPlugins$ImagePlugin$SelectImage),
 									$author$project$FileExplorer$FileExplorer$getSelectedImage(config.fe))
@@ -62485,7 +62698,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Créer colonne')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.e2(0))
 								}),
 								A2(
@@ -62502,10 +62715,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Créer ligne')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.e2(1))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62519,7 +62732,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Créer colonne de texte')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.e2(2))
 								})
 							]))
@@ -62566,7 +62779,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Bloc de texte')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$TextBlockPlugin))
 								}),
 								A2(
@@ -62583,7 +62796,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Zone blocs de liens')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$BlockLinksPlugin))
 								}),
 								A2(
@@ -62600,7 +62813,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Zone de fiches')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$FichesPlugin))
 								}),
 								A2(
@@ -62617,7 +62830,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Image')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$ImagePlugin))
 								}),
 								A2(
@@ -62634,7 +62847,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Video')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$VideoPlugin))
 								}),
 								A2(
@@ -62651,10 +62864,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Tableau')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$TablePlugin))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62668,7 +62881,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Bandeau liens images')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$PictureLinksPlugin))
 								}),
 								A2(
@@ -62685,10 +62898,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Album photothèque')
 											])),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										config.bV($author$project$PageEditor$Internals$DocumentEditorHelpers$GalleryPlugin))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62702,10 +62915,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Zone actualités')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('NewsBlock'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('NewsBlock'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62719,10 +62932,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Mini calendrier')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('CalendarWidget'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('CalendarWidget'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62736,10 +62949,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Calendrier animation')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('Calendar'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('Calendar'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62753,10 +62966,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Calendrier salle Murol')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('CalendarSalleMurol'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('CalendarSalleMurol'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62770,10 +62983,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Calendrier salle Beaune')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('CalendarSalleBeaune'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('CalendarSalleBeaune'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62787,10 +63000,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Météo')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('WeatherWidget'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('WeatherWidget'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62804,10 +63017,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Panoramique aérien')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('DronePanorama'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('DronePanorama'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62821,10 +63034,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Murol infos')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('MurolInfos'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('MurolInfos'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62838,10 +63051,10 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Délibérations')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('Delibs'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('Delibs'))
 								}),
-								(!config.aK) ? $mdgriffith$elm_ui$Element$none : A2(
+								(!config.aL) ? $mdgriffith$elm_ui$Element$none : A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
@@ -62855,8 +63068,8 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 											[
 												$mdgriffith$elm_ui$Element$text('Bulletins municipaux')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.a8('Bulletins'))
+									aI: $elm$core$Maybe$Just(
+										config.a9('Bulletins'))
 								})
 							]))
 					])),
@@ -62874,7 +63087,7 @@ var $author$project$PageEditor$EditorPlugins$NewDocPlugin$view = function (confi
 							[
 								$mdgriffith$elm_ui$Element$text('Retour')
 							])),
-					aG: $elm$core$Maybe$Just(config.jt)
+					aI: $elm$core$Maybe$Just(config.js)
 				})
 			]));
 };
@@ -62906,17 +63119,17 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$imagePickerView 
 				[
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 					$mdgriffith$elm_ui$Element$paddingEach(
-					{a2: 15, bb: 0, bk: 0, bo: 0})
+					{a2: 15, bc: 0, bl: 0, bq: 0})
 				]),
 			_List_fromArray(
 				[
 					A2(
 					$author$project$FileExplorer$FileExplorer$view,
 					{
-						bd: config.bd,
-						fs: 500,
+						be: config.be,
+						fr: 500,
 						g: $author$project$FileExplorer$FileExplorer$ReadWrite(0),
-						fZ: config.fZ
+						fY: config.fY
 					},
 					config.fe),
 					A2(
@@ -62933,7 +63146,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$imagePickerView 
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$ClosePicker))
 							}),
 							A2(
@@ -62944,7 +63157,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$imagePickerView 
 									$elm$core$Maybe$Nothing)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: A2(
+								aI: A2(
 									$elm$core$Maybe$map,
 									A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$NewPicLink),
 									$author$project$FileExplorer$FileExplorer$getSelectedImage(config.fe))
@@ -62964,7 +63177,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$SelectPic = func
 var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$picLinkListView = F2(
 	function (mbSelected, xs) {
 		var picLinkView = function (_v1) {
-			var uuid = _v1.fT;
+			var uuid = _v1.fS;
 			var picLink = _v1.ce;
 			return A2(
 				$mdgriffith$elm_ui$Element$row,
@@ -63000,7 +63213,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$picLinkListView 
 								$mdgriffith$elm_ui$Element$px(100)),
 								$mdgriffith$elm_ui$Element$Background$uncropped(
 								function () {
-									var _v0 = picLink.jK.fL;
+									var _v0 = picLink.jJ.fK;
 									if (!_v0.$) {
 										var s = _v0.a;
 										return s;
@@ -63055,7 +63268,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 										$mdgriffith$elm_ui$Element$spacing(15),
 										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 										$mdgriffith$elm_ui$Element$below(
-										(!model.c6) ? $mdgriffith$elm_ui$Element$none : A2(
+										(!model.c5) ? $mdgriffith$elm_ui$Element$none : A2(
 											$mdgriffith$elm_ui$Element$el,
 											_List_fromArray(
 												[
@@ -63068,10 +63281,10 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 														A2($mdgriffith$elm_ui$Element$maximum, 920, $mdgriffith$elm_ui$Element$shrink))),
 													$mdgriffith$elm_ui$Element$Border$shadow(
 													{
-														id: 10,
-														iB: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
-														kE: _Utils_Tuple2(4, 4),
-														fK: 5
+														ic: 10,
+														iA: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.45),
+														kD: _Utils_Tuple2(4, 4),
+														fJ: 5
 													})
 												]),
 											A2($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$imagePickerView, config, model)))
@@ -63083,7 +63296,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 									$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Nouveau lien image'),
-										aG: $elm$core$Maybe$Just(
+										aI: $elm$core$Maybe$Just(
 											model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$OpenPicker))
 									}),
 									A2(
@@ -63092,7 +63305,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 										!_Utils_eq(model.K, $elm$core$Maybe$Nothing)),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Monter'),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											$elm$core$Basics$always(
 												model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$MovePicUp)),
@@ -63104,7 +63317,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 										!_Utils_eq(model.K, $elm$core$Maybe$Nothing)),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Descendre'),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											$elm$core$Basics$always(
 												model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$MovePicDown)),
@@ -63116,7 +63329,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 										!_Utils_eq(model.K, $elm$core$Maybe$Nothing)),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Supprimer'),
-										aG: A2(
+										aI: A2(
 											$elm$core$Maybe$map,
 											$elm$core$Basics$always(
 												model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$RemovePic)),
@@ -63159,7 +63372,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 										(!_Utils_eq(model.bO, $elm$core$Maybe$Nothing)) && (!_Utils_eq(model.K, $elm$core$Maybe$Nothing))),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Valider'),
-										aG: ((!_Utils_eq(model.bO, $elm$core$Maybe$Nothing)) && (!_Utils_eq(model.K, $elm$core$Maybe$Nothing))) ? $elm$core$Maybe$Just(
+										aI: ((!_Utils_eq(model.bO, $elm$core$Maybe$Nothing)) && (!_Utils_eq(model.K, $elm$core$Maybe$Nothing))) ? $elm$core$Maybe$Just(
 											model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$SetUrl)) : $elm$core$Maybe$Nothing
 									})
 								])),
@@ -63197,7 +63410,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: $elm$core$Maybe$Just(
+								aI: $elm$core$Maybe$Just(
 									model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$Quit))
 							}),
 							A2(
@@ -63206,7 +63419,7 @@ var $author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view = F2(
 								!_Utils_eq(model.e, _List_Nil)),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider et quitter'),
-								aG: (!_Utils_eq(model.e, _List_Nil)) ? $elm$core$Maybe$Just(
+								aI: (!_Utils_eq(model.e, _List_Nil)) ? $elm$core$Maybe$Just(
 									model.bY($author$project$PageEditor$EditorPlugins$PictureLinksPlugin$SaveAndQuit)) : $elm$core$Maybe$Nothing
 							})
 						]))
@@ -63233,17 +63446,17 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$displayOnlyView = funct
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Modifier'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$SwapDisplayMode)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$SwapDisplayMode)
 						})
 					]))
 			]));
-	var dataForTable = $elm$core$Array$toList(model.iV);
+	var dataForTable = $elm$core$Array$toList(model.iU);
 	var columns = A2(
 		$elm$core$List$map,
 		function (ci) {
 			return {
-				jv: $mdgriffith$elm_ui$Element$none,
-				mq: F2(
+				ju: $mdgriffith$elm_ui$Element$none,
+				mp: F2(
 					function (ri, row) {
 						return A2(
 							$mdgriffith$elm_ui$Element$el,
@@ -63259,9 +63472,9 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$displayOnlyView = funct
 									A2(
 										$elm$core$Maybe$map,
 										function ($) {
-											return $.iH;
+											return $.iG;
 										},
-										A2($elm$core$Dict$get, model.ak, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))),
+										A2($elm$core$Dict$get, model.al, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))),
 							A2(
 								$mdgriffith$elm_ui$Element$el,
 								_Utils_ap(
@@ -63273,9 +63486,9 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$displayOnlyView = funct
 										A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.ir;
+												return $.iq;
 											},
-											A2($elm$core$Dict$get, model.ak, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))(ri),
+											A2($elm$core$Dict$get, model.al, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))(ri),
 									_List_fromArray(
 										[
 											A2($mdgriffith$elm_ui$Element$paddingXY, 15, 5),
@@ -63294,10 +63507,10 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$displayOnlyView = funct
 												A2($elm$core$Array$get, ci, row)))
 										]))));
 					}),
-				mu: $mdgriffith$elm_ui$Element$fill
+				mt: $mdgriffith$elm_ui$Element$fill
 			};
 		},
-		A2($elm$core$List$range, 0, model.kq - 1));
+		A2($elm$core$List$range, 0, model.kp - 1));
 	var tableView = model.cj ? A2(
 		$mdgriffith$elm_ui$Element$indexedTable,
 		A2(
@@ -63306,10 +63519,10 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$displayOnlyView = funct
 			A2(
 				$elm$core$Maybe$map,
 				function ($) {
-					return $.lW;
+					return $.lV;
 				},
-				A2($elm$core$Dict$get, model.ak, $author$project$Document$DocumentViews$StyleSheets$tableStyles))),
-		{iD: columns, iV: dataForTable}) : $mdgriffith$elm_ui$Element$none;
+				A2($elm$core$Dict$get, model.al, $author$project$Document$DocumentViews$StyleSheets$tableStyles))),
+		{iC: columns, iU: dataForTable}) : $mdgriffith$elm_ui$Element$none;
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		_List_fromArray(
@@ -63445,7 +63658,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$styleSelector = functio
 							A2(
 								$mdgriffith$elm_ui$Element$el,
 								_List_Nil,
-								$mdgriffith$elm_ui$Element$text(model.ak)))),
+								$mdgriffith$elm_ui$Element$text(model.al)))),
 					dW: model.dU
 				})
 			]));
@@ -63458,13 +63671,13 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$textInputStyle = _List_
 		$mdgriffith$elm_ui$Element$spacing(15)
 	]);
 var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (model) {
-	var dataForTable = $elm$core$Array$toList(model.iV);
+	var dataForTable = $elm$core$Array$toList(model.iU);
 	var columns = A2(
 		$elm$core$List$map,
 		function (ci) {
 			return {
-				jv: $mdgriffith$elm_ui$Element$none,
-				mq: F2(
+				ju: $mdgriffith$elm_ui$Element$none,
+				mp: F2(
 					function (ri, row) {
 						return A2(
 							$mdgriffith$elm_ui$Element$Keyed$el,
@@ -63475,9 +63688,9 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 									A2(
 										$elm$core$Maybe$map,
 										function ($) {
-											return $.iH;
+											return $.iG;
 										},
-										A2($elm$core$Dict$get, model.ak, $author$project$Document$DocumentViews$StyleSheets$tableStyles))),
+										A2($elm$core$Dict$get, model.al, $author$project$Document$DocumentViews$StyleSheets$tableStyles))),
 								_List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
@@ -63495,9 +63708,9 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 											A2(
 												$elm$core$Maybe$map,
 												function ($) {
-													return $.ir;
+													return $.iq;
 												},
-												A2($elm$core$Dict$get, model.ak, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))(ri),
+												A2($elm$core$Dict$get, model.al, $author$project$Document$DocumentViews$StyleSheets$tableStyles)))(ri),
 										_Utils_ap(
 											function () {
 												var _v1 = model.M;
@@ -63528,17 +63741,17 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 										dK: $author$project$PageEditor$EditorPlugins$TablePlugin$DataInput(
 											_Utils_Tuple2(ri, ci)),
 										dP: $elm$core$Maybe$Nothing,
-										lK: false,
+										lJ: false,
 										dW: A2(
 											$elm$core$Maybe$withDefault,
 											'',
 											A2($elm$core$Array$get, ci, row))
 									})));
 					}),
-				mu: $mdgriffith$elm_ui$Element$fill
+				mt: $mdgriffith$elm_ui$Element$fill
 			};
 		},
-		A2($elm$core$List$range, 0, model.kq - 1));
+		A2($elm$core$List$range, 0, model.kp - 1));
 	var tableView = model.cj ? A2(
 		$mdgriffith$elm_ui$Element$indexedTable,
 		A2(
@@ -63547,11 +63760,11 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 			A2(
 				$elm$core$Maybe$map,
 				function ($) {
-					return $.lW;
+					return $.lV;
 				},
-				A2($elm$core$Dict$get, model.ak, $author$project$Document$DocumentViews$StyleSheets$tableStyles))),
-		{iD: columns, iV: dataForTable}) : $mdgriffith$elm_ui$Element$none;
-	var canRemove = A2($author$project$PageEditor$EditorPlugins$TablePlugin$focusIsValid, model.M, model.iV);
+				A2($elm$core$Dict$get, model.al, $author$project$Document$DocumentViews$StyleSheets$tableStyles))),
+		{iC: columns, iU: dataForTable}) : $mdgriffith$elm_ui$Element$none;
+	var canRemove = A2($author$project$PageEditor$EditorPlugins$TablePlugin$focusIsValid, model.M, model.iU);
 	var interfaceView = model.cj ? A2(
 		$mdgriffith$elm_ui$Element$column,
 		_List_fromArray(
@@ -63573,7 +63786,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Aperçu'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$SwapDisplayMode)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$SwapDisplayMode)
 						}),
 						$author$project$PageEditor$EditorPlugins$TablePlugin$styleSelector(model),
 						A2(
@@ -63581,14 +63794,14 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(canRemove),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Supprimer ligne'),
-							aG: canRemove ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$RemoveSelectedRow) : $elm$core$Maybe$Nothing
+							aI: canRemove ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$RemoveSelectedRow) : $elm$core$Maybe$Nothing
 						}),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(canRemove),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Supprimer colonne'),
-							aG: canRemove ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$RemoveSelectedCol) : $elm$core$Maybe$Nothing
+							aI: canRemove ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$RemoveSelectedCol) : $elm$core$Maybe$Nothing
 						})
 					])),
 				A2(
@@ -63604,7 +63817,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Insérer au dessus'),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$TablePlugin$AddNew(0))
 						}),
 						A2(
@@ -63612,7 +63825,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Insérer en dessous'),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$TablePlugin$AddNew(1))
 						}),
 						A2(
@@ -63620,7 +63833,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Insérer à gauche'),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$TablePlugin$AddNew(2))
 						}),
 						A2(
@@ -63628,7 +63841,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Insérer à droite'),
-							aG: $elm$core$Maybe$Just(
+							aI: $elm$core$Maybe$Just(
 								$author$project$PageEditor$EditorPlugins$TablePlugin$AddNew(3))
 						})
 					]))
@@ -63682,7 +63895,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Créer table'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$InitializeTable)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$InitializeTable)
 						})
 					])),
 				A2(
@@ -63707,7 +63920,7 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 					[
 						$mdgriffith$elm_ui$Element$spacing(15),
 						$mdgriffith$elm_ui$Element$paddingEach(
-						{a2: 15, bb: 0, bk: 0, bo: 0})
+						{a2: 15, bc: 0, bl: 0, bq: 0})
 					]),
 				_List_fromArray(
 					[
@@ -63716,14 +63929,14 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$editView = function (mo
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Quitter'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$Quit)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$Quit)
 						}),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
 						$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 						{
 							N: $mdgriffith$elm_ui$Element$text('Valider et Quitter'),
-							aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$SaveAndQuit)
+							aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$TablePlugin$SaveAndQuit)
 						})
 					])) : $mdgriffith$elm_ui$Element$none
 			]));
@@ -63764,70 +63977,6 @@ var $author$project$PageEditor$EditorPlugins$TablePlugin$view = function (model)
 };
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$Quit = {$: 18};
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SaveAndQuit = {$: 17};
-var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$stringifyAttributes = function (attributes) {
-	return A2(
-		$elm$core$String$join,
-		' ',
-		A2(
-			$elm$core$List$map,
-			function (_v0) {
-				var attr = _v0.a;
-				var value = _v0.b;
-				return attr + (': ' + (value + ';'));
-			},
-			attributes));
-};
-var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$embeddedStyleSheet = F3(
-	function (config, renderConfig, model) {
-		var templateStylesheet = function () {
-			var tagStyle = function (_v1) {
-				var tag = _v1.a;
-				var styles = _v1.b;
-				return function (s) {
-					return '.trix-content-editor ' + (tag + ('{' + (s + '}')));
-				}(
-					A2(
-						$elm$core$String$join,
-						' ',
-						A2(
-							$elm$core$List$map,
-							function (_v0) {
-								var a = _v0.a;
-								var v = _v0.b;
-								return a + (':' + (v + ';'));
-							},
-							styles)));
-			};
-			return A2(
-				$elm$core$String$join,
-				' ',
-				A2(
-					$elm$core$List$map,
-					tagStyle,
-					$elm$core$Dict$toList(
-						$author$project$Document$DocumentViews$StyleSheets$defaultStyleSheetCss(renderConfig))));
-		}();
-		var styleSheet = A2(
-			$elm$html$Html$div,
-			_List_Nil,
-			_List_fromArray(
-				[
-					A3(
-					$elm$html$Html$node,
-					'style',
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text(
-							templateStylesheet + (' .trix-content{' + ($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$stringifyAttributes(
-								A2($elm$core$List$concatMap, $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$docAttrToCss, model.aL)) + (' \n                        \n                        }\n                    ' + ' \n\n                            .trix-content p {\n                                display: block;\n                                margin: 0;\n                                padding : 0;\n                            }\n\n                            .trix-content-editor figure{\n                                \n                            }\n                            .trix-content-editor figure:nth-of-type(2){\n                                opacity: 0.5;\n                                float: left;\n                                background-color: red;\n                                width: auto;\n                            }\n                    '))))
-						]))
-				]));
-		return A2(
-			$mdgriffith$elm_ui$Element$el,
-			_List_Nil,
-			$mdgriffith$elm_ui$Element$html(styleSheet));
-	});
 var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$view = F3(
 	function (config, renderConfig, model) {
 		return A2(
@@ -63839,7 +63988,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$view = F3(
 				]),
 			_List_fromArray(
 				[
-					A3($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$embeddedStyleSheet, config, renderConfig, model),
+					A2($author$project$Document$DocumentViews$StyleSheets$embeddedStyleSheet, renderConfig, model.R),
 					A2(
 					$mdgriffith$elm_ui$Element$column,
 					_List_fromArray(
@@ -63853,7 +64002,6 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$view = F3(
 					_List_fromArray(
 						[
 							A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$editor, config, model),
-							A2($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$textBlockPreview, model, renderConfig),
 							A2(
 							$mdgriffith$elm_ui$Element$row,
 							_List_fromArray(
@@ -63861,7 +64009,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$view = F3(
 									$mdgriffith$elm_ui$Element$spacing(15),
 									$mdgriffith$elm_ui$Element$Font$size(16),
 									$mdgriffith$elm_ui$Element$paddingEach(
-									{a2: 15, bb: 0, bk: 0, bo: 0})
+									{a2: 15, bc: 0, bl: 0, bq: 0})
 								]),
 							_List_fromArray(
 								[
@@ -63870,7 +64018,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$view = F3(
 									$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$buttonStyle(true),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Quitter'),
-										aG: $elm$core$Maybe$Just(
+										aI: $elm$core$Maybe$Just(
 											model.bY($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$Quit))
 									}),
 									A2(
@@ -63878,7 +64026,7 @@ var $author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$view = F3(
 									$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$buttonStyle(true),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Valider et Quitter'),
-										aG: $elm$core$Maybe$Just(
+										aI: $elm$core$Maybe$Just(
 											model.bY($author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$SaveAndQuit))
 									})
 								]))
@@ -63969,7 +64117,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 										$mdgriffith$elm_ui$Element$text('Copier ici le code d\'intégration:')),
 									dK: $author$project$PageEditor$EditorPlugins$VideoPlugin$SetEmbedString,
 									dP: $elm$core$Maybe$Nothing,
-									lK: false,
+									lJ: false,
 									dW: A2($elm$core$Maybe$withDefault, '', model.cR)
 								}),
 								A2(
@@ -63978,7 +64126,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 									!_Utils_eq(model.cR, $elm$core$Maybe$Nothing)),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Valider'),
-									aG: (!_Utils_eq(model.cR, $elm$core$Maybe$Nothing)) ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$VideoPlugin$ParseHtml) : $elm$core$Maybe$Nothing
+									aI: (!_Utils_eq(model.cR, $elm$core$Maybe$Nothing)) ? $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$VideoPlugin$ParseHtml) : $elm$core$Maybe$Nothing
 								})
 							])),
 						A2(
@@ -64007,7 +64155,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$html(
 													$author$project$Internals$Icons$alignLeft($author$project$PageEditor$EditorPlugins$VideoPlugin$iconSize))),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												$author$project$PageEditor$EditorPlugins$VideoPlugin$SetAlignment(2))
 										}),
 										A2(
@@ -64019,7 +64167,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$html(
 													$author$project$Internals$Icons$alignCenter($author$project$PageEditor$EditorPlugins$VideoPlugin$iconSize))),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												$author$project$PageEditor$EditorPlugins$VideoPlugin$SetAlignment(1))
 										}),
 										A2(
@@ -64031,7 +64179,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$html(
 													$author$project$Internals$Icons$alignRight($author$project$PageEditor$EditorPlugins$VideoPlugin$iconSize))),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												$author$project$PageEditor$EditorPlugins$VideoPlugin$SetAlignment(0))
 										})
 									])),
@@ -64048,8 +64196,8 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 										$mdgriffith$elm_ui$Element$Input$checkbox,
 										_List_Nil,
 										{
-											iu: model.jk,
-											jD: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
+											it: model.jj,
+											jC: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
 											N: A2(
 												$mdgriffith$elm_ui$Element$Input$labelLeft,
 												_List_Nil,
@@ -64060,8 +64208,8 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 										$mdgriffith$elm_ui$Element$Input$checkbox,
 										_List_Nil,
 										{
-											iu: model.fQ,
-											jD: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
+											it: model.fP,
+											jC: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
 											N: A2(
 												$mdgriffith$elm_ui$Element$Input$labelLeft,
 												_List_Nil,
@@ -64072,8 +64220,8 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 										$mdgriffith$elm_ui$Element$Input$checkbox,
 										_List_Nil,
 										{
-											iu: model.iM,
-											jD: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
+											it: model.iL,
+											jC: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
 											N: A2(
 												$mdgriffith$elm_ui$Element$Input$labelLeft,
 												_List_Nil,
@@ -64084,8 +64232,8 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 										$mdgriffith$elm_ui$Element$Input$checkbox,
 										_List_Nil,
 										{
-											iu: model.lV,
-											jD: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
+											it: model.lU,
+											jC: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
 											N: A2(
 												$mdgriffith$elm_ui$Element$Input$labelLeft,
 												_List_Nil,
@@ -64096,8 +64244,8 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 										$mdgriffith$elm_ui$Element$Input$checkbox,
 										_List_Nil,
 										{
-											iu: model.k$,
-											jD: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
+											it: model.k_,
+											jC: $author$project$PageEditor$EditorPlugins$VideoPlugin$checkIcon,
 											N: A2(
 												$mdgriffith$elm_ui$Element$Input$labelLeft,
 												_List_Nil,
@@ -64130,7 +64278,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 												$mdgriffith$elm_ui$Element$text('largeur: ')),
 											dK: $author$project$PageEditor$EditorPlugins$VideoPlugin$SetWidth,
 											dP: $elm$core$Maybe$Nothing,
-											dW: $elm$core$String$fromInt(model.fK.mp)
+											dW: $elm$core$String$fromInt(model.fJ.mo)
 										}),
 										A2(
 										$mdgriffith$elm_ui$Element$Input$text,
@@ -64149,7 +64297,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 												$mdgriffith$elm_ui$Element$text('hauteur: ')),
 											dK: $author$project$PageEditor$EditorPlugins$VideoPlugin$SetHeight,
 											dP: $elm$core$Maybe$Nothing,
-											dW: $elm$core$String$fromInt(model.fK.mo)
+											dW: $elm$core$String$fromInt(model.fJ.mn)
 										}),
 										A2(
 										$mdgriffith$elm_ui$Element$Input$text,
@@ -64175,7 +64323,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 											dW: A2(
 												$elm$core$Maybe$withDefault,
 												'',
-												A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.lM))
+												A2($elm$core$Maybe$map, $elm$core$String$fromInt, model.lL))
 										})
 									]))
 							])),
@@ -64193,9 +64341,9 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 											[
 												$elm$html$Html$Attributes$src(
 												A2($author$project$PageEditor$Internals$DocumentEditorHelpers$buildYoutubeUrl, url, model)),
-												$elm$html$Html$Attributes$width(model.fK.mp),
-												$elm$html$Html$Attributes$height(model.fK.mo),
-												model.jk ? $author$project$Internals$CommonStyleHelpers$noHtmlAttr : A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
+												$elm$html$Html$Attributes$width(model.fJ.mo),
+												$elm$html$Html$Attributes$height(model.fJ.mn),
+												model.jj ? $author$project$Internals$CommonStyleHelpers$noHtmlAttr : A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
 												A2($elm$html$Html$Attributes$attribute, 'allowfullscreen', 'true'),
 												A2($elm$html$Html$Attributes$attribute, 'allow', 'autoplay; encrypted-media')
 											]),
@@ -64213,10 +64361,10 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 											_List_fromArray(
 												[
 													$elm$html$Html$Attributes$src(
-													A2($author$project$PageEditor$Internals$DocumentEditorHelpers$buildYoutubeUrl, vidMeta.fL, model)),
-													$elm$html$Html$Attributes$width(model.fK.mp),
-													$elm$html$Html$Attributes$height(model.fK.mo),
-													model.jk ? $author$project$Internals$CommonStyleHelpers$noHtmlAttr : A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
+													A2($author$project$PageEditor$Internals$DocumentEditorHelpers$buildYoutubeUrl, vidMeta.fK, model)),
+													$elm$html$Html$Attributes$width(model.fJ.mo),
+													$elm$html$Html$Attributes$height(model.fJ.mn),
+													model.jj ? $author$project$Internals$CommonStyleHelpers$noHtmlAttr : A2($elm$html$Html$Attributes$attribute, 'frameborder', '0'),
 													A2($elm$html$Html$Attributes$attribute, 'allowfullscreen', 'true'),
 													A2($elm$html$Html$Attributes$attribute, 'allow', 'autoplay; encrypted-media')
 												]),
@@ -64232,7 +64380,7 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 							[
 								$mdgriffith$elm_ui$Element$spacing(15),
 								$mdgriffith$elm_ui$Element$paddingEach(
-								{a2: 15, bb: 0, bk: 0, bo: 0})
+								{a2: 15, bc: 0, bl: 0, bq: 0})
 							]),
 						_List_fromArray(
 							[
@@ -64241,14 +64389,14 @@ var $author$project$PageEditor$EditorPlugins$VideoPlugin$view = F2(
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Quitter'),
-									aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$VideoPlugin$Quit)
+									aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$VideoPlugin$Quit)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Valider et Quitter'),
-									aG: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$VideoPlugin$SaveAndQuit)
+									aI: $elm$core$Maybe$Just($author$project$PageEditor$EditorPlugins$VideoPlugin$SaveAndQuit)
 								})
 							]))
 					])));
@@ -64310,7 +64458,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 										_List_fromArray(
 											[
 												$mdgriffith$elm_ui$Element$Events$onClick(
-												config.hr(f)),
+												config.hq(f)),
 												$mdgriffith$elm_ui$Element$pointer,
 												A2($mdgriffith$elm_ui$Element$paddingXY, 5, 3)
 											]),
@@ -64321,7 +64469,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 											]) : _List_Nil),
 									$mdgriffith$elm_ui$Element$text(f));
 							},
-							config.j8)),
+							config.j7)),
 						A2(
 						$mdgriffith$elm_ui$Element$row,
 						_List_fromArray(
@@ -64344,7 +64492,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 											[
 												$mdgriffith$elm_ui$Element$text('Effacer fichier')
 											])),
-									aG: $elm$core$Maybe$Just(config.k6)
+									aI: $elm$core$Maybe$Just(config.k5)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -64360,7 +64508,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 											[
 												$mdgriffith$elm_ui$Element$text('Vider cache')
 											])),
-									aG: $elm$core$Maybe$Just(config.iw)
+									aI: $elm$core$Maybe$Just(config.iv)
 								})
 							])),
 						A2(
@@ -64385,7 +64533,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 											[
 												$mdgriffith$elm_ui$Element$text('Charger fichier')
 											])),
-									aG: $elm$core$Maybe$Just(config.jq)
+									aI: $elm$core$Maybe$Just(config.jp)
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -64401,7 +64549,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 											[
 												$mdgriffith$elm_ui$Element$text('Conversion Json -> Document')
 											])),
-									aG: $elm$core$Maybe$Just(config.j6)
+									aI: $elm$core$Maybe$Just(config.j5)
 								})
 							]))
 					])),
@@ -64430,7 +64578,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 						$mdgriffith$elm_ui$Element$Keyed$el,
 						_List_Nil,
 						_Utils_Tuple2(
-							config.fr,
+							config.fq,
 							A2(
 								$mdgriffith$elm_ui$Element$Input$multiline,
 								_List_fromArray(
@@ -64447,10 +64595,10 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 									]),
 								{
 									N: A2($mdgriffith$elm_ui$Element$Input$labelLeft, _List_Nil, $mdgriffith$elm_ui$Element$none),
-									dK: config.lB,
+									dK: config.lA,
 									dP: $elm$core$Maybe$Nothing,
-									lK: false,
-									dW: config.fr
+									lJ: false,
+									dW: config.fq
 								}))),
 						A2(
 						$mdgriffith$elm_ui$Element$row,
@@ -64486,7 +64634,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 										_List_fromArray(
 											[$mdgriffith$elm_ui$Element$centerY, $mdgriffith$elm_ui$Element$Font$bold]),
 										$mdgriffith$elm_ui$Element$text('Nom du fichier: ')),
-									dK: config.hr,
+									dK: config.hq,
 									dP: $elm$core$Maybe$Nothing,
 									dW: config.ep
 								}),
@@ -64504,9 +64652,9 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 											[
 												$mdgriffith$elm_ui$Element$text('Conversion Document -> Json')
 											])),
-									aG: $elm$core$Maybe$Just(
-										config.lC(
-											$author$project$Document$Json$DocumentSerializer$encodeDocument(config.i3)))
+									aI: $elm$core$Maybe$Just(
+										config.lB(
+											$author$project$Document$Json$DocumentSerializer$encodeDocument(config.i2)))
 								}),
 								A2(
 								$mdgriffith$elm_ui$Element$Input$button,
@@ -64522,7 +64670,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 											[
 												$mdgriffith$elm_ui$Element$text('Sauvegarder')
 											])),
-									aG: $elm$core$Maybe$Just(config.k0)
+									aI: $elm$core$Maybe$Just(config.k$)
 								})
 							]))
 					])),
@@ -64545,7 +64693,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 							_List_fromArray(
 								[
 									$elm$html$Html$Attributes$href(
-									'data:application/octet-stream;charset=utf-16le;base64,' + $truqu$elm_base64$Base64$encode(config.fr)),
+									'data:application/octet-stream;charset=utf-16le;base64,' + $truqu$elm_base64$Base64$encode(config.fq)),
 									$elm$html$Html$Attributes$download(config.ep + '.json')
 								]),
 							_List_fromArray(
@@ -64558,7 +64706,7 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$paddingEach(
-						{a2: 15, bb: 0, bk: 0, bo: 0})
+						{a2: 15, bc: 0, bl: 0, bq: 0})
 					]),
 				A2(
 					$mdgriffith$elm_ui$Element$Input$button,
@@ -64574,8 +64722,8 @@ var $author$project$PageEditor$Internals$PersistencePlugin$view = function (conf
 								[
 									$mdgriffith$elm_ui$Element$text('Retour')
 								])),
-						aG: $elm$core$Maybe$Just(
-							config.lA($elm$core$Maybe$Nothing))
+						aI: $elm$core$Maybe$Just(
+							config.lz($elm$core$Maybe$Nothing))
 					}))
 			]));
 };
@@ -64585,7 +64733,7 @@ var $author$project$PageEditor$PageEditor$pluginView = F3(
 			case 0:
 				return A2(
 					$author$project$PageEditor$EditorPlugins$ImagePlugin$view,
-					{fe: config.fe, bd: config.bd, fs: (model.k.jy - model.k.kc) - 70, kU: _List_Nil, fZ: config.fZ},
+					{fe: config.fe, be: config.be, fr: (model.k.jx - model.k.kb) - 70, kT: _List_Nil, fY: config.fY},
 					model.b2);
 			case 2:
 				return $author$project$PageEditor$EditorPlugins$TablePlugin$view(model.cn);
@@ -64597,7 +64745,7 @@ var $author$project$PageEditor$PageEditor$pluginView = F3(
 			case 4:
 				return A3(
 					$author$project$PageEditor$EditorPlugins$TrixTextBlockPlugin$view,
-					{fe: config.fe, bd: config.bd, I: config.I, fZ: config.fZ},
+					{fe: config.fe, be: config.be, I: config.I, fY: config.fY},
 					model.k,
 					model.co);
 			case 5:
@@ -64605,23 +64753,23 @@ var $author$project$PageEditor$PageEditor$pluginView = F3(
 					{
 						bV: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$CreateNewCell),
 						e2: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$CreateNewContainer),
-						jt: model.bY(
+						js: model.bY(
 							$author$project$PageEditor$PageEditor$SetEditorPlugin($elm$core$Maybe$Nothing)),
-						a8: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$InsertNewCell),
-						gV: model.gV,
-						aK: model.aK
+						a9: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$InsertNewCell),
+						gU: model.gU,
+						aL: model.aL
 					});
 			case 6:
-				var _v1 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3);
+				var _v1 = $author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2);
 				if (!_v1.$) {
 					var cv = _v1.a;
 					return $author$project$PageEditor$EditorPlugins$ContainerEditPlugin$view(
 						{
-							gf: cv,
-							jt: model.bY(
+							ge: cv,
+							js: model.bY(
 								$author$project$PageEditor$PageEditor$SetEditorPlugin($elm$core$Maybe$Nothing)),
-							fP: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$SwapContainerType),
-							mm: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$UpdateContainerAttr)
+							fO: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$SwapContainerType),
+							ml: A2($elm$core$Basics$composeL, model.bY, $author$project$PageEditor$PageEditor$UpdateContainerAttr)
 						});
 				} else {
 					return $mdgriffith$elm_ui$Element$text('Aucun containeur sélectionné');
@@ -64631,46 +64779,46 @@ var $author$project$PageEditor$PageEditor$pluginView = F3(
 			case 7:
 				return A3(
 					$author$project$PageEditor$EditorPlugins$BlockLinksPlugin$view,
-					{fe: config.fe, bd: config.bd, I: config.I, fZ: config.fZ},
+					{fe: config.fe, be: config.be, I: config.I, fY: config.fY},
 					model.k,
 					model.bS);
 			case 10:
 				return A2(
 					$author$project$PageEditor$EditorPlugins$FichesPlugin$view,
-					{gq: config.gq},
+					{gp: config.gp},
 					model.bZ);
 			case 11:
 				return A2(
 					$author$project$PageEditor$EditorPlugins$PictureLinksPlugin$view,
-					{fe: config.fe, bd: config.bd, fZ: config.fZ},
+					{fe: config.fe, be: config.be, fY: config.fY},
 					model.cf);
 			case 12:
 				return A2(
 					$author$project$PageEditor$EditorPlugins$GalleryPlugin$view,
-					{fe: config.fe, bd: config.bd, fZ: config.fZ},
-					model.bC);
+					{fe: config.fe, be: config.be, fY: config.fY},
+					model.bD);
 			case 8:
 				return A2(
 					$mdgriffith$elm_ui$Element$map,
 					model.bY,
 					$author$project$PageEditor$Internals$PersistencePlugin$view(
 						{
-							iw: $author$project$PageEditor$PageEditor$ClearLocalStorage,
-							i3: $author$project$PageEditor$Internals$DocumentZipper$extractDoc(
-								$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i3)),
-							jq: $author$project$PageEditor$PageEditor$GetFromLocalStorage,
-							fr: model.fr,
-							j6: $author$project$PageEditor$PageEditor$LoadLocalStorageDocument,
+							iv: $author$project$PageEditor$PageEditor$ClearLocalStorage,
+							i2: $author$project$PageEditor$Internals$DocumentZipper$extractDoc(
+								$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i2)),
+							jp: $author$project$PageEditor$PageEditor$GetFromLocalStorage,
+							fq: model.fq,
+							j5: $author$project$PageEditor$PageEditor$LoadLocalStorageDocument,
 							ep: model.ep,
-							j8: model.j8,
-							bc: model.bc,
-							kt: $author$project$PageEditor$PageEditor$NoOp,
-							k0: $author$project$PageEditor$PageEditor$PutInLocalStorage,
-							k6: $author$project$PageEditor$PageEditor$RemoveFromLocalStorage,
-							lA: $author$project$PageEditor$PageEditor$SetEditorPlugin,
-							lB: $author$project$PageEditor$PageEditor$SetJsonBuffer,
-							hr: $author$project$PageEditor$PageEditor$SetLocalStorageKey,
-							lC: $author$project$PageEditor$PageEditor$SetLocalStorageValue
+							j7: model.j7,
+							bd: model.bd,
+							ks: $author$project$PageEditor$PageEditor$NoOp,
+							k$: $author$project$PageEditor$PageEditor$PutInLocalStorage,
+							k5: $author$project$PageEditor$PageEditor$RemoveFromLocalStorage,
+							lz: $author$project$PageEditor$PageEditor$SetEditorPlugin,
+							lA: $author$project$PageEditor$PageEditor$SetJsonBuffer,
+							hq: $author$project$PageEditor$PageEditor$SetLocalStorageKey,
+							lB: $author$project$PageEditor$PageEditor$SetLocalStorageValue
 						}));
 			default:
 				var mode = plugin.a;
@@ -64684,7 +64832,7 @@ var $author$project$PageEditor$PageEditor$pluginView = F3(
 						[
 							A2(
 							$author$project$PageTreeEditor$PageTreeEditor$view,
-							{bd: config.bd, fs: (model.k.jy - model.k.kc) - 120, g: mode, fZ: config.fZ},
+							{be: config.be, fr: (model.k.jx - model.k.kb) - 120, g: mode, fY: config.fY},
 							config.I),
 							A2(
 							$mdgriffith$elm_ui$Element$row,
@@ -64709,7 +64857,7 @@ var $author$project$PageEditor$PageEditor$pluginView = F3(
 												[
 													$mdgriffith$elm_ui$Element$text('Retour')
 												])),
-										aG: $elm$core$Maybe$Just(
+										aI: $elm$core$Maybe$Just(
 											model.bY(
 												$author$project$PageEditor$PageEditor$SetEditorPlugin($elm$core$Maybe$Nothing)))
 									}),
@@ -64727,7 +64875,7 @@ var $author$project$PageEditor$PageEditor$pluginView = F3(
 												[
 													$mdgriffith$elm_ui$Element$text('Ouvrir')
 												])),
-										aG: $elm$core$Maybe$Just(
+										aI: $elm$core$Maybe$Just(
 											model.bY($author$project$PageEditor$PageEditor$LoadDocument))
 									}) : $mdgriffith$elm_ui$Element$none
 								]))
@@ -64740,8 +64888,8 @@ var $author$project$PageEditor$PageEditor$view = F2(
 		var newConfig = _Utils_update(
 			renderConfig,
 			{
-				jh: $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$fichesData(config.gq),
-				gU: $author$project$NewsEditor$NewsEditor$getNewsDict(config.aF)
+				jg: $author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$fichesData(config.gp),
+				gT: $author$project$NewsEditor$NewsEditor$getNewsDict(config.aH)
 			});
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
@@ -64750,7 +64898,7 @@ var $author$project$PageEditor$PageEditor$view = F2(
 					[
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$height(
-						A2($mdgriffith$elm_ui$Element$maximum, newConfig.jy - 70, $mdgriffith$elm_ui$Element$fill))
+						A2($mdgriffith$elm_ui$Element$maximum, newConfig.jx - 70, $mdgriffith$elm_ui$Element$fill))
 					]),
 				model.cJ ? _List_fromArray(
 					[
@@ -64772,16 +64920,16 @@ var $author$project$PageEditor$PageEditor$view = F2(
 							e1: newConfig.e1,
 							e3: model.eu,
 							u: !_Utils_eq(model.b, $elm$core$Maybe$Nothing),
-							bd: config.bd,
+							be: config.be,
 							eH: newConfig.eH,
-							lk: newConfig.lk,
+							lj: newConfig.lj,
 							dS: $author$project$Document$Document$isContainer(
-								$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)),
-							bl: _Utils_eq(
-								$author$project$PageEditor$Internals$DocumentZipper$zipUp(model.i3),
+								$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)),
+							bm: _Utils_eq(
+								$author$project$PageEditor$Internals$DocumentZipper$zipUp(model.i2),
 								$elm$core$Maybe$Nothing),
-							aK: model.aK,
-							fR: _Utils_eq(model.bN, _List_Nil)
+							aL: model.aL,
+							fQ: _Utils_eq(model.bN, _List_Nil)
 						})),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
@@ -64801,15 +64949,15 @@ var $author$project$PageEditor$PageEditor$view = F2(
 							A3(
 								$author$project$PageEditor$EditorPlugins$SidePanels$DocumentStructView$documentStructView,
 								{
-									iI: newConfig.e1,
-									gG: _Utils_eq(model.b, $elm$core$Maybe$Nothing),
-									gV: model.gV,
-									hN: $author$project$PageEditor$PageEditor$ZipToUid
+									iH: newConfig.e1,
+									gF: _Utils_eq(model.b, $elm$core$Maybe$Nothing),
+									gU: model.gU,
+									hM: $author$project$PageEditor$PageEditor$ZipToUid
 								},
 								$author$project$Document$Document$getUid(
-									$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i3)),
+									$author$project$PageEditor$Internals$DocumentZipper$extractDoc(model.i2)),
 								$author$project$PageEditor$Internals$DocumentZipper$extractDoc(
-									$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i3)))),
+									$author$project$PageEditor$Internals$DocumentZipper$rewind(model.i2)))),
 							function () {
 							var _v0 = model.b;
 							if (_v0.$ === 1) {
@@ -64919,7 +65067,7 @@ var $author$project$Publications$Publications$initialView = F2(
 									{
 										N: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
 										dK: $author$project$Publications$Publications$SetPubType,
-										g3: _List_fromArray(
+										g2: _List_fromArray(
 											[
 												A2(
 												$mdgriffith$elm_ui$Element$Input$option,
@@ -64934,7 +65082,7 @@ var $author$project$Publications$Publications$initialView = F2(
 												2,
 												$mdgriffith$elm_ui$Element$text('Bulletin municipal'))
 											]),
-										hn: $elm$core$Maybe$Just(
+										hm: $elm$core$Maybe$Just(
 											$author$project$Publications$Publications$extractPubType(model))
 									}),
 									A2(
@@ -64945,7 +65093,7 @@ var $author$project$Publications$Publications$initialView = F2(
 											[$mdgriffith$elm_ui$Element$alignRight])),
 									{
 										N: $mdgriffith$elm_ui$Element$text('Mettre en ligne'),
-										aG: $elm$core$Maybe$Just($author$project$Publications$Publications$FileRequested)
+										aI: $elm$core$Maybe$Just($author$project$Publications$Publications$FileRequested)
 									})
 								])),
 							A2(
@@ -64969,7 +65117,7 @@ var $author$project$Publications$Publications$initialView = F2(
 											$elm$core$Dict$foldl,
 											F3(
 												function (n, _v1, _v2) {
-													var issue = _v1.gI;
+													var issue = _v1.gH;
 													var date = _v1.eh;
 													var acc = _v2.a;
 													var flag = _v2.b;
@@ -65011,7 +65159,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																					[$mdgriffith$elm_ui$Element$Font$bold]),
 																				$mdgriffith$elm_ui$Element$text('Date: ')),
 																				$mdgriffith$elm_ui$Element$text(
-																				A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date))
+																				A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date))
 																			])),
 																		A2(
 																		$mdgriffith$elm_ui$Element$row,
@@ -65027,7 +65175,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																				$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 																				{
 																					N: $mdgriffith$elm_ui$Element$text('Modifier'),
-																					aG: $elm$core$Maybe$Just(
+																					aI: $elm$core$Maybe$Just(
 																						$author$project$Publications$Publications$SelectMurolInfo(n))
 																				}),
 																				A2(
@@ -65035,7 +65183,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																				$author$project$Internals$CommonStyleHelpers$deleteButtonStyle(true),
 																				{
 																					N: $mdgriffith$elm_ui$Element$text('Supprimer'),
-																					aG: $elm$core$Maybe$Just(
+																					aI: $elm$core$Maybe$Just(
 																						$author$project$Publications$Publications$DeleteMurolInfo(n))
 																				})
 																			]))
@@ -65044,7 +65192,7 @@ var $author$project$Publications$Publications$initialView = F2(
 														!flag);
 												}),
 											_Utils_Tuple2(_List_Nil, true),
-											model.km).a;
+											model.kl).a;
 									case 1:
 										return A3(
 											$elm$core$Dict$foldl,
@@ -65078,7 +65226,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																					[$mdgriffith$elm_ui$Element$Font$bold]),
 																				$mdgriffith$elm_ui$Element$text('Date: ')),
 																				$mdgriffith$elm_ui$Element$text(
-																				A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date))
+																				A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date))
 																			])),
 																		A2(
 																		$mdgriffith$elm_ui$Element$row,
@@ -65094,7 +65242,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																				$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 																				{
 																					N: $mdgriffith$elm_ui$Element$text('Modifier'),
-																					aG: $elm$core$Maybe$Just(
+																					aI: $elm$core$Maybe$Just(
 																						$author$project$Publications$Publications$SelectDelib(n))
 																				}),
 																				A2(
@@ -65102,7 +65250,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																				$author$project$Internals$CommonStyleHelpers$deleteButtonStyle(true),
 																				{
 																					N: $mdgriffith$elm_ui$Element$text('Supprimer'),
-																					aG: $elm$core$Maybe$Just(
+																					aI: $elm$core$Maybe$Just(
 																						$author$project$Publications$Publications$DeleteDelib(n))
 																				})
 																			]))
@@ -65111,13 +65259,13 @@ var $author$project$Publications$Publications$initialView = F2(
 														!flag);
 												}),
 											_Utils_Tuple2(_List_Nil, true),
-											model.iX).a;
+											model.iW).a;
 									default:
 										return A3(
 											$elm$core$Dict$foldl,
 											F3(
 												function (n, _v5, _v6) {
-													var issue = _v5.gI;
+													var issue = _v5.gH;
 													var date = _v5.eh;
 													var acc = _v6.a;
 													var flag = _v6.b;
@@ -65159,7 +65307,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																					[$mdgriffith$elm_ui$Element$Font$bold]),
 																				$mdgriffith$elm_ui$Element$text('Date: ')),
 																				$mdgriffith$elm_ui$Element$text(
-																				A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, date))
+																				A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, date))
 																			])),
 																		A2(
 																		$mdgriffith$elm_ui$Element$row,
@@ -65175,7 +65323,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																				$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 																				{
 																					N: $mdgriffith$elm_ui$Element$text('Modifier'),
-																					aG: $elm$core$Maybe$Just(
+																					aI: $elm$core$Maybe$Just(
 																						$author$project$Publications$Publications$SelectBulletin(n))
 																				}),
 																				A2(
@@ -65183,7 +65331,7 @@ var $author$project$Publications$Publications$initialView = F2(
 																				$author$project$Internals$CommonStyleHelpers$deleteButtonStyle(true),
 																				{
 																					N: $mdgriffith$elm_ui$Element$text('Supprimer'),
-																					aG: $elm$core$Maybe$Just(
+																					aI: $elm$core$Maybe$Just(
 																						$author$project$Publications$Publications$DeleteBulletin(n))
 																				})
 																			]))
@@ -65192,7 +65340,7 @@ var $author$project$Publications$Publications$initialView = F2(
 														!flag);
 												}),
 											_Utils_Tuple2(_List_Nil, true),
-											model.ik).a;
+											model.ij).a;
 								}
 							}())
 						]))
@@ -65210,7 +65358,7 @@ var $author$project$Publications$Publications$dateInputView = F2(
 			model.G);
 		if ((_v0.a === 1) && _v0.b) {
 			var _v1 = _v0.a;
-			return $mdgriffith$elm_ui$Element$text(model.bu);
+			return $mdgriffith$elm_ui$Element$text(model.bw);
 		} else {
 			return A2(
 				$mdgriffith$elm_ui$Element$Input$text,
@@ -65221,7 +65369,7 @@ var $author$project$Publications$Publications$dateInputView = F2(
 							$mdgriffith$elm_ui$Element$width(
 							$mdgriffith$elm_ui$Element$px(150)),
 							function () {
-							var _v2 = model._;
+							var _v2 = model.aa;
 							if (!_v2.$) {
 								return $mdgriffith$elm_ui$Element$Font$color($author$project$Internals$CommonStyleHelpers$green4);
 							} else {
@@ -65243,12 +65391,12 @@ var $author$project$Publications$Publications$dateInputView = F2(
 								[$mdgriffith$elm_ui$Element$clip]),
 							$mdgriffith$elm_ui$Element$text('jj/mm/aaaa'))),
 					dW: function () {
-						var _v3 = model._;
+						var _v3 = model.aa;
 						if (_v3.$ === 1) {
-							return model.bu;
+							return model.bw;
 						} else {
 							var t = _v3.a;
-							return A2($author$project$Internals$CommonHelpers$dateToStr, config.fZ, t);
+							return A2($author$project$Internals$CommonHelpers$dateToStr, config.fY, t);
 						}
 					}()
 				});
@@ -65381,7 +65529,7 @@ var $author$project$Publications$Publications$indexEditorView = F2(
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$html(
 													$author$project$Internals$Icons$chevronUp(14))),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												$author$project$Publications$Publications$SwapUp(i))
 										}),
 										A2(
@@ -65393,7 +65541,7 @@ var $author$project$Publications$Publications$indexEditorView = F2(
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$html(
 													$author$project$Internals$Icons$chevronDown(14))),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												$author$project$Publications$Publications$SwapDown(i))
 										})
 									])),
@@ -65402,7 +65550,7 @@ var $author$project$Publications$Publications$indexEditorView = F2(
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Supprimer'),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										$author$project$Publications$Publications$RemoveIndexEntry(n))
 								})
 							]))));
@@ -65442,7 +65590,7 @@ var $author$project$Publications$Publications$indexEditorView = F2(
 						A2(
 							$elm$core$List$indexedMap,
 							$elm$core$Tuple$pair,
-							$elm$core$Dict$toList(model.gC))),
+							$elm$core$Dict$toList(model.gB))),
 					_List_fromArray(
 						[
 							A2(
@@ -65450,7 +65598,7 @@ var $author$project$Publications$Publications$indexEditorView = F2(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Nouveau sujet'),
-								aG: $elm$core$Maybe$Just($author$project$Publications$Publications$NewIndexEntry)
+								aI: $elm$core$Maybe$Just($author$project$Publications$Publications$NewIndexEntry)
 							})
 						]))));
 	});
@@ -65470,7 +65618,7 @@ var $author$project$Publications$Publications$issueInputView = F2(
 						[$mdgriffith$elm_ui$Element$Font$bold]),
 					$mdgriffith$elm_ui$Element$text('Numéro: ')),
 					$mdgriffith$elm_ui$Element$text(
-					A2($elm$core$Maybe$withDefault, '', model.az))
+					A2($elm$core$Maybe$withDefault, '', model.aB))
 				])) : A2(
 			$mdgriffith$elm_ui$Element$Input$text,
 			_Utils_ap(
@@ -65488,15 +65636,15 @@ var $author$project$Publications$Publications$issueInputView = F2(
 					$mdgriffith$elm_ui$Element$text('Numéro: ')),
 				dK: $author$project$Publications$Publications$SetIssue,
 				dP: $elm$core$Maybe$Nothing,
-				dW: A2($elm$core$Maybe$withDefault, '', model.az)
+				dW: A2($elm$core$Maybe$withDefault, '', model.aB)
 			});
 	});
 var $author$project$Publications$Publications$newBulletinView = F2(
 	function (config, model) {
 		var canUpload = function () {
 			var _v1 = _Utils_Tuple3(
-				A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.az),
-				model._,
+				A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.aB),
+				model.aa,
 				A3(
 					$elm$core$List$foldr,
 					F2(
@@ -65513,17 +65661,17 @@ var $author$project$Publications$Publications$newBulletinView = F2(
 							}
 						}),
 					_List_Nil,
-					$elm$core$Dict$values(model.gC)));
+					$elm$core$Dict$values(model.gB)));
 			if (((!_v1.a.$) && (!_v1.b.$)) && _v1.c.b) {
 				var issue = _v1.a.a;
 				var date = _v1.b.a;
 				var _v3 = _v1.c;
 				var x = _v3.a;
 				var xs = _v3.b;
-				return (model.G || (!A2($elm$core$Dict$member, issue, model.ik))) && (_Utils_eq(
+				return (model.G || (!A2($elm$core$Dict$member, issue, model.ij))) && (_Utils_eq(
 					$elm$core$List$length(
 						A2($elm$core$List$cons, x, xs)),
-					$elm$core$Dict$size(model.gC)) && (model.G || (!_Utils_eq(model.aw, $elm$core$Maybe$Nothing))));
+					$elm$core$Dict$size(model.gB)) && (model.G || (!_Utils_eq(model.ay, $elm$core$Maybe$Nothing))));
 			} else {
 				return false;
 			}
@@ -65603,7 +65751,7 @@ var $author$project$Publications$Publications$newBulletinView = F2(
 														A2(
 															$elm$core$Maybe$map,
 															A2($elm$core$String$padLeft, 3, '0'),
-															model.az)));
+															model.aB)));
 												return A2(
 													$mdgriffith$elm_ui$Element$el,
 													_List_fromArray(
@@ -65634,7 +65782,7 @@ var $author$project$Publications$Publications$newBulletinView = F2(
 														$mdgriffith$elm_ui$Element$image,
 														_List_fromArray(
 															[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY, $mdgriffith$elm_ui$Element$clip]),
-														{fa: 'chargement', fL: '/assets/images/loading.gif'}));
+														{fa: 'chargement', fK: '/assets/images/loading.gif'}));
 											}
 										}
 									}())
@@ -65647,7 +65795,7 @@ var $author$project$Publications$Publications$newBulletinView = F2(
 								A2(
 									$elm$core$Maybe$withDefault,
 									'',
-									A2($elm$core$Maybe$map, $elm$file$File$name, model.aw))))
+									A2($elm$core$Maybe$map, $elm$file$File$name, model.ay))))
 						])),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
@@ -65682,14 +65830,14 @@ var $author$project$Publications$Publications$newBulletinView = F2(
 							$author$project$Internals$CommonStyleHelpers$saveButtonStyle(canUpload),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: canUpload ? $elm$core$Maybe$Just($author$project$Publications$Publications$SaveBulletin) : $elm$core$Maybe$Nothing
+								aI: canUpload ? $elm$core$Maybe$Just($author$project$Publications$Publications$SaveBulletin) : $elm$core$Maybe$Nothing
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Annuler'),
-								aG: $elm$core$Maybe$Just($author$project$Publications$Publications$Reset)
+								aI: $elm$core$Maybe$Just($author$project$Publications$Publications$Reset)
 							})
 						]))
 				]));
@@ -65699,7 +65847,7 @@ var $author$project$Publications$Publications$newDelibView = F2(
 	function (config, model) {
 		var canUpload = function () {
 			var _v0 = _Utils_Tuple2(
-				model._,
+				model.aa,
 				A3(
 					$elm$core$List$foldr,
 					F2(
@@ -65716,7 +65864,7 @@ var $author$project$Publications$Publications$newDelibView = F2(
 							}
 						}),
 					_List_Nil,
-					$elm$core$Dict$values(model.gC)));
+					$elm$core$Dict$values(model.gB)));
 			if ((!_v0.a.$) && _v0.b.b) {
 				var date = _v0.a.a;
 				var _v2 = _v0.b;
@@ -65725,10 +65873,10 @@ var $author$project$Publications$Publications$newDelibView = F2(
 				return (model.G || (!A2(
 					$elm$core$Dict$member,
 					$elm$time$Time$posixToMillis(date),
-					model.iX))) && (_Utils_eq(
+					model.iW))) && (_Utils_eq(
 					$elm$core$List$length(
 						A2($elm$core$List$cons, x, xs)),
-					$elm$core$Dict$size(model.gC)) && (model.G || (!_Utils_eq(model.aw, $elm$core$Maybe$Nothing))));
+					$elm$core$Dict$size(model.gB)) && (model.G || (!_Utils_eq(model.ay, $elm$core$Maybe$Nothing))));
 			} else {
 				return false;
 			}
@@ -65770,7 +65918,7 @@ var $author$project$Publications$Publications$newDelibView = F2(
 								A2(
 									$elm$core$Maybe$withDefault,
 									'',
-									A2($elm$core$Maybe$map, $elm$file$File$name, model.aw))))
+									A2($elm$core$Maybe$map, $elm$file$File$name, model.ay))))
 						])),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
@@ -65804,14 +65952,14 @@ var $author$project$Publications$Publications$newDelibView = F2(
 							$author$project$Internals$CommonStyleHelpers$saveButtonStyle(canUpload),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: canUpload ? $elm$core$Maybe$Just($author$project$Publications$Publications$SaveDelib) : $elm$core$Maybe$Nothing
+								aI: canUpload ? $elm$core$Maybe$Just($author$project$Publications$Publications$SaveDelib) : $elm$core$Maybe$Nothing
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Annuler'),
-								aG: $elm$core$Maybe$Just($author$project$Publications$Publications$Reset)
+								aI: $elm$core$Maybe$Just($author$project$Publications$Publications$Reset)
 							})
 						]))
 				]));
@@ -65878,7 +66026,7 @@ var $author$project$Publications$Publications$topicEditorView = F2(
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$html(
 													$author$project$Internals$Icons$chevronUp(14))),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												$author$project$Publications$Publications$SwapUp(i))
 										}),
 										A2(
@@ -65890,7 +66038,7 @@ var $author$project$Publications$Publications$topicEditorView = F2(
 												_List_Nil,
 												$mdgriffith$elm_ui$Element$html(
 													$author$project$Internals$Icons$chevronDown(14))),
-											aG: $elm$core$Maybe$Just(
+											aI: $elm$core$Maybe$Just(
 												$author$project$Publications$Publications$SwapDown(i))
 										})
 									])),
@@ -65899,7 +66047,7 @@ var $author$project$Publications$Publications$topicEditorView = F2(
 								$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 								{
 									N: $mdgriffith$elm_ui$Element$text('Supprimer'),
-									aG: $elm$core$Maybe$Just(
+									aI: $elm$core$Maybe$Just(
 										$author$project$Publications$Publications$RemoveTopic(n))
 								})
 							]))));
@@ -65939,7 +66087,7 @@ var $author$project$Publications$Publications$topicEditorView = F2(
 						A2(
 							$elm$core$List$indexedMap,
 							$elm$core$Tuple$pair,
-							$elm$core$Dict$toList(model.mj))),
+							$elm$core$Dict$toList(model.mi))),
 					_List_fromArray(
 						[
 							A2(
@@ -65954,7 +66102,7 @@ var $author$project$Publications$Publications$topicEditorView = F2(
 										return $mdgriffith$elm_ui$Element$text('Nouveau sujet');
 									}
 								}(),
-								aG: $elm$core$Maybe$Just($author$project$Publications$Publications$NewTopic)
+								aI: $elm$core$Maybe$Just($author$project$Publications$Publications$NewTopic)
 							})
 						]))));
 	});
@@ -65962,22 +66110,22 @@ var $author$project$Publications$Publications$newMurolInfoView = F2(
 	function (config, model) {
 		var canUpload = function () {
 			var _v0 = _Utils_Tuple3(
-				A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.az),
-				model._,
+				A2($elm$core$Maybe$andThen, $elm$core$String$toInt, model.aB),
+				model.aa,
 				A2(
 					$elm$core$List$filterMap,
 					$elm$core$Basics$identity,
-					$elm$core$Dict$values(model.mj)));
+					$elm$core$Dict$values(model.mi)));
 			if (((!_v0.a.$) && (!_v0.b.$)) && _v0.c.b) {
 				var issue = _v0.a.a;
 				var date = _v0.b.a;
 				var _v1 = _v0.c;
 				var t = _v1.a;
 				var ts = _v1.b;
-				return (model.G || (!A2($elm$core$Dict$member, issue, model.km))) && (_Utils_eq(
+				return (model.G || (!A2($elm$core$Dict$member, issue, model.kl))) && (_Utils_eq(
 					$elm$core$List$length(
 						A2($elm$core$List$cons, t, ts)),
-					$elm$core$Dict$size(model.mj)) && (model.G || (!_Utils_eq(model.aw, $elm$core$Maybe$Nothing))));
+					$elm$core$Dict$size(model.mi)) && (model.G || (!_Utils_eq(model.ay, $elm$core$Maybe$Nothing))));
 			} else {
 				return false;
 			}
@@ -66019,7 +66167,7 @@ var $author$project$Publications$Publications$newMurolInfoView = F2(
 								A2(
 									$elm$core$Maybe$withDefault,
 									'',
-									A2($elm$core$Maybe$map, $elm$file$File$name, model.aw))))
+									A2($elm$core$Maybe$map, $elm$file$File$name, model.ay))))
 						])),
 					A2(
 					$mdgriffith$elm_ui$Element$row,
@@ -66054,21 +66202,21 @@ var $author$project$Publications$Publications$newMurolInfoView = F2(
 							$author$project$Internals$CommonStyleHelpers$saveButtonStyle(canUpload),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Valider'),
-								aG: canUpload ? $elm$core$Maybe$Just($author$project$Publications$Publications$SaveMurolInfo) : $elm$core$Maybe$Nothing
+								aI: canUpload ? $elm$core$Maybe$Just($author$project$Publications$Publications$SaveMurolInfo) : $elm$core$Maybe$Nothing
 							}),
 							A2(
 							$mdgriffith$elm_ui$Element$Input$button,
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(true),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Annuler'),
-								aG: $elm$core$Maybe$Just($author$project$Publications$Publications$Reset)
+								aI: $elm$core$Maybe$Just($author$project$Publications$Publications$Reset)
 							})
 						]))
 				]));
 	});
 var $author$project$Publications$Publications$uploadView = F2(
 	function (config, model) {
-		var canReset = model.X === 2;
+		var canReset = model.Y === 2;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_Utils_ap(
@@ -66145,7 +66293,7 @@ var $author$project$Publications$Publications$uploadView = F2(
 										[$mdgriffith$elm_ui$Element$Font$bold]),
 									$mdgriffith$elm_ui$Element$text('Transfert metadonnées: ')),
 									function () {
-									var _v0 = model.X;
+									var _v0 = model.Y;
 									switch (_v0) {
 										case 1:
 											return $mdgriffith$elm_ui$Element$text('En cours...');
@@ -66174,7 +66322,7 @@ var $author$project$Publications$Publications$uploadView = F2(
 							$author$project$Internals$CommonStyleHelpers$buttonStyle(canReset),
 							{
 								N: $mdgriffith$elm_ui$Element$text('Retour'),
-								aG: canReset ? $elm$core$Maybe$Just($author$project$Publications$Publications$Reset) : $elm$core$Maybe$Nothing
+								aI: canReset ? $elm$core$Maybe$Just($author$project$Publications$Publications$Reset) : $elm$core$Maybe$Nothing
 							})
 						]))
 				]));
@@ -66196,7 +66344,7 @@ var $author$project$Publications$Publications$view = F2(
 						$mdgriffith$elm_ui$Element$clip,
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 						$mdgriffith$elm_ui$Element$height(
-						A2($mdgriffith$elm_ui$Element$maximum, config.fs, $mdgriffith$elm_ui$Element$fill)),
+						A2($mdgriffith$elm_ui$Element$maximum, config.fr, $mdgriffith$elm_ui$Element$fill)),
 						$mdgriffith$elm_ui$Element$scrollbarY
 					]),
 				_List_fromArray(
@@ -66231,10 +66379,10 @@ var $author$project$MurolAdmin$view = function (model) {
 				A3(
 				$mdgriffith$elm_ui$Element$layoutWith,
 				{
-					g3: _List_fromArray(
+					g2: _List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$focusStyle(
-							{h7: $elm$core$Maybe$Nothing, $8: $elm$core$Maybe$Nothing, lD: $elm$core$Maybe$Nothing})
+							{h6: $elm$core$Maybe$Nothing, ie: $elm$core$Maybe$Nothing, lC: $elm$core$Maybe$Nothing})
 						])
 				},
 				_List_fromArray(
@@ -66287,7 +66435,7 @@ var $author$project$MurolAdmin$view = function (model) {
 											[
 												A2(
 												$author$project$Auth$AuthPlugin$view,
-												{fZ: model.fZ},
+												{fY: model.fY},
 												model.p)
 											]))
 									]));
@@ -66301,8 +66449,8 @@ var $author$project$MurolAdmin$view = function (model) {
 									[
 										$author$project$FileExplorer$FileExplorer$loadingStatus(model.fe),
 										$author$project$PageTreeEditor$PageTreeEditor$loadingStatus(model.I),
-										$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$loadingStatus(model.a5),
-										$author$project$NewsEditor$NewsEditor$loadingStatus(model.aF)
+										$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$loadingStatus(model.a6),
+										$author$project$NewsEditor$NewsEditor$loadingStatus(model.aH)
 									]));
 							return A2(
 								$mdgriffith$elm_ui$Element$column,
@@ -66343,15 +66491,15 @@ var $author$project$MurolAdmin$view = function (model) {
 											[
 												$author$project$FileExplorer$FileExplorer$loadingView(model.fe),
 												$author$project$PageTreeEditor$PageTreeEditor$loadingView(model.I),
-												$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$loadingView(model.a5),
-												$author$project$NewsEditor$NewsEditor$loadingView(model.aF),
-												$author$project$Publications$Publications$loadingView(model.fC),
+												$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$loadingView(model.a6),
+												$author$project$NewsEditor$NewsEditor$loadingView(model.aH),
+												$author$project$Publications$Publications$loadingView(model.fB),
 												A2(
 												$mdgriffith$elm_ui$Element$Input$button,
 												$author$project$Internals$CommonStyleHelpers$buttonStyle(loadingComplete),
 												{
 													N: $mdgriffith$elm_ui$Element$text('Commencer'),
-													aG: $elm$core$Maybe$Just($author$project$MurolAdmin$Launch)
+													aI: $elm$core$Maybe$Just($author$project$MurolAdmin$Launch)
 												})
 											]))
 									]));
@@ -66361,7 +66509,7 @@ var $author$project$MurolAdmin$view = function (model) {
 								_List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$paddingEach(
-										{a2: 0, bb: 0, bk: 0, bo: 5}),
+										{a2: 0, bc: 0, bl: 0, bq: 5}),
 										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 										$mdgriffith$elm_ui$Element$height(
 										A2($mdgriffith$elm_ui$Element$maximum, model.aM, $mdgriffith$elm_ui$Element$fill)),
@@ -66375,10 +66523,10 @@ var $author$project$MurolAdmin$view = function (model) {
 										_List_fromArray(
 											[
 												$mdgriffith$elm_ui$Element$Border$widthEach(
-												{a2: 2, bb: 0, bk: 0, bo: 0}),
+												{a2: 2, bc: 0, bl: 0, bq: 0}),
 												$mdgriffith$elm_ui$Element$spacing(5),
 												$mdgriffith$elm_ui$Element$paddingEach(
-												{a2: 0, bb: 5, bk: 0, bo: 0}),
+												{a2: 0, bc: 5, bl: 0, bq: 0}),
 												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 												$mdgriffith$elm_ui$Element$Border$color(
 												A3($mdgriffith$elm_ui$Element$rgb, 0.8, 0.8, 0.8))
@@ -66402,36 +66550,36 @@ var $author$project$MurolAdmin$view = function (model) {
 													$author$project$PageEditor$PageEditor$view,
 													{
 														fe: model.fe,
-														gq: model.a5,
-														bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-														aF: model.aF,
+														gp: model.a6,
+														be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+														aH: model.aH,
 														I: model.I,
-														fZ: model.fZ
+														fY: model.fY
 													},
 													model.cP);
 											case 1:
 												return A2(
 													$author$project$FileExplorer$FileExplorer$view,
 													{
-														bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-														fs: model.aM - 70,
+														be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+														fr: model.aM - 70,
 														g: $author$project$FileExplorer$FileExplorer$Full,
-														fZ: model.fZ
+														fY: model.fY
 													},
 													model.fe);
 											case 2:
 												return A2(
 													$author$project$Auth$AuthPlugin$view,
-													{fZ: model.fZ},
+													{fY: model.fY},
 													model.p);
 											case 3:
 												return A2(
 													$author$project$PageTreeEditor$PageTreeEditor$view,
 													{
-														bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-														fs: model.aM - 70,
+														be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+														fr: model.aM - 70,
 														g: 0,
-														fZ: model.fZ
+														fY: model.fY
 													},
 													model.I);
 											case 4:
@@ -66439,35 +66587,35 @@ var $author$project$MurolAdmin$view = function (model) {
 													$author$project$GeneralDirectoryEditor$GeneralDirectoryEditor$view,
 													{
 														fe: model.fe,
-														bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-														fs: model.aM - 70,
-														fZ: model.fZ
+														be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+														fr: model.aM - 70,
+														fY: model.fY
 													},
-													model.a5);
+													model.a6);
 											case 5:
 												return A2(
 													$author$project$NewsEditor$NewsEditor$view,
 													{
 														fe: model.fe,
-														bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-														fs: model.aM - 70,
+														be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+														fr: model.aM - 70,
 														I: model.I,
-														fZ: model.fZ
+														fY: model.fY
 													},
-													model.aF);
+													model.aH);
 											case 6:
 												return A2(
 													$author$project$Publications$Publications$view,
 													{
-														bd: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
-														fs: model.aM - 70,
-														fZ: model.fZ
+														be: $author$project$Auth$AuthPlugin$getLogInfo(model.p),
+														fr: model.aM - 70,
+														fY: model.fY
 													},
-													model.fC);
+													model.fB);
 											default:
 												return A2(
 													$author$project$Help$Help$view,
-													{fs: model.aM - 70, kf: model.d1},
+													{fr: model.aM - 70, ke: model.d1},
 													model.b1);
 										}
 									}(),
@@ -66476,16 +66624,16 @@ var $author$project$MurolAdmin$view = function (model) {
 					}
 				}())
 			]),
-		fQ: 'MurolAdmin'
+		fP: 'MurolAdmin'
 	};
 };
 var $author$project$MurolAdmin$main = $elm$browser$Browser$document(
-	{jP: $author$project$MurolAdmin$init, lU: $author$project$MurolAdmin$subscriptions, ml: $author$project$MurolAdmin$update, mq: $author$project$MurolAdmin$view});
+	{jO: $author$project$MurolAdmin$init, lT: $author$project$MurolAdmin$subscriptions, mk: $author$project$MurolAdmin$update, mp: $author$project$MurolAdmin$view});
 _Platform_export({'MurolAdmin':{'init':$author$project$MurolAdmin$main(
 	A2(
 		$elm$json$Json$Decode$andThen,
 		function (currentTime) {
 			return $elm$json$Json$Decode$succeed(
-				{iQ: currentTime});
+				{iP: currentTime});
 		},
 		A2($elm$json$Json$Decode$field, 'currentTime', $elm$json$Json$Decode$int)))(0)}});}(this));

@@ -32,6 +32,7 @@ import Internals.Contact as Contact
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import PageEditor.EditorPlugins.TrixTextBlockPlugin exposing (convertTextBlocks)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (Child(..), Page(..), decodeContent)
 import Publications.Publications exposing (getAllPublications)
 import Random exposing (..)
@@ -1066,7 +1067,8 @@ mainView maxWidth model =
                 , Background.color (rgba 1 1 1 0.9)
                 , clipX
                 ]
-                (responsivePreFormat model.config doc
+                (responsivePreFormat model.config
+                    (convertTextBlocks (Dict.map (\k v -> { name = "", path = v }) model.config.pageIndex) doc)
                     |> renderDoc model.config
                 )
 

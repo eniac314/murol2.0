@@ -1,6 +1,7 @@
-module Document.DocumentViews.StyleSheets exposing (PreviewMode(..), Season(..), StyleSheet, TableStyle, backgroundImage, chunkBy, defaultStyleSheet, defaultStyleSheetCss, docMaxWidth, getContainerWidth, getDevice, headingStyles, seasonToStr, tableStyles, timeToSeason)
+module Document.DocumentViews.StyleSheets exposing (PreviewMode(..), Season(..), StyleSheet, TableStyle, backgroundImage, chunkBy, defaultStyleSheet, defaultStyleSheetCss, docAttrToCss, docMaxWidth, embeddedStyleSheet, getContainerWidth, getDevice, headingStyles, seasonToStr, tableStyles, timeToSeason)
 
 import Dict exposing (..)
+import Document.Document as Document exposing (..)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -8,6 +9,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Html exposing (text)
 import Html.Attributes as Attr
 import Time exposing (Month(..), Posix, Zone, toDay, toMonth)
 
@@ -480,6 +482,152 @@ headingStyles season ( winWidth, winHeight ) editMode =
         )
         commonAttr
         seasonAttr
+
+
+embeddedStyleSheet renderConfig wholeTextBlocAttr =
+    let
+        templateStylesheet =
+            let
+                className =
+                    if renderConfig.editMode then
+                        ".trix-content-editor "
+
+                    else
+                        ".trix-content "
+
+                tagStyle ( tag, styles ) =
+                    styles
+                        |> List.map (\( a, v ) -> a ++ ":" ++ v ++ ";")
+                        |> String.join " "
+                        |> (\s -> className ++ tag ++ "{" ++ s ++ "}")
+            in
+            Dict.toList (defaultStyleSheetCss renderConfig)
+                |> List.map tagStyle
+                |> String.join " "
+
+        styleSheet =
+            Html.div
+                []
+                [ Html.node "style"
+                    []
+                    [ Html.text <|
+                        templateStylesheet
+                            ++ " .trix-content{"
+                            ++ stringifyAttributes (List.concatMap docAttrToCss wholeTextBlocAttr)
+                            ++ """ 
+                        
+                        }
+                    """
+                            ++ """ 
+
+                            .trix-content p {
+                                display: block;
+                                margin: 0;
+                                padding : 0;
+                            }
+                    """
+                    ]
+                ]
+    in
+    el
+        []
+        (html <| styleSheet)
+
+
+docAttrToCss : Document.DocAttribute -> List ( String, String )
+docAttrToCss attr =
+    case attr of
+        PaddingEach padding ->
+            []
+
+        SpacingXY x y ->
+            []
+
+        AlignRight ->
+            [ ( "float", "right" ) ]
+
+        AlignLeft ->
+            [ ( "float", "left" ) ]
+
+        Pointer ->
+            []
+
+        BackgroundColor (DocColor r g b) ->
+            let
+                ( r_, g_, b_ ) =
+                    ( String.fromInt (round <| r * 255)
+                    , String.fromInt (round <| g * 255)
+                    , String.fromInt (round <| b * 255)
+                    )
+            in
+            [ ( "background-color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" ) ]
+
+        WidthFill ->
+            [ ( "width", "100%" ) ]
+
+        WidthShrink ->
+            []
+
+        Width n ->
+            [ ( "width", String.fromInt n ++ "px" ) ]
+
+        Height n ->
+            [ ( "height", String.fromInt n ++ "px" ) ]
+
+        FillPortion n ->
+            []
+
+        Border ->
+            [ ( "border-style", "solid" )
+            , ( "border-width", "1px" )
+            , ( "border-color", "rgb(127,127,127)" )
+            ]
+
+        Font font ->
+            [ ( "font-family", font ) ]
+
+        FontColor (DocColor r g b) ->
+            let
+                ( r_, g_, b_ ) =
+                    ( String.fromInt (round <| r * 255)
+                    , String.fromInt (round <| g * 255)
+                    , String.fromInt (round <| b * 255)
+                    )
+            in
+            [ ( "color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" ) ]
+
+        FontSize n ->
+            [ ( "font-size", String.fromInt n ++ "px" ) ]
+
+        FontAlignLeft ->
+            [ ( "text-align", "left" ) ]
+
+        FontAlignRight ->
+            [ ( "text-align", "right" ) ]
+
+        Center ->
+            [ ( "text-align", "center" ) ]
+
+        Justify ->
+            [ ( "text-align", "justify" ) ]
+
+        Bold ->
+            [ ( "font-weight", "bold" ) ]
+
+        Italic ->
+            [ ( "font-style", "italic" ) ]
+
+        Other attrs ->
+            [ attrs ]
+
+        ZipperAttr n handler ->
+            []
+
+
+stringifyAttributes : List ( String, String ) -> String
+stringifyAttributes attributes =
+    List.map (\( attr, value ) -> attr ++ ": " ++ value ++ ";") attributes
+        |> String.join " "
 
 
 

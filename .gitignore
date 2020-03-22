@@ -4,4 +4,4 @@ apacheBackup/assets/
 apacheBackup/visite/
 apacheBackup/baseDocumentaire/
 elm-stuff/
-
+*.sql

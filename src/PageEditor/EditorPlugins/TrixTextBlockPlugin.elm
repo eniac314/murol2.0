@@ -1,4 +1,4 @@
-port module PageEditor.EditorPlugins.TrixTextBlockPlugin exposing (Model, Msg, init, newsEditorView, parserOutput, subscriptions, textBlockPreview, update, view)
+port module PageEditor.EditorPlugins.TrixTextBlockPlugin exposing (Model, Msg, convertTextBlocks, init, newsEditorView, parserOutput, subscriptions, textBlockPreview, update, view)
 
 import Auth.AuthPlugin exposing (LogInfo)
 import Browser exposing (element)
@@ -7,7 +7,7 @@ import Dict exposing (..)
 import Document.Document as Document exposing (..)
 import Document.DocumentViews.DocumentView exposing (renderTextBlock)
 import Document.DocumentViews.RenderConfig exposing (Config)
-import Document.DocumentViews.StyleSheets exposing (StyleSheet, defaultStyleSheet, defaultStyleSheetCss)
+import Document.DocumentViews.StyleSheets exposing (StyleSheet, defaultStyleSheet, defaultStyleSheetCss, docAttrToCss, embeddedStyleSheet)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -59,6 +59,31 @@ parserOutput model =
     { tbElems = model.output
     , attrs = model.wholeTextBlocAttr
     }
+
+
+convertTextBlocks : Dict String { path : String, name : String } -> Document -> Document
+convertTextBlocks pageIndex doc =
+    case doc of
+        Container value docs ->
+            Container value (List.map (convertTextBlocks pageIndex) docs)
+
+        Cell { cellContent, id, attrs } ->
+            case cellContent of
+                TextBlock tbElements ->
+                    Cell
+                        { cellContent =
+                            TextBlock
+                                [ List.concatMap (textBlockElementToNode pageIndex) tbElements
+                                    |> List.map Html.Parser.nodeToString
+                                    |> String.join ""
+                                    |> TrixHtml
+                                ]
+                        , id = id
+                        , attrs = attrs
+                        }
+
+                other ->
+                    Cell { cellContent = other, id = id, attrs = attrs }
 
 
 type alias Model msg =
@@ -217,7 +242,8 @@ update config msg model =
         LoadContentInTrix ->
             ( model
             , model.output
-                |> List.concatMap (textBlockElementToNode config)
+                |> List.concatMap (textBlockElementToNode (PageTreeEditor.pageIndex config.pageTreeEditor))
+                --|> addWholeTextAttrs model.wholeTextBlocAttr
                 |> List.map Html.Parser.nodeToString
                 |> String.join ""
                 |> (\html ->
@@ -225,7 +251,7 @@ update config msg model =
                             [ ( "selectionStart", E.int 0 )
                             , ( "selectionEnd", E.int 0 )
                             , ( "tagName", E.string "initial load" )
-                            , ( "html", E.string html )
+                            , ( "html", E.string html ) --(Debug.log "" html) )
                             ]
                    )
                 |> insertHtml
@@ -563,7 +589,7 @@ view config renderConfig model =
         [ height fill
         , width fill
         ]
-        [ embeddedStyleSheet config renderConfig model
+        [ embeddedStyleSheet renderConfig model.wholeTextBlocAttr
         , column
             [ padding 15
             , spacing 15
@@ -572,7 +598,8 @@ view config renderConfig model =
             , width fill
             ]
             [ editor config model
-            , textBlockPreview model renderConfig
+
+            --, textBlockPreview model renderConfig
             , row
                 [ spacing 15
                 , Font.size 16
@@ -596,59 +623,6 @@ view config renderConfig model =
         ]
 
 
-embeddedStyleSheet config renderConfig model =
-    let
-        templateStylesheet =
-            let
-                tagStyle ( tag, styles ) =
-                    styles
-                        |> List.map (\( a, v ) -> a ++ ":" ++ v ++ ";")
-                        |> String.join " "
-                        |> (\s -> ".trix-content-editor " ++ tag ++ "{" ++ s ++ "}")
-            in
-            Dict.toList (defaultStyleSheetCss renderConfig)
-                |> List.map tagStyle
-                |> String.join " "
-
-        styleSheet =
-            Html.div
-                []
-                [ Html.node "style"
-                    []
-                    [ Html.text <|
-                        templateStylesheet
-                            ++ " .trix-content{"
-                            ++ stringifyAttributes (List.concatMap docAttrToCss model.wholeTextBlocAttr)
-                            ++ """ 
-                        
-                        }
-                    """
-                            ++ """ 
-
-                            .trix-content p {
-                                display: block;
-                                margin: 0;
-                                padding : 0;
-                            }
-
-                            .trix-content-editor figure{
-                                
-                            }
-                            .trix-content-editor figure:nth-of-type(2){
-                                opacity: 0.5;
-                                float: left;
-                                background-color: red;
-                                width: auto;
-                            }
-                    """
-                    ]
-                ]
-    in
-    el
-        []
-        (html <| styleSheet)
-
-
 stringifyAttributes : List ( String, String ) -> String
 stringifyAttributes attributes =
     List.map (\( attr, value ) -> attr ++ ": " ++ value ++ ";") attributes
@@ -669,7 +643,13 @@ editor config model =
         [ spacing 10
         ]
         [ trixEditor config model
-        , paragraph [] [ text <| model.htmlContent.html ]
+
+        --, paragraph [] [ text <| model.htmlContent.html ]
+        --, case model.output of
+        --    (TrixHtml s) :: xs ->
+        --        paragraph [] [ text <| s ]
+        --    _ ->
+        --        Element.none
         ]
 
 
@@ -920,7 +900,7 @@ customToolbar config model =
                     else
                         Nothing
                 , label =
-                    text "undo style"
+                    el [] (html <| xSquare iconSize)
                 }
 
         --config.pageList
@@ -942,8 +922,9 @@ textBlockPreview model config =
             , color = rgba 0 0 0 0.16
             }
         , padding 15
-        , Font.family [ Font.typeface "Arial" ]
-        , Font.size 16
+
+        --, Font.family [ Font.typeface "Arial" ]
+        --, Font.size 16
         ]
         (renderTextBlock
             config
@@ -960,28 +941,13 @@ textBlockPreview model config =
 newsEditorView config renderConfig model =
     column
         []
-        [ embeddedStyleSheet config
+        [ embeddedStyleSheet
             renderConfig
-            model
+            model.wholeTextBlocAttr
         , editor
             config
             model
         ]
-
-
-
---interfaceView :
---    { a
---        | fileExplorer : FileExplorer.Model msg
---        , logInfo : Auth.AuthPlugin.LogInfo
---        , pageTreeEditor : PageTreeEditor.Model msg
---        , zone : Time.Zone
---    }
---    -> Bool
---    -> Model msg
---    -> Element.Element msg
---interfaceView config isNewsView model =
---    Element.none
 
 
 decodeEditorMarkup : D.Decoder HtmlContent
@@ -1034,16 +1000,26 @@ extractValue attribute attrs =
             Nothing
 
 
-textBlockElementToNode : { config | pageTreeEditor : PageTreeEditor.Model msg } -> TextBlockElement -> List Html.Parser.Node
-textBlockElementToNode config tbe =
+addWholeTextAttrs : List Document.DocAttribute -> List Html.Parser.Node -> Html.Parser.Node
+addWholeTextAttrs attrs nodes =
+    case nodes of
+        (Element "div" attrs_ nodes_) :: [] ->
+            Element "div" (styleAttr attrs) nodes_
+
+        elems ->
+            Element "div" (styleAttr attrs) elems
+
+
+textBlockElementToNode : Dict String { path : String, name : String } -> TextBlockElement -> List Html.Parser.Node
+textBlockElementToNode pageIndex tbe =
     case tbe of
         Paragraph attrs prims ->
-            [ Element "p" (styleAttr attrs) (List.map (textBlockPrimToNode config) prims) ]
+            [ Element "p" (styleAttr attrs) (List.map (textBlockPrimToNode pageIndex) prims) ]
 
         UList attrs lis ->
             [ Element "ul"
                 (styleAttr attrs)
-                (List.map (\li -> Element "li" [] (List.map (textBlockPrimToNode config) li)) lis)
+                (List.map (\li -> Element "li" [] (List.map (textBlockPrimToNode pageIndex) li)) lis)
             ]
 
         Heading attrs ( 1, s ) ->
@@ -1056,7 +1032,7 @@ textBlockElementToNode config tbe =
             [ Element "h3" (styleAttr attrs) [ Html.Parser.Text s ] ]
 
         TBPrimitive prim ->
-            [ textBlockPrimToNode config prim ]
+            [ textBlockPrimToNode pageIndex prim ]
 
         TrixHtml html ->
             Html.Parser.run html
@@ -1066,8 +1042,8 @@ textBlockElementToNode config tbe =
             []
 
 
-textBlockPrimToNode : { config | pageTreeEditor : PageTreeEditor.Model msg } -> TextBlockPrimitive -> Html.Parser.Node
-textBlockPrimToNode config tbp =
+textBlockPrimToNode : Dict String { path : String, name : String } -> TextBlockPrimitive -> Html.Parser.Node
+textBlockPrimToNode pageIndex tbp =
     case tbp of
         Document.Text [] s ->
             Html.Parser.Text s
@@ -1077,9 +1053,6 @@ textBlockPrimToNode config tbp =
 
         Link attrs { targetBlank, url, label } ->
             let
-                pageIndex =
-                    PageTreeEditor.pageIndex config.pageTreeEditor
-
                 url_ =
                     case Dict.get url pageIndex of
                         Just _ ->
@@ -1163,99 +1136,9 @@ cssToDocAttr attr =
 styleAttr : List Document.DocAttribute -> List ( String, String )
 styleAttr attrs =
     List.concatMap docAttrToCss attrs
-        |> List.map (\( a, v ) -> a ++ ":" ++ v ++ ";")
+        |> List.map (\( a, v ) -> a ++ ": " ++ v ++ ";")
         |> String.join " "
         |> (\r -> [ ( "style", r ) ])
-
-
-docAttrToCss : Document.DocAttribute -> List ( String, String )
-docAttrToCss attr =
-    case attr of
-        PaddingEach padding ->
-            []
-
-        SpacingXY x y ->
-            []
-
-        AlignRight ->
-            [ ( "float", "right" ) ]
-
-        AlignLeft ->
-            [ ( "float", "left" ) ]
-
-        Pointer ->
-            []
-
-        BackgroundColor (DocColor r g b) ->
-            let
-                ( r_, g_, b_ ) =
-                    ( String.fromInt (round <| r * 255)
-                    , String.fromInt (round <| g * 255)
-                    , String.fromInt (round <| b * 255)
-                    )
-            in
-            [ ( "background-color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" ) ]
-
-        WidthFill ->
-            [ ( "width", "100%" ) ]
-
-        WidthShrink ->
-            []
-
-        Width n ->
-            [ ( "width", String.fromInt n ++ "px" ) ]
-
-        Height n ->
-            [ ( "height", String.fromInt n ++ "px" ) ]
-
-        FillPortion n ->
-            []
-
-        Border ->
-            [ ( "border-style", "solid" )
-            , ( "border-width", "1px" )
-            , ( "border-color", "rgb(127,127,127)" )
-            ]
-
-        Font font ->
-            [ ( "font-family", font ) ]
-
-        FontColor (DocColor r g b) ->
-            let
-                ( r_, g_, b_ ) =
-                    ( String.fromInt (round <| r * 255)
-                    , String.fromInt (round <| g * 255)
-                    , String.fromInt (round <| b * 255)
-                    )
-            in
-            [ ( "color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" ) ]
-
-        FontSize n ->
-            [ ( "font-size", String.fromInt n ++ "px" ) ]
-
-        FontAlignLeft ->
-            [ ( "text-align", "left" ) ]
-
-        FontAlignRight ->
-            [ ( "text-align", "right" ) ]
-
-        Center ->
-            [ ( "text-align", "center" ) ]
-
-        Justify ->
-            [ ( "text-align", "justify" ) ]
-
-        Bold ->
-            [ ( "font-weight", "bold" ) ]
-
-        Italic ->
-            [ ( "font-style", "italic" ) ]
-
-        Other attrs ->
-            [ attrs ]
-
-        ZipperAttr n handler ->
-            []
 
 
 
@@ -1411,7 +1294,19 @@ docPicker config externalMsg id isActive docPickerOpen currentLink openMsg handl
                             , color = rgba 0 0 0 0.45
                             }
                         ]
-                        [ chooseDocView externalMsg config.fileExplorer config.zone config.logInfo
+                        [ case currentLink of
+                            Just path ->
+                                row
+                                    [ spacing 10
+                                    , padding 15
+                                    ]
+                                    [ el [ Font.bold ] (text "Lien pour:")
+                                    , text path
+                                    ]
+
+                            Nothing ->
+                                Element.none
+                        , chooseDocView externalMsg config.fileExplorer config.zone config.logInfo
                         ]
 
                  else
