@@ -29,6 +29,7 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons as Icons exposing (..)
 import Json.Decode as D
 import Json.Encode as E
+import List.Extra exposing (remove)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
@@ -43,6 +44,9 @@ port deactivateAttributes : E.Value -> Cmd msg
 
 
 port insertHtml : E.Value -> Cmd msg
+
+
+port loadHtml : E.Value -> Cmd msg
 
 
 port getSelection : () -> Cmd msg
@@ -240,21 +244,44 @@ update config msg model =
                     )
 
         LoadContentInTrix ->
+            let
+                removeHighlight node =
+                    case node of
+                        Element tag attrs nodes ->
+                            Element
+                                tag
+                                (List.foldr
+                                    (\( attr, value ) acc ->
+                                        (if attr == "style" then
+                                            ( attr, String.replace "background-color: highlight;" "" value )
+
+                                         else
+                                            ( attr, value )
+                                        )
+                                            :: acc
+                                    )
+                                    []
+                                    attrs
+                                )
+                                (List.map removeHighlight nodes)
+
+                        other ->
+                            other
+            in
             ( model
             , model.output
                 |> List.concatMap (textBlockElementToNode (PageTreeEditor.pageIndex config.pageTreeEditor))
-                --|> addWholeTextAttrs model.wholeTextBlocAttr
+                --needed to fix external link widged leaving content highlighted when swaping internal tabs
+                |> List.map removeHighlight
                 |> List.map Html.Parser.nodeToString
                 |> String.join ""
                 |> (\html ->
                         E.object
-                            [ ( "selectionStart", E.int 0 )
-                            , ( "selectionEnd", E.int 0 )
-                            , ( "tagName", E.string "initial load" )
+                            [ ( "tagName", E.string "initial load" )
                             , ( "html", E.string html )
                             ]
                    )
-                |> insertHtml
+                |> loadHtml
             , Nothing
             )
 
@@ -580,6 +607,7 @@ view :
         , pageTreeEditor : PageTreeEditor.Model msg
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
+        , maxHeight : Int
     }
     -> Config msg
     -> Model msg
@@ -635,6 +663,7 @@ editor :
         , pageTreeEditor : PageTreeEditor.Model msg
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
+        , maxHeight : Int
     }
     -> Model msg
     -> Element.Element msg
@@ -643,8 +672,8 @@ editor config model =
         [ spacing 10
         ]
         [ trixEditor config model
+        , paragraph [] [ text <| model.htmlContent.html ]
 
-        --, paragraph [] [ text <| model.htmlContent.html ]
         --, case model.output of
         --    (TrixHtml s) :: xs ->
         --        paragraph [] [ text <| s ]
@@ -659,6 +688,7 @@ trixEditor :
         , pageTreeEditor : PageTreeEditor.Model msg
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
+        , maxHeight : Int
     }
     -> Model msg
     -> Element.Element msg
@@ -689,6 +719,8 @@ trixEditor config model =
                             , HtmlAttr.class "trix-content-editor"
                             , HtmlAttr.attribute "toolbar" "trix-toolbar"
                             , HtmlAttr.attribute "input" "reset"
+                            , HtmlAttr.style "maxHeight" (String.fromInt (config.maxHeight - 155) ++ "px")
+                            , HtmlAttr.style "overflow-y" "auto"
                             ]
                             []
                         ]
@@ -803,6 +835,9 @@ customToolbar config model =
         [ linkPicker config
             model.externalMsg
             "internalLinkPicker"
+            --(Maybe.map (String.startsWith "lien-interne:") href
+            --    |> Maybe.withDefault False
+            --)
             (selectionCollapsed == Just False)
             (model.openedWidget == Just InternalLinks)
             href
@@ -812,6 +847,9 @@ customToolbar config model =
             model.externalMsg
             "docPicker"
             (selectionCollapsed == Just False)
+            --(Maybe.map (String.startsWith "doc:") href
+            --    |> Maybe.withDefault False
+            --)
             (model.openedWidget == Just DocPicker)
             href
             OpenDocPicker
@@ -873,7 +911,7 @@ customToolbar config model =
             row
                 [ spacing 10 ]
                 [ Input.button
-                    (buttonStyle canUpdateGlobalAttr)
+                    (toogleButtonStyle (List.member FontAlignLeft model.wholeTextBlocAttr) canUpdateGlobalAttr)
                     { onPress =
                         if canUpdateGlobalAttr then
                             Just (SetAlignMent FontAlignLeft)
@@ -885,7 +923,7 @@ customToolbar config model =
                         el [] (html <| Icons.alignLeft iconSize)
                     }
                 , Input.button
-                    (buttonStyle canUpdateGlobalAttr)
+                    (toogleButtonStyle (List.member Center model.wholeTextBlocAttr) canUpdateGlobalAttr)
                     { onPress =
                         if canUpdateGlobalAttr then
                             Just (SetAlignMent Center)
@@ -897,7 +935,10 @@ customToolbar config model =
                         el [] (html <| alignCenter iconSize)
                     }
                 , Input.button
-                    (buttonStyle canUpdateGlobalAttr)
+                    (toogleButtonStyle
+                        (List.member FontAlignRight model.wholeTextBlocAttr)
+                        canUpdateGlobalAttr
+                    )
                     { onPress =
                         if canUpdateGlobalAttr then
                             Just (SetAlignMent FontAlignRight)
@@ -909,7 +950,10 @@ customToolbar config model =
                         el [] (html <| Icons.alignRight iconSize)
                     }
                 , Input.button
-                    (buttonStyle canUpdateGlobalAttr)
+                    (toogleButtonStyle
+                        (List.member Justify model.wholeTextBlocAttr)
+                        canUpdateGlobalAttr
+                    )
                     { onPress =
                         if canUpdateGlobalAttr then
                             Just (SetAlignMent Justify)
@@ -1094,7 +1138,11 @@ textBlockPrimToNode pageIndex tbp =
                             "lien-interne:" ++ url
 
                         Nothing ->
-                            url
+                            if String.startsWith "/baseDocumentaire" url then
+                                "doc:" ++ url
+
+                            else
+                                url
             in
             Element "a"
                 (styleAttr attrs
@@ -1276,7 +1324,14 @@ linkPicker config externalMsg id isActive linkPickerOpen currentLink openMsg han
         , htmlAttribute <| HtmlAttr.id id
         ]
         (Input.button
-            (buttonStyle isActive)
+            (buttonStyle isActive
+                ++ [ if Maybe.map (String.startsWith "lien-interne:") currentLink == Just True then
+                        Background.color (rgb255 203 238 250)
+
+                     else
+                        noAttr
+                   ]
+            )
             { onPress =
                 if isActive then
                     Just (externalMsg openMsg)
@@ -1286,7 +1341,9 @@ linkPicker config externalMsg id isActive linkPickerOpen currentLink openMsg han
             , label =
                 row
                     [ spacing 5 ]
-                    [ el [] (html <| Icons.link2 iconSize)
+                    [ el
+                        []
+                        (html <| Icons.link2 iconSize)
 
                     --, Icons.link
                     --    (Icons.defOptions
@@ -1350,7 +1407,14 @@ docPicker config externalMsg id isActive docPickerOpen currentLink openMsg handl
         , htmlAttribute <| HtmlAttr.id id
         ]
         (Input.button
-            (buttonStyle isActive)
+            (buttonStyle isActive
+                ++ [ if Maybe.map (String.startsWith "doc:") currentLink == Just True then
+                        Background.color (rgb255 203 238 250)
+
+                     else
+                        noAttr
+                   ]
+            )
             { onPress =
                 if isActive then
                     Just (externalMsg openMsg)

@@ -632,7 +632,15 @@ renderTextBlockElement config id tbAttrs tbe =
                 |> Result.withDefault []
                 |> List.map (processLinks config)
                 |> List.map (toHtml config 0)
-                |> Html.div [ Attr.class "trix-content", Attr.style "width" "100%" ]
+                |> Html.div
+                    [ Attr.class "trix-content"
+
+                    --, Attr.style "width" "100%"
+                    , Attr.attribute "style"
+                        ("width: 100%;"
+                            ++ stringifyAttributes (List.concatMap docAttrToCss tbAttrs)
+                        )
+                    ]
                 |> (\r ->
                         paragraph
                             ([ width fill
@@ -651,12 +659,22 @@ processLinks config node =
         processLinkAttrs processed toProcess =
             case toProcess of
                 ( "href", url ) :: xs ->
-                    if String.startsWith "lien-interne:" url then
+                    if config.editMode then
+                        List.reverse processed ++ xs
+
+                    else if String.startsWith "lien-interne:" url then
                         ( "href"
                         , String.dropLeft (String.length "lien-interne:") url
                             |> (\cId -> Dict.get cId config.pageIndex)
                             |> Maybe.withDefault url
                         )
+                            :: (List.reverse processed ++ xs)
+
+                    else if String.startsWith "doc:" url then
+                        ( "href"
+                        , String.dropLeft (String.length "doc:") url
+                        )
+                            :: ( "target", "_blank" )
                             :: (List.reverse processed ++ xs)
 
                     else if Dict.member url config.pageIndex then
@@ -665,7 +683,7 @@ processLinks config node =
 
                     else
                         ( "href", url )
-                            :: ( "target", "blank" )
+                            :: ( "target", "_blank" )
                             :: (List.reverse processed ++ xs)
 
                 other :: xs ->
@@ -1002,22 +1020,28 @@ renderTable config id attrs { style, nbrRows, nbrCols, data } =
                     (nbrCols - 1)
                 )
     in
-    [ indexedTable
-        ((Dict.get style tableStyles
-            |> Maybe.map .tableStyle
-            |> Maybe.withDefault []
-         )
-            ++ [ width (maximum maxWidth fill)
-               , height fill
-               , clip
-               , scrollbarX
-               ]
-            ++ idStyle styleSheet id
-            ++ renderAttrs config attrs
+    [ el
+        [ width (maximum maxWidth fill)
+
+        --, height fill
+        --, clipX
+        --, scrollbarX
+        ]
+        (indexedTable
+            ((Dict.get style tableStyles
+                |> Maybe.map .tableStyle
+                |> Maybe.withDefault []
+             )
+                ++ [ clipX
+                   , scrollbarX
+                   ]
+                ++ idStyle styleSheet id
+                ++ renderAttrs config attrs
+            )
+            { data = data
+            , columns = columns
+            }
         )
-        { data = data
-        , columns = columns
-        }
     ]
 
 

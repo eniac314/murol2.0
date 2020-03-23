@@ -1,4 +1,4 @@
-module Document.DocumentViews.StyleSheets exposing (PreviewMode(..), Season(..), StyleSheet, TableStyle, backgroundImage, chunkBy, defaultStyleSheet, defaultStyleSheetCss, docAttrToCss, docMaxWidth, embeddedStyleSheet, getContainerWidth, getDevice, headingStyles, seasonToStr, tableStyles, timeToSeason)
+module Document.DocumentViews.StyleSheets exposing (PreviewMode(..), Season(..), StyleSheet, TableStyle, backgroundImage, chunkBy, defaultStyleSheet, defaultStyleSheetCss, docAttrToCss, docMaxWidth, embeddedStyleSheet, getContainerWidth, getDevice, headingStyles, seasonToStr, stringifyAttributes, tableStyles, timeToSeason)
 
 import Dict exposing (..)
 import Document.Document as Document exposing (..)
@@ -137,6 +137,7 @@ defaultStyleSheetCss config =
                             , ( "text-align", "center" )
                             , ( "font-weight", "bold" )
                             , ( "padding", "10px 0px" )
+                            , ( "margin-bottom", "15px" )
                             , ( "width", "100%" )
                             ]
                           )
@@ -146,12 +147,16 @@ defaultStyleSheetCss config =
                             , ( "font-weight", "bold" )
                             , ( "padding", "2px 0px" )
                             , ( "width", "100%" )
+                            , ( "margin-bottom", "15px" )
+                            , ( "margin-top", "15px" )
                             ]
                           )
                         , ( "h3"
                           , [ ( "font-size", "16px" )
                             , ( "color", "rgb(0 127 0)" )
                             , ( "font-weight", "bold" )
+                            , ( "margin-bottom", "15px" )
+                            , ( "margin-top", "15px" )
                             ]
                           )
                         ]
@@ -512,13 +517,13 @@ embeddedStyleSheet renderConfig wholeTextBlocAttr =
                     []
                     [ Html.text <|
                         templateStylesheet
-                            ++ " .trix-content{"
+                            ++ " .trix-content-editor{"
                             ++ stringifyAttributes (List.concatMap docAttrToCss wholeTextBlocAttr)
+                            ++ """
+                                }
+                            """
                             ++ """ 
-                        
-                        }
-                    """
-                            ++ """ 
+
 
                             .trix-content p {
                                 display: block;
@@ -560,7 +565,11 @@ docAttrToCss attr =
                     , String.fromInt (round <| b * 255)
                     )
             in
-            [ ( "background-color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" ) ]
+            [ ( "background-color", "rgb(" ++ r_ ++ "," ++ g_ ++ "," ++ b_ ++ ")" )
+
+            --, ( "padding", "15px" )
+            --, ( "border-radius", "20px" )
+            ]
 
         WidthFill ->
             [ ( "width", "100%" ) ]

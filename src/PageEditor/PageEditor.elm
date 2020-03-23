@@ -1709,6 +1709,7 @@ pluginView config model plugin =
                 , pageTreeEditor = config.pageTreeEditor
                 , zone = config.zone
                 , logInfo = config.logInfo
+                , maxHeight = model.config.height - model.config.mainInterfaceHeight - 70
                 }
                 model.config
                 model.textBlockPlugin

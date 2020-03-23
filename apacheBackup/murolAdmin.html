@@ -590,6 +590,17 @@ app.ports.insertHtml.subscribe(function(data){
   }
 });
 
+app.ports.loadHtml.subscribe(function(data){
+  var element = document.querySelector("trix-editor");
+  
+  if(element){
+    element.editor.recordUndoEntry("inserting custom html: " + data.tagName);
+    element.editor.loadHTML(data.html);
+
+    sendSelection();
+  }
+});
+
 app.ports.getSelection.subscribe(function(){
   sendSelection();
 });
