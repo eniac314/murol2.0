@@ -905,39 +905,29 @@ renderImage config ({ uid, docStyleId, classes } as id) attrs { src, caption, si
                 UrlSrc s ->
                     s
     in
-    [ el attrs_
-        (column
-            []
-            [ image [ width fill ]
+    [ case caption of
+        Just c ->
+            column
+                attrs_
+                [ image []
+                    { src = src_
+                    , description = ""
+                    }
+                , paragraph
+                    [ Font.italic
+                    , Font.size 14
+                    , width fill
+                    , Font.center
+                    , paddingXY 0 5
+                    ]
+                    [ text c ]
+                ]
+
+        Nothing ->
+            image attrs_
                 { src = src_
-                , description =
-                    Maybe.withDefault "" caption
+                , description = ""
                 }
-            , case caption of
-                Just c ->
-                    paragraph
-                        [ Font.italic
-                        , Font.size 14
-                        , width fill
-                        , Font.center
-                        , paddingXY 0 5
-                        ]
-                        [ text c ]
-
-                Nothing ->
-                    Element.none
-            ]
-        )
-
-    --el attrs_
-    --(html <|
-    --    Html.img
-    --        [ Attr.style "width" "100%"
-    --        , Attr.style "height" "auto"
-    --        , Attr.src src_
-    --        ]
-    --        []
-    --)
     ]
 
 
