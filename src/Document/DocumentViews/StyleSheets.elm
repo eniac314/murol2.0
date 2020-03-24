@@ -524,12 +524,19 @@ embeddedStyleSheet renderConfig wholeTextBlocAttr =
                             """
                             ++ """ 
 
-
+                            .trix-content-editor p {
+                                display: block;
+                                margin: 0;
+                                padding : 0;
+                                line-height: 150%;
+                            }
                             .trix-content p {
                                 display: block;
                                 margin: 0;
                                 padding : 0;
+                                line-height: 150%;
                             }
+                            
                     """
                     ]
                 ]

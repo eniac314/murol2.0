@@ -672,8 +672,8 @@ editor config model =
         [ spacing 10
         ]
         [ trixEditor config model
-        , paragraph [] [ text <| model.htmlContent.html ]
 
+        --, paragraph [] [ text <| model.htmlContent.html ]
         --, case model.output of
         --    (TrixHtml s) :: xs ->
         --        paragraph [] [ text <| s ]
