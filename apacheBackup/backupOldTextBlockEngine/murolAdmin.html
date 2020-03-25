@@ -1,0 +1,417 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+  <script src="js/pdf_js/build/pdf.js"></script>
+  <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-bundle.js" type="text/javascript"></script>
+  <script type="text/javascript" src="js/MurolAdmin.js"></script>
+  <script type='text/javascript' src='js/PortFunnel.js'></script>
+  <script type='text/javascript' src='js/PortFunnel/LocalStorage.js'></script>
+
+
+</head>
+
+
+  
+
+<body>
+
+  <script type="text/javascript">
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/pdf_js/build/pdf.worker.js';
+
+    var currentTime = new Date().getTime();
+
+    var app = Elm.MurolAdmin.init({flags: {currentTime: currentTime}});
+
+    app.ports.toImageProcessor.subscribe(function(d){
+      processImage(d, app.ports.processedImages);
+    });
+
+    app.ports.toFileExplorerImageProcessor.subscribe(function(d){
+      processImage(d, app.ports.fileExplorerProcessedImages);
+    });
+
+    app.ports.requestBulletinCover.subscribe(dataString => extractCover(dataString));
+
+
+
+    // PortFunnel.subscribe will load js/PortFunnel/<module>.js,
+    // for each module in this list.
+    // var modules = ['LocalStorage'];
+
+    PortFunnel.subscribe(app);
+    
+    /////////////////////////////////////////////////////////////////
+    
+    customElements.define('custom-textarea', class extends HTMLElement {
+    
+      constructor(){
+        super();
+        
+      }
+      
+      get selection(){
+        this._textarea = this.querySelector('textarea');
+        var start = this._textarea.selectionStart;
+        var finish = this._textarea.selectionEnd;
+        var sel = this._textarea.value.substring(start, finish);
+        
+        return { start: start, 
+                 finish: finish,
+                 sel: sel
+               };  
+      }
+
+      get value(){
+        this._textarea = this.querySelector('textarea');
+        return this._textarea.value;
+      }
+      
+      get cols(){
+        return this._cols || "0";
+      }
+
+      set selection(offset){
+        if(offset !== null) {
+          if (this.querySelector('textarea') !== null){
+            this._textarea = this.querySelector('textarea');
+            this._textarea.focus();
+            this._textarea.setSelectionRange(offset.start,offset.stop);
+          }
+        }
+      }
+
+      connectedCallback() {
+        this._textarea = this.querySelector('textarea');
+            
+        this._textarea.addEventListener('click', (event) => {
+          this.dispatchEvent(new CustomEvent('Selection'));
+        });
+
+        this._textarea.addEventListener('input', (event) => {
+          this.dispatchEvent(new CustomEvent('Input'));
+        });
+      }
+    });
+
+    
+    
+
+  ///////////////////////////////////////////////////////////////////
+
+   
+
+  customElements.define('image-controller', class extends HTMLElement {
+
+    get fileData(){
+      return this._fileData || "???";
+    }
+
+    set desiredSize(maxHeight){
+      if (maxHeight != null && this._original != null) {
+        this._maxHeight = maxHeight;
+        // resize(this._original.contents, maxHeight, this._original.filename, this);
+        transform(this._original.contents,this._original.filename, this);
+      }
+    }
+    
+    set rotationAngle(rAngle){
+      // console.log("test");
+      if (rAngle != null && this._original != null){
+        this._rAngle = rAngle;
+        // rotateImage(this._original.contents, rAngle, this._original.filename, this);
+        transform(this._original.contents,this._original.filename, this);
+      }
+    }
+
+    connectedCallback() {
+    
+      this._input = this.querySelector('input');
+      
+      this._input.addEventListener('change', (event) => {
+      
+        var file = this._input.files[0];
+        var reader = new FileReader();
+        
+        
+
+        reader.onload = ((event) => {
+          
+          var base64encoded = event.target.result;
+          
+          var image = new Image();
+
+          image.onload = () => {
+
+            var fileData = {
+              contents: base64encoded,
+              filename: file.name,
+              width: image.width,
+              height: image.height,
+              filesize: fileSize(base64encoded)
+            };
+            
+            this._fileData = fileData;
+            this._original = fileData;
+            this._maxHeight = image.height;
+            this._rAngle = 0;
+
+            this.dispatchEvent(new CustomEvent('fileRead'));
+          };
+
+          image.src = base64encoded;
+
+          
+        });
+
+        reader.readAsDataURL(file);
+   
+      });
+    }
+  });
+
+  function fileSize(src){
+    var stringLength = src.length - 'data:image/jpeg;base64,'.length;
+
+    var sizeInBytes = 4 * Math.ceil((stringLength / 3))*0.5624896334383812;
+    var sizeInKb=sizeInBytes/1024;
+    return Math.round(sizeInBytes);
+  }
+
+  function resize(src, max_height, filename, caller){
+  
+    var image = new Image();
+    image.onload = function(){
+      var canvas = document.createElement('canvas');
+      if(image.height > max_height) {
+        image.width *= max_height / image.height;
+        image.height = max_height;
+      }
+  
+        if(image.height > max_height) {
+          image.width *= max_height / image.height;
+          image.height = max_height; 
+        }
+     
+
+      var ctx = canvas.getContext("2d");
+      
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, image.width, image.height);
+      
+      
+      var data = canvas.toDataURL("image/jpeg");
+
+      var fileData = {
+              contents: data,
+              filename: filename,
+              width: image.width,
+              height: image.height,
+              filesize: fileSize(data)
+            };
+            
+      caller._fileData = fileData;
+      
+      rotateImage(fileData.contents, caller._rAngle, caller._original.filename, caller);
+
+      
+    };
+    
+    image.src = src;
+    }
+
+  function rotateImage(src, rAngle, filename, caller){
+      var image = new Image();
+      
+      image.onload = function(){
+        var canvas = document.createElement('canvas');
+        
+        var ctx = canvas.getContext("2d");
+        
+        if(rAngle == 90 || rAngle == 270) {
+          canvas.width = image.height;
+          canvas.height = image.width;
+        } else {
+          canvas.width = image.width;
+          canvas.height = image.height;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+
+        if(rAngle == 90 || rAngle == 270) {
+          ctx.translate(image.height/2,image.width/2);
+        } else {
+          ctx.translate(image.width/2,image.height/2);
+        }
+        ctx.rotate(rAngle*Math.PI/180);
+        ctx.drawImage(image,-image.width/2,-image.height/2);
+
+        var data = canvas.toDataURL("image/jpeg",0.90);  
+
+        var fileData = {
+                contents: data,
+                filename: filename,
+                width: canvas.width,
+                height: canvas.height,
+                filesize: fileSize(data)
+              };
+              
+        caller._fileData = fileData;
+
+        caller.dispatchEvent(new CustomEvent('imageRead'));
+      };
+    
+    image.src = src;
+    } 
+    
+    
+    function transform(src, filename, caller){
+        resize(caller._original.contents, caller._maxHeight, caller._original.filename, caller);
+     
+    }
+    
+   ////////////////////////////////////////////////////////////////////////////
+   
+   function processImage(data,f){
+
+      var maxWidth = data.maxWidth;
+      var maxHeight = data.maxHeight;
+      var needThumb = data.needThumb;
+
+      var image = new Image();
+      
+      image.onload = function(){
+        
+        var canvas = document.createElement('canvas');
+
+        if(image.height > maxHeight) {
+          var width = image.width * maxHeight / image.height;
+          var height = maxHeight;
+        } else {
+          var width = image.width;
+          var height = image.height;
+        }
+
+        var ctx = canvas.getContext("2d");
+        
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0, width, height);
+        var smallPic = canvas.toDataURL("image/jpeg",0.9);
+        
+        
+        var thumbSize = Math.min(image.width, image.height);
+        
+        if (image.width > image.height){
+          var sx = (Math.floor((image.width - image.height)/2));
+          var sy = 0; 
+        } else {
+          var sx = 0;
+          var sy = (Math.floor((image.height - image.width)/4));
+        }
+
+        var thumb;
+
+        if (needThumb){
+          var thumbCanvas = document.createElement('canvas');
+          thumbCanvas.width = 200;
+          thumbCanvas.height = 200;
+          
+          var tCtx = thumbCanvas.getContext("2d");
+          tCtx.clearRect(0,0,200,200);
+          
+
+          tCtx.drawImage(image, sx, sy, thumbSize, thumbSize, 0, 0, 200, 200);
+          thumb = thumbCanvas.toDataURL("image/jpeg",0.9);
+        }
+
+        var result = {          
+                filename:data.filename,
+                content: smallPic,
+                thumb: thumb,
+                size: fileSize(smallPic),
+                width: image.width,
+                height: image.height
+              };
+        
+        f.send(result);
+      };
+      
+      image.src = data.imageData;
+  }
+
+///////////////////////////////////////////////////////////////////////////////
+// PDF cover extractor 
+
+function extractCover(dataString){
+  
+  pdfjsLib.getDocument(dataString)
+  
+  .then(pdf_doc => pdf_doc.getPage(1))
+  
+  .then(page => {
+      var viewport = page.getViewport(1);
+
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+
+      var renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+      };
+
+      var task = page.render(renderContext);
+
+      task.promise.then(function(){
+
+        var base64 = canvas.toDataURL("image/jpeg",0.9);
+        var result = 
+        {content : base64};
+
+        app.ports.bulletinCover.send(result);
+      });
+      
+      })
+  .catch(error => app.ports.bulletinCover.send({error : error.toString()}));
+  
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+  //**dataURL to blob**
+  function dataURLtoBlob(dataurl) {
+     var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+         bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+     while(n--){
+         u8arr[n] = bstr.charCodeAt(n);
+     }
+     return new Blob([u8arr], {type:mime});
+   }
+  
+  //**blob to dataURL**
+  function blobToDataURL(blob) {
+      var a = new FileReader();
+      a.onload = function(e) {return (e.target.result);}
+      a.readAsDataURL(blob);
+  }
+
+
+  </script>
+  
+
+  
+</body>
+</html>

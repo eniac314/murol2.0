@@ -623,6 +623,7 @@ function sendSelection(){
       , end : selectedRange[1]
       , attrs : getAttachmentId(element.editor, selectedRange) || element.editor.getDocument().getCommonAttributesAtRange(selectedRange)
       , attachmentsIds: ids
+      , text : element.editor.getSelectedDocument().toString()
       };
     app.ports.selection.send(selection);
   }

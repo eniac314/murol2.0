@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+  <!-- <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://calendar.google.com"> -->
+  <link rel="stylesheet" href="/css/fonts.css">
+
+  <script type="text/javascript" src="/js/Murol.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  
+
+<!-- Matomo -->
+<script type="text/javascript">
+  var _paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//analytics.uminokirin.com/matomo/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '1']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Code -->
+
+
+</head>
+
+<body>
+  <script type="text/javascript">
+    var currentTime = new Date().getTime();
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
+    var worker = new Worker('/js/worker.js');	
+    
+    var app = Elm.Murol.init({flags: {currentTime: currentTime, width: width, height: height}});
+
+    app.ports.loadCaptcha.subscribe(function() {
+      grecaptcha.render(
+        document.querySelector('div.g-recaptcha'),
+        {
+            sitekey: '6LcasjsUAAAAANR2oVHvjDYFpjLDuRsruD16Q_aF',
+            callback: function onSubmit(val) {
+            app.ports.captcha_port.send(val);
+            }
+        }
+      );  
+    });
+    
+    app.ports.toSearchEngine.subscribe(function(s){
+       worker.postMessage(s);
+    });
+
+    worker.addEventListener('message', function(e) {
+      app.ports.searchResult.send(e.data);
+    }, false);
+
+  </script>
+
+</body>
+
+</html>
+

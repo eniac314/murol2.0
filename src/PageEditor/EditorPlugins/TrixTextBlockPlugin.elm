@@ -1,5 +1,7 @@
 port module PageEditor.EditorPlugins.TrixTextBlockPlugin exposing (Model, Msg, convertTextBlocks, init, newsEditorView, parserOutput, subscriptions, textBlockPreview, update, view)
 
+--import Url.Builder exposing (absolute)
+
 import Auth.AuthPlugin exposing (LogInfo)
 import Browser exposing (element)
 import Browser.Events exposing (onMouseDown)
@@ -33,8 +35,10 @@ import List.Extra exposing (remove)
 import PageEditor.Internals.DocumentEditorHelpers exposing (..)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor
 import Set exposing (..)
+import String.Extra exposing (leftOfBack, rightOfBack)
 import Time exposing (Zone)
 import UUID exposing (toString)
+import Url exposing (percentEncode)
 
 
 port activateAttribute : E.Value -> Cmd msg
@@ -111,6 +115,7 @@ type alias Selection =
     { start : Int
     , end : Int
     , attrs : Dict String String
+    , text : String
     }
 
 
@@ -326,12 +331,13 @@ update config msg model =
 
         InsertInternalLink cId ->
             case model.selection of
-                Just { start, end, attrs } ->
+                Just { start, end, attrs, text } ->
                     if start /= end then
                         let
                             selected =
-                                String.slice start end model.htmlContent.text
+                                text
 
+                            --String.slice start end model.htmlContent.text
                             path =
                                 PageTreeEditor.getPathFromId config.pageTreeEditor cId
                                     |> Maybe.withDefault ""
@@ -374,14 +380,21 @@ update config msg model =
 
         InsertDocLink url ->
             case model.selection of
-                Just { start, end, attrs } ->
+                Just { start, end, attrs, text } ->
                     if start /= end then
                         let
                             selected =
-                                String.slice start end model.htmlContent.text
+                                text
+
+                            --String.slice start end model.htmlContent.text
+                            prefix =
+                                String.Extra.leftOfBack "/" url
+
+                            suffix =
+                                percentEncode (String.Extra.rightOfBack "/" url)
 
                             link =
-                                "<a href=doc:" ++ url ++ ">" ++ selected ++ "</>"
+                                "<a href=doc:" ++ prefix ++ "/" ++ suffix ++ ">" ++ selected ++ "</>"
 
                             data =
                                 E.object
@@ -1055,11 +1068,12 @@ decodeSelection =
                 , D.succeed "unknown"
                 ]
     in
-    D.map4 (\start end attrs ids -> ( Selection start end attrs, ids ))
+    D.map5 (\start end attrs ids text -> ( Selection start end attrs text, ids ))
         (D.field "start" D.int)
         (D.field "end" D.int)
         (D.field "attrs" (D.map Dict.fromList (D.keyValuePairs decodeAttrValue)))
         (D.field "attachmentsIds" (D.list D.int))
+        (D.field "text" D.string)
 
 
 
@@ -1276,6 +1290,7 @@ linkPicker :
         | pageTreeEditor : PageTreeEditor.Model msg
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
+        , maxHeight : Int
     }
     -> (Msg -> msg)
     -> String
@@ -1315,7 +1330,7 @@ linkPicker config externalMsg id isActive linkPickerOpen currentLink openMsg han
 
                             Nothing ->
                                 Element.none
-                        , chooseInternalPageView externalMsg config.pageTreeEditor config.zone config.logInfo
+                        , chooseInternalPageView (config.maxHeight - 140) externalMsg config.pageTreeEditor config.zone config.logInfo
                         ]
 
                  else
@@ -1360,6 +1375,7 @@ docPicker :
         | fileExplorer : FileExplorer.Model msg
         , logInfo : Auth.AuthPlugin.LogInfo
         , zone : Time.Zone
+        , maxHeight : Int
     }
     -> (Msg -> msg)
     -> String
@@ -1398,7 +1414,7 @@ docPicker config externalMsg id isActive docPickerOpen currentLink openMsg handl
 
                             Nothing ->
                                 Element.none
-                        , chooseDocView externalMsg config.fileExplorer config.zone config.logInfo
+                        , chooseDocView (config.maxHeight - 140) externalMsg config.fileExplorer config.zone config.logInfo
                         ]
 
                  else
@@ -1431,13 +1447,13 @@ docPicker config externalMsg id isActive docPickerOpen currentLink openMsg handl
 
 
 chooseDocView :
-    (Msg -> msg)
-    ---> Int
+    Int
+    -> (Msg -> msg)
     -> FileExplorer.Model msg
     -> Time.Zone
     -> LogInfo
     -> Element.Element msg
-chooseDocView externalMsg fileExplorer zone logInfo =
+chooseDocView maxHeight externalMsg fileExplorer zone logInfo =
     column
         [ paddingEach
             { top = 0
@@ -1448,8 +1464,7 @@ chooseDocView externalMsg fileExplorer zone logInfo =
         , spacing 15
         ]
         [ FileExplorer.view
-            { maxHeight =
-                500
+            { maxHeight = maxHeight
             , zone = zone
             , logInfo = logInfo
             , mode = FileExplorer.ReadWrite FileExplorer.DocsRoot
@@ -1472,12 +1487,13 @@ chooseDocView externalMsg fileExplorer zone logInfo =
 
 
 chooseInternalPageView :
-    (Msg -> msg)
+    Int
+    -> (Msg -> msg)
     -> PageTreeEditor.Model msg
     -> Time.Zone
     -> LogInfo
     -> Element.Element msg
-chooseInternalPageView externalMsg pageTreeEditor zone logInfo =
+chooseInternalPageView maxHeight externalMsg pageTreeEditor zone logInfo =
     column
         [ paddingEach
             { top = 0
@@ -1490,7 +1506,7 @@ chooseInternalPageView externalMsg pageTreeEditor zone logInfo =
         ]
         [ PageTreeEditor.view
             { maxHeight =
-                500
+                maxHeight
             , zone = zone
             , logInfo = logInfo
             , mode = PageTreeEditor.Select
