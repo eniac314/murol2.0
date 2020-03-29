@@ -14,6 +14,7 @@
   <script type='text/javascript' src='js/PortFunnel.js'></script>
   <script type='text/javascript' src='js/PortFunnel/LocalStorage.js'></script>
   <script type="text/javascript" src="js/trix.js"></script>
+  <script type="text/javascript" src="js/pica.min.js"></script>
   <style type="text/css">
     h1, h2, h3{
       margin: 0;
@@ -63,6 +64,8 @@
 
     var app = Elm.MurolAdmin.init({flags: {currentTime: currentTime}});
 
+    const picaObj = pica({ features: [ 'js', 'wasm', 'ww' ] });
+
     app.ports.toImageProcessor.subscribe(function(d){
       processImage(d, app.ports.processedImages);
     });
@@ -80,62 +83,7 @@
     // var modules = ['LocalStorage'];
 
     PortFunnel.subscribe(app);
-    
-    /////////////////////////////////////////////////////////////////
-    
-    customElements.define('custom-textarea', class extends HTMLElement {
-    
-      constructor(){
-        super();
-        
-      }
-      
-      get selection(){
-        this._textarea = this.querySelector('textarea');
-        var start = this._textarea.selectionStart;
-        var finish = this._textarea.selectionEnd;
-        var sel = this._textarea.value.substring(start, finish);
-        
-        return { start: start, 
-                 finish: finish,
-                 sel: sel
-               };  
-      }
-
-      get value(){
-        this._textarea = this.querySelector('textarea');
-        return this._textarea.value;
-      }
-      
-      get cols(){
-        return this._cols || "0";
-      }
-
-      set selection(offset){
-        if(offset !== null) {
-          if (this.querySelector('textarea') !== null){
-            this._textarea = this.querySelector('textarea');
-            this._textarea.focus();
-            this._textarea.setSelectionRange(offset.start,offset.stop);
-          }
-        }
-      }
-
-      connectedCallback() {
-        this._textarea = this.querySelector('textarea');
-            
-        this._textarea.addEventListener('click', (event) => {
-          this.dispatchEvent(new CustomEvent('Selection'));
-        });
-
-        this._textarea.addEventListener('input', (event) => {
-          this.dispatchEvent(new CustomEvent('Input'));
-        });
-      }
-    });
-
-    
-    
+     
 
   ///////////////////////////////////////////////////////////////////
 
@@ -219,49 +167,54 @@
   }
 
   function resize(src, max_height, filename, caller){
-  
+
     var image = new Image();
+    
     image.onload = function(){
       var canvas = document.createElement('canvas');
-      if(image.height > max_height) {
-        image.width *= max_height / image.height;
-        image.height = max_height;
-      }
-  
         if(image.height > max_height) {
           image.width *= max_height / image.height;
-          image.height = max_height; 
+          image.height = max_height;
         }
-     
+    
+          if(image.height > max_height) {
+            image.width *= max_height / image.height;
+            image.height = max_height; 
+          }
+       
 
-      var ctx = canvas.getContext("2d");
-      
-      canvas.width = image.width;
-      canvas.height = image.height;
+        var ctx = canvas.getContext("2d");
+        
+        canvas.width = image.width;
+        canvas.height = image.height;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(image, 0, 0, image.width, image.height);
-      
-      
-      var data = canvas.toDataURL("image/jpeg");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        picaObj.resize(image, canvas, {
+          unsharpAmount: 80,
+          unsharpRadius: 0.6,
+          unsharpThreshold: 2
+        }).then(function(result){ 
+          
+          var data = canvas.toDataURL("image/jpeg");
 
-      var fileData = {
-              contents: data,
-              filename: filename,
-              width: image.width,
-              height: image.height,
-              filesize: fileSize(data)
-            };
-            
-      caller._fileData = fileData;
-      
-      rotateImage(fileData.contents, caller._rAngle, caller._original.filename, caller);
-
-      
+          var fileData = {
+                  contents: data,
+                  filename: filename,
+                  width: image.width,
+                  height: image.height,
+                  filesize: fileSize(data)
+                };
+                
+          caller._fileData = fileData;
+          
+          rotateImage(fileData.contents, caller._rAngle, caller._original.filename, caller);
+          });
+        
     };
     
     image.src = src;
-    }
+  }
 
   function rotateImage(src, rAngle, filename, caller){
       var image = new Image();
@@ -314,76 +267,107 @@
      
     }
     
-   ////////////////////////////////////////////////////////////////////////////
-   
-   function processImage(data,f){
+  ////////////////////////////////////////////////////////////////////////////
 
-      var maxWidth = data.maxWidth;
-      var maxHeight = data.maxHeight;
-      var needThumb = data.needThumb;
+  function processImage(data, f) {
 
-      var image = new Image();
-      
-      image.onload = function(){
-        
-        var canvas = document.createElement('canvas');
+    var maxWidth = data.maxWidth;
+    var maxHeight = data.maxHeight;
+    var needThumb = data.needThumb;
 
-        if(image.height > maxHeight) {
-          var width = image.width * maxHeight / image.height;
-          var height = maxHeight;
-        } else {
-          var width = image.width;
-          var height = image.height;
-        }
+    var image = new Image();
 
-        var ctx = canvas.getContext("2d");
+    image.onload = function() {
+
+      var canvas = document.createElement('canvas');
+
+      if (image.height > maxHeight) {
+        var width = image.width * maxHeight / image.height;
+        var height = maxHeight;
+      } else {
+        var width = image.width;
+        var height = image.height;
+      }
+
+      var ctx = canvas.getContext("2d");
+
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      var smallPic;
+
+      picaObj.resize(image, canvas, {
+        unsharpAmount: 80,
+        unsharpRadius: 0.6,
+        unsharpThreshold: 2
+      }).then(function(result) {
+        smallPic = canvas.toDataURL("image/jpeg", 0.9);
+
         
-        
-        canvas.width = width;
-        canvas.height = height;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(image, 0, 0, width, height);
-        var smallPic = canvas.toDataURL("image/jpeg",0.9);
-        
-        
-        var thumbSize = Math.min(image.width, image.height);
-        
-        if (image.width > image.height){
-          var sx = (Math.floor((image.width - image.height)/2));
-          var sy = 0; 
-        } else {
-          var sx = 0;
-          var sy = (Math.floor((image.height - image.width)/4));
-        }
 
         var thumb;
 
-        if (needThumb){
+        if (needThumb) {
+          var thumbSize = Math.min(image.width, image.height);
+
+          if (image.width > image.height) {
+            var sx = (Math.floor((image.width - image.height) / 2));
+            var sy = 0;
+          } else {
+            var sx = 0;
+            var sy = (Math.floor((image.height - image.width) / 4));
+          }
+
+          var bufferCanvas = document.createElement('canvas');
+          bufferCanvas.width = thumbSize;
+          bufferCanvas.height = thumbSize;
+          var bCtx = bufferCanvas.getContext("2d");
+          bCtx.drawImage(image, sx, sy, thumbSize, thumbSize, 0, 0, thumbSize, thumbSize);
+
           var thumbCanvas = document.createElement('canvas');
           thumbCanvas.width = 200;
           thumbCanvas.height = 200;
-          
+
           var tCtx = thumbCanvas.getContext("2d");
-          tCtx.clearRect(0,0,200,200);
-          
+          tCtx.clearRect(0, 0, 200, 200);
 
-          tCtx.drawImage(image, sx, sy, thumbSize, thumbSize, 0, 0, 200, 200);
-          thumb = thumbCanvas.toDataURL("image/jpeg",0.9);
+
+          picaObj.resize(bufferCanvas, thumbCanvas, {
+            unsharpAmount: 80,
+            unsharpRadius: 0.6,
+            unsharpThreshold: 2
+          }).then(function(result) {
+            thumb = thumbCanvas.toDataURL("image/jpeg", 0.9);
+
+            var result = {
+              filename: data.filename,
+              content: smallPic,
+              thumb: thumb,
+              size: fileSize(smallPic),
+              width: image.width,
+              height: image.height
+            };
+
+            f.send(result);
+          });
+        } else {
+          var result = {
+            filename: data.filename,
+            content: smallPic,
+            thumb: thumb,
+            size: fileSize(smallPic),
+            width: image.width,
+            height: image.height
+          };
+
+          f.send(result);
         }
+      });
+    };
 
-        var result = {          
-                filename:data.filename,
-                content: smallPic,
-                thumb: thumb,
-                size: fileSize(smallPic),
-                width: image.width,
-                height: image.height
-              };
-        
-        f.send(result);
-      };
-      
-      image.src = data.imageData;
+    image.src = data.imageData;
   }
 
 ///////////////////////////////////////////////////////////////////////////////
