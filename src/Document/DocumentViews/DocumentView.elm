@@ -33,6 +33,7 @@ import Set exposing (..)
 import String.Extra exposing (toSentenceCase)
 import Time exposing (Posix, Zone, millisToPosix)
 import UUID exposing (toString)
+import Url exposing (percentDecode)
 
 
 renderDoc : Config msg -> Document -> List (Element msg)
@@ -673,6 +674,8 @@ processLinks config node =
                     else if String.startsWith "doc:" url then
                         ( "href"
                         , String.dropLeft (String.length "doc:") url
+                            |> percentDecode
+                            |> Maybe.withDefault ""
                         )
                             :: ( "target", "_blank" )
                             :: (List.reverse processed ++ xs)

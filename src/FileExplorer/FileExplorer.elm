@@ -1792,16 +1792,39 @@ filesysView config model =
                         ]
                         Element.none
                     )
+
+                --, column
+                --    [ width (px 80)
+                --    , clip
+                --    , Font.size 12
+                --    , paddingXY 0 5
+                --    , Background.color (rgb255 121 51 123)
+                --    , alignTop
+                --    ]
+                --    (List.map
+                --        (\l ->
+                --            el
+                --                [ centerX
+                --                , alignTop
+                --                ]
+                --                (text l)
+                --        )
+                --        (prettyName3 name 10)
+                --    )
                 , paragraph
                     [ width (px 80)
+                    , height (px 55)
                     , clip
                     , Font.size 12
                     , paddingXY 0 5
                     , Font.center
+                    , htmlAttribute <| HtmlAttr.style "word-wrap" "break-word"
                     ]
-                    [ text <|
-                        prettyName name 10
-                    ]
+                    [ text name ]
+
+                --    --<|
+                --    --    prettyName3 name 10
+                --    ]
                 ]
 
         folderView folder { name, path } =
@@ -1846,12 +1869,16 @@ filesysView config model =
                     Element.none
                 , paragraph
                     [ width (px 80)
+                    , height (px 55)
                     , clip
                     , Font.size 12
                     , Font.center
                     , paddingXY 0 5
+                    , htmlAttribute <| HtmlAttr.style "word-wrap" "break-word"
                     ]
-                    [ text <| prettyName name 10 ]
+                    [ text name ]
+
+                --<| prettyName3 name 10 ]
                 ]
 
         contentView fsItem =
@@ -3586,6 +3613,49 @@ prettyName name n =
                     xs
            )
         |> customJoin [] n " "
+
+
+prettyName3 : String -> Int -> List String
+prettyName3 name n =
+    let
+        wds =
+            String.words name
+
+        liner done buffer rest =
+            case rest of
+                [] ->
+                    done ++ [ String.join " " buffer ]
+
+                w :: ws ->
+                    if String.length (String.join " " (buffer ++ [ w ])) > n then
+                        liner (done ++ [ String.join " " buffer ]) [ w ] ws
+
+                    else
+                        liner (done ++ [ String.join " " (buffer ++ [ w ]) ]) [] ws
+
+        lines =
+            liner [] [] wds
+    in
+    if List.length lines <= 3 then
+        lines
+
+    else
+        case List.take 3 lines of
+            a :: b :: c :: _ ->
+                if String.length c >= n then
+                    a
+                        :: b
+                        :: [ String.left n c ++ "..." ]
+                    --|> String.join "\n"
+
+                else
+                    a
+                        :: b
+                        :: [ c ++ "..." ]
+
+            --|> String.join "\n"
+            otherwise ->
+                []
 
 
 customJoin : List String -> Int -> String -> List String -> String

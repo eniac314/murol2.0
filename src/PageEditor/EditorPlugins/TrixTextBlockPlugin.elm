@@ -38,7 +38,7 @@ import Set exposing (..)
 import String.Extra exposing (leftOfBack, rightOfBack)
 import Time exposing (Zone)
 import UUID exposing (toString)
-import Url exposing (percentEncode)
+import Url exposing (fromString, percentDecode, percentEncode, toString)
 
 
 port activateAttribute : E.Value -> Cmd msg
@@ -338,11 +338,10 @@ update config msg model =
                                 text
 
                             --String.slice start end model.htmlContent.text
-                            path =
-                                PageTreeEditor.getPathFromId config.pageTreeEditor cId
-                                    |> Maybe.withDefault ""
-                                    |> String.replace " " "_"
-
+                            --path =
+                            --    PageTreeEditor.getPathFromId config.pageTreeEditor cId
+                            --        |> Maybe.withDefault ""
+                            --        |> String.replace " " "_"
                             link =
                                 "<a href=lien-interne:" ++ cId ++ ">" ++ selected ++ "</>"
 
@@ -386,15 +385,15 @@ update config msg model =
                             selected =
                                 text
 
-                            --String.slice start end model.htmlContent.text
-                            prefix =
-                                String.Extra.leftOfBack "/" url
+                            url_ =
+                                if String.contains "?" url then
+                                    String.Extra.leftOfBack "?" url
 
-                            suffix =
-                                percentEncode (String.Extra.rightOfBack "/" url)
+                                else
+                                    url
 
                             link =
-                                "<a href=doc:" ++ prefix ++ "/" ++ suffix ++ ">" ++ selected ++ "</>"
+                                "<a href=doc:" ++ percentEncode url_ ++ ">" ++ selected ++ "</>"
 
                             data =
                                 E.object
@@ -1325,7 +1324,7 @@ linkPicker config externalMsg id isActive linkPickerOpen currentLink openMsg han
                                     , padding 15
                                     ]
                                     [ el [ Font.bold ] (text "Lien pour:")
-                                    , text path
+                                    , paragraph [] [ text (percentDecode path |> Maybe.withDefault path) ]
                                     ]
 
                             Nothing ->
@@ -1409,7 +1408,7 @@ docPicker config externalMsg id isActive docPickerOpen currentLink openMsg handl
                                     , padding 15
                                     ]
                                     [ el [ Font.bold ] (text "Lien pour:")
-                                    , text path
+                                    , paragraph [] [ text (percentDecode path |> Maybe.withDefault path) ]
                                     ]
 
                             Nothing ->
