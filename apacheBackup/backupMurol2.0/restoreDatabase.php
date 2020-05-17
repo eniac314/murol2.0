@@ -2,7 +2,7 @@
 include 'utils.php';
 
 
-$restore_file  = "/var/www/html/backup-12-08-2019.sql-6";
+$restore_file  = "/var/www/html/backup-12-05-2020.sql";
 $server_name   = $mysql_server;
 $username      = $mysql_user;
 $password      = $mysql_password;

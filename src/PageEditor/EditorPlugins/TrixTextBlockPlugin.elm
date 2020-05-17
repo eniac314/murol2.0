@@ -24,6 +24,7 @@ import Hex exposing (fromString)
 import Html as Html
 import Html.Attributes as HtmlAttr
 import Html.Events as HtmlEvents exposing (on)
+import Html.Keyed as HtmlKeyed
 import Html.Parser exposing (..)
 import Html.Parser.Util exposing (toVirtualDom)
 import Internals.CommonHelpers exposing (..)
@@ -637,7 +638,7 @@ view config renderConfig model =
             , height fill
             , width fill
             ]
-            [ editor config model
+            [ editor False config model
 
             --, textBlockPreview model renderConfig
             , row
@@ -670,20 +671,22 @@ stringifyAttributes attributes =
 
 
 editor :
-    { a
-        | fileExplorer : FileExplorer.Model msg
-        , pageTreeEditor : PageTreeEditor.Model msg
-        , logInfo : Auth.AuthPlugin.LogInfo
-        , zone : Time.Zone
-        , maxHeight : Int
-    }
+    Bool
+    ->
+        { a
+            | fileExplorer : FileExplorer.Model msg
+            , pageTreeEditor : PageTreeEditor.Model msg
+            , logInfo : Auth.AuthPlugin.LogInfo
+            , zone : Time.Zone
+            , maxHeight : Int
+        }
     -> Model msg
     -> Element.Element msg
-editor config model =
+editor isInNewsEditor config model =
     column
         [ spacing 10
         ]
-        [ trixEditor config model
+        [ trixEditor isInNewsEditor config model
 
         --, paragraph [] [ text <| model.htmlContent.html ]
         --, case model.output of
@@ -695,16 +698,18 @@ editor config model =
 
 
 trixEditor :
-    { a
-        | fileExplorer : FileExplorer.Model msg
-        , pageTreeEditor : PageTreeEditor.Model msg
-        , logInfo : Auth.AuthPlugin.LogInfo
-        , zone : Time.Zone
-        , maxHeight : Int
-    }
+    Bool
+    ->
+        { a
+            | fileExplorer : FileExplorer.Model msg
+            , pageTreeEditor : PageTreeEditor.Model msg
+            , logInfo : Auth.AuthPlugin.LogInfo
+            , zone : Time.Zone
+            , maxHeight : Int
+        }
     -> Model msg
     -> Element.Element msg
-trixEditor config model =
+trixEditor isInNewsEditor config model =
     column
         [ spacing 10 ]
         [ customToolbar config model
@@ -715,8 +720,16 @@ trixEditor config model =
                 [ html <|
                     Html.div
                         []
-                        [ Html.node "trix-toolbar"
-                            [ HtmlAttr.id "trix-toolbar" ]
+                        [ Html.node
+                            "trix-toolbar"
+                            [ HtmlAttr.id
+                                (if isInNewsEditor then
+                                    "trix-toolbar-news"
+
+                                 else
+                                    "trix-toolbar"
+                                )
+                            ]
                             []
                         , Html.node "input"
                             [ HtmlAttr.type_ "hidden"
@@ -729,7 +742,13 @@ trixEditor config model =
                             , on "trix-selection-change" (D.map (always GetSelection) (D.succeed ()))
                             , HtmlAttr.class "trix-content"
                             , HtmlAttr.class "trix-content-editor"
-                            , HtmlAttr.attribute "toolbar" "trix-toolbar"
+                            , HtmlAttr.attribute "toolbar"
+                                (if isInNewsEditor then
+                                    "trix-toolbar-news"
+
+                                 else
+                                    "trix-toolbar"
+                                )
                             , HtmlAttr.attribute "input" "reset"
                             , HtmlAttr.style "maxHeight" (String.fromInt (config.maxHeight - 155) ++ "px")
                             , HtmlAttr.style "overflow-y" "auto"
@@ -1036,6 +1055,7 @@ newsEditorView config renderConfig model =
             renderConfig
             model.wholeTextBlocAttr
         , editor
+            True
             config
             model
         ]
