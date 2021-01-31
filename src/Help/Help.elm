@@ -414,78 +414,107 @@ helpPagesData =
     [ { id = "root"
       , title = "Notice éditeur murol.fr"
       , content =
-            [ ( 0, "images/notice/Diapositive1.JPG" )
+            [ ( 1, "images/notice/Diapositive1.jpg" )
             ]
       }
     , { id = "ae7aa3c8-b706-4cb7-948b-7038313b2f0c"
       , title = "Introduction"
       , content =
-            [ ( 1, "images/notice/Diapositive2.JPG" )
-            , ( 2, "images/notice/Diapositive3.JPG" )
-            , ( 3, "images/notice/Diapositive4.JPG" )
-            , ( 4, "images/notice/Diapositive5.JPG" )
+            [ ( 1, "images/notice/Diapositive2.jpg" )
+            , ( 2, "images/notice/Diapositive3.jpg" )
+            , ( 3, "images/notice/Diapositive4.jpg" )
+            , ( 4, "images/notice/Diapositive5.jpg" )
+            , ( 5, "images/notice/Diapositive6.jpg" )
             ]
       }
     , { id = "7f766d94-79ec-4856-8e2e-19216dbe0c91"
       , title = "Actualités"
       , content =
-            [ ( 1, "images/notice/Diapositive6.JPG" )
-            , ( 2, "images/notice/Diapositive7.JPG" )
+            [ ( 1, "images/notice/Diapositive7.jpg" )
+            , ( 2, "images/notice/Diapositive8.jpg" )
             ]
       }
     , { id = "51edfc29-3bfa-4205-ae65-f1ac667fedc8"
       , title = "Blocs de texte"
       , content =
-            [ ( 1, "images/notice/Diapositive8.JPG" )
-            , ( 2, "images/notice/Diapositive9.JPG" )
-            , ( 3, "images/notice/Diapositive10.JPG" )
+            [ ( 1, "images/notice/Diapositive9.jpg" )
             ]
       }
     , { id = "a4393746-a12b-467c-b6a5-2e66a6bfdbf7"
       , title = "Liens"
       , content =
-            [ ( 1, "images/notice/Diapositive11.JPG" )
-            , ( 2, "images/notice/Diapositive12.JPG" )
-            , ( 3, "images/notice/Diapositive13.JPG" )
+            [ ( 1, "images/notice/Diapositive10.jpg" )
+            , ( 2, "images/notice/Diapositive11.jpg" )
+            , ( 3, "images/notice/Diapositive12.jpg" )
             ]
       }
     , { id = "c75dccc8-43bc-44df-afd7-13fd68f23e23"
       , title = "Explorateur de fichiers"
       , content =
-            [ ( 1, "images/notice/Diapositive14.JPG" )
-            , ( 2, "images/notice/Diapositive15.JPG" )
+            [ ( 1, "images/notice/Diapositive13.jpg" )
+            , ( 2, "images/notice/Diapositive14.jpg" )
             ]
       }
     , { id = "e8b32207-6cc8-4ec4-860c-adf9a078eb9c"
       , title = "Editeur de page"
       , content =
-            [ ( 1, "images/notice/Diapositive16.JPG" )
-            , ( 2, "images/notice/Diapositive17.JPG" )
-            , ( 3, "images/notice/Diapositive18.JPG" )
-            , ( 4, "images/notice/Diapositive18.JPG" )
-            , ( 5, "images/notice/Diapositive18.JPG" )
-            , ( 6, "images/notice/Diapositive18.JPG" )
+            [ ( 1, "images/notice/Diapositive15.jpg" )
+            , ( 2, "images/notice/Diapositive16.jpg" )
+            , ( 3, "images/notice/Diapositive17.jpg" )
+            , ( 4, "images/notice/Diapositive18.jpg" )
+            , ( 5, "images/notice/Diapositive19.jpg" )
+            , ( 6, "images/notice/Diapositive20.jpg" )
+            , ( 7, "images/notice/Diapositive21.jpg" )
             ]
       }
     , { id = "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9"
       , title = "Nouvelle cellule"
       , content =
-            [ ( 1, "images/notice/Diapositive18.JPG" )
-            , ( 2, "images/notice/Diapositive18.JPG" )
-            , ( 3, "images/notice/Diapositive18.JPG" )
-            , ( 4, "images/notice/Diapositive18.JPG" )
-            , ( 5, "images/notice/Diapositive18.JPG" )
-            , ( 6, "images/notice/Diapositive18.JPG" )
-            , ( 7, "images/notice/Diapositive18.JPG" )
-            , ( 8, "images/notice/Diapositive18.JPG" )
+            [ ( 1, "images/notice/Diapositive22.jpg" )
+            , ( 2, "images/notice/Diapositive23.jpg" )
+            , ( 3, "images/notice/Diapositive24.jpg" )
+            , ( 4, "images/notice/Diapositive25.jpg" )
+            , ( 5, "images/notice/Diapositive26.jpg" )
+            , ( 6, "images/notice/Diapositive27.jpg" )
+            , ( 7, "images/notice/Diapositive28.jpg" )
+            , ( 8, "images/notice/Diapositive29.jpg" )
             ]
       }
     , { id = "b75e18b9-b962-4c18-91c3-c5134aae0bbd"
       , title = "Repertoire géneral"
       , content =
-            [ ( 1, "images/notice/Diapositive18.JPG" )
-            , ( 2, "images/notice/Diapositive18.JPG" )
-            , ( 3, "images/notice/Diapositive18.JPG" )
+            [ ( 1, "images/notice/Diapositive30.jpg" )
+            , ( 2, "images/notice/Diapositive31.jpg" )
+            , ( 3, "images/notice/Diapositive32.jpg" )
+            , ( 4, "images/notice/Diapositive33.jpg" )
+            ]
+      }
+    , { id = "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8"
+      , title = "Structure du site"
+      , content =
+            [ ( 1, "images/notice/Diapositive34.jpg" )
+            , ( 2, "images/notice/Diapositive35.jpg" )
+            , ( 3, "images/notice/Diapositive36.jpg" )
+            ]
+      }
+    , { id = "075813db-4278-4f4a-b19e-a4231123b42c"
+      , title = "Publications"
+      , content =
+            [ ( 1, "images/notice/Diapositive37.jpg" )
+            , ( 2, "images/notice/Diapositive38.jpg" )
+            , ( 3, "images/notice/Diapositive39.jpg" )
+            ]
+      }
+    , { id = "e2a9ed8a-ee41-430c-abc3-62cd08a55e84"
+      , title = "Authentification"
+      , content =
+            [ ( 1, "images/notice/Diapositive40.jpg" )
+            ]
+      }
+    , { id = "ebe3a696-5f34-428e-b88c-eef1fc99034f"
+      , title = "Aide"
+      , content =
+            [ ( 1, "images/notice/Diapositive41.jpg" )
             ]
       }
     ]
@@ -518,6 +547,10 @@ indexEntriesData =
       , title = "Les differents onglets"
       , parent = Just ( 0, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
       }
+    , { id = ( 5, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
+      , title = "Erreurs ou difficultés"
+      , parent = Just ( 0, "ae7aa3c8-b706-4cb7-948b-7038313b2f0c" )
+      }
 
     ------------
     , { id = ( 0, "7f766d94-79ec-4856-8e2e-19216dbe0c91" )
@@ -542,15 +575,15 @@ indexEntriesData =
       , title = "Ecrire un texte pour une actualité ou une page"
       , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
       }
-    , { id = ( 2, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
-      , title = "Changer le style du texte couleur du texte, du fond…"
-      , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
-      }
-    , { id = ( 3, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
-      , title = "Créer ou modifier un titre"
-      , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
-      }
 
+    --, { id = ( 2, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+    --  , title = "Changer le style du texte couleur du texte, du fond…"
+    --  , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+    --  }
+    --, { id = ( 3, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+    --  , title = "Créer ou modifier un titre"
+    --  , parent = Just ( 0, "51edfc29-3bfa-4205-ae65-f1ac667fedc8" )
+    --  }
     ------------
     , { id = ( 0, "a4393746-a12b-467c-b6a5-2e66a6bfdbf7" )
       , title = "Liens"
@@ -612,6 +645,10 @@ indexEntriesData =
       , title = "Gestion des conteneurs"
       , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
       }
+    , { id = ( 7, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      , title = "Enregistrer une nouvelle page"
+      , parent = Just ( 0, "e8b32207-6cc8-4ec4-860c-adf9a078eb9c" )
+      }
 
     ------------
     , { id = ( 0, "1a1737c1-0f5b-4b5c-9e7a-cba30cfcb2d9" )
@@ -665,7 +702,59 @@ indexEntriesData =
       , parent = Just ( 0, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
       }
     , { id = ( 3, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
-      , title = "Créer une fiche"
+      , title = "Créer une fiche - renseignements obligatoires"
       , parent = Just ( 0, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      }
+    , { id = ( 4, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      , title = "Créer une fiche - renseignements facultatifs"
+      , parent = Just ( 0, "b75e18b9-b962-4c18-91c3-c5134aae0bbd" )
+      }
+
+    ------------
+    , { id = ( 0, "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8" )
+      , title = "Structure du site"
+      , parent = Nothing
+      }
+    , { id = ( 1, "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8" )
+      , title = "Plan du site"
+      , parent = Just ( 0, "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8" )
+      }
+    , { id = ( 2, "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8" )
+      , title = "Modifier l'arborescence du site"
+      , parent = Just ( 0, "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8" )
+      }
+    , { id = ( 3, "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8" )
+      , title = "Gestion des mots clés"
+      , parent = Just ( 0, "2cb30c5f-8e39-4268-9e7c-62dc71ee31e8" )
+      }
+
+    ------------
+    , { id = ( 0, "075813db-4278-4f4a-b19e-a4231123b42c" )
+      , title = "Publications"
+      , parent = Nothing
+      }
+    , { id = ( 1, "075813db-4278-4f4a-b19e-a4231123b42c" )
+      , title = "Murol infos"
+      , parent = Just ( 0, "075813db-4278-4f4a-b19e-a4231123b42c" )
+      }
+    , { id = ( 2, "075813db-4278-4f4a-b19e-a4231123b42c" )
+      , title = "Délibérations"
+      , parent = Just ( 0, "075813db-4278-4f4a-b19e-a4231123b42c" )
+      }
+    , { id = ( 3, "075813db-4278-4f4a-b19e-a4231123b42c" )
+      , title = "Bulletins municipaux"
+      , parent = Just ( 0, "075813db-4278-4f4a-b19e-a4231123b42c" )
+      }
+
+    ------------
+    , { id = ( 0, "e2a9ed8a-ee41-430c-abc3-62cd08a55e84" )
+      , title = "Authentification"
+      , parent = Nothing
+      }
+
+    ------------
+    , { id = ( 0, "ebe3a696-5f34-428e-b88c-eef1fc99034f" )
+      , title = "Aide"
+      , parent = Nothing
       }
     ]

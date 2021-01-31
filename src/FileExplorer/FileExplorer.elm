@@ -3658,6 +3658,27 @@ prettyName3 name n =
                 []
 
 
+
+--ellipsisText : Int -> String -> Element msg
+--ellipsisText n txt =
+--    Html.div
+--        [ Html.Attributes.style "overflow" "hidden"
+--        , Html.Attributes.style "text-overflow" "ellipsis"
+--        , Html.Attributes.style "white-space" "nowrap"
+--        , Html.Attributes.style "height" <| String.fromInt n ++ "px"
+--        , Html.Attributes.style "display" "table-cell"
+--        , Html.Attributes.title txt
+--        ]
+--        [ Html.text txt
+--        ]
+--        |> Element.html
+--        |> el
+--            [ width fill
+--            , style "table-layout" "fixed"
+--            , style "display" "table"
+--            ]
+
+
 customJoin : List String -> Int -> String -> List String -> String
 customJoin acc n s xs =
     case xs of

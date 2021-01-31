@@ -526,24 +526,6 @@
 				"buffer_size": 1453,
 				"line_ending": "Unix"
 			}
-		},
-		{
-			"file": "imagePlugin.html",
-			"settings":
-			{
-				"buffer_size": 5007,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/ImagePlugin.elm",
-			"settings":
-			{
-				"buffer_size": 20698,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
 		}
 	],
 	"build_system": "",
@@ -612,6 +594,8 @@
 	},
 	"file_history":
 	[
+		"/home/eniac314/prog/elm/murol2.0/imagePlugin.html",
+		"/home/eniac314/prog/elm/murol2.0/src/ImagePlugin.elm",
 		"/home/eniac314/prog/elm/debug/src/Main.elm",
 		"/home/eniac314/prog/elm/murol2.0/src/Editor.elm",
 		"/home/eniac314/prog/elm/murol2.0/src/PersistencePlugin.elm",
@@ -737,9 +721,7 @@
 		"/home/eniac314/prog/elm/mairieMurol/OffresD'emploi.html",
 		"/home/eniac314/prog/elm/mairieMurol/Patrimoine.html",
 		"/home/eniac314/prog/elm/mairieMurol/PatrimoinePhoto.html",
-		"/home/eniac314/prog/elm/mairieMurol/PériEtExtra-scolaire.html",
-		"/home/eniac314/prog/elm/mairieMurol/PetitesAnnonces.html",
-		"/home/eniac314/prog/elm/mairieMurol/Photothèque.html"
+		"/home/eniac314/prog/elm/mairieMurol/PériEtExtra-scolaire.html"
 	],
 	"find":
 	{
@@ -783,7 +765,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -812,68 +794,6 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 55.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "imagePlugin.html",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 5007,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/HTML/HTML.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1296.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/ImagePlugin.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 20698,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 4358.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

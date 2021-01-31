@@ -36,7 +36,7 @@ import UUID exposing (toString)
 import Url exposing (percentDecode)
 
 
-renderDoc : Config msg -> Document -> List (Element msg)
+renderDoc : Config msg -> Document.Document -> List (Element msg)
 renderDoc config document =
     case document of
         Container { containerLabel, id, attrs } children ->
@@ -1247,18 +1247,33 @@ renderWeatherWidget config id attrs =
             ++ renderAttrs config attrs
         )
         [ customHeading config 1 [] "METEO"
+
+        --, el
+        --    [ centerX ]
+        --    (html <|
+        --        Html.iframe
+        --            [ Attr.style "border-width" "0"
+        --            , Attr.style "width" "300"
+        --            , Attr.src "/meteo.html"
+        --            ]
+        --            []
+        --    )
         , el
-            [ centerX ]
+            []
             (html <|
                 Html.iframe
-                    [ Attr.style "border-width" "0"
-                    , Attr.style "width" "300"
-                    , Attr.src "/meteo.html"
+                    [ Attr.style "frameborder" "0"
+                    , Attr.id "widget_autocomplete_preview"
+                    , Attr.src "https://meteofrance.com/widget/prevision/632470"
                     ]
                     []
             )
         ]
     ]
+
+
+
+--<iframe id="widget_autocomplete_preview"  width="150" height="300" frameborder="0" src="https://meteofrance.com/widget/prevision/632470"> </iframe>
 
 
 renderDronePanorama config id attrs =

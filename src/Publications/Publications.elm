@@ -968,7 +968,7 @@ initialView config model =
                     , options =
                         [ Input.option
                             MurolInfo
-                            (text "Murol info")
+                            (text "Murol infos")
                         , Input.option
                             Delib
                             (text "Délibération")

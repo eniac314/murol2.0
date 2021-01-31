@@ -9,8 +9,6 @@
 
 - labels in general dir: use a row!
 
-- make a cron task to backup data via ionos panel
-
 - fix folder names 
 
 - fix fiches label overflowing

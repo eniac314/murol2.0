@@ -70,7 +70,7 @@ parserOutput model =
     }
 
 
-convertTextBlocks : Dict String { path : String, name : String } -> Document -> Document
+convertTextBlocks : Dict String { path : String, name : String } -> Document.Document -> Document.Document
 convertTextBlocks pageIndex doc =
     case doc of
         Container value docs ->
