@@ -46,23 +46,23 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     }
 
     array_push($fiches, [ 'uuid' => $uuid
-                        , 'categories' => unserialize($categories)
-                        , 'natureActiv' => unserialize($natureActiv)
-                        , 'refOt' => is_null($refOt) ? null : unserialize($refOt) 
-                        , 'label' => unserialize($label)
-                        , 'rank' => unserialize($rank)
+                        , 'categories' => json_decode($categories)
+                        , 'natureActiv' => json_decode($natureActiv)
+                        , 'refOt' => is_null($refOt) ? null : json_decode($refOt) 
+                        , 'label' => json_decode($label)
+                        , 'rank' => json_decode($rank)
                         , 'nomEntite' => $nomEntite
-                        , 'responsables' => unserialize($responsables)
+                        , 'responsables' => json_decode($responsables)
                         , 'adresse' => $adresse
-                        , 'telNumber' => is_null($telNumber) ? null : unserialize($telNumber)
+                        , 'telNumber' => is_null($telNumber) ? null : json_decode($telNumber)
                         , 'fax' => $fax
-                        , 'email' => unserialize($email)
-                        , 'site' => is_null($site) ? null : unserialize($site)
+                        , 'email' => json_decode($email)
+                        , 'site' => is_null($site) ? null : json_decode($site)
                         , 'pjaun' => $pjaun
                         , 'visuel' => $visuel
-                        , 'description' => unserialize($description)
-                        , 'linkedDocs' => unserialize($linkedDocs)
-                        , 'ouverture' => is_null($ouverture) ? null : unserialize($ouverture) 
+                        , 'description' => json_decode($description)
+                        , 'linkedDocs' => json_decode($linkedDocs)
+                        , 'ouverture' => is_null($ouverture) ? null : json_decode($ouverture) 
                         ,'lastEdit' => $lastEdit
                         ]);
   }

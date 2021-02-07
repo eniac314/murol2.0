@@ -38,8 +38,8 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $uuid = $php_data->news->uuid;
   $date = $php_data->news->date;
   $title = $php_data->news->title;
-  $content = is_null($php_data->news->content) ? null : serialize($php_data->news->content);
-  $pic = is_null($php_data->news->pic) ? null : serialize($php_data->news->pic);
+  $content = is_null($php_data->news->content) ? null : json_encode($php_data->news->content);
+  $pic = is_null($php_data->news->pic) ? null : json_encode($php_data->news->pic);
   $expiry = $php_data->news->expiry;
 
   $query = 

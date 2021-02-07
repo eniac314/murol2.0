@@ -39,8 +39,8 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     array_push($news, ['uuid' => $uuid
                       ,'date' => $date
                       ,'title' => $title
-                      ,'content' => is_null($content) ? $content : unserialize($content)
-                      ,'pic' => is_null($pic) ? $pic : unserialize($pic)
+                      ,'content' => is_null($content) ? $content : json_decode($content)
+                      ,'pic' => is_null($pic) ? $pic : json_decode($pic)
                       ,'expiry' => $expiry
                       ]);
   }

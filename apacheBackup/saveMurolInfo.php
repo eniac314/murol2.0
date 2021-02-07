@@ -27,7 +27,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 
   $issue = $php_data->murolInfo->issue;
   $date  = $php_data->murolInfo->date;
-  $topics = serialize($php_data->murolInfo->topics);
+  $topics = json_encode($php_data->murolInfo->topics);
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);

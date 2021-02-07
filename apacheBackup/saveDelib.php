@@ -26,7 +26,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   }
 
   $date  = $php_data->delib->date;
-  $index = serialize($php_data->delib->index);
+  $index = json_encode($php_data->delib->index);
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);

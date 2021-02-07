@@ -1,31 +1,7 @@
 <?php
 include 'utils.php';
 
-if(getenv('REQUEST_METHOD') == 'POST') {
-	$json_data = file_get_contents("php://input");
-	
-	$php_data = json_decode($json_data);
-
-	if (is_null($php_data)){
-  	logError("json data could not be decoded");
-  	exit();
-   }
-
-  if(!isset($php_data->sessionId)){
-    logError("wrong input");
- 	  exit();
-  }
-
-  ini_set('session.use_cookies', '0');
-  session_id($php_data->sessionId);
-  session_start();
-
-  if (!isset($_SESSION['logInfo']['username'])){
-    logError("wrong credentials");
-    exit();
-  }
-
-  
+if(getenv('REQUEST_METHOD') == 'GET') {
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);
@@ -49,14 +25,32 @@ if(getenv('REQUEST_METHOD') == 'POST') {
     array_push($news, ['uuid' => $uuid
                       ,'date' => $date
                       ,'title' => $title
-                      ,'content' => is_null($content) ? $content : json_decode($content)
-                      ,'pic' => is_null($pic) ? $pic : json_decode($pic)
+                      ,'content' => is_null($content) ? $content : unserialize($content)
+                      ,'pic' => is_null($pic) ? $pic : unserialize($pic)
                       ,'expiry' => $expiry
                       ]);
   }
 
-  $toJson = json_encode($news);
-  echo $toJson;
+  $query = 
+    "INSERT INTO news(uuid, date, title, content, pic, expiry) VALUES (?,?,?,?,?,?)
+      ON DUPLICATE KEY UPDATE
+        date = VALUES(date),
+        title = VALUES(title),
+        content = VALUES(content),
+        pic = VALUES(pic),
+        expiry = VALUES(expiry)";
+
+  mysqli_stmt_prepare($stmt, $query);
+
+  foreach ($news as $n) {
+
+    $newContent = json_encode($n['content']);
+    $newPic = json_encode($n['pic']);
+    
+    mysqli_stmt_bind_param($stmt,'sisssi', $n['uuid'], $n['date'], $n['title'], $newContent, $newPic, $n['expiry']);
+    mysqli_stmt_execute($stmt);
+  }
+
   
   mysqli_close($db);
   exit();

@@ -1,17 +1,7 @@
 <?php
 include 'utils.php';
 
-if(getenv('REQUEST_METHOD') == 'POST') {
-	$json_data = file_get_contents("php://input");
-	
-	$php_data = json_decode($json_data);
-
-	if (is_null($php_data)){
-  	logError("json data could not be decoded");
-  	exit();
-   }
-
-  
+if(getenv('REQUEST_METHOD') == 'GET') {
 
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
   $stmt  = mysqli_stmt_init($db);
@@ -34,9 +24,27 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   while(mysqli_stmt_fetch($stmt)){
     array_push($murolInfos, ['issue' => $issue
                             ,'date' => $date
-                            ,'topics' => json_decode($topics)
+                            ,'topics' => unserialize($topics)
                             ]);
   }
+
+
+
+  $query = 
+    "INSERT INTO murolInfos(issue, date, topics) VALUES 
+    (?,?,?)
+    ON DUPLICATE KEY UPDATE
+     date = VALUES(date),
+     topics = VALUES(topics)";
+     
+  mysqli_stmt_prepare($stmt, $query);
+
+  foreach ($murolInfos as $mi) {
+    $newTopics = json_encode($mi['topics']);
+    mysqli_stmt_bind_param($stmt,'sis', $mi['issue'], $mi['date'], $newTopics);
+    mysqli_stmt_execute($stmt);
+  }
+
 
   $query = 
     "SELECT date, index_ FROM delibs";
@@ -50,9 +58,24 @@ if(getenv('REQUEST_METHOD') == 'POST') {
 
   while(mysqli_stmt_fetch($stmt)){
     array_push($delibs, ['date' => $date
-                        ,'index' => json_decode($index_)
+                        ,'index' => unserialize($index_)
                         ]);
   }
+
+  $query = 
+    "INSERT INTO delibs( date, index_) VALUES 
+    (?,?)
+    ON DUPLICATE KEY UPDATE
+     index_ = VALUES(index_)";
+     
+  mysqli_stmt_prepare($stmt, $query);
+
+  foreach ($delibs as $d) {
+    $newIndex = json_encode($d['index']);
+    mysqli_stmt_bind_param($stmt,'is', $d['date'], $newIndex);
+    mysqli_stmt_execute($stmt);
+  }
+
 
   $query = 
     "SELECT issue, date,  index_ FROM bulletins";
@@ -67,18 +90,25 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   while(mysqli_stmt_fetch($stmt)){
     array_push($bulletins, ['issue' => $issue
                            ,'date' => $date
-                           ,'index' => json_decode($index_)
+                           ,'index' => unserialize($index_)
                            ]);
   }
 
-  $result = 
-      ['murolInfos' => $murolInfos 
-      ,'delibs' => $delibs
-      ,'bulletins' => $bulletins
-      ];
+  $query = 
+    "INSERT INTO bulletins( issue, date, index_) VALUES 
+    (?,?,?)
+    ON DUPLICATE KEY UPDATE
+     date = VALUES(date),
+     index_ = VALUES(index_)";
+     
+  mysqli_stmt_prepare($stmt, $query);
 
-  $toJson = json_encode($result);
-  echo $toJson;
+  foreach ($bulletins as $b) {
+    $newIndex = json_encode($b['index']);
+    mysqli_stmt_bind_param($stmt,'sis', $b['issue'], $b['date'], $newIndex);
+    mysqli_stmt_execute($stmt);
+  }
+
   
   mysqli_close($db);
   exit();

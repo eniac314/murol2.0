@@ -28,7 +28,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $name  = $php_data->name; 
   $issue = $php_data->bulletin->issue;
   $date  = $php_data->bulletin->date;
-  $index = serialize($php_data->bulletin->index);
+  $index = json_encode($php_data->bulletin->index);
 
   if(!is_null($php_data->bulletin->cover)){
 

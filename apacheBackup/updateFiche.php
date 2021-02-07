@@ -36,23 +36,23 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $fiche = $php_data->fiche;
 
   $uuid = $fiche->uuid;
-  $categories = serialize($fiche->categories);
-  $natureActiv = serialize($fiche->natureActiv);
-  $refOt = is_null($fiche->refOt) ? null : serialize($fiche->refOt);
-  $label = serialize($fiche->label);
-  $rank = serialize($fiche->rank);
+  $categories = json_encode($fiche->categories);
+  $natureActiv = json_encode($fiche->natureActiv);
+  $refOt = is_null($fiche->refOt) ? null : json_encode($fiche->refOt);
+  $label = json_encode($fiche->label);
+  $rank = json_encode($fiche->rank);
   $nomEntite = $fiche->nomEntite;
-  $responsables = serialize($fiche->responsables);
+  $responsables = json_encode($fiche->responsables);
   $adresse = $fiche->adresse;
-  $telNumber = is_null($fiche->telNumber) ? null : serialize($fiche->telNumber);
+  $telNumber = is_null($fiche->telNumber) ? null : json_encode($fiche->telNumber);
   $fax = $fiche->fax;
-  $email = serialize($fiche->email);
-  $site = is_null($fiche->site) ? null : serialize($fiche->site);
+  $email = json_encode($fiche->email);
+  $site = is_null($fiche->site) ? null : json_encode($fiche->site);
   $pjaun = $fiche->pjaun;
   $visuel = $fiche->visuel;
-  $description = serialize($fiche->description);
-  $linkedDocs = serialize($fiche->linkedDocs);
-  $ouverture = is_null($fiche->ouverture) ? null : serialize($fiche->ouverture);
+  $description = json_encode($fiche->description);
+  $linkedDocs = json_encode($fiche->linkedDocs);
+  $ouverture = is_null($fiche->ouverture) ? null : json_encode($fiche->ouverture);
   $lastEdit = $fiche->lastEdit;
 
   $query = 
