@@ -56,14 +56,14 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $lastEdit = $fiche->lastEdit;
 
   $query = 
-    "INSERT INTO fiches(uuid, categories, natureActiv, refOt, label, rank, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture,lastEdit)
+    "INSERT INTO fiches(uuid, categories, natureActiv, refOt, label, ranking, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture,lastEdit)
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       categories = VALUES(categories),
       natureActiv = VALUES(natureActiv),
       refOt = VALUES(refOt),
       label = VALUES(label),
-      rank = VALUES(rank),
+      ranking = VALUES(ranking),
       nomEntite = VALUES(nomEntite),
       responsables = VALUES(responsables),
       adresse = VALUES(adresse),
