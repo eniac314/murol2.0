@@ -33,13 +33,13 @@ docMaxWidth ( winWidth, winHeight ) editMode previewMode =
     if editMode then
         case previewMode of
             PreviewBigScreen ->
-                1000
+                980
 
             PreviewTablet ->
-                768
+                800
 
             PreviewPhone ->
-                320
+                350
 
             _ ->
                 950

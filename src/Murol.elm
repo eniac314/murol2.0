@@ -32,6 +32,7 @@ import Internals.Contact as Contact
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
+import Meteo.Meteo as Meteo
 import PageEditor.EditorPlugins.TrixTextBlockPlugin exposing (convertTextBlocks)
 import PageTreeEditor.PageTreeEditor as PageTreeEditor exposing (Child(..), Page(..), decodeContent)
 import Publications.Publications exposing (getAllPublications)
@@ -121,6 +122,7 @@ type Msg
     | ContactMsg Contact.Msg
     | HGmsg HeaderGallery.Msg
     | GalleryMsg String Gallery.Msg
+    | MeteoMsg Meteo.Msg
     | NoOp
 
 
@@ -202,6 +204,7 @@ init flags url key =
             , previewMode = PreviewScreen
             , galleries = Dict.empty
             , publications = Nothing
+            , weatherWidget = Nothing
             }
 
         url_ =
@@ -377,6 +380,14 @@ update msg model =
                     case Decode.decodeValue PageTreeEditor.decodeContent jsonVal of
                         Ok { contentId, docContent } ->
                             let
+                                ( weatherWidget, weatherWidgetCmds ) =
+                                    if Document.hasWeatherWidget docContent then
+                                        Meteo.init MeteoMsg
+                                            |> Tuple.mapFirst Just
+
+                                    else
+                                        ( config.weatherWidget, Cmd.none )
+
                                 fichesIds =
                                     Document.gatherFichesIds docContent
 
@@ -415,7 +426,7 @@ update msg model =
                                     model.config
 
                                 newConfig =
-                                    { config | galleries = newGalleries }
+                                    { config | galleries = newGalleries, weatherWidget = weatherWidget }
                             in
                             ( { model
                                 | pages =
@@ -423,11 +434,14 @@ update msg model =
                                 , initialLoadDone = True
                                 , config = newConfig
                               }
-                            , if fichesToDownload /= [] then
-                                getFiches fichesToDownload
+                            , Cmd.batch
+                                [ if fichesToDownload /= [] then
+                                    getFiches fichesToDownload
 
-                              else
-                                Cmd.none
+                                  else
+                                    Cmd.none
+                                , weatherWidgetCmds
+                                ]
                             )
 
                         _ ->
@@ -666,6 +680,25 @@ update msg model =
                     ( { model | config = newConfig }, cmds )
 
                 Nothing ->
+                    ( model, Cmd.none )
+
+        MeteoMsg meteoMsg ->
+            case model.config.weatherWidget of
+                Just meteo ->
+                    let
+                        ( newWeatherWidget, cmds ) =
+                            Meteo.update meteoMsg meteo
+                                |> Tuple.mapFirst Just
+
+                        config =
+                            model.config
+
+                        newConfig =
+                            { config | weatherWidget = newWeatherWidget }
+                    in
+                    ( { model | config = newConfig }, cmds )
+
+                _ ->
                     ( model, Cmd.none )
 
         NoOp ->

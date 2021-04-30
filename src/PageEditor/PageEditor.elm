@@ -41,6 +41,7 @@ import Internals.Icons exposing (..)
 import Json.Decode as Decode
 import Json.Encode as Encode exposing (Value, list, null, string)
 import List.Extra exposing (remove)
+import Meteo.Meteo as Meteo
 import NewsEditor.NewsEditor as NewsEditor
 import PageEditor.EditorPlugins.BlockLinksPlugin as BlockLinksPlugin
 import PageEditor.EditorPlugins.ContainerEditPlugin as ContainerEditPlugin
@@ -274,6 +275,7 @@ type Msg
       ---------
     | NewPage
     | LoadDocument
+    | MeteoMsg Meteo.Msg
     | NoOp
 
 
@@ -300,6 +302,10 @@ reset mbDoc externalMsg =
 
         ( newGalleryPlugin, galleryPluginCmds ) =
             GalleryPlugin.init Nothing (externalMsg << GalleryPluginMsg)
+
+        ( weatherWidget, weatherWidgetCmds ) =
+            Meteo.init (externalMsg << MeteoMsg)
+                |> Tuple.mapFirst Just
 
         handlers =
             { containerClickHandler = externalMsg << SelectDoc
@@ -329,6 +335,7 @@ reset mbDoc externalMsg =
             , openNewsMsg = always (externalMsg NoOp)
             , galleries = Dict.empty
             , publications = Nothing
+            , weatherWidget = weatherWidget
             }
 
         funnelState =
@@ -383,6 +390,7 @@ reset mbDoc externalMsg =
                 )
             |> Task.perform SetSeason
             |> Cmd.map externalMsg
+        , weatherWidgetCmds
         ]
     )
 
@@ -1504,6 +1512,25 @@ internalUpdate config msg model =
                     ( { newModel | currentPlugin = Nothing }
                     , cmd
                     )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        MeteoMsg meteoMsg ->
+            case model.config.weatherWidget of
+                Just meteo ->
+                    let
+                        ( newWeatherWidget, cmds ) =
+                            Meteo.update meteoMsg meteo
+                                |> Tuple.mapFirst Just
+
+                        modelconfig =
+                            model.config
+
+                        newConfig =
+                            { modelconfig | weatherWidget = newWeatherWidget }
+                    in
+                    ( { model | config = newConfig }, cmds )
 
                 _ ->
                     ( model, Cmd.none )

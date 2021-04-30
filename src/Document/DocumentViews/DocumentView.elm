@@ -26,6 +26,7 @@ import Internals.CommonStyleHelpers exposing (..)
 import Internals.Icons exposing (chevronsDown, chevronsUp, externalLink)
 import Json.Decode as Decode
 import List.Extra exposing (splitAt)
+import Meteo.Meteo as Meteo
 import Murmur3 exposing (hashString)
 import PageEditor.Internals.DocumentEditorHelpers exposing (buildYoutubeUrl)
 import Publications.PublicationsView as PublicationsView
@@ -1221,7 +1222,14 @@ renderWeatherWidget config id attrs =
             getContainerWidth config
 
         maxWidth =
-            containerWidth - 40
+            min
+                (docMaxWidth
+                    ( config.width, config.height )
+                    config.editMode
+                    config.previewMode
+                )
+                config.width
+                - 40
 
         device =
             getDevice config
@@ -1229,16 +1237,16 @@ renderWeatherWidget config id attrs =
         widgetWidth =
             case device.class of
                 Phone ->
-                    width fill
+                    maxWidth
 
                 Tablet ->
-                    width fill
+                    maxWidth
 
                 _ ->
-                    width (px 300)
+                    300
     in
     [ column
-        ([ widgetWidth
+        ([ width (px widgetWidth)
          , alignTop
          , centerX
          , spacing 10
@@ -1247,27 +1255,12 @@ renderWeatherWidget config id attrs =
             ++ renderAttrs config attrs
         )
         [ customHeading config 1 [] "METEO"
+        , case config.weatherWidget of
+            Just meteo ->
+                Meteo.view widgetWidth meteo
 
-        --, el
-        --    [ centerX ]
-        --    (html <|
-        --        Html.iframe
-        --            [ Attr.style "border-width" "0"
-        --            , Attr.style "width" "300"
-        --            , Attr.src "/meteo.html"
-        --            ]
-        --            []
-        --    )
-        , el
-            []
-            (html <|
-                Html.iframe
-                    [ Attr.style "frameborder" "0"
-                    , Attr.id "widget_autocomplete_preview"
-                    , Attr.src "https://meteofrance.com/widget/prevision/632470"
-                    ]
-                    []
-            )
+            Nothing ->
+                Element.none
         ]
     ]
 

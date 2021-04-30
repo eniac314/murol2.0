@@ -6,6 +6,7 @@ import Document.DocumentViews.StyleSheets exposing (..)
 import Element exposing (Element)
 import Gallery.Gallery as Gallery exposing (Model)
 import GeneralDirectoryEditor.GeneralDirCommonTypes exposing (Fiche)
+import Meteo.Meteo as Meteo exposing (Model)
 import Set exposing (Set)
 import Time exposing (Posix, Zone)
 
@@ -32,4 +33,5 @@ type alias Config msg =
     , openNewsMsg : String -> msg
     , galleries : Dict String (Gallery.Model msg)
     , publications : Maybe Publications
+    , weatherWidget : Maybe (Meteo.Model msg)
     }

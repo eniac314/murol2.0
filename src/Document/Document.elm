@@ -1,4 +1,59 @@
-module Document.Document exposing (BlockLinkMeta, BulletinMeta, CellContent(..), CellValue, ContainerLabel(..), ContainerValue, DelibMeta, DocAttribute(..), DocColor(..), Document(..), GalleryMeta, Id, ImageMeta, ImageSrc(..), ImgSize, Li, LinkMeta, MurolInfoMeta, News, NewsContent, Pic, PictureLink, Publications, TableMeta, TextBlockElement(..), TextBlockPrimitive(..), VideoHost(..), VideoMeta, VideoSize, ZipperEventHandler(..), ZipperHandlers, addAttrs, addClass, containsOnly, dummyPic, gatherFichesIds, gatherGalleryMeta, getAttrs, getDocStyleId, getHtmlId, getId, getUid, hasClass, hasUid, isContainer, isImage, setDocStyleId, setDocStyleIdIfNone, setHtmlId, setHtmlIdIfNone, setUid, toSeColor, toogleClass)
+module Document.Document exposing
+    ( BlockLinkMeta
+    , BulletinMeta
+    , CellContent(..)
+    , CellValue
+    , ContainerLabel(..)
+    , ContainerValue
+    , DelibMeta
+    , DocAttribute(..)
+    , DocColor(..)
+    , Document(..)
+    , GalleryMeta
+    , Id
+    , ImageMeta
+    , ImageSrc(..)
+    , ImgSize
+    , Li
+    , LinkMeta
+    , MurolInfoMeta
+    , News
+    , NewsContent
+    , Pic
+    , PictureLink
+    , Publications
+    , TableMeta
+    , TextBlockElement(..)
+    , TextBlockPrimitive(..)
+    , VideoHost(..)
+    , VideoMeta
+    , VideoSize
+    , ZipperEventHandler(..)
+    , ZipperHandlers
+    , addAttrs
+    , addClass
+    , containsOnly
+    , dummyPic
+    , gatherFichesIds
+    , gatherGalleryMeta
+    , getAttrs
+    , getDocStyleId
+    , getHtmlId
+    , getId
+    , getUid
+    , hasClass
+    , hasUid
+    , hasWeatherWidget
+    , isContainer
+    , isImage
+    , setDocStyleId
+    , setDocStyleIdIfNone
+    , setHtmlId
+    , setHtmlIdIfNone
+    , setUid
+    , toSeColor
+    , toogleClass
+    )
 
 --import Document.DocumentViews.StyleSheets exposing (..)
 
@@ -562,6 +617,25 @@ gatherGalleryMeta document =
     in
     helper document
         |> List.Extra.uniqueBy (UUID.toString << .uuid)
+
+
+hasWeatherWidget : Document -> Bool
+hasWeatherWidget document =
+    let
+        helper doc =
+            case doc of
+                Cell { cellContent } ->
+                    case cellContent of
+                        WeatherWidget ->
+                            [ True ]
+
+                        _ ->
+                            []
+
+                Container _ children ->
+                    List.concatMap helper children
+    in
+    List.any identity (helper document)
 
 
 

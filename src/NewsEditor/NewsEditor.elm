@@ -190,22 +190,6 @@ getNewsDict model =
 ------------
 -- Update --
 ------------
---update :
---    { a
---        | logInfo : LogInfo
---        , zone : Zone
---        , pageTreeEditor : PageTreeEditor.Model msg
---        , addLog : Log -> msg
---    }
---    -> Msg
---    -> Model msg
---    -> ( Model msg, Cmd msg )
---update config msg model =
---    let
---        ( newModel, cmds ) =
---            internalUpdate config msg model
---    in
---    ( newModel, cmds )
 
 
 update :
@@ -1113,6 +1097,7 @@ renderConfig externalMsg =
     , openNewsMsg = always (externalMsg NoOp)
     , galleries = Dict.empty
     , publications = Nothing
+    , weatherWidget = Nothing
     }
 
 

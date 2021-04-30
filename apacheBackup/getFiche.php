@@ -27,7 +27,7 @@ if(getenv('REQUEST_METHOD') == 'POST') {
   $fiches = [];
 
   $query = 
-    "SELECT uuid, categories, natureActiv, refOt, label, rank, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture, lastEdit FROM fiches WHERE uuid = ?";
+    "SELECT uuid, categories, natureActiv, refOt, label, ranking, nomEntite, responsables, adresse, telNumber, fax, email, site, pjaun, visuel, description, linkedDocs, ouverture, lastEdit FROM fiches WHERE uuid = ?";
   mysqli_stmt_prepare($stmt, $query);
 
   
