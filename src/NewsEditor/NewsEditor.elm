@@ -175,7 +175,7 @@ type Msg
     | ClosePicPicker
     | ConfirmPic PickerResult
     | SaveNews
-    | NewsSaved News (Result Http.Error Bool)
+    | NewsSaved News (Result Http.Error Posix)
     | TextBlockPluginMsg TextBlockPlugin.Msg
     | SetTimeAndInitSeed Time.Posix
     | NoOp
@@ -420,7 +420,12 @@ update config msg model =
                 ( Just news, LoggedIn { sessionId }, Just seed ) ->
                     let
                         ( uuid, newSeed ) =
-                            Random.step UUID.generator seed
+                            case news.uuid of
+                                Just currentUuid ->
+                                    ( currentUuid, seed )
+
+                                Nothing ->
+                                    Random.step UUID.generator seed
 
                         toSave =
                             { title = news.title
@@ -463,10 +468,10 @@ update config msg model =
 
         NewsSaved toSave res ->
             case res of
-                Ok _ ->
+                Ok currentTime ->
                     ( { model
                         | news =
-                            Dict.insert (UUID.toString toSave.uuid) { toSave | date = model.currentTime } model.news
+                            Dict.insert (UUID.toString toSave.uuid) { toSave | date = currentTime } model.news
                         , buffer = Nothing
                         , expiryBuffer = ""
                         , contentPreview = False
@@ -1004,7 +1009,7 @@ getAllTheNews sessionId =
         }
 
 
-setNews : Posix -> News -> String -> Task Http.Error Bool
+setNews : Posix -> News -> String -> Task Http.Error Posix
 setNews currentTime news sessionId =
     let
         datedNews =
@@ -1026,7 +1031,7 @@ setNews currentTime news sessionId =
         , headers = []
         , url = "setNews.php"
         , body = body
-        , resolver = jsonResolver decodeSuccess
+        , resolver = jsonResolver (D.succeed currentTime)
         , timeout = Nothing
         }
 
