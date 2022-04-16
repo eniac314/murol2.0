@@ -4,528 +4,531 @@
 		"selected_items":
 		[
 			[
-				"neee",
-				"needToRotate"
+				"filterOutHa",
+				"filterOutHaveTitle"
 			],
 			[
-				"no",
-				"noHtmlAttr"
+				"filterOutH",
+				"filterOutHaveTitle"
 			],
 			[
-				"at",
-				"attributes"
+				"filterOut",
+				"filterOutHaveTitle"
 			],
 			[
-				"de",
-				"desiredSize"
+				"ToogleS",
+				"ToogleShowOnlyNoTitle"
 			],
 			[
-				"ro",
-				"rotationAngle"
+				"ToogleShow",
+				"ToogleShowOnlyNoTitle"
 			],
 			[
-				"funnel",
-				"funnelState"
+				"getMlt",
+				"getMltStrWithDefault"
 			],
 			[
-				"loc",
-				"localStorageValue"
+				"selec",
+				"selectedCategory"
 			],
 			[
-				"json",
-				"jsonBuffer"
+				"selected",
+				"selectedCategory"
 			],
 			[
-				"pre",
-				"prettyJson"
+				"sele",
+				"selectedCategory"
 			],
 			[
-				"new",
-				"newBuffer"
+				"categor",
+				"category"
 			],
 			[
-				"De",
-				"DecodeJsonBuffer"
+				"cate",
+				"category"
 			],
 			[
-				"lo",
-				"localStorageValue"
+				"categ",
+				"category"
 			],
 			[
-				"J",
-				"JsonInput"
+				"category",
+				"categoryView"
 			],
 			[
-				"js",
-				"jsonString"
+				"isC",
+				"isCategorySelected"
 			],
 			[
-				"sel",
-				"setLocalStorageValue"
-			],
-			[
-				"Label",
-				"labelLeft"
-			],
-			[
-				"la",
-				"label"
-			],
-			[
-				"spa",
-				"spacingXY"
-			],
-			[
-				"loca",
-				"localStorageKey"
-			],
-			[
-				"Per",
-				"PersistencePlugin"
-			],
-			[
-				"Set",
-				"SetEditorPlugin"
-			],
-			[
-				"cur",
-				"currentPlugin"
-			],
-			[
-				"Ed",
-				"EditorPlugin"
-			],
-			[
-				"ex",
-				"extractDoc"
-			],
-			[
-				"list",
-				"ListLocalStorageKeys"
-			],
-			[
-				"lis",
-				"ListLocalStorageKeys"
-			],
-			[
-				"load",
-				"LoadDocument"
-			],
-			[
-				"put",
-				"PutInLocalStorage"
-			],
-			[
-				"se",
-				"SetLocalStorageValue"
-			],
-			[
-				"set",
-				"SetLocalStorageValue"
-			],
-			[
-				"button",
-				"buttonStyle"
-			],
-			[
-				"le",
-				"leafContent"
-			],
-			[
-				"do",
-				"docSize"
-			],
-			[
-				"Doc",
-				"DocZipper"
-			],
-			[
-				"Do",
-				"DocZipper"
-			],
-			[
-				"to",
-				"toTableMeta"
-			],
-			[
-				"B",
-				"BackgroundColor"
-			],
-			[
-				"htl",
-				"htmlAttribute"
-			],
-			[
-				"p",
-				"pointer"
-			],
-			[
-				"al",
-				"alpha"
-			],
-			[
-				"tb",
-				"tbAttrs"
-			],
-			[
-				"Zi",
-				"zipperEventHandler"
-			],
-			[
-				"Zip",
-				"ZipperHandlers"
+				"mbSe",
+				"mbSelectedCategory"
 			],
 			[
 				"re",
-				"renderAttrs"
+				"remove"
 			],
 			[
-				"render",
-				"renderAttr"
+				"newTa",
+				"newTagOrder"
 			],
 			[
-				"link",
-				"linkStyle"
+				"tag",
+				"tagOrder"
 			],
 			[
-				"c",
-				"config"
+				"mbS",
+				"mbSelectedCategory"
 			],
 			[
-				"ima",
-				"imageStyle"
+				"Add",
+				"AddTagToCategory"
 			],
 			[
-				"cu",
-				"customStyles"
+				"Che",
+				"cheapDiff"
 			],
 			[
-				"text",
-				"textColumnStyle"
+				"current",
+				"currentState"
 			],
 			[
-				"row",
-				"rowStyle"
+				"loaded",
+				"loadedStateValue"
 			],
 			[
-				"PAR",
-				"paragraphStyle"
+				"catH",
+				"catHandlerIcon"
 			],
 			[
-				"head",
-				"headingStyle"
+				"No",
+				"NoOp"
 			],
 			[
-				"he",
-				"headingStyles"
+				"lef",
+				"leftPanelUsableHeight"
 			],
 			[
-				"st",
-				"styleSheet"
+				"Edit",
+				"EditCategory"
 			],
 			[
-				"sty",
-				"styleSheet"
+				"cat",
+				"categoriesOrder"
 			],
 			[
-				"Te",
-				"TextBlock"
+				"RequestDe",
+				"RequestDeleteCategory"
 			],
 			[
-				"padd",
-				"paddingEach"
+				"mbSele",
+				"mbSelectedCategory"
 			],
 			[
-				"renderTe",
-				"renderTextBlocPrimitive"
+				"Editi",
+				"EditingCategory"
 			],
 			[
-				"TextBlock",
-				"TextBlockPrimitive"
+				"SaveCha",
+				"SaveChangesToCategoryThenGoBack"
 			],
 			[
-				"te",
-				"TextBlockElement"
+				"Save",
+				"SaveChangesToTagThenGoBack"
 			],
 			[
-				"T",
-				"TextBlockElement"
+				"SetC",
+				"SetCategoryDefaultLanguage"
 			],
 			[
-				"fi",
-				"finish"
+				"Cate",
+				"Category"
 			],
 			[
-				"dec",
-				"decodeLoaded"
+				"chan",
+				"changesHaveBeenMadeCats"
 			],
 			[
-				"Html",
-				"HtmlEvents"
+				"selecte",
+				"selectedCategory"
 			],
 			[
-				"custom",
-				"customTextArea"
+				"name",
+				"nameBuffer"
 			],
 			[
-				"wi",
-				"withDefault"
+				"select",
+				"selectedCategory"
 			],
 			[
-				"nbr",
-				"nbrRows"
+				"catego",
+				"category"
 			],
 			[
-				"ind",
-				"indexedTable"
+				"newCa",
+				"newCategory"
 			],
 			[
-				"tab",
-				"tableStyles"
+				"filtered",
+				"filteredCats"
 			],
 			[
-				"def",
-				"defaulStyleSheet"
+				"tags",
+				"tagsSelectionHeight"
 			],
 			[
-				"pad",
-				"paddingXY"
+				"m",
+				"Msg"
 			],
 			[
-				"padding",
-				"paddingXY"
+				"tagSe",
+				"tagSelectionView"
 			],
 			[
-				"Fo",
-				"FocusStyleSelector"
+				"Edi",
+				"EditingCategory"
 			],
 			[
-				"Blue",
-				"BlurStyleSelector"
+				"E",
+				"EditingCategory"
 			],
 			[
-				"style",
-				"styleSelectorFocused"
+				"Editing",
+				"EditingCategory"
 			],
 			[
-				"styl",
-				"styleSelectorInput"
+				"selece",
+				"selectedGallery"
 			],
 			[
-				"edi",
-				"editableCellStyle"
+				"defE",
+				"defEditingGallery"
 			],
 			[
-				"ta",
-				"tableStyle"
+				"Editin",
+				"EditingGallery"
 			],
 			[
-				"Table",
-				"TableStyle"
+				"cent",
+				"centerX"
 			],
 			[
-				"cell",
-				"cellStyle"
+				"la",
+				"currentLanguage"
 			],
 			[
-				"pa",
-				"padding"
+				"categories",
+				"categoriesOrder"
 			],
 			[
-				"r",
-				"rgb"
+				"print",
+				"print_json_message"
 			],
 			[
-				"ed",
-				"editableCellStyle"
+				"push",
+				"array_push()"
 			],
 			[
-				"table",
-				"tableView"
+				"Clos",
+				"ClosePopUpDialogAndDo"
 			],
 			[
-				"data",
-				"dataForTable"
+				"Req",
+				"RequestDeleteArtwork"
 			],
 			[
-				"Data",
-				"DataInput"
+				"Dele",
+				"DeleteArtwork"
 			],
 			[
-				"col",
-				"colIndexes"
+				"notif",
+				"notifPanelHeight"
 			],
 			[
-				"center",
-				"centerY"
+				"noti",
+				"notifPanelHeight"
 			],
 			[
-				"bu",
-				"buttonStyle"
+				"Reque",
+				"RequestDeleteTag"
 			],
 			[
-				"nbrRows",
-				"nbrRowsInput"
+				"conf",
+				"confirmHandler"
 			],
 			[
-				"nbrCols",
-				"nbrColsInput"
+				"can",
+				"cancelMessage"
 			],
 			[
-				"in",
-				"interfaceView"
+				"contain",
+				"containerHeight"
 			],
 			[
-				"di",
-				"displayOnlyView"
+				"contai",
+				"containerWidth"
 			],
 			[
-				"dis",
-				"DisplayMode"
+				"pop",
+				"popUpViewConfig"
 			],
 			[
-				"e",
-				"error"
+				"canc",
+				"cancelMessage"
 			],
 			[
-				"max",
-				"maxRows"
+				"confirm",
+				"confirmMessage"
 			],
 			[
-				"D",
-				"DisplayOnly"
-			],
-			[
-				"Di",
-				"DisplayOnly"
-			],
-			[
-				"In",
-				"InitializeTable"
-			],
-			[
-				"Tabl",
-				"TableColumn"
-			],
-			[
-				"enc",
-				"encodeDocColor"
-			],
-			[
-				"Font",
-				"FontAlignRight"
-			],
-			[
-				"Fon",
-				"FontAlignLeft"
-			],
-			[
-				"en",
-				"encodeLinkMeta"
-			],
-			[
-				"enco",
-				"encodeImageMeta"
-			],
-			[
-				"encode",
-				"encodeImageSize"
-			],
-			[
-				"A",
-				"Attr"
-			],
-			[
-				"src",
-				"src_"
-			],
-			[
-				"img",
-				"imgHeight"
-			],
-			[
-				"i",
-				"imgWidth"
-			],
-			[
-				"s",
-				"string"
-			],
-			[
-				"document",
-				"documentToString"
+				"cne",
+				"centerX"
 			],
 			[
 				"cen",
-				"center"
+				"centerY"
+			],
+			[
+				"conta",
+				"containerHeight"
+			],
+			[
+				"Pop",
+				"PopUpDialogViewConfig"
+			],
+			[
+				"close",
+				"closePopupSub"
+			],
+			[
+				"container",
+				"containerHeight"
+			],
+			[
+				"Got",
+				"GotEntries"
+			],
+			[
+				"locked",
+				"lockedEntries"
+			],
+			[
+				"Ser",
+				"ServerError"
+			],
+			[
+				"disp",
+				"displayMode"
+			],
+			[
+				"se",
+				"selectedEntry"
+			],
+			[
+				"GetT",
+				"GetTimeAndDo"
+			],
+			[
+				"ti",
+				"title"
+			],
+			[
+				"tit",
+				"title"
+			],
+			[
+				"inp",
+				"titleInput"
+			],
+			[
+				"M",
+				"MultLangStr"
+			],
+			[
+				"entry",
+				"entrySelector"
+			],
+			[
+				"BlogEn",
+				"BlogEntryLoaded"
+			],
+			[
+				"Blo",
+				"BlogEntry"
+			],
+			[
+				"masonryV",
+				"masonryViewParams"
+			],
+			[
+				"conte",
+				"contenItemView"
+			],
+			[
+				"El",
+				"Element"
+			],
+			[
+				"G",
+				"Gallery"
+			],
+			[
+				"wi",
+				"width"
+			],
+			[
+				"algn",
+				"alignAttr"
+			],
+			[
+				"de",
+				"defaultLanguage"
+			],
+			[
+				"get",
+				"getMltStrWithDefault"
+			],
+			[
+				"center",
+				"centerX"
+			],
+			[
+				"Al",
+				"AlignPicRight"
+			],
+			[
+				"Align",
+				"AlignPicLeft"
+			],
+			[
+				"al",
+				"alignment"
+			],
+			[
+				"no",
+				"noAttr"
 			],
 			[
 				"ali",
-				"alignLeft"
+				"alignment"
 			],
 			[
-				"class",
-				"classifyDevice"
+				"art",
+				"artworks"
 			],
 			[
-				"on",
-				"onLoadMsg"
+				"Ba",
+				"Background"
 			],
 			[
-				"html",
-				"htmlAttribute"
+				"arti",
+				"article"
 			],
 			[
-				"doc",
-				"docWidth"
+				"is",
+				"isVisible"
 			],
 			[
-				"sz",
-				"sizesDict"
+				"t",
+				"title"
 			],
 			[
-				"ht",
-				"htmlId"
+				"pag",
+				"pageCodec"
 			],
 			[
-				"add",
-				"addClass"
+				"build",
+				"buildCustom"
+			],
+			[
+				"vid",
+				"videoMetaCodec"
+			],
+			[
+				"v",
+				"variant1"
+			],
+			[
+				"varia",
+				"variant1"
+			],
+			[
+				"mutl",
+				"multLangStrCodec"
 			],
 			[
 				"S",
-				"String"
+				"SinglePictureMeta"
 			],
 			[
-				"sc",
-				"scalingFactor"
+				"Ali",
+				"Alignment"
 			],
 			[
-				"ca",
-				"caption"
+				"pad",
+				"paddingEach"
 			],
 			[
-				"im",
-				"imgsScaledToMinHeight"
+				"B",
+				"Background"
 			],
 			[
-				"Sty",
-				"StyleElementAttr"
+				"align",
+				"alignBottom"
 			],
 			[
-				"imgS",
-				"imgSizes"
+				"Ed",
+				"EditingTag"
+			],
+			[
+				"in",
+				"inFront"
+			],
+			[
+				"un",
+				"unselectable"
+			],
+			[
+				"uns",
+				"unselectable"
+			],
+			[
+				"prev",
+				"prevLanguage"
+			],
+			[
+				"cu",
+				"currDoc"
+			],
+			[
+				"ex",
+				"externalCss"
+			],
+			[
+				"html",
+				"htmlOutput"
+			],
+			[
+				"load",
+				"loadTrixDocument"
+			],
+			[
+				"tr",
+				"trixEditor"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "/home/eniac314/prog/elm/elm-localstorage/site/index.html",
+			"file": "murol2.0.sublime-project",
 			"settings":
 			{
-				"buffer_size": 1453,
+				"buffer_size": 4,
 				"line_ending": "Unix"
-			}
+			},
+			"undo_stack":
+			[
+			]
 		}
 	],
 	"build_system": "",
@@ -535,52 +538,101 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 392.0,
-		"last_filter": "Package Control: i",
+		"height": 0.0,
+		"last_filter": "",
 		"selected_items":
 		[
 			[
-				"Package Control: i",
-				"Package Control: Install Package"
-			],
-			[
-				"Package Control: in",
-				"Package Control: Install Package"
-			],
-			[
-				"Package Control: ",
+				"remov",
 				"Package Control: Remove Package"
 			],
 			[
-				"package re",
-				"PackageResourceViewer: Open Resource"
+				"up",
+				"Package Control: Upgrade Package"
+			],
+			[
+				"terminus",
+				"Terminus: Toggle Panel"
+			],
+			[
+				"term",
+				"Terminal: Open"
+			],
+			[
+				"",
+				"Bookmarks: Select Previous"
+			],
+			[
+				"teminus ope",
+				"Terminus: Toggle Panel"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"open",
+				"Terminus: Open Default Shell in Tab (View)"
+			],
+			[
+				"terminus ",
+				"Terminus: Close All"
+			],
+			[
+				"terminus open",
+				"Terminus: Toggle Panel"
+			],
+			[
+				"terminus: io",
+				"Terminus: Open Default Shell in Tab (View)"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"rem",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package Control: up",
+				"Package Control: Upgrade/Overwrite All Packages"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"floo",
+				"Floobits - Settings (~/.floorc.json)"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
 			],
 			[
 				"pac",
-				"Package Control: Install Package"
+				"Package Control: Upgrade Package"
 			],
 			[
-				"elm",
-				"Elm Language Support: Autoset Docs Path"
-			],
-			[
-				"el",
-				"Elm Build System: Set Output Path"
-			],
-			[
-				"Package Control: ins",
+				"packa",
 				"Package Control: Install Package"
 			]
 		],
-		"width": 497.0
+		"width": 0.0
 	},
 	"console":
 	{
-		"height": 146.0,
+		"height": 106.0,
 		"history":
 		[
-			"sublime.log_commands(True)",
-			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+			"terminus",
+			"teminus",
+			"Terminus: Open Default Shell in Tab"
 		]
 	},
 	"distraction_free":
@@ -592,144 +644,148 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
+	"expanded_folders":
+	[
+		"/home/eniac314/prog/elm/murol2.0"
+	],
 	"file_history":
 	[
-		"/home/eniac314/prog/elm/murol2.0/imagePlugin.html",
-		"/home/eniac314/prog/elm/murol2.0/src/ImagePlugin.elm",
-		"/home/eniac314/prog/elm/debug/src/Main.elm",
-		"/home/eniac314/prog/elm/murol2.0/src/Editor.elm",
-		"/home/eniac314/prog/elm/murol2.0/src/PersistencePlugin.elm",
-		"/home/eniac314/prog/elm/murol2.0/src/",
-		"/home/eniac314/prog/elm/murol2.0/src/Persistence.elm",
-		"/home/eniac314/prog/elm/murol2.0/src/Table.elm",
-		"/home/eniac314/prog/elm/murol2.0/src/TextBlock.elm",
-		"/home/eniac314/prog/elm/murol2.0/elm.json",
-		"/home/eniac314/prog/elm/murol2.0/src/StyleSheets.elm",
-		"/home/eniac314/prog/elm/mocalis/src/Parser.elm",
-		"/home/eniac314/prog/elm/quill/index.html",
-		"/home/eniac314/prog/elm/mairieMurol/hello.php",
-		"/home/eniac314/prog/elm/murol2.0/src/Document.elm",
-		"/home/eniac314/prog/elm/mairieMurol/.htaccess",
-		"/home/eniac314/prog/elm/mairieMurol/index.html",
-		"/home/eniac314/prog/elm/murol2.0/src/SampleDocs.elm",
-		"/home/eniac314/prog/elm/murol2.0/src/tmp.elm",
-		"/home/eniac314/prog/elm/murol2.0/editor0.19.sublime-project",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/static/elm/src/View.elm",
-		"/home/eniac314/prog/elm/editor0.19/src/DocumentView.elm",
-		"/home/eniac314/prog/elm/elmCallbacks/SubComponent.elm",
-		"/home/eniac314/prog/elm/gites/src/GiteGallery/Streams.elm",
-		"/home/eniac314/prog/elm/mocalis/src/Filesys.elm",
-		"/home/eniac314/prog/elm/gites/src/GiteGallery/Types.elm",
-		"/home/eniac314/prog/elm/gites/src/GiteGallery/GiteGalleryView.elm",
-		"/home/eniac314/prog/elm/gites/src/GiteGallery/GiteGallery.elm",
-		"/home/eniac314/prog/elm/gites/src/GiteGallery/StyleSheet.elm",
-		"/home/eniac314/prog/elm/gites/src/GiteGallery/MultLangText.elm",
-		"/home/eniac314/prog/elm/gites/src/GiteGallery/GiteGalleryData.elm",
-		"/home/eniac314/prog/elm/mairieMurol/styles/style.css",
-		"/home/eniac314/prog/elm/mairieMurol/src/Utils.elm",
-		"/home/eniac314/prog/elm/mairieMurol/src/OfficeTourisme.elm",
-		"/home/eniac314/prog/elm/mairieMurol/src/Murol.elm",
-		"/home/eniac314/prog/elm/mocalis/src/FileSysEdit.elm",
-		"/home/eniac314/prog/elm/editor0.19/src/Main.elm",
-		"/home/eniac314/prog/elm/editor0.19/stats.sh",
-		"/home/eniac314/prog/elm/editor0.19/src/Editor.elm",
-		"/home/eniac314/prog/elm/gites/apacheBackup/index.html",
-		"/home/eniac314/prog/elm/cardGame/index.html",
-		"/home/eniac314/prog/elm/editor0.19/index.html",
-		"/home/eniac314/prog/elm/editor0.19/elm.json",
-		"/home/eniac314/prog/elm/editor0.19/elm-package.json",
-		"/tmp/mozilla_eniac3140/Untitled Document 1",
-		"/home/eniac314/prog/elm/cardGame/src/View.elm",
-		"/home/eniac314/prog/elm/cardGame/src/Main.elm",
-		"/home/eniac314/prog/elm/fileUpload/SimpleForm.elm",
-		"/home/eniac314/prog/elm/laTerreDuChat/src/Forms.elm",
-		"/home/eniac314/prog/elm/fileUpload/Ports.elm",
-		"/home/eniac314/prog/elm/gites/src/Booking/BookingComs.elm",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/static/elm/src/Coms.elm",
-		"/home/eniac314/prog/elm/fileUpload/assets/Ports.elm",
-		"/home/eniac314/prog/elm/fileUpload/assets/UploadViaPorts.elm",
-		"/home/eniac314/prog/elixir/platform/assets/elm/Platformer.elm",
-		"/home/eniac314/prog/elm/mocalis/src/Main.elm",
-		"/home/eniac314/prog/elm/elmGol/ElmGol.elm",
-		"/home/eniac314/prog/elm/cardGame/src/Types.elm",
-		"/home/eniac314/prog/elm/cardGame/elm-package.json",
-		"/home/eniac314/prog/elm/gilInfo/src/Types.elm",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/urls.py",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/csvParser.py",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/views.py",
-		"/home/eniac314/prog/elixir/gamesLobby/assets/elm/src/Hexaboard/HexaboardView.elm",
-		"/home/eniac314/prog/elixir/gamesLobby/assets/elm/src/Hexaboard/BoardView.elm",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/static/elm/elm-package.json",
-		"/home/eniac314/prog/elixir/gamesLobby/assets/elm/src/MainLobbyComs.elm",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/landing/templates/landing/csvParser.py",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/static/elm/elm-package.json",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/static/elm/src/elmLanding.elm",
-		"/home/eniac314/prog/python/FineGots-WebSite/Django/FineGots/static/elm/elmLanding.elm",
-		"/home/eniac314/prog/elm/gilInfo/index.html",
-		"/home/eniac314/prog/elixir/gamesLobby/subprogs/hexaboard/notes",
-		"/home/eniac314/prog/elm/mocalis/src/BlogEntry.elm",
-		"/home/eniac314/prog/elm/mairieMurol/src/Annee2018.elm",
-		"/home/eniac314/prog/elm/mairieMurol/Gruntfile.js",
-		"/home/eniac314/prog/elm/mairieMurol/mentionsLegales.html",
-		"/home/eniac314/prog/elm/mairieMurol/Environnement.html",
-		"/home/eniac314/.config/sublime-text-3/Packages/User/MozcInput.sublime-settings",
-		"/home/eniac314/prog/elm/mairieMurol/src/Search.elm",
-		"/home/eniac314/prog/elm/mocalis/src/BetterParser.elm",
-		"/home/eniac314/prog/elm/mairieMurol/Annee2017.html",
-		"/home/eniac314/prog/elm/mairieMurol/src/LesAdos.elm",
-		"/tmp/mozilla_eniac3140/Kokopelli wish list",
-		"/home/eniac314/prog/elm/mairieMurol/styles/summer2016.css",
-		"/home/eniac314/prog/elm/mairieMurol/styles/winter.css",
-		"/home/eniac314/prog/elm/mairieMurol/styles/summer.css",
-		"/home/eniac314/prog/elm/mairieMurol/styles/spring.css",
-		"/home/eniac314/prog/elm/mairieMurol/styles/automne.css",
-		"/home/eniac314/prog/elm/mairieMurol/src/Animaux.sublime-workspace",
-		"/home/eniac314/prog/elm/mairieMurol/Associations.html",
-		"/home/eniac314/prog/elm/mairieMurol/AutomneHiver.html",
-		"/home/eniac314/prog/elm/mairieMurol/AutresPublications.html",
-		"/home/eniac314/prog/elm/mairieMurol/BulletinsMunicipaux.html",
-		"/home/eniac314/prog/elm/mairieMurol/Carte&Plan.html",
-		"/home/eniac314/prog/elm/mairieMurol/CCAS.html",
-		"/home/eniac314/prog/elm/mairieMurol/Commerces.html",
-		"/home/eniac314/prog/elm/mairieMurol/Commissions.html",
-		"/home/eniac314/prog/elm/mairieMurol/ConseilMunicipal.html",
-		"/home/eniac314/prog/elm/mairieMurol/DécouvrirMurol.html",
-		"/home/eniac314/prog/elm/mairieMurol/Délibérations.html",
-		"/home/eniac314/prog/elm/mairieMurol/Documentation.html",
-		"/home/eniac314/prog/elm/mairieMurol/Elections.html",
-		"/home/eniac314/prog/elm/mairieMurol/elm.js",
-		"/home/eniac314/prog/elm/mairieMurol/elm-package.json",
-		"/home/eniac314/prog/elm/mairieMurol/Entreprises.html",
-		"/home/eniac314/prog/elm/mairieMurol/favicon.ico",
-		"/home/eniac314/prog/elm/mairieMurol/FestivalArt.html",
-		"/home/eniac314/prog/elm/mairieMurol/gatherPics",
-		"/home/eniac314/prog/elm/mairieMurol/GestionDesDéchets.html",
-		"/home/eniac314/prog/elm/mairieMurol/GestionDesRisques.html",
-		"/home/eniac314/prog/elm/mairieMurol/google8ef9fedb39655dcb.html",
-		"/home/eniac314/prog/elm/mairieMurol/Hébergements.html",
-		"/home/eniac314/prog/elm/mairieMurol/HorairesEtContact.html",
-		"/home/eniac314/prog/elm/mairieMurol/JourneeMurolais.html",
-		"/home/eniac314/prog/elm/mairieMurol/LaCommune.html",
-		"/home/eniac314/prog/elm/mairieMurol/LesSeniors.html",
-		"/home/eniac314/prog/elm/mairieMurol/LICENSE",
-		"/home/eniac314/prog/elm/mairieMurol/mairieMurol.sublime-project",
-		"/home/eniac314/prog/elm/mairieMurol/mairieMurol.sublime-workspace",
-		"/home/eniac314/prog/elm/mairieMurol/Medievales.html",
-		"/home/eniac314/prog/elm/mairieMurol/MurolInfos.html",
-		"/home/eniac314/prog/elm/mairieMurol/NumerosD'urgences.html",
-		"/home/eniac314/prog/elm/mairieMurol/OfficeDeTourisme.html",
-		"/home/eniac314/prog/elm/mairieMurol/OffresD'emploi.html",
-		"/home/eniac314/prog/elm/mairieMurol/Patrimoine.html",
-		"/home/eniac314/prog/elm/mairieMurol/PatrimoinePhoto.html",
-		"/home/eniac314/prog/elm/mairieMurol/PériEtExtra-scolaire.html"
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/elm.json",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Style/Helpers.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/blog/get_entry.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/blog/delete_entry.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/blog/get_every_entries.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/blog/save_entry.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Auth/Auth.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/DropdownSelect.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/ArtAdmin.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/GalleryPlugin.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Blog/BlogEntryAdmin.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/PopUpDialog.elm",
+		"/home/eniac314/prog/elm/elm-json-diff/src/Json/Diff.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/memo",
+		"/home/eniac314/.elm/0.19.1/repl/history",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Shared/Types.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/vendor/delight-im/db/src/Database.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/appState/tags",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/artAdmin/load_state.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/artAdmin/save_state.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/artAdmin/save_state_patch.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/appState/categories",
+		"/home/eniac314/prog/elm/murol2.0/apacheBackup/reencodeGeneralDirectory.php",
+		"/home/eniac314/prog/elm/laTerreDuChat/php backup/getCats.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/includes/localDB.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Blog/Blog.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/errors.log",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Shared/Views.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Shared/Stylesheet.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Editor/Trix.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/Uploader.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/admin.html",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Blog/BlogShared.elm",
+		"/home/eniac314/prog/elm/paniersSaison/?",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Main.elm",
+		"/home/eniac314/Desktop/db5002702002_hosting-data_io.sql",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/Helpers.elm",
+		"/home/eniac314/prog/elm/murol2.0/apacheBackup/css/fonts.css",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/css/fonts.css",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/index.html",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/appState/artworks",
+		"/home/eniac314/prog/elm/elm-trix/src/Main.elm",
+		"/home/eniac314/prog/elm/elm-trix/index.html",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/.htaccess",
+		"/run/user/1000/gvfs/dav+sd:host=eniac314%2527s%2520public%2520files%2520on%2520eniac314-Meerkat._webdav._tcp.local/users.sql",
+		"/run/user/1000/gvfs/dav+sd:host=eniac314%2527s%2520public%2520files%2520on%2520eniac314-Meerkat._webdav._tcp.local/user.sql",
+		"/home/eniac314/prog/elm/kasugaeRetreat/index.html",
+		"/home/eniac314/prog/elm/kasugaeRetreat/src/Main.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/assets/Website layout.jpg",
+		"/home/eniac314/Desktop/test.svg",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/api.php",
+		"/home/eniac314/prog/elm/paniersSaison/src/PicAdmin/PicAdmin.elm",
+		"/home/eniac314/prog/elm/murol2.0/src/PageEditor/PageEditor.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Style/Icons.elm",
+		"/home/eniac314/prog/elm/paniersSaison/src/Internals/DropdownSelect.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/phpinfo.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/composer.json",
+		"/var/www/murol2.0/.htaccess.prod",
+		"/var/www/paniersSaison/.htaccess",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/.htaccess.prod",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/.htaccess_prod",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Shared/Helpers.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/modules/artAdmin/art_upload.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/appState/masonrySettings",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Admin.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/js/color-thief.umd.js",
+		"/var/www/html/public/js/color-thief.js",
+		"/home/eniac314/prog/elm/paniersSaison/src/Style/Helpers.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat/favicon.ico",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Auth/Internal/Login.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/apacheBackup/includes/config.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/.gitignore",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/includes/prodDB.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/includes/config.inc.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/errors_short.log",
+		"/home/eniac314/prog/elm/paniersSaison/src/Admin.elm",
+		"/media/eniac314/4F9C57EA750A63CE/toProcess/convert.py",
+		"/home/eniac314/Desktop/tmp/convert.py",
+		"/home/eniac314/prog/elm/elm-datepicker/src/Demo.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat/php backup/getLegacyMeta.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/DatePicker/DatePicker.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/Logger.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/apacheBackup/vendor/paragonie/halite/src/Asymmetric/SecretKey.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/src/Internal/Icons.elm",
+		"/home/eniac314/prog/elm/elm-datepicker/elm.json",
+		"/home/eniac314/prog/elm/elm-datepicker/src/DatePicker.elm",
+		"/home/eniac314/prog/elm/elm-datepicker/examples/simple-with-validate-date/SimpleWithValidate.elm",
+		"/home/eniac314/prog/elm/elm-datepicker/?",
+		"/home/eniac314/prog/scripts/fixApachePerms",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/apacheBackup/public/api.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/public/js/load-image.all.min.js",
+		"/home/eniac314/prog/elm/paniersSaison/apacheBackup/admin.html",
+		"/home/eniac314/prog/elm/laTerreDuChat/php backup/getPics.php",
+		"/home/eniac314/prog/elm/laTerreDuChat2.0/html/includes/utils.inc.php",
+		"/home/eniac314/prog/elm/paniersSaison/src/Internals/ImageController.elm",
+		"/home/eniac314/prog/elm/paniersSaison/apacheBackup/deleteFile.php",
+		"/home/eniac314/prog/elm/paniersSaison/apacheBackup/picAdmin/deletePicLocal.php",
+		"/home/eniac314/prog/elm/paniersSaison/notes",
+		"/home/eniac314/monsterHunter/log",
+		"/home/eniac314/Desktop/weather/src/Weather.elm",
+		"/home/eniac314/Desktop/customWeather.php",
+		"/home/eniac314/prog/elm/paniersSaison/apacheBackup/timelapse/realtimePic.php",
+		"/home/eniac314/prog/elm/paniersSaison/apacheBackup/timelapse/private.php",
+		"/home/eniac314/prog/elm/paniersSaison/apacheBackup/timelapse/timelapse.php",
+		"/home/eniac314/prog/elm/murol2.0/apacheBackup/js/trix.js",
+		"/home/eniac314/prog/elm/murol2.0/src/Document/Json/DocumentDecoder.elm",
+		"/home/eniac314/prog/elm/laTerreDuChat/php backup/showPic.php",
+		"/home/eniac314/prog/elm/paniersSaison/src/Internals/Helpers.elm",
+		"/home/eniac314/prog/elm/paniersSaison/src/Pages/GenericPage/Article/ArticleRenderer.elm",
+		"/home/eniac314/prog/elm/paniersSaison/html/utils.php",
+		"/home/eniac314/prog/elm/paniersSaison/src/Internals/Uploader.elm",
+		"/home/eniac314/prog/elm/elmVideo/src/Main.elm",
+		"/home/eniac314/prog/elm/paniersSaison/html/getFiche.php",
+		"/home/eniac314/prog/elm/gilInfo2.0/src/Main.elm",
+		"/home/eniac314/prog/elm/paniersSaison/html/getGeneralDirectory.php",
+		"/home/eniac314/prog/elm/paniersSaison/html/updateFiche.php",
+		"/home/eniac314/prog/elm/murol2.0/html/getAllPublications.php",
+		"/home/eniac314/prog/elm/murol2.0/html/saveDelib.php",
+		"/home/eniac314/prog/elm/murol2.0/html/saveMurolInfo.php",
+		"/home/eniac314/prog/elm/murol2.0/html/saveBulletin.php",
+		"/var/www/paniersSaison/timelapse/isSunUp.php",
+		"/home/eniac314/.floorc.json",
+		"/home/eniac314/prog/elm/wadokei/index.html",
+		"/home/eniac314/prog/elm/paniersSaison/html/feuillesLiaison/getIndexes.php",
+		"/home/eniac314/prog/elm/paniersSaison/html/feuillesLiaison/getRecipeClientIndex.php",
+		"/home/eniac314/prog/elm/murol2.0/apacheBackup/index.html",
+		"/home/eniac314/prog/elm/murol2.0/src/SearchEngine.elm",
+		"/home/eniac314/prog/elm/paniersSaison/html/feuillesLiaison/saveIndexesBytes.php"
 	],
 	"find":
 	{
-		"height": 40.0
+		"height": 29.0
 	},
 	"find_in_files":
 	{
-		"height": 96.0,
+		"height": 107.0,
 		"where_history":
 		[
 		]
@@ -739,14 +795,6 @@
 		"case_sensitive": true,
 		"find_history":
 		[
-			"angle",
-			"view",
-			"decodeValue",
-			"SetJs",
-			"SetJ",
-			"set",
-			"open",
-			"Plugin"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -754,49 +802,64 @@
 		"regex": false,
 		"replace_history":
 		[
-			"rAngle"
 		],
 		"reverse": false,
+		"scrollbar_highlights": true,
 		"show_context": true,
 		"use_buffer2": true,
+		"use_gitignore": true,
 		"whole_word": false,
 		"wrap": true
 	},
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "/home/eniac314/prog/elm/elm-localstorage/site/index.html",
-					"semi_transient": false,
+					"file": "murol2.0.sublime-project",
+					"selected": true,
+					"semi_transient": true,
 					"settings":
 					{
-						"buffer_size": 1453,
+						"buffer_size": 4,
 						"regions":
 						{
+							"rb_l0_JSON":
+							{
+								"flags": 272,
+								"regions":
+								[
+									[
+										0,
+										1
+									],
+									[
+										2,
+										3
+									]
+								],
+								"scope": "JSON.l0.rb"
+							}
 						},
 						"selection":
 						[
 							[
-								488,
-								488
+								4,
+								4
 							]
 						],
 						"settings":
 						{
-							"rainbowth.lispy": false,
-							"syntax": "Packages/HTML/HTML.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/JSON/JSON.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 55.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"stack_multiselect": false,
 					"type": "text"
 				}
 			]
@@ -804,11 +867,11 @@
 	],
 	"incremental_find":
 	{
-		"height": 27.0
+		"height": 29.0
 	},
 	"input":
 	{
-		"height": 41.0
+		"height": 42.0
 	},
 	"layout":
 	{
@@ -833,27 +896,43 @@
 		]
 	},
 	"menu_visible": true,
+	"output.Terminus":
+	{
+		"height": 302.0
+	},
+	"output.Terminus 2":
+	{
+		"height": 102.0
+	},
+	"output.Terminus 3":
+	{
+		"height": 114.0
+	},
+	"output.Terminus 4":
+	{
+		"height": 114.0
+	},
+	"output.Terminus 5":
+	{
+		"height": 114.0
+	},
+	"output.Terminus 6":
+	{
+		"height": 114.0
+	},
 	"output.elm_format":
 	{
-		"height": 150.0
-	},
-	"output.elm_type":
-	{
-		"height": 133.0
+		"height": 228.0
 	},
 	"output.find_results":
 	{
 		"height": 0.0
 	},
-	"output.unsaved_changes":
-	{
-		"height": 127.0
-	},
 	"pinned_build_system": "",
 	"project": "murol2.0.sublime-project",
 	"replace":
 	{
-		"height": 71.0
+		"height": 54.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -863,8 +942,12 @@
 		"selected_items":
 		[
 			[
-				"goto",
-				"~/prog/elm/mairieMurol/src/Phototheque.elm"
+				"secre",
+				"apacheBackup/vendor/paragonie/halite/src/Asymmetric/SecretKey.php"
+			],
+			[
+				"getFeuill",
+				"html/feuillesLiaison/getFeuilleLiaison.php"
 			]
 		],
 		"width": 0.0
@@ -875,10 +958,6 @@
 		"last_filter": "",
 		"selected_items":
 		[
-			[
-				"",
-				"~/prog/elm/uminokirin/uminokirin.sublime-project"
-			]
 		],
 		"width": 380.0
 	},
@@ -896,10 +975,10 @@
 	{
 	},
 	"show_minimap": true,
-	"show_open_files": true,
+	"show_open_files": false,
 	"show_tabs": true,
-	"side_bar_visible": false,
-	"side_bar_width": 206.0,
+	"side_bar_visible": true,
+	"side_bar_width": 266.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
