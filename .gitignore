@@ -1,7 +1,7 @@
-apacheBackup/utils.php
-apacheBackup/images/
-apacheBackup/assets/
-apacheBackup/visite/
-apacheBackup/baseDocumentaire/
+apache/utils.php
+apache/images/
+apache/assets/
+apache/visite/
+apache/baseDocumentaire/
 elm-stuff/
 *.sql
