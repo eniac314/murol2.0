@@ -5,3 +5,4 @@ apache/visite/
 apache/baseDocumentaire/
 elm-stuff/
 *.sql
+.DS_Store
