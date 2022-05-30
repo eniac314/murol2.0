@@ -1,5 +1,8 @@
 <?php
 include 'utils.php';
+require './vendor/autoload.php';
+error_reporting(E_ERROR | E_PARSE);
+use \ForceUTF8\Encoding;
 
 if(getenv('REQUEST_METHOD') == 'GET') {
 
@@ -24,9 +27,9 @@ if(getenv('REQUEST_METHOD') == 'GET') {
   while(mysqli_stmt_fetch($stmt)){
     array_push($news, ['uuid' => $uuid
                       ,'date' => $date
-                      ,'title' => $title
-                      ,'content' => is_null($content) ? $content : unserialize($content)
-                      ,'pic' => is_null($pic) ? $pic : unserialize($pic)
+                      ,'title' => Encoding::fixUTF8($title)
+                      ,'content' => $content
+                      ,'pic' => $pic
                       ,'expiry' => $expiry
                       ]);
   }
@@ -47,7 +50,7 @@ if(getenv('REQUEST_METHOD') == 'GET') {
     $newContent = json_encode($n['content']);
     $newPic = json_encode($n['pic']);
     
-    mysqli_stmt_bind_param($stmt,'sisssi', $n['uuid'], $n['date'], $n['title'], $newContent, $newPic, $n['expiry']);
+    mysqli_stmt_bind_param($stmt,'sisssi', $n['uuid'], $n['date'], $n['title'], $n['content'], $n['pic'], $n['expiry']);
     mysqli_stmt_execute($stmt);
   }
 

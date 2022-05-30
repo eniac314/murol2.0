@@ -1,0 +1,10 @@
+#! /bin/bash
+
+
+outputDir="apache/js/"
+
+echo "Building Murol.elm..."
+elm make src/Murol.elm --output="${outputDir}Murol.js" --debug
+
+echo "Building MurolAdmin.elm..."
+elm make src/MurolAdmin.elm --output="${outputDir}MurolAdmin.js" --debug

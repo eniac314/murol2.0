@@ -1730,7 +1730,12 @@ internalUpdate config msg model =
                             model.ficheBuffer
 
                         ( uuid, newSeed ) =
-                            Random.step UUID.generator seed
+                            case fb.uuid of
+                                Just id ->
+                                    ( id, seed )
+
+                                Nothing ->
+                                    Random.step UUID.generator seed
 
                         --if UUID.toString fb.uuid == UUID.nilString then
                         --    Random.step UUID.generator seed

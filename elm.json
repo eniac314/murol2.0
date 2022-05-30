@@ -8,7 +8,7 @@
         "direct": {
             "AdrianRibao/elm-derberos-date": "1.2.3",
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
-            "Skinney/murmur3": "2.0.8",
+            "robinheghan/murmur3": "1.0.0",
             "TSFoster/elm-uuid": "4.1.0",
             "ThinkAlexandria/elm-pretty-print-json": "1.0.1",
             "andrewMacmurray/elm-delay": "3.0.0",
