@@ -93,8 +93,9 @@ renderDoc config document =
                     renderCalendar config id attrs
 
                 CalendarSalleMurol ->
-                    renderCalendarSalleMurol config id attrs
+                    renderCalendarBoth config id attrs
 
+                --renderCalendarSalleMurol config id attrs
                 CalendarSalleBeaune ->
                     renderCalendarSalleBeaune config id attrs
 
@@ -1126,6 +1127,54 @@ renderCalendar config id attrs =
             )
         ]
     ]
+
+
+renderCalendarBoth config id attrs =
+    let
+        maxWidth =
+            min
+                (docMaxWidth
+                    ( config.width, config.height )
+                    config.editMode
+                    config.previewMode
+                )
+                config.width
+                - 40
+    in
+    [ column
+        [ width (px maxWidth)
+        , centerX
+        , spacing 15
+        ]
+        [ customHeading config 1 [] "Calendrier"
+        , el
+            [ centerX
+            , width fill
+            , height (px << round <| toFloat maxWidth / 1.333333)
+            ]
+            (if maxWidth <= 500 then
+                html <|
+                    Html.iframe
+                        [ Attr.src "https://calendar.google.com/calendar/embed?showTitle=0&showTabs=0&showNav=0&showPrint=0&showCalendars=0&showTz=0&mode=AGENDA&height=150&wkst=2&hl=fr&bgcolor=%23FFFFFF&src=cjQ2cmJvbm51aTIzNG4yYjJnbGF1NWJ0b29AZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=bjFqY2UzaGd2YXJrdDZuM282OWM2bmw2NmdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&ctz=Europe%2FParis&color=%2300c1cc&color=%23007451"
+                        , Attr.style "border-width" "0"
+                        ]
+                        []
+
+             else
+                html <|
+                    Html.iframe
+                        [ Attr.src <| "https://calendar.google.com/calendar/embed?showTitle=0&height=" ++ (String.fromInt << round <| toFloat maxWidth / 1.333333) ++ "&wkst=2&;bgcolor=%23FFFFFF&src=cjQ2cmJvbm51aTIzNG4yYjJnbGF1NWJ0b29AZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=bjFqY2UzaGd2YXJrdDZuM282OWM2bmw2NmdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&ctz=Europe%2FParis&color=%2300c1cc&color=%23007451"
+                        , Attr.height (round <| toFloat maxWidth / 1.333333)
+                        , Attr.style "border-width" "0"
+                        ]
+                        []
+            )
+        ]
+    ]
+
+
+
+--<iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&bgcolor=%23ffffff&ctz=Europe%2FParis&title=Calendrier%20salle%20des%20f%C3%AAtes&src=cjQ2cmJvbm51aTIzNG4yYjJnbGF1NWJ0b29AZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&src=bjFqY2UzaGd2YXJrdDZuM282OWM2bmw2NmdAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%2300c1cc&color=%23007451" style="border-width:0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
 
 
 renderCalendarSalleMurol config id attrs =
