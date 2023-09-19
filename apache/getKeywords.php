@@ -12,6 +12,8 @@ if(getenv('REQUEST_METHOD') == 'POST') {
    }
   
   $db = mysqli_connect($mysql_server, $mysql_user, $mysql_password, $mysql_db);
+  mysqli_set_charset($db,"utf8");
+
   $stmt  = mysqli_stmt_init($db);
 
   if (mysqli_connect_errno()){
